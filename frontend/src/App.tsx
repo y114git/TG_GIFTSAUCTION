@@ -1,0 +1,347 @@
+import { useState, useEffect } from 'react';
+import { api, type Auction } from './api';
+import './App.css';
+
+// Separate component for Countdown to avoid full app re-renders on every tick
+const CountDown = ({ targetDate }: { targetDate: string }) => {
+  const [timeLeft, setTimeLeft] = useState('');
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const end = new Date(targetDate).getTime();
+      const diff = end - now;
+
+      if (diff <= 0) {
+        setTimeLeft('00:00');
+      } else {
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+        setTimeLeft(`${m}:${s < 10 ? '0' + s : s}`);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [targetDate]);
+
+  return <span>{timeLeft}</span>;
+}
+
+type Tab = 'ACTIVE' | 'INVENTORY' | 'CREATE';
+
+function App() {
+  const [user, setUser] = useState<{ _id: string; username: string; balance: number } | null>(null);
+  const [usernameInput, setUsernameInput] = useState('');
+
+  const [activeTab, setActiveTab] = useState<Tab>('ACTIVE');
+  const [auctions, setAuctions] = useState<Auction[]>([]);
+  const [inventory, setInventory] = useState<any[]>([]);
+
+  // Create Auction state
+  const [newAuctionTitle, setNewAuctionTitle] = useState('');
+
+  const [selectedAuction, setSelectedAuction] = useState<Auction | null>(null);
+  const [bidAmount, setBidAmount] = useState<number>(0);
+  const [msg, setMsg] = useState('');
+
+  // Persist Login
+  useEffect(() => {
+    const savedId = localStorage.getItem('userId');
+    const savedName = localStorage.getItem('username');
+    if (savedId && savedName) {
+      api.getMe(savedId).then(u => setUser(u)).catch(() => localStorage.clear());
+    }
+  }, []);
+
+  // Login
+  const handleLogin = async () => {
+    try {
+      const u = await api.login(usernameInput);
+      setUser(u);
+      localStorage.setItem('userId', u._id);
+      localStorage.setItem('username', u.username);
+      loadAuctions();
+    } catch (e) {
+      alert('Login failed');
+    }
+  };
+
+  // Logout
+  const handleLogout = () => {
+    localStorage.clear();
+    setUser(null);
+    setSelectedAuction(null);
+    setUsernameInput('');
+    setNewAuctionTitle('');
+  }
+
+  // Load Auctions
+  const loadAuctions = async () => {
+    try {
+      const list = await api.getAuctions();
+      setAuctions(list);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Load Inventory
+  const loadInventory = async () => {
+    if (!user) return;
+    try {
+      const items = await api.getInventory(user._id);
+      setInventory(items);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Refresh User Balance
+  const refreshUser = async () => {
+    if (!user) return;
+    const u = await api.getMe(user._id);
+    setUser(u);
+  };
+
+  // View Auction Details
+  const viewAuction = async (id: string, preserveInput = false) => {
+    try {
+      const data = await api.getAuctionDetails(id);
+      setSelectedAuction(data);
+
+      // Set default bid amount ONLY if not preserving input or first load
+      if (!preserveInput) {
+        const currentRound = data.rounds[data.currentRoundIndex];
+        if (currentRound) {
+          setBidAmount(currentRound.minBid);
+        }
+      }
+    } catch (e: any) {
+      // If 404, it means auction is finished/deleted
+      if (e.response?.status === 404) {
+        setSelectedAuction(null);
+        setMsg('Auction finished!');
+        loadAuctions();
+        if (activeTab === 'INVENTORY') loadInventory(); // Also refresh inventory if they won
+      } else {
+        console.error('Error fetching auction:', e);
+      }
+    }
+  };
+
+  // Place Bid
+  const handleBid = async () => {
+    if (!user || !selectedAuction) return;
+    try {
+      await api.placeBid(selectedAuction._id, Number(bidAmount), user._id);
+      setMsg('Bid placed!');
+      refreshUser();
+      viewAuction(selectedAuction._id, false); // Reset to minBid after success? Or keep? Let's reset.
+    } catch (e: any) {
+      setMsg(`Error: ${e.response?.data?.error || e.message}`);
+    }
+  };
+
+  // Polling for real-time updates based on Tab
+  useEffect(() => {
+    if (!user) return;
+    const interval = setInterval(() => {
+      refreshUser();
+      if (selectedAuction) viewAuction(selectedAuction._id, true); // PRESERVE INPUT on poll
+      else if (activeTab === 'ACTIVE') loadAuctions();
+      else if (activeTab === 'INVENTORY') loadInventory();
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [user, selectedAuction, activeTab]);
+
+  // Initial load when tab changes
+  useEffect(() => {
+    if (activeTab === 'ACTIVE') loadAuctions();
+    if (activeTab === 'INVENTORY') loadInventory();
+  }, [activeTab]);
+
+
+  if (!user) {
+    return (
+      <div className="container center">
+        <h1>Telegram Auction Immitation</h1>
+        <div className="card">
+          <h2 className="text-center">Login</h2>
+          <input
+            value={usernameInput}
+            onChange={e => setUsernameInput(e.target.value)}
+            placeholder="Username"
+          />
+          <button onClick={handleLogin}>Enter</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="app-container">
+      <header>
+        <div className="logo">💎 Gift Auction</div>
+        <div className="balance-container">
+          <span className="balance">{user.username} | <strong>{user.balance} Stars</strong></span>
+          <button className="deposit-btn" onClick={async () => {
+            const amt = prompt('Amount to load:', '1000');
+            if (amt) {
+              await api.deposit(Number(amt), user._id);
+              refreshUser();
+            }
+          }}>+ Add</button>
+          <button className="exit-btn" onClick={handleLogout}>Exit</button>
+        </div>
+      </header>
+
+      {/* Tabs */}
+      <nav className="tabs">
+        <button className={activeTab === 'ACTIVE' ? 'active' : ''} onClick={() => { setSelectedAuction(null); setActiveTab('ACTIVE'); }}>Active Auctions</button>
+        <button className={activeTab === 'INVENTORY' ? 'active' : ''} onClick={() => { setSelectedAuction(null); setActiveTab('INVENTORY'); }}>My Inventory</button>
+        <button className={activeTab === 'CREATE' ? 'active' : ''} onClick={() => { setSelectedAuction(null); setActiveTab('CREATE'); }}>Create Auction</button>
+      </nav>
+
+      <main>
+        {msg && <div className="msg" style={{ marginBottom: 10 }}>{msg}</div>}
+
+        {selectedAuction ? (
+          <div className="auction-detail">
+            <button onClick={() => setSelectedAuction(null)}>← Back</button>
+            <h2 className="text-center">{selectedAuction.title}</h2>
+            <div className="round-info">
+              <h3>Round {selectedAuction.currentRoundIndex + 1} / {selectedAuction.rounds.length}</h3>
+              {selectedAuction.rounds[selectedAuction.currentRoundIndex] && (
+                <div className="timer">
+                  {selectedAuction.rounds[selectedAuction.currentRoundIndex].endTime ?
+                    <CountDown targetDate={selectedAuction.rounds[selectedAuction.currentRoundIndex].endTime!} /> :
+                    <span>Waiting for first bid...</span>
+                  }
+                </div>
+              )}
+            </div>
+
+            <div className="bidding-zone">
+              <p>Min Bid: {selectedAuction.rounds[selectedAuction.currentRoundIndex]?.minBid}</p>
+              <input
+                type="number"
+                value={bidAmount}
+                onChange={e => setBidAmount(Number(e.target.value))}
+              />
+              <button className="primary-btn" onClick={handleBid}>Place Bid</button>
+            </div>
+
+            <div className="leaderboard">
+              <h3>Top Bids (Winners Zone)</h3>
+              {selectedAuction.topBids
+                ?.slice(0, selectedAuction.rounds[selectedAuction.currentRoundIndex].winnersCount)
+                .map((b, i) => (
+                  <div key={b._id} className={`bid-row rank-${i + 1}`}>
+                    <span>
+                      {i === 0 && '🥇 '}
+                      {i === 1 && '🥈 '}
+                      {i === 2 && '🥉 '}
+                      #{i + 1} {(b.userId as any).username}
+                    </span>
+                    <span>{b.amount} Stars</span>
+                  </div>
+                ))}
+              {(!selectedAuction.topBids || selectedAuction.topBids.length === 0) && <p>No bids yet</p>}
+
+              {/* Show count of hidden bids */}
+              {(selectedAuction.topBids?.length || 0) > selectedAuction.rounds[selectedAuction.currentRoundIndex].winnersCount && (
+                <p className="text-center" style={{ opacity: 0.5, marginTop: 10 }}>
+                  + {(selectedAuction.topBids?.length || 0) - selectedAuction.rounds[selectedAuction.currentRoundIndex].winnersCount} other anonymous bids
+                </p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* ACTIVE TAB */}
+            {activeTab === 'ACTIVE' && (
+              <div className="auction-list">
+                <h2 className="text-center">Active Auctions</h2>
+                {auctions.map(a => (
+                  <div key={a._id} className="auction-card">
+                    <h3>{a.title}</h3>
+                    <p>Round {a.currentRoundIndex + 1}</p>
+                    <button onClick={() => viewAuction(a._id)}>Participate</button>
+                  </div>
+                ))}
+                {auctions.length === 0 && <p className="text-center">No active auctions.</p>}
+              </div>
+            )}
+
+            {/* INVENTORY TAB */}
+            {activeTab === 'INVENTORY' && (
+              <div className="inventory-list">
+                <h2 className="text-center">My Gifts</h2>
+                <div className="inventory-grid">
+                  {inventory.map((item, i) => (
+                    <div key={i} className="inventory-item">
+                      <div className="gift-icon">🎁</div>
+                      <h3>{item.auction?.title || 'Unknown Gift'}</h3>
+                      <p>Won for: {item.amount} Stars</p>
+                      <span className="date">{new Date(item.date).toLocaleDateString()}</span>
+                    </div>
+                  ))}
+                </div>
+                {inventory.length === 0 && <p className="text-center">You haven't won any gifts yet.</p>}
+              </div>
+            )}
+
+            {/* CREATE TAB */}
+            {activeTab === 'CREATE' && (
+              <div className="create-container">
+                <h2 className="text-center">Create New Auction</h2>
+                <div className="card">
+                  <label>Gift Title</label>
+                  <input value={newAuctionTitle} onChange={e => setNewAuctionTitle(e.target.value)} placeholder="E.g. Rare Username" />
+
+                  <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <label>Min Bid</label>
+                      <input type="number" defaultValue={10} id="newMinBid" />
+                    </div>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <label>Winners Count</label>
+                      <input type="number" defaultValue={1} id="newWinnersCount" />
+                    </div>
+                  </div>
+                  <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column' }}>
+                    <label>Round duration (min)</label>
+                    <input type="number" defaultValue={1} id="newDuration" />
+                  </div>
+
+                  <br />
+                  <button onClick={() => {
+                    const minBid = Number((document.getElementById('newMinBid') as HTMLInputElement).value);
+                    const winnersCount = Number((document.getElementById('newWinnersCount') as HTMLInputElement).value);
+                    const durationMin = Number((document.getElementById('newDuration') as HTMLInputElement).value);
+
+                    api.createAuction({
+                      title: newAuctionTitle,
+                      minBid,
+                      winnersCount,
+                      duration: durationMin * 60000,
+                      roundsCount: 1 // Simple v1
+                    }, user!._id).then(() => {
+                      setNewAuctionTitle('');
+                      setActiveTab('ACTIVE');
+                      loadAuctions();
+                      setMsg('Auction created!');
+                      setTimeout(() => setMsg(''), 3000);
+                    }).catch(e => alert(e.message));
+
+                  }}>Create Auction</button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </main>
+    </div>
+  );
+}
+
+export default App;

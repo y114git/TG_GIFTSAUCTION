@@ -1,0 +1,32 @@
+import mongoose, { Schema, Document } from 'mongoose';
+
+export enum BidStatus {
+    ACTIVE = 'ACTIVE',
+    WINNER = 'WINNER',
+    OUTBID = 'OUTBID', // Technically not needed if we just check rank, but good for history
+    LOST = 'LOST'
+}
+
+export interface IBid extends Document {
+    auctionId: mongoose.Types.ObjectId;
+    userId: mongoose.Types.ObjectId;
+    amount: number;
+    roundIndex: number; // The round this bid serves
+    status: BidStatus;
+    snapshotTitle?: string;
+    createdAt: Date;
+}
+
+const BidSchema: Schema = new Schema({
+    auctionId: { type: Schema.Types.ObjectId, ref: 'Auction', required: true, index: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    amount: { type: Number, required: true },
+    roundIndex: { type: Number, required: true },
+    status: { type: String, enum: Object.values(BidStatus), default: BidStatus.ACTIVE },
+    snapshotTitle: { type: String } // Snapshot of auction title for inventory display after auction deletion
+}, { timestamps: true });
+
+// Compound index for efficient looking up of top bids in a round
+BidSchema.index({ auctionId: 1, roundIndex: 1, amount: -1 });
+
+export const Bid = mongoose.model<IBid>('Bid', BidSchema);

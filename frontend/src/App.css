@@ -1,0 +1,271 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: #0e1621;
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  /* Center the whole body content */
+  align-items: center;
+  /* Center vertically */
+  justify-content: center;
+  /* Center horizontally */
+}
+
+.app-container {
+  max-width: 600px;
+  width: 100%;
+  margin: 2rem;
+  background: #17212b;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.container.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100vh;
+}
+
+.card {
+  background: #17212b;
+  padding: 2rem;
+  border-radius: 12px;
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+  min-width: 300px;
+}
+
+input {
+  background: #242f3d;
+  border: 1px solid #2b5278;
+  color: #fff;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 1rem;
+  width: 100%;
+  /* Ensure full width */
+  box-sizing: border-box;
+  /* Handle padding correctly */
+}
+
+button {
+  background: #40a7e3;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+button:hover {
+  background: #3695ce;
+}
+
+header {
+  background: #242f3d;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+main {
+  padding: 20px;
+}
+
+.auction-card {
+  background: #2b5278;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.auction-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.round-info {
+  background: #0e1621;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.timer {
+  font-size: 1.5rem;
+  color: #fca5a5;
+  font-weight: bold;
+}
+
+.bidding-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #242f3d;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.leaderboard {
+  background: #242f3d;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.bid-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  border-bottom: 1px solid #2b5278;
+}
+
+.msg {
+  color: #fbbf24;
+  text-align: center;
+}
+
+.balance-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.deposit-btn {
+  background: #2b5278;
+  padding: 5px 12px;
+  font-size: 0.9rem;
+}
+
+.deposit-btn:hover {
+  background: #40a7e3;
+}
+
+.exit-btn {
+  background: #e53935;
+  padding: 5px 12px;
+  font-size: 0.9rem;
+  margin-left: 5px;
+}
+
+.exit-btn:hover {
+  background: #d32f2f;
+}
+
+/* Utilities */
+.text-center {
+  text-align: center;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  background: #242f3d;
+  padding: 10px;
+  gap: 10px;
+  justify-content: center;
+}
+
+.tabs button {
+  background: transparent;
+  border: 1px solid #2b5278;
+  color: #8fa0b3;
+}
+
+.tabs button.active {
+  background: #40a7e3;
+  color: white;
+  border-color: #40a7e3;
+}
+
+/* Inventory */
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.inventory-item {
+  background: #242f3d;
+  padding: 15px;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid #2b5278;
+}
+
+.gift-icon {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+.inventory-item h3 {
+  font-size: 1rem;
+  margin: 5px 0;
+}
+
+.inventory-item p {
+  font-size: 0.8rem;
+  color: #8fa0b3;
+  margin: 0;
+}
+
+.create-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Ranks */
+.rank-1 {
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.1) 0%, transparent 100%);
+  border-left: 3px solid #ffd700;
+}
+
+.rank-2 {
+  background: linear-gradient(90deg, rgba(192, 192, 192, 0.1) 0%, transparent 100%);
+  border-left: 3px solid #c0c0c0;
+}
+
+.rank-3 {
+  background: linear-gradient(90deg, rgba(205, 127, 50, 0.1) 0%, transparent 100%);
+  border-left: 3px solid #cd7f32;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bid-row {
+  animation: slideIn 0.3s ease-out;
+}
+
+.msg {
+  animation: slideIn 0.2s ease-out;
+}
