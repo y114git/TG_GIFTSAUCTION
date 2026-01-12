@@ -8,7 +8,7 @@ export class PaymentService {
      * Deposit funds to a user's balance.
      */
     static async deposit(userId: string, amount: number, session: mongoose.ClientSession | null = null): Promise<IUser> {
-        if (amount <= 0) throw new Error('Deposit amount must be positive');
+        // if (amount <= 0) throw new Error('Deposit amount must be positive'); // Removed constraint
 
         const localSession = session ? session : await mongoose.startSession();
         if (!session) localSession.startTransaction();
@@ -17,13 +17,18 @@ export class PaymentService {
             const user = await User.findById(userId).session(localSession);
             if (!user) throw new Error('User not found');
 
+            // Overdraft check removed as requested
+            // if (amount < 0 && (user.balance + amount) < 0) {
+            //    throw new Error('Insufficient funds');
+            // }
+
             user.balance += amount;
             await user.save({ session: localSession });
 
             await Transaction.create([{
                 userId,
                 amount,
-                type: TransactionType.DEPOSIT
+                type: amount < 0 ? TransactionType.WITHDRAWAL : TransactionType.DEPOSIT
             }], { session: localSession });
 
             if (!session) await localSession.commitTransaction();

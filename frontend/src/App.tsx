@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { api, type Auction } from './api';
+import { api, type Auction, type Transaction } from './api';
 import './App.css';
 
 // Separate component for Countdown to avoid full app re-renders on every tick
@@ -26,7 +26,7 @@ const CountDown = ({ targetDate }: { targetDate: string }) => {
   return <span>{timeLeft}</span>;
 }
 
-type Tab = 'ACTIVE' | 'INVENTORY' | 'CREATE';
+type Tab = 'ACTIVE' | 'INVENTORY' | 'CREATE' | 'HISTORY';
 
 function App() {
   const [user, setUser] = useState<{ _id: string; username: string; balance: number } | null>(null);
@@ -35,6 +35,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<Tab>('ACTIVE');
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [inventory, setInventory] = useState<any[]>([]);
+  const [history, setHistory] = useState<Transaction[]>([]);
 
   // Create Auction state
   const [newAuctionTitle, setNewAuctionTitle] = useState('');
@@ -95,6 +96,17 @@ function App() {
     }
   };
 
+  // Load History
+  const loadHistory = async () => {
+    if (!user) return;
+    try {
+      const list = await api.getTransactions(user._id);
+      setHistory(list);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   // Refresh User Balance
   const refreshUser = async () => {
     if (!user) return;
@@ -141,6 +153,8 @@ function App() {
     }
   };
 
+
+
   // Polling for real-time updates based on Tab
   useEffect(() => {
     if (!user) return;
@@ -149,6 +163,7 @@ function App() {
       if (selectedAuction) viewAuction(selectedAuction._id, true); // PRESERVE INPUT on poll
       else if (activeTab === 'ACTIVE') loadAuctions();
       else if (activeTab === 'INVENTORY') loadInventory();
+      else if (activeTab === 'HISTORY') loadHistory();
     }, 2000);
     return () => clearInterval(interval);
   }, [user, selectedAuction, activeTab]);
@@ -157,6 +172,7 @@ function App() {
   useEffect(() => {
     if (activeTab === 'ACTIVE') loadAuctions();
     if (activeTab === 'INVENTORY') loadInventory();
+    if (activeTab === 'HISTORY') loadHistory();
   }, [activeTab]);
 
 
@@ -182,15 +198,34 @@ function App() {
       <header>
         <div className="logo">💎 Gift Auction</div>
         <div className="balance-container">
+          <button className="history-btn-icon" title="Transaction History" onClick={() => { setSelectedAuction(null); setActiveTab('HISTORY'); }}>
+            📜
+          </button>
           <span className="balance">{user.username} | <strong>{user.balance} Stars</strong></span>
-          <button className="deposit-btn" onClick={async () => {
-            const amt = prompt('Amount to load:', '1000');
-            if (amt) {
-              await api.deposit(Number(amt), user._id);
-              refreshUser();
-            }
-          }}>+ Add</button>
-          <button className="exit-btn" onClick={handleLogout}>Exit</button>
+          <div className="balance-actions">
+            <button className="deposit-btn" title="Add Funds" onClick={async (e) => {
+              e.preventDefault();
+              const amt = window.prompt('Amount to add:');
+              if (amt && Number(amt) > 0) {
+                try {
+                  await api.deposit(Number(amt), user._id);
+                  refreshUser();
+                } catch (e: any) { alert(e.response?.data?.error || e.message); }
+              }
+            }}>+</button>
+            <button className="withdraw-btn" title="Withdraw Funds" onClick={async (e) => {
+              e.preventDefault();
+              const amt = window.prompt('Amount to withdraw:');
+              if (amt && Number(amt) > 0) {
+                try {
+                  // Allow negative for withdraw (backend checks removed)
+                  await api.deposit(-Number(amt), user._id);
+                  refreshUser();
+                } catch (e: any) { alert(e.response?.data?.error || e.message); }
+              }
+            }}>-</button>
+            <button className="exit-btn" onClick={handleLogout}>Exit</button>
+          </div>
         </div>
       </header>
 
@@ -198,6 +233,7 @@ function App() {
       <nav className="tabs">
         <button className={activeTab === 'ACTIVE' ? 'active' : ''} onClick={() => { setSelectedAuction(null); setActiveTab('ACTIVE'); }}>Active Auctions</button>
         <button className={activeTab === 'INVENTORY' ? 'active' : ''} onClick={() => { setSelectedAuction(null); setActiveTab('INVENTORY'); }}>My Inventory</button>
+
         <button className={activeTab === 'CREATE' ? 'active' : ''} onClick={() => { setSelectedAuction(null); setActiveTab('CREATE'); }}>Create Auction</button>
       </nav>
 
@@ -259,7 +295,7 @@ function App() {
           <>
             {/* ACTIVE TAB */}
             {activeTab === 'ACTIVE' && (
-              <div className="auction-list">
+              <div className="auction-list slide-enter"> {/* Animation class */}
                 <h2 className="text-center">Active Auctions</h2>
                 {auctions.map(a => (
                   <div key={a._id} className="auction-card">
@@ -274,7 +310,7 @@ function App() {
 
             {/* INVENTORY TAB */}
             {activeTab === 'INVENTORY' && (
-              <div className="inventory-list">
+              <div className="inventory-list slide-enter">
                 <h2 className="text-center">My Gifts</h2>
                 <div className="inventory-grid">
                   {inventory.map((item, i) => (
@@ -287,6 +323,41 @@ function App() {
                   ))}
                 </div>
                 {inventory.length === 0 && <p className="text-center">You haven't won any gifts yet.</p>}
+              </div>
+            )}
+
+            {/* HISTORY TAB */}
+            {activeTab === 'HISTORY' && (
+              <div className="history-list slide-enter">
+                <h2 className="text-center">Transaction History</h2>
+                <div className="history-container">
+                  <table className="history-table">
+                    <thead>
+                      <tr>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {history.map(tx => (
+                        <tr key={tx._id}>
+                          <td>
+                            <span className="badge">{tx.type}</span>
+                          </td>
+                          <td style={{
+                            fontWeight: 'bold',
+                            color: tx.amount > 0 ? '#4ade80' : '#f87171'
+                          }}>
+                            {tx.amount > 0 ? '+' : ''}{tx.amount}
+                          </td>
+                          <td>{new Date(tx.createdAt).toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {history.length === 0 && <p className="text-center">No transactions found.</p>}
               </div>
             )}
 

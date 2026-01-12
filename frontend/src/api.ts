@@ -28,6 +28,15 @@ export interface Bid {
     status: string;
 }
 
+export interface Transaction {
+    _id: string;
+    userId: string;
+    amount: number;
+    type: string;
+    referenceId?: string;
+    createdAt: string;
+}
+
 export const api = {
     login: async (username: string) => {
         const res = await axios.post(`${API_URL}/auth/login`, { username });
@@ -60,6 +69,13 @@ export const api = {
 
     deposit: async (amount: number, userId: string) => {
         const res = await axios.post(`${API_URL}/me/deposit`, { amount }, {
+            headers: { 'x-user-id': userId }
+        });
+        return res.data;
+    },
+
+    getTransactions: async (userId: string) => {
+        const res = await axios.get(`${API_URL}/me/transactions`, {
             headers: { 'x-user-id': userId }
         });
         return res.data;

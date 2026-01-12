@@ -60,7 +60,8 @@ export async function authRoutes(fastify: FastifyInstance) {
         const { amount } = req.body as { amount: number };
 
         if (!userId) return reply.code(401).send({ error: 'Unauthorized' });
-        if (!amount || amount <= 0) return reply.code(400).send({ error: 'Invalid amount' });
+        // Allow negative for withdrawal, but check for 0
+        if (!amount || amount === 0) return reply.code(400).send({ error: 'Invalid amount' });
 
         try {
             const user = await PaymentService.deposit(userId, amount);

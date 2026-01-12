@@ -103,7 +103,7 @@ export class BidService {
         if (!round.endTime) return;
 
         const SNIPE_WINDOW_MS = 30 * 1000; // 30 seconds
-        const EXTENSION_MS = 60 * 1000; // 1 minute
+        const EXTENSION_MS = 30 * 1000; // 30 seconds
 
         const timeLeft = round.endTime.getTime() - now.getTime();
         if (timeLeft < SNIPE_WINDOW_MS && timeLeft > 0) {

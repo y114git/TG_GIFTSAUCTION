@@ -20,7 +20,12 @@ body {
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   overflow: hidden;
+  min-height: 700px;
+  /* Fix vertical jump (leans up) when content is short */
+  display: flex;
+  flex-direction: column;
 }
+
 
 .container.center {
   display: flex;
@@ -49,9 +54,7 @@ input {
   border-radius: 6px;
   font-size: 1rem;
   width: 100%;
-  /* Ensure full width */
   box-sizing: border-box;
-  /* Handle padding correctly */
 }
 
 button {
@@ -148,14 +151,34 @@ main {
   gap: 15px;
 }
 
-.deposit-btn {
-  background: #2b5278;
-  padding: 5px 12px;
-  font-size: 0.9rem;
+.balance-actions {
+  display: flex;
+  gap: 5px;
 }
 
-.deposit-btn:hover {
+
+.deposit-btn,
+.withdraw-btn {
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  /* Ensure square */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  line-height: 1;
   background: #40a7e3;
+  /* Telegram Blue */
+  color: white;
+  border-radius: 6px;
+}
+
+.deposit-btn:hover,
+.withdraw-btn:hover {
+  background: #3695ce;
 }
 
 .exit-btn {
@@ -163,10 +186,31 @@ main {
   padding: 5px 12px;
   font-size: 0.9rem;
   margin-left: 5px;
+  height: 30px;
+  display: flex;
+  /* Align with others */
+  align-items: center;
 }
 
 .exit-btn:hover {
   background: #d32f2f;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-enter {
+  animation: fadeIn 0.3s ease-out;
 }
 
 /* Utilities */
@@ -268,4 +312,98 @@ main {
 
 .msg {
   animation: slideIn 0.2s ease-out;
+}
+
+/* History */
+.history-btn-icon {
+  background: transparent;
+  font-size: 1.5rem;
+  padding: 5px;
+  margin-right: 10px;
+}
+
+.history-container {
+  overflow-x: auto;
+  background: #242f3d;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.history-table th {
+  text-align: left;
+  padding: 10px;
+  color: #8fa0b3;
+  border-bottom: 1px solid #2b5278;
+  font-size: 0.9rem;
+}
+
+.history-table td {
+  padding: 10px;
+  border-bottom: 1px solid #17212b;
+  font-size: 0.9rem;
+}
+
+.history-table tr:last-child td {
+  border-bottom: none;
+}
+
+.badge {
+  background: #2b5278;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #fff;
+}
+
+/* Mobile Adaptation */
+@media (max-width: 600px) {
+  .app-container {
+    margin: 0;
+    width: 100%;
+    min-height: 100vh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  header {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .balance-container {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .tabs {
+    justify-content: flex-start;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 5px;
+    /* Space for scrollbar if any */
+  }
+
+  .tabs button {
+    flex-shrink: 0;
+    padding: 8px 15px;
+  }
+
+  main {
+    padding: 15px;
+  }
+
+  .inventory-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+
+  .leaderboard {
+    font-size: 0.9rem;
+  }
 }

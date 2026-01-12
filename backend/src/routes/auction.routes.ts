@@ -26,7 +26,7 @@ export async function auctionRoutes(fastify: FastifyInstance) {
             auctionId: id,
             roundIndex: auction.currentRoundIndex,
             status: { $in: [BidStatus.ACTIVE] }
-        }).sort({ amount: -1 }).limit(10).populate('userId', 'username');
+        }).sort({ amount: -1 }).limit(200).populate('userId', 'username');
 
         return { ...auction.toObject(), topBids };
     });

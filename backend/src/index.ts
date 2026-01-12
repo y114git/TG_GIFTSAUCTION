@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { connectDB } from './db';
 import { authRoutes } from './routes/auth.routes';
 import { auctionRoutes } from './routes/auction.routes';
+import { transactionRoutes } from './routes/transactions.routes';
 import { AuctionEngine } from './services/AuctionEngine';
 
 dotenv.config();
@@ -17,6 +18,7 @@ server.register(cors, {
 // Register Routes
 server.register(authRoutes);
 server.register(auctionRoutes);
+server.register(transactionRoutes);
 
 // Health check
 server.get('/health', async (request, reply) => {

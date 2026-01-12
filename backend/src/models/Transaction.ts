@@ -4,7 +4,8 @@ export enum TransactionType {
     DEPOSIT = 'DEPOSIT',
     BID_LOCK = 'BID_LOCK',
     BID_REFUND = 'BID_REFUND',
-    WIN_CAPTURE = 'WIN_CAPTURE'
+    WIN_CAPTURE = 'WIN_CAPTURE',
+    WITHDRAWAL = 'WITHDRAWAL'
 }
 
 export interface ITransaction extends Document {

@@ -1,7 +1,7 @@
 
 import mongoose from 'mongoose';
 import { Auction, AuctionStatus } from '../models/Auction';
-import { User } from '../models/User';
+import { User, IUser } from '../models/User';
 import { Bid, BidStatus } from '../models/Bid';
 import { Transaction } from '../models/Transaction';
 import { AuctionEngine } from '../services/AuctionEngine';
@@ -35,15 +35,14 @@ async function runSimulation() {
 
     // 1. Create Users
     console.log(`Creating ${NUM_USERS} users...`);
-    const users = [];
+    const users: IUser[] = [];
     for (let i = 0; i < NUM_USERS; i++) {
         const user = await User.create({
             username: `bot_${i}`,
-            telegramId: `tg_${i}`,
             balance: 0,
             lockedBalance: 0
         });
-        await PaymentService.deposit(user.id, INITIAL_BALANCE);
+        await PaymentService.deposit(user._id.toString(), INITIAL_BALANCE);
         users.push(user);
     }
     console.log('Users created and funded.');
@@ -78,7 +77,7 @@ async function runSimulation() {
         currentRoundIndex: 0,
         totalWinnersNeeded: auctionConfig.winnersCount * auctionConfig.roundsCount
     });
-    console.log(`Auction ${auction.id} created.`);
+    console.log(`Auction ${auction._id.toString()} created.`);
 
     // Start Engine Loop
     AuctionEngine.startEngine(1000); // 1s check interval
@@ -86,7 +85,7 @@ async function runSimulation() {
     // --- ROUND 1 ---
     console.log('\n--- ROUND 1 START ---');
     // First bid triggers start
-    await BidService.placeBid(users[0].id, auction.id, 100);
+    await BidService.placeBid(users[0]._id.toString(), auction._id.toString(), 100);
     console.log('Auction Clock Started by User 0');
 
     // Random bids
@@ -94,7 +93,7 @@ async function runSimulation() {
     for (let i = 1; i < 20; i++) {
         const amount = 100 + Math.floor(Math.random() * 500);
         promisesR1.push(
-            BidService.placeBid(users[i].id, auction.id, amount)
+            BidService.placeBid(users[i]._id.toString(), auction._id.toString(), amount)
                 .catch((e: any) => console.error(`R1 Bid Error for ${users[i].username}: ${e.message}`))
         );
     }
@@ -108,7 +107,7 @@ async function runSimulation() {
     // --- ROUND 2 ---
     console.log('\n--- ROUND 2 START ---');
     // Reload auction to check index
-    let currentAuction = await Auction.findById(auction.id);
+    let currentAuction = await Auction.findById(auction._id.toString());
     if (!currentAuction || currentAuction.currentRoundIndex !== 1) {
         console.warn('Warning: Round 1 might not have finished yet or auction finished early.');
     } else {
@@ -120,7 +119,7 @@ async function runSimulation() {
     for (let i = 20; i < 35; i++) {
         const amount = 500 + Math.floor(Math.random() * 1000);
         promisesR2.push(
-            BidService.placeBid(users[i].id, auction.id, amount)
+            BidService.placeBid(users[i]._id.toString(), auction._id.toString(), amount)
                 .catch((e: any) => console.error(`R2 New Bid Error: ${e.message}`))
         );
     }
@@ -129,7 +128,7 @@ async function runSimulation() {
     for (let i = 0; i < 10; i++) {
         const amount = 2000 + Math.floor(Math.random() * 500);
         promisesR2.push(
-            BidService.placeBid(users[i].id, auction.id, amount)
+            BidService.placeBid(users[i]._id.toString(), auction._id.toString(), amount)
                 .catch((e: any) => console.error(`R2 Upgrade Error: ${e.message}`))
         );
     }
@@ -147,7 +146,7 @@ async function runSimulation() {
     for (let i = 0; i < NUM_USERS; i++) {
         const amount = 3000 + Math.floor(Math.random() * 5000);
         promisesR3.push(
-            BidService.placeBid(users[i].id, auction.id, amount)
+            BidService.placeBid(users[i]._id.toString(), auction._id.toString(), amount)
                 .catch((e: any) => { }) // Ignore errors (e.g. low bid)
         );
     }
@@ -209,7 +208,7 @@ async function runSimulation() {
     // 3. Round Finalization
     // Auction should be deleted or marked finished?
     // Engine deletes it.
-    const checkAuction = await Auction.findById(auction.id);
+    const checkAuction = await Auction.findById(auction._id.toString());
     if (!checkAuction) {
         console.log('✅ AUCTION CLEANUP CHECK PASSED: Auction logic deleted document.');
     } else {

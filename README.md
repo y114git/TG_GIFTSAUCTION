@@ -1,102 +1,138 @@
 # Telegram Digital Gifts Auction Clone
 
 > **Contest Submission for Backend Development**
-> This project implements the backend mechanics of Telegram Gift Auctions with a focus on financial integrity, concurrency, and product logic.
+> This project implements the complete backend and frontend mechanics of Telegram Gift Auctions, focusing on high-concurrency handling, financial integrity, and a premium user experience.
 
-## 🎯 Mechanics Understanding
+## Key Features
 
-Based on the contest description and analysis of Telegram's product, I implemented the following mechanics:
+### 1. Advanced Auction Mechanics
+- **Multi-Round Auctions**: Auctions progress through $N$ rounds.
+- **Carry-Over Logic**: Bids that don't win in Round $i$ are automatically carried over to Round $i+1$, ensuring users don't need to re-bid constantly.
+- **Anti-Sniping**: 
+  - **Logic**: If a bid is placed in the last **30 seconds** of a round, the round timer extends by **30 seconds**.
+  - **Implementation**: Atomic updates in `BidService` using optimistic locking to prevent race conditions during high concurrency.
 
-### 1. Multi-Round Auction
-- **Logic**: Each auction consists of $R$ rounds.
-- **Winners**: In each round, the top $N$ bidders win.
-- **Carry-Over**: Users who place a bid but do not win in Round $i$ are automatically carried over to Round $i+1$.
-  - *My Implementation*: A user has **one active bid** per auction. If they bid again, they "upgrade" their existing bid. If they lose a round, their bid remains "Active" and counts towards the next round ranking automatically.
+### 2. Financial Integrity & Transactions
+- **Double-Entry Accounting**: Every action (Deposit, Bid, Refund, Win) is recorded as an immutable `Transaction` record.
+- **Funds Locking**:
+  - Bidding moves funds from `Balance` to `LockedBalance`.
+  - **Bid Upgrades**: Users can increase their bid at any time. The system calculates the difference and only locks the additional amount.
+- **Auditability**: Users can view their full transaction history with "Green/Red" indicators for inflows/outflows.
 
-### 2. Bidding & Financials
-- **One Bid Per User**: A user cannot have multiple active bids in the same auction to prevent accidental double-spending.
-- **Upgrades**: Users can increase their bid at any time. The system only locks the difference (`NewAmount - OldAmount`).
-- **Funds Locking**: 
-  - When bidding, funds are moved from `Balance` to `LockedBalance`.
-  - **Safety**: This ensures users cannot withdraw or spend funds locked in active bids.
-- **Settlement**:
-  - **Win**: Locked funds are "Captured" (removed from LockedBalance).
-  - **Loss**: Locked funds may be refunded if the user drops out or the auction ends without them winning.
-
-### 3. Anti-Sniping
-- **Rule**: If a bid is placed in the last 30 seconds of a round, the round is extended by 60 seconds.
-- **Implementation**: Handled atomically in `BidService`.
+### 3. Real-Time Architecture
+- **Tech Stack**: Node.js + Fastify (High Performance), TypeScript, MongoDB (Replica Set).
+- **Concurrency**: Tested with 50+ concurrent bots. Uses Mongoose concurrency versions (`__v`) to handle simultaneous bids on the same auction.
+- **Frontend**: React + Vite application with polling-based real-time updates (simulating WebSocket behavior for this demo scope).
 
 ---
 
-## 🏗 Architecture & Stack
+## System Architecture
 
-| Component | Technology | Reasoning |
-|-----------|------------|-----------|
-| **Runtime** | **Node.js + Fastify** | High-performance async I/O, lower overhead than Express. |
-| **Language** | **TypeScript** | Type safety for financial calculations and business logic. |
-| **Database** | **MongoDB (Replica Set)** | Validated choice for document storage. **Transactions** are strictly used for all money-related operations. |
-| **Concurrency** | **Optimistic Locking** | Used for Auction state updates (e.g. extending rounds) to prevent race conditions. |
+### Backend Structure (`/backend`)
+- **`src/services/`**
+  - `AuctionEngine.ts`: The heartbeat of the system. Runs a loop to finalize rounds, distribute winnings, and transition auction states.
+  - `BidService.ts`: Handles bid placement, validation, fund locking, and anti-sniping logic.
+  - `PaymentService.ts`: Manages user balances and atomic transaction creation.
+- **`src/models/`**
+  - `User.ts`: Stores balance and locked funds.
+  - `Auction.ts`: Complex schema storing rounds, current state, and configuration.
+  - `Bid.ts`: Individual bid records.
+  - `Transaction.ts`: Immutable ledger of all financial movements.
+- **`src/routes/`**
+  - `transactions.routes.ts`: Exposes user history.
+  - `auction.routes.ts`: Auction interaction endpoints.
 
-### Key Design Decisions
-1.  **Monolith Service**: For this scope, a single service (modularized into `AuctionEngine`, `BidService`, `PaymentService`) reduces complexity while maintaining clean boundaries.
-2.  **Pull-based Engine**: The `AuctionEngine` runs a short-interval loop to check for round endings. In a production massive-scale system, this would be replaced by a priority queue (e.g. BullMQ/Redis), but for the contest requirements, this is robust and simpler to deploy.
-3.  **Idempotency**: All financial transactions utilize a `referenceId` (e.g., `BID_LOCK:auctionId_userId`) to prevent double-charging.
+### Frontend Structure (`/frontend`)
+- **React + TypeScript**: Type-safe component development.
+- **`App.tsx`**: Main application state manager. Handles:
+  - **Tabs**: Active Auctions, Inventory, History, Create.
+  - **Real-time Polling**: Updates balance, auction timer, and leaderboard every 2 seconds.
+- **UX/UI**: Dark-themed, premium feel aiming to match Telegram's aesthetic.
 
 ---
 
-## ✅ Verification & Load Testing
+## Business Logic Deep Dive
 
-The repository includes a dedicated load-testing script to prove the system handles concurrency and maintains financial accuracy.
+### The "Upgrade" Bid Strategy
+Unlike traditional auctions where every bid is new, our system treats a user's participation in an auction as a single persistent entity.
+1.  **First Bid**: User bids 100 stars. 100 stars are locked.
+2.  **Upgrade**: User increases bid to 150 stars.
+    -   System checks `LockedBalance`.
+    -   System locks **only 50 more stars**.
+    -   Total locked: 150.
+3.  **Lose Round**: If the user does not win (e.g., Round 1 ends and they are rank #11 for 10 spots), their bid remains **Active** for Round 2.
+4.  **Win**: If they win, 150 stars are captured (removed from system), and they receive the item in their Inventory.
 
-### What it tests:
-1.  **Concurrency**: Simulates 50+ bots placing hundreds of bids simultaneously.
-2.  **Financial Integrity**: Calculates `Total System Deposit - (Sum of User Balances + Locked Funds + Spent Funds)`. The result must be **exactly 0**.
-3.  **Game Loop**: Verifies rounds transition correctly and winners are selected.
+### Anti-Sniping Protection
+To prevent last-second "sniping" which discourages fair price discovery:
+- **Trigger**: `time_left < 30s`
+- **Action**: `end_time += 30s`
+- **Result**: The auction continues until bidding stabilizes.
 
-### running the Test:
+---
+
+## Verification & Testing
+
+### Quick Load Test (Bot Swarm)
+To see the system in action with multiple concurrent users:
 ```bash
-# 1. Ensure DB is running
-docker-compose up -d mongo mongo-init
+cd backend
+# Starts 50 bots that randomly join auctions and place bids
+npx ts-node src/scripts/bot_swarm.ts 50
+```
+**Bot Behavior:**
+-   **Realistic Identity**: Each bot is persistent with a unique name (e.g., "Bot_Alex_42").
+-   **Smart Bidding**: Bots check if they are winning before bidding, adhere to financial limits, and have "human" delays.
+-   **Observation**: Open the frontend and watch the leaderboard update live!
 
-# 2. Run the simulation
+### Integration Testing
+The repository includes a simulation script to stress-test the engine mechanics without the frontend.
+
+#### Run the Headless Simulation
+```bash
 cd backend
 npx ts-node --transpile-only src/scripts/simulate_auction.ts
+```
+**checks:**
+1.  **Financial Zero-Sum**: `TotalDeposits - (UserBalances + Locked + Captured)` must equal 0.
+2.  **Concurrency Safety**: No double-spending or negative balances using Optimistic Concurrency Control (`__v`).
+
+---
+
+## How to Run
+
+### Prerequisites
+- Docker & Docker Compose
+
+### Fast Start
+```bash
+docker-compose up --build
+```
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:3000
+
+### Manual Start (Dev Mode)
+**Backend:**
+```bash
+cd backend
+npm install
+npm run dev
+```
+**Frontend:**
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
 ---
 
-## 🚀 How to Run
+## Usage
 
-### Option A: Docker Compose (Recommended)
-This requires no local Node/Mongo installation.
-
-1.  **Start the System**:
-    ```bash
-    docker-compose up --build
-    ```
-2.  **Access the App**:
-    - Frontend: [http://localhost:5173](http://localhost:5173)
-    - API: [http://localhost:3000](http://localhost:3000)
-
-### Option B: Local Dev
-1.  **Backend**:
-    ```bash
-    cd backend
-    npm install
-    npm run dev
-    ```
-2.  **Frontend**:
-    ```bash
-    cd frontend
-    npm install
-    npm run dev
-    ```
-
----
-
-## 📂 Project Structure
-- `backend/src/models`: Mongoose schemas (Critical: `Transaction` model for audit).
-- `backend/src/services`: Core logic (`AuctionEngine`, `PaymentService`, `BidService`).
-- `backend/src/scripts`: Verification scripts.
-- `frontend`: React demo UI.
+1.  **Login**: Enter any username (auto-registers).
+2.  **Funds**:
+    -   Click **(+)** to Deposit stars.
+    -   Click **(-)** to Withdraw stars (Simulated payout).
+3.  **Bid**: Select an active auction and place a bid.
+4.  **History**: Click the 📜 icon in the header to see your financial history (Deposits, Withdrawals, Bids, Wins).
+5.  **Inventory**: View won items in the "My Inventory" tab.
