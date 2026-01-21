@@ -66,9 +66,14 @@ export async function auctionRoutes(fastify: FastifyInstance) {
         
         const data = req.body as any;
 
+        // Validation
+        if (!data.title || data.title.trim().length === 0) {
+            return reply.code(400).send({ error: 'Title is required' });
+        }
+
         // Config defaults
         const roundsCount = data.roundsCount || 1;
-        const duration = data.duration || 60000;
+        const duration = Math.max(data.duration || 60000, 30000); // minimum 30 seconds
         const winnersCount = data.winnersCount || 1;
         const minBid = data.minBid || 0;
 

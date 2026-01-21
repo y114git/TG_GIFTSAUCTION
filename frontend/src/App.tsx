@@ -213,7 +213,7 @@ function App() {
   if (!user) {
     return (
       <div className="container center">
-        <h1>TG-GIFTSAUCTION (DEMO)</h1>
+        <h1>TG-GIFTSAUCTION</h1>
         <div className="login-card">
           <h2 className="text-center">Login</h2>
           <input
@@ -231,7 +231,7 @@ function App() {
   return (
     <div className="app-container">
       <header>
-        <div className="logo"><img src="/favicon.png" alt="logo" className="logo-icon" /> Gift Auction</div>
+        <div className="logo"><img src="/favicon.png" alt="logo" className="logo-icon" /> TG-GIFTSAUCTION</div>
         <div className="user-panel">
           <span className="balance">{user.username} | <strong>{user.balance} Stars</strong></span>
           <div className="balance-actions">
@@ -431,6 +431,12 @@ function App() {
                       durationMs = (mins * 60 + secs) * 1000;
                     } else if (parts.length === 1) {
                       durationMs = (parseInt(parts[0]) || 1) * 60000;
+                    }
+
+                    // Minimum 30 seconds
+                    if (durationMs < 30000) {
+                      setMsg('Minimum duration is 0:30');
+                      return;
                     }
 
                     api.createAuction({
