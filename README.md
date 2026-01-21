@@ -30,7 +30,7 @@
 
 Аукцион состоит из N раундов. В каждом раунде фиксированное количество победителей (например, 10). Побеждают участники с наибольшими ставками. Проигравшие автоматически переносятся в следующий раунд — повторная ставка не требуется.
 
-```
+```txt
 Аукцион: "Premium Gift Box" — 10 штук, 3 раунда
 
 Раунд 1: топ-10 по ставкам получают подарки
@@ -42,7 +42,7 @@
 
 При ставке средства переходят из свободного баланса в заблокированный. При повышении ставки блокируется только разница.
 
-```
+```txt
 Баланс: 1000, Заблокировано: 0
 
 Ставка 100 -> Баланс: 900, Заблокировано: 100
@@ -67,7 +67,7 @@
 
 ## Архитектура
 
-```
+```txt
 Frontend (React + Vite)
     |
     | HTTP REST API, polling 2 сек
@@ -89,7 +89,7 @@ MongoDB (Replica Set)
 
 ### Backend
 
-```
+```txt
 backend/src/
 ├── models/
 │   ├── User.ts          — пользователь, баланс
@@ -107,7 +107,7 @@ backend/src/
 
 ### Frontend
 
-```
+```txt
 frontend/src/
 ├── components/   — React компоненты
 ├── App.tsx       — состояние приложения, вкладки
@@ -211,8 +211,8 @@ npm run dev
 ### Переменные окружения
 
 | Переменная | Значение по умолчанию | Назначение |
-|------------|----------------------|------------|
-| MONGO_URI | mongodb://localhost:27017/auction_db | URI MongoDB |
+| ------------ | ---------------------- | ------------ |
+| MONGO_URI | mongodb://localhost:27017/auction_db | URI MongoDB (Можно URL вместо URI) |
 | PORT | 3000 | Порт backend |
 | VITE_API_URL | <http://localhost:3000> | URL backend для frontend |
 
@@ -222,7 +222,7 @@ npm run dev
 
 ### Авторизация
 
-```
+```txt
 POST /api/auth/login
 { "username": "player123" }
 
@@ -231,7 +231,7 @@ POST /api/auth/login
 
 ### Аукционы
 
-```
+```txt
 GET /api/auctions              — список активных
 GET /api/auctions/:id          — конкретный аукцион
 
@@ -248,7 +248,7 @@ POST /api/auctions
 
 ### Ставки
 
-```
+```txt
 POST /api/bids
 {
   "auctionId": "...",
@@ -259,7 +259,7 @@ POST /api/bids
 
 ### Платежи
 
-```
+```txt
 POST /api/payments/deposit
 { "userId": "...", "amount": 1000 }
 
@@ -269,7 +269,7 @@ POST /api/payments/withdraw
 
 ### Транзакции
 
-```
+```txt
 GET /api/transactions/:userId
 
 Ответ: [
@@ -281,7 +281,7 @@ GET /api/transactions/:userId
 
 ### Передача подарка
 
-```
+```txt
 POST /me/gift/transfer
 { "bidId": "...", "recipientUsername": "player456" }
 
@@ -322,7 +322,7 @@ npx ts-node --transpile-only src/scripts/simulate_auction.ts
 
 ## Структура репозитория
 
-```
+```txt
 TG_GIFTSAUCTION/
 ├── backend/
 │   ├── src/

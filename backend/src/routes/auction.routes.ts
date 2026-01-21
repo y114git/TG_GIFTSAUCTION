@@ -54,21 +54,20 @@ export async function auctionRoutes(fastify: FastifyInstance) {
     // Admin: Create Auction (with rate limiting)
     fastify.post('/admin/auctions', async (req, reply) => {
         const userId = req.headers['x-user-id'] as string || 'anonymous';
+        const now = Date.now();
         
         // Rate limiting check
         const lastCreation = auctionCreationCooldown.get(userId);
-        const now = Date.now();
         if (lastCreation && (now - lastCreation) < AUCTION_COOLDOWN_MS) {
             const waitTime = Math.ceil((AUCTION_COOLDOWN_MS - (now - lastCreation)) / 1000);
             return reply.code(429).send({ error: `Please wait ${waitTime} seconds before creating another auction` });
         }
-        auctionCreationCooldown.set(userId, now);
         
         const data = req.body as any;
 
-        // Validation
+        // Validation (before setting cooldown)
         if (!data.title || data.title.trim().length === 0) {
-            return reply.code(400).send({ error: 'Title is required' });
+            return reply.code(400).send({ error: 'Gift name is required' });
         }
 
         // Config defaults
@@ -96,6 +95,10 @@ export async function auctionRoutes(fastify: FastifyInstance) {
             currentRoundIndex: 0,
             totalWinnersNeeded: winnersCount // simplified
         });
+
+        // Set cooldown only after successful creation
+        auctionCreationCooldown.set(userId, Date.now());
+        
         return auction;
     });
 }
