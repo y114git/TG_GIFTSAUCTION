@@ -2,9 +2,8 @@ import { FastifyInstance } from 'fastify';
 import { Transaction } from '../models/Transaction';
 
 export async function transactionRoutes(fastify: FastifyInstance) {
-
-    // Get My Transactions
     fastify.get('/me/transactions', async (req, reply) => {
+        // История операций пользователя. Авторизация упрощена до заголовка x-user-id.
         const userId = req.headers['x-user-id'] as string;
         if (!userId) {
             reply.code(401);
@@ -12,6 +11,7 @@ export async function transactionRoutes(fastify: FastifyInstance) {
         }
 
         try {
+            // Выдаётся последняя история, чтобы не тянуть лишнее в интерфейс.
             const history = await Transaction.find({ userId })
                 .sort({ createdAt: -1 })
                 .limit(50);

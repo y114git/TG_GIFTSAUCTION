@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// Базовый адрес backend API. В сборке берётся из VITE_API_URL, локально используется localhost.
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export interface Auction {
@@ -44,6 +45,7 @@ export const api = {
     },
 
     getMe: async (userId: string) => {
+        // Идентификация пользователя в backend сделана через заголовок x-user-id.
         const res = await axios.get(`${API_URL}/me/balance`, {
             headers: { 'x-user-id': userId }
         });

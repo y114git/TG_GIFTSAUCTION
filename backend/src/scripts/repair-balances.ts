@@ -13,7 +13,6 @@ const repair = async () => {
 
     const users = await User.find({});
     for (const user of users) {
-        // Find all ACTIVE bids for this user
         const activeBids = await Bid.find({ userId: user._id, status: BidStatus.ACTIVE });
 
         let expectedLocked = 0;

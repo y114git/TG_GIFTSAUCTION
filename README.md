@@ -117,7 +117,6 @@ backend/src/
 
 ```txt
 frontend/src/
-├── components/   — React компоненты
 ├── App.tsx       — состояние приложения, вкладки
 ├── api.ts        — HTTP клиент
 └── main.tsx      — точка входа
@@ -231,25 +230,25 @@ npm run dev
 ### Авторизация
 
 ```txt
-POST /api/auth/login
+POST /auth/login
 { "username": "player123" }
 
-Ответ: { "user": { "id": "...", "username": "player123", "balance": 0 } }
+Ответ: { "_id": "...", "username": "player123", "balance": 0 }
 ```
 
 ### Аукционы
 
 ```txt
-GET /api/auctions              — список активных
-GET /api/auctions/:id          — конкретный аукцион
+GET /auctions                  — список активных
+GET /auctions/:id              — детали аукциона + topBids
 
-POST /api/auctions
+POST /admin/auctions
+x-user-id: <userId>
 {
   "title": "Premium Gift",
-  "description": "Описание",
-  "itemsPerRound": 5,
-  "totalRounds": 3,
-  "roundDuration": 300,
+  "roundsCount": 1,
+  "duration": 60000,
+  "winnersCount": 1,
   "minBid": 10
 }
 ```
@@ -257,40 +256,35 @@ POST /api/auctions
 ### Ставки
 
 ```txt
-POST /api/bids
-{
-  "auctionId": "...",
-  "userId": "...",
-  "amount": 100
-}
+POST /auctions/:id/bid
+x-user-id: <userId>
+{ "amount": 100 }
 ```
 
 ### Платежи
 
 ```txt
-POST /api/payments/deposit
-{ "userId": "...", "amount": 1000 }
+POST /me/deposit
+x-user-id: <userId>
+{ "amount": 1000 }
 
-POST /api/payments/withdraw
-{ "userId": "...", "amount": 500 }
+POST /me/deposit
+x-user-id: <userId>
+{ "amount": -500 }
 ```
 
 ### Транзакции
 
 ```txt
-GET /api/transactions/:userId
-
-Ответ: [
-  { "type": "deposit", "amount": 1000, "createdAt": "..." },
-  { "type": "bid_lock", "amount": -100, "metadata": { "auctionId": "..." } },
-  { "type": "win", "amount": -100, "metadata": { "item": "Premium Gift" } }
-]
+GET /me/transactions
+x-user-id: <userId>
 ```
 
 ### Передача подарка
 
 ```txt
 POST /me/gift/transfer
+x-user-id: <userId>
 { "bidId": "...", "recipientUsername": "player456" }
 
 Ответ: { "success": true, "message": "Gift transferred to player456" }

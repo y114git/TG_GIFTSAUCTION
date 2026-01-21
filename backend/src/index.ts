@@ -11,19 +11,19 @@ dotenv.config();
 
 const server = fastify({ logger: true });
 
+// CORS нужен фронтенду; x-user-id используется как простой идентификатор пользователя без полноценной авторизации.
 server.register(cors, {
-    origin: true, // Allow all origins
+    origin: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'x-user-id'],
     credentials: true,
 });
 
-// Register Routes
+// Роуты разделены по доменам: авторизация/аукционы/история операций.
 server.register(authRoutes);
 server.register(auctionRoutes);
 server.register(transactionRoutes);
 
-// Health check
 server.get('/health', async (request, reply) => {
     return { status: 'ok' };
 });
@@ -32,7 +32,7 @@ const start = async () => {
     try {
         await connectDB();
 
-        // Start the game loop
+        // Фоновая проверка активных аукционов и закрытие раундов по таймеру.
         AuctionEngine.startEngine();
 
         const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;

@@ -11,7 +11,7 @@ export interface IBid extends Document {
     auctionId: mongoose.Types.ObjectId;
     userId: mongoose.Types.ObjectId;
     amount: number;
-    roundIndex: number; // The round this bid serves
+    roundIndex: number;
     status: BidStatus;
     snapshotTitle?: string;
     createdAt: Date;

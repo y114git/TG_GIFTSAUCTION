@@ -5,11 +5,9 @@ import { Transaction, TransactionType } from '../models/Transaction';
 export class PaymentService {
 
     /**
-     * Deposit funds to a user's balance.
+     * Применяет изменение баланса и записывает операцию в историю транзакций
      */
     static async deposit(userId: string, amount: number, session: mongoose.ClientSession | null = null): Promise<IUser> {
-        // if (amount <= 0) throw new Error('Deposit amount must be positive'); // Removed constraint
-
         const localSession = session ? session : await mongoose.startSession();
         if (!session) localSession.startTransaction();
 
@@ -17,11 +15,7 @@ export class PaymentService {
             const user = await User.findById(userId).session(localSession);
             if (!user) throw new Error('User not found');
 
-            // Overdraft check removed as requested
-            // if (amount < 0 && (user.balance + amount) < 0) {
-            //    throw new Error('Insufficient funds');
-            // }
-
+            // Баланс меняется только вместе с записью в Transaction, чтобы история совпадала с фактом.
             user.balance += amount;
             await user.save({ session: localSession });
 
@@ -42,8 +36,7 @@ export class PaymentService {
     }
 
     /**
-     * Locks funds for a bid.
-     * Throws error if insufficient balance.
+     * Переносит средства из доступного баланса в заблокированный
      */
     static async lockFunds(userId: string, amount: number, referenceId: string, session: mongoose.ClientSession | null = null): Promise<void> {
         const localSession = session ? session : await mongoose.startSession();
@@ -57,6 +50,7 @@ export class PaymentService {
                 throw new Error('Insufficient funds');
             }
 
+            // Заблокированные средства используются для ставок: они больше не доступны для новых действий.
             user.balance -= amount;
             user.lockedBalance += amount;
             await user.save({ session: localSession });
@@ -78,7 +72,7 @@ export class PaymentService {
     }
 
     /**
-     * Unlocks funds (refund) - e.g. when outbid or round ends without win.
+     * Возвращает средства из заблокированного баланса обратно в доступный
      */
     static async unlockFunds(userId: string, amount: number, referenceId: string, session: mongoose.ClientSession | null = null): Promise<void> {
         const localSession = session ? session : await mongoose.startSession();
@@ -92,6 +86,7 @@ export class PaymentService {
                 throw new Error('Inconsistent locked balance state');
             }
 
+            // Сценарий возврата: ставка проиграла или была отменена.
             user.lockedBalance -= amount;
             user.balance += amount;
             await user.save({ session: localSession });
@@ -113,7 +108,7 @@ export class PaymentService {
     }
 
     /**
-     * Captures funds (win). Moves from locked to "spent" (disappears from user).
+     * Списывает средства из заблокированного баланса при подтверждённой победе
      */
     static async captureFunds(userId: string, amount: number, referenceId: string, session: mongoose.ClientSession | null = null): Promise<void> {
         const localSession = session ? session : await mongoose.startSession();
@@ -124,10 +119,11 @@ export class PaymentService {
             if (!user) throw new Error('User not found');
 
             if (user.lockedBalance < amount) {
-                console.error(`CAPTURE ERROR: User ${userId} has locked ${user.lockedBalance} but needs ${amount}. RefId: ${referenceId}`);
+                console.error(`Capture failed: userId=${userId} locked=${user.lockedBalance} required=${amount} referenceId=${referenceId}`);
                 throw new Error(`Insufficient locked funds to capture. Locked: ${user.lockedBalance}, Needed: ${amount}`);
             }
 
+            // Здесь доступный баланс не меняется: средства уже были сняты при lockFunds.
             user.lockedBalance -= amount;
             await user.save({ session: localSession });
 

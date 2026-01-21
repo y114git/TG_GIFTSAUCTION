@@ -8,9 +8,10 @@ import { BidService } from '../services/BidService';
 
 const reproduce = async () => {
     try {
+        // Скрипт воспроизводит сценарий с одинаковыми ставками для проверки логики выбора победителей и завершения аукциона.
         await mongoose.connect('mongodb://localhost:27017/auction_db?directConnection=true');
 
-        // 1. Setup
+        // Чистый прогон: удаляются тестовые данные, чтобы результат не зависел от состояния базы.
         await User.deleteMany({});
         await Auction.deleteMany({});
         await Bid.deleteMany({});
@@ -31,12 +32,10 @@ const reproduce = async () => {
             currentRoundIndex: 0
         });
 
-        // 2. Place Tied Bids
         console.log('Placing Bids...');
         await BidService.placeBid(userA.id, auction.id, 100);
         await BidService.placeBid(userB.id, auction.id, 100);
 
-        // 3. Resolve
         const currentRound = auction.rounds[0];
         await Auction.updateOne(
             { _id: auction.id },
@@ -46,7 +45,6 @@ const reproduce = async () => {
         console.log('Resolving...');
         await AuctionEngine.resolveRound(auction.id);
 
-        // 4. Verify
         const check = await Auction.findById(auction.id);
         if (check) {
             console.error('FAILURE: Auction still exists!', check.status);

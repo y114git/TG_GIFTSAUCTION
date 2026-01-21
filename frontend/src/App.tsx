@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { api, type Auction, type Transaction } from './api';
 import './App.css';
 
-// Separate component for Countdown to avoid full app re-renders on every tick
+// Таймер вынесен в отдельный компонент, чтобы не перерисовывать весь экран каждую секунду.
 const CountDown = ({ targetDate }: { targetDate: string }) => {
   const [timeLeft, setTimeLeft] = useState('');
   const [isEnded, setIsEnded] = useState(false);
@@ -33,7 +33,6 @@ const CountDown = ({ targetDate }: { targetDate: string }) => {
 
 type Tab = 'ACTIVE' | 'INVENTORY' | 'CREATE' | 'HISTORY';
 
-// Modal Component
 const Modal = ({ isOpen, onClose, title, children }: { 
   isOpen: boolean; 
   onClose: () => void; 
@@ -59,15 +58,10 @@ const Modal = ({ isOpen, onClose, title, children }: {
 function App() {
   const [user, setUser] = useState<{ _id: string; username: string; balance: number } | null>(null);
   const [usernameInput, setUsernameInput] = useState('');
-
   const [activeTab, setActiveTab] = useState<Tab>('ACTIVE');
-  
-  // Modal state
   const [depositModalOpen, setDepositModalOpen] = useState(false);
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
   const [modalAmount, setModalAmount] = useState('');
-  
-  // Transfer gift modal
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [transferBidId, setTransferBidId] = useState('');
   const [transferRecipient, setTransferRecipient] = useState('');
@@ -77,16 +71,13 @@ function App() {
   const [history, setHistory] = useState<Transaction[]>([]);
   const [myBids, setMyBids] = useState<Record<string, number>>({});
   const [showVictory, setShowVictory] = useState<string | null>(null);
-
-  // Create Auction state
   const [newAuctionTitle, setNewAuctionTitle] = useState('');
-
   const [selectedAuction, setSelectedAuction] = useState<Auction | null>(null);
   const [bidAmount, setBidAmount] = useState<number>(0);
   const [msg, setMsg] = useState('');
 
-  // Persist Login
   useEffect(() => {
+    // Восстановление сессии между перезагрузками страницы.
     const savedId = localStorage.getItem('userId');
     const savedName = localStorage.getItem('username');
     if (savedId && savedName) {
@@ -94,7 +85,6 @@ function App() {
     }
   }, []);
 
-  // Login
   const handleLogin = async () => {
     try {
       const u = await api.login(usernameInput);
@@ -107,7 +97,6 @@ function App() {
     }
   };
 
-  // Logout
   const handleLogout = () => {
     localStorage.clear();
     setUser(null);
@@ -146,7 +135,6 @@ function App() {
     }
   };
 
-  // Load History
   const loadHistory = async () => {
     if (!user) return;
     try {
@@ -157,20 +145,17 @@ function App() {
     }
   };
 
-  // Refresh User Balance
   const refreshUser = async () => {
     if (!user) return;
     const u = await api.getMe(user._id);
     setUser(u);
   };
 
-  // View Auction Details
   const viewAuction = async (id: string, preserveInput = false) => {
     try {
       const data = await api.getAuctionDetails(id);
       setSelectedAuction(data);
 
-      // Set default bid amount ONLY if not preserving input or first load
       if (!preserveInput) {
         const currentRound = data.rounds[data.currentRoundIndex];
         if (currentRound) {
@@ -178,19 +163,17 @@ function App() {
         }
       }
     } catch (e: any) {
-      // If 404, it means auction is finished/deleted
       if (e.response?.status === 404) {
         setSelectedAuction(null);
         setMsg('Auction finished!');
         loadAuctions();
-        if (activeTab === 'INVENTORY') loadInventory(); // Also refresh inventory if they won
+        if (activeTab === 'INVENTORY') loadInventory();
       } else {
         console.error('Error fetching auction:', e);
       }
     }
   };
 
-  // Place Bid
   const handleBid = async () => {
     if (!user || !selectedAuction) return;
     try {
@@ -207,6 +190,7 @@ function App() {
 
   useEffect(() => {
     if (!user) return;
+    // Единый таймер обновляет данные, чтобы интерфейс оставался «живым» без ручного обновления.
     const interval = setInterval(() => {
       refreshUser();
       loadInventory();
@@ -217,7 +201,6 @@ function App() {
     return () => clearInterval(interval);
   }, [user, selectedAuction, activeTab]);
 
-  // Initial load when tab changes
   useEffect(() => {
     if (activeTab === 'ACTIVE') loadAuctions();
     if (activeTab === 'INVENTORY') loadInventory();
@@ -266,7 +249,6 @@ function App() {
         </div>
       </header>
 
-      {/* Tabs */}
       <nav className="tabs">
         <button className={activeTab === 'ACTIVE' ? 'active' : ''} onClick={() => { setSelectedAuction(null); setActiveTab('ACTIVE'); }}>Active Auctions</button>
         <button className={activeTab === 'INVENTORY' ? 'active' : ''} onClick={() => { setSelectedAuction(null); setActiveTab('INVENTORY'); }}>My Inventory</button>
@@ -320,7 +302,6 @@ function App() {
                 ))}
               {(!selectedAuction.topBids || selectedAuction.topBids.length === 0) && <p>No bids yet</p>}
 
-              {/* Show count of hidden bids */}
               {(selectedAuction.topBids?.length || 0) > selectedAuction.rounds[selectedAuction.currentRoundIndex].winnersCount && (
                 <p className="text-center" style={{ opacity: 0.5, marginTop: 10 }}>
                   + {(selectedAuction.topBids?.length || 0) - selectedAuction.rounds[selectedAuction.currentRoundIndex].winnersCount} other anonymous bids
@@ -330,9 +311,8 @@ function App() {
           </div>
         ) : (
           <>
-            {/* ACTIVE TAB */}
             {activeTab === 'ACTIVE' && (
-              <div className="auction-list slide-enter"> {/* Animation class */}
+              <div className="auction-list slide-enter">
                 <h2 className="text-center">Active Auctions</h2>
                 {auctions.map(a => (
                   <div key={a._id} className={`auction-card ${myBids[a._id] ? 'participating' : ''}`}>
@@ -345,7 +325,6 @@ function App() {
               </div>
             )}
 
-            {/* INVENTORY TAB */}
             {activeTab === 'INVENTORY' && (
               <div className="inventory-list slide-enter">
                 <h2 className="text-center">My Gifts</h2>
@@ -374,7 +353,6 @@ function App() {
               </div>
             )}
 
-            {/* HISTORY TAB */}
             {activeTab === 'HISTORY' && (
               <div className="history-list slide-enter">
                 <h2 className="text-center">Transaction History</h2>
@@ -409,7 +387,6 @@ function App() {
               </div>
             )}
 
-            {/* CREATE TAB */}
             {activeTab === 'CREATE' && (
               <div className="create-container slide-enter">
                 <h2 className="text-center">Create New Auction</h2>
@@ -461,7 +438,6 @@ function App() {
                     const secs = Math.max(0, Math.min(59, Number((document.getElementById('newDurationSec') as HTMLInputElement).value) || 0));
                     const durationMs = (mins * 60 + secs) * 1000;
 
-                    // Minimum 30 seconds
                     if (durationMs < 30000) {
                       setMsg('Minimum duration is 0:30');
                       return;
@@ -473,10 +449,10 @@ function App() {
                       winnersCount,
                       duration: durationMs,
                       roundsCount: 1
-                    }, user!._id).then(() => {
+                    }, user!._id).then(async () => {
                       setNewAuctionTitle('');
+                      await loadAuctions();
                       setActiveTab('ACTIVE');
-                      loadAuctions();
                       setMsg('Auction created!');
                       setTimeout(() => setMsg(''), 3000);
                     }).catch((e: any) => {
@@ -491,7 +467,6 @@ function App() {
         )}
       </main>
       
-      {/* Deposit Modal */}
       <Modal 
         isOpen={depositModalOpen} 
         onClose={() => setDepositModalOpen(false)} 
@@ -525,7 +500,6 @@ function App() {
         </button>
       </Modal>
 
-      {/* Withdraw Modal */}
       <Modal 
         isOpen={withdrawModalOpen} 
         onClose={() => setWithdrawModalOpen(false)} 
@@ -559,7 +533,6 @@ function App() {
         </button>
       </Modal>
 
-      {/* Transfer Gift Modal */}
       <Modal 
         isOpen={transferModalOpen} 
         onClose={() => setTransferModalOpen(false)} 

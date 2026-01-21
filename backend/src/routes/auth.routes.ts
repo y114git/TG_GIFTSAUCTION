@@ -4,21 +4,23 @@ import { PaymentService } from '../services/PaymentService';
 import { User } from '../models/User';
 import { Bid, BidStatus } from '../models/Bid';
 
-// Rate limiting for deposits/withdrawals (3 seconds per user)
 const depositCooldown = new Map<string, number>();
 const DEPOSIT_COOLDOWN_MS = 3000;
 
 const sanitizeString = (str: string, maxLength: number = 50): string => {
+    // Базовая чистка пользовательского ввода: обрезка, удаление потенциально опасных символов, нормализация пробелов.
     if (typeof str !== 'string') return '';
     return str.trim().slice(0, maxLength).replace(/[<>\"'`$\\]/g, '').replace(/\s+/g, ' ');
 };
 
 const isValidUsername = (username: string): boolean => {
+    // Имя пользователя ограничено по длине и набору символов, чтобы не тянуть лишнее в UI/логи.
     return /^[a-zA-Zа-яА-ЯёЁ0-9_-]{3,30}$/.test(username);
 };
 
 const userLocks = new Map<string, Promise<any>>();
 const withUserLock = async <T>(userId: string, fn: () => Promise<T>): Promise<T> => {
+    // Последовательная очередь операций на одного пользователя (депозит/ставки), чтобы избежать гонок по балансу.
     const prev = userLocks.get(userId) || Promise.resolve();
     const current = prev.then(() => fn()).catch((e) => { throw e; });
     userLocks.set(userId, current.catch(() => {}));
@@ -47,6 +49,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     });
 
     fastify.get('/me/balance', async (req, reply) => {
+        // Текущий баланс пользователя. Авторизация упрощена до заголовка x-user-id.
         const userId = req.headers['x-user-id'] as string;
         if (!userId) {
             reply.code(401);
@@ -57,12 +60,14 @@ export async function authRoutes(fastify: FastifyInstance) {
     });
 
     fastify.get('/me/bids', async (req, reply) => {
+        // Карта активных ставок пользователя по аукционам: { auctionId: amount }.
         const userId = req.headers['x-user-id'] as string;
         if (!userId) {
             reply.code(401);
             return { error: 'Unauthorized' };
         }
 
+        // Ленивый импорт модели позволяет избежать циклических зависимостей при старте.
         const { Bid, BidStatus } = await import('../models/Bid');
         const bids = await Bid.find({
             userId,
@@ -77,6 +82,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     });
 
     fastify.get('/me/inventory', async (req, reply) => {
+        // Инвентарь: выигранные ставки (подарки), которые можно передать другому пользователю.
         const userId = req.headers['x-user-id'] as string;
         if (!userId) {
             reply.code(401);
@@ -114,6 +120,7 @@ export async function authRoutes(fastify: FastifyInstance) {
 
         if (!userId) return reply.code(401).send({ error: 'Unauthorized' });
         
+        // Простой rate-limit по пользователю, чтобы не забивать историю транзакций и не ловить гонки.
         const lastDeposit = depositCooldown.get(userId);
         const now = Date.now();
         if (lastDeposit && (now - lastDeposit) < DEPOSIT_COOLDOWN_MS) {
@@ -132,6 +139,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         }
 
         try {
+            // Операция баланса заворачивается в лок, чтобы параллельные запросы не перетёрли изменения.
             const user = await withUserLock(userId, () => PaymentService.deposit(userId, Math.floor(numAmount)));
             return user;
         } catch (e: any) {
@@ -139,8 +147,8 @@ export async function authRoutes(fastify: FastifyInstance) {
         }
     });
 
-    // Transfer gift to another user
     fastify.post('/me/gift/transfer', async (req, reply) => {
+        // Передача подарка работает через смену владельца у выигранной ставки.
         const userId = req.headers['x-user-id'] as string;
         const { bidId, recipientUsername } = req.body as { bidId: string; recipientUsername: string };
 
@@ -153,7 +161,6 @@ export async function authRoutes(fastify: FastifyInstance) {
         }
 
         try {
-            // Find the gift (winning bid) that belongs to the user
             const bid = await Bid.findOne({ 
                 _id: bidId, 
                 userId, 
@@ -164,18 +171,15 @@ export async function authRoutes(fastify: FastifyInstance) {
                 return reply.code(404).send({ error: 'Gift not found in your inventory' });
             }
 
-            // Find recipient by username
             const recipient = await User.findOne({ username: cleanRecipient });
             if (!recipient) {
                 return reply.code(404).send({ error: 'User not found' });
             }
 
-            // Can't transfer to yourself
             if (recipient._id.toString() === userId) {
                 return reply.code(400).send({ error: 'Cannot transfer to yourself' });
             }
 
-            // Transfer the gift
             bid.userId = recipient._id;
             await bid.save();
 

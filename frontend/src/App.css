@@ -141,11 +141,13 @@ main {
   justify-content: space-between;
   align-items: center;
   gap: 10px;
+  border: 1px solid transparent;
+  transition: background 0.4s ease, border-color 0.4s ease;
 }
 
 .auction-card.participating {
   background: linear-gradient(135deg, #1a5a3a 0%, #1a4a5a 100%);
-  border: 1px solid #2ecc71;
+  border-color: #2ecc71;
 }
 
 .auction-card h3 {
@@ -243,7 +245,6 @@ main {
   width: 32px;
   height: 32px;
   min-width: 32px;
-  /* Ensure square */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -251,7 +252,6 @@ main {
   font-size: 1.2rem;
   line-height: 1;
   background: #40a7e3;
-  /* Telegram Blue */
   color: white;
   border-radius: 6px;
 }
@@ -268,7 +268,6 @@ main {
   margin-left: 5px;
   height: 30px;
   display: flex;
-  /* Align with others */
   align-items: center;
 }
 
@@ -276,7 +275,6 @@ main {
   background: #d32f2f;
 }
 
-/* Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -293,12 +291,10 @@ main {
   animation: fadeIn 0.3s ease-out;
 }
 
-/* Utilities */
 .text-center {
   text-align: center;
 }
 
-/* Tabs */
 .tabs {
   display: flex;
   background: #242f3d;
@@ -319,7 +315,6 @@ main {
   border-color: #40a7e3;
 }
 
-/* Inventory */
 .inventory-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -374,7 +369,6 @@ main {
   align-items: center;
 }
 
-/* Ranks */
 .rank-1 {
   background: linear-gradient(90deg, rgba(255, 215, 0, 0.1) 0%, transparent 100%);
   border-left: 3px solid #ffd700;
@@ -390,7 +384,6 @@ main {
   border-left: 3px solid #cd7f32;
 }
 
-/* Animations */
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -411,7 +404,6 @@ main {
   animation: slideIn 0.2s ease-out;
 }
 
-/* History */
 .history-btn-icon {
   padding: 0;
   width: 32px;
@@ -473,7 +465,7 @@ main {
   color: #fff;
 }
 
-/* Mobile Adaptation */
+
 @media (max-width: 600px) {
   body {
     padding: 0;
@@ -563,7 +555,7 @@ main {
   }
 }
 
-/* Modal Styles */
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -652,7 +644,7 @@ main {
   padding: 14px 16px;
 }
 
-/* Form styles */
+
 .create-form {
   padding: 1.5rem;
   max-width: 350px;
@@ -686,7 +678,7 @@ main {
   max-width: 120px;
 }
 
-/* Duration inputs */
+
 .duration-inputs {
   display: flex;
   align-items: center;

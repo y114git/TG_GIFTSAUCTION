@@ -8,12 +8,12 @@ export enum AuctionStatus {
 
 export interface IRound {
     index: number;
-    duration: number; // in ms
+    duration: number;
     startTime?: Date;
     endTime?: Date;
-    winnersCount: number; // How many winners in this round
+    winnersCount: number;
     minBid: number;
-    isFinalized: boolean; // True if round logic has processed
+    isFinalized: boolean;
 }
 
 export interface IAuction extends Document {
@@ -40,6 +40,7 @@ const AuctionSchema: Schema = new Schema({
     status: { type: String, enum: Object.values(AuctionStatus), default: AuctionStatus.PENDING },
     rounds: [RoundSchema],
     currentRoundIndex: { type: Number, default: 0 },
+    totalWinnersNeeded: { type: Number, default: 0 },
 }, { timestamps: true });
 
 export const Auction = mongoose.model<IAuction>('Auction', AuctionSchema);

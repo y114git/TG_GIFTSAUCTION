@@ -10,11 +10,11 @@ const API_URL = 'http://localhost:3000';
 
 async function antiSnipingTest() {
     await connectDB();
-    console.log('--- Anti-Sniping Test ---');
+    console.log('--- Тест анти-снайпинга ---');
 
-    // 1. Create Auction ending soon
     const now = new Date();
-    const END_SEC = 15; // Ends in 15 seconds
+    const END_SEC = 15;
+    // Раунд создаётся заранее запущенным, чтобы можно было точно попасть в «окно» анти-снайпинга.
     const auction = await Auction.create({
         title: 'Anti-Snipe Test Item',
         status: AuctionStatus.ACTIVE,
@@ -29,35 +29,29 @@ async function antiSnipingTest() {
         }],
         currentRoundIndex: 0
     });
-    console.log(`Created Auction ${auction.id} ending in ${END_SEC}s`);
+    console.log(`Создан аукцион ${auction.id}, окончание через ${END_SEC}s`);
 
-    // 2. Wait until 5 seconds left (Snipe Window is 30s usually, so this is inside window)
-    console.log('Waiting 5 seconds...');
+    console.log('Ждём 5 секунд...');
     await new Promise(r => setTimeout(r, 5000));
 
-    // 3. Place Bid
-    // We need a userId. Let's assume one exists or mock it in header
-    // In real test we'd create one. For this script let's rely on a known ID or create on fly
-    // Quick create user via DB
     const { User } = await import('../../models/User');
     const user = await User.create({ username: `sniper_${Date.now()}`, balance: 1000, lockedBalance: 0 });
 
-    console.log(`Placing bid at ${(auction.rounds[0].endTime!.getTime() - Date.now()) / 1000}s remaining...`);
+    console.log(`Ставка будет отправлена при ${(auction.rounds[0].endTime!.getTime() - Date.now()) / 1000}s до конца...`);
 
     await axios.post(`${API_URL}/auctions/${auction.id}/bid`, { amount: 50 }, {
         headers: { 'x-user-id': user.id }
     });
 
-    // 4. Verify Extension
     const updatedAuction = await Auction.findById(auction.id);
     const newEndTime = updatedAuction?.rounds[0].endTime;
-    console.log('Old EndTime:', auction.rounds[0].endTime!.toISOString());
-    console.log('New EndTime:', newEndTime?.toISOString());
+    console.log('Старый EndTime:', auction.rounds[0].endTime!.toISOString());
+    console.log('Новый EndTime:', newEndTime?.toISOString());
 
     if (newEndTime!.getTime() > auction.rounds[0].endTime!.getTime()) {
-        console.log('SUCCESS: Round extended!');
+        console.log('OK: раунд продлён.');
     } else {
-        console.error('FAIL: Round NOT extended.');
+        console.error('ОШИБКА: раунд не продлился.');
         process.exit(1);
     }
 

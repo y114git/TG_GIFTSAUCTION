@@ -1,11 +1,13 @@
 import mongoose from 'mongoose';
 
 export const connectDB = async () => {
+    // Приоритет: явный MONGO_URI. Для docker-compose поддерживается MONGO_URL.
     let uri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/auction_db';
     if (!process.env.MONGO_URI && process.env.MONGO_URL) {
         uri = process.env.MONGO_URL + '/auction_db?authSource=admin';
     }
 
+    // Подключение к Mongo может быть не готово при старте контейнеров, поэтому есть несколько повторов.
     let retries = 5;
     while (retries > 0) {
         try {

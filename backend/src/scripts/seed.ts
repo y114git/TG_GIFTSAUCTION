@@ -10,14 +10,13 @@ const seed = async () => {
 
     await Auction.deleteMany({});
 
-    const ROUND_DURATION = 1000 * 60; // 1 minute
+    const ROUND_DURATION = 1000 * 60;
 
     const rounds = [];
     for (let i = 0; i < 3; i++) {
         rounds.push({
             index: i,
             duration: ROUND_DURATION,
-            // startTime/endTime will be set on first bid
             winnersCount: 3,
             minBid: 10,
             isFinalized: false
@@ -33,8 +32,6 @@ const seed = async () => {
     });
 
     console.log('Auction seeded:', auction.id);
-
-    // Close connection
     await mongoose.disconnect();
     process.exit(0);
 };
