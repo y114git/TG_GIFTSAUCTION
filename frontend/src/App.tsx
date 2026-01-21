@@ -192,11 +192,28 @@ function App() {
     if (!user) return;
     // Единый таймер обновляет данные, чтобы интерфейс оставался «живым» без ручного обновления.
     const interval = setInterval(() => {
-      refreshUser();
-      loadInventory();
-      if (selectedAuction) viewAuction(selectedAuction._id, true);
-      else if (activeTab === 'ACTIVE') loadAuctions();
-      else if (activeTab === 'HISTORY') loadHistory();
+      if (selectedAuction) {
+        refreshUser();
+        viewAuction(selectedAuction._id, true);
+        return;
+      }
+
+      if (activeTab === 'ACTIVE') {
+        loadAuctions();
+        return;
+      }
+
+      if (activeTab === 'INVENTORY') {
+        loadInventory();
+        return;
+      }
+
+      if (activeTab === 'HISTORY') {
+        loadHistory();
+        return;
+      }
+
+      // CREATE: фоновое обновление не требуется
     }, 2000);
     return () => clearInterval(interval);
   }, [user, selectedAuction, activeTab]);

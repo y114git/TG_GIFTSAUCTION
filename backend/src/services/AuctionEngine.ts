@@ -39,6 +39,7 @@ export class AuctionEngine {
 
             const allBids = await Bid.find({
                 auctionId: auction.id,
+                roundIndex: currentIndex,
                 status: BidStatus.ACTIVE
             }).sort({ amount: -1, createdAt: 1 }).session(session);
 
