@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 export const connectDB = async () => {
-    const uri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/auction_db';
+    const uri = process.env.MONGO_URI || process.env.MONGO_URL + '/auction_db' || 'mongodb://127.0.0.1:27017/auction_db';
 
     let retries = 5;
     while (retries > 0) {
