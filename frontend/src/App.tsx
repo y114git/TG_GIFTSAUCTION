@@ -91,7 +91,7 @@ function App() {
       setUser(u);
       localStorage.setItem('userId', u._id);
       localStorage.setItem('username', u.username);
-      loadAuctions();
+      await loadAuctions(u._id);
     } catch (e: any) {
       setMsg('Login failed');
     }
@@ -105,12 +105,14 @@ function App() {
     setNewAuctionTitle('');
   }
 
-  const loadAuctions = async () => {
+  const loadAuctions = async (userId?: string) => {
     try {
       const list = await api.getAuctions();
       setAuctions(list);
-      if (user) {
-        const bids = await api.getMyBids(user._id);
+
+      const uid = userId || user?._id;
+      if (uid) {
+        const bids = await api.getMyBids(uid);
         setMyBids(bids);
       }
     } catch (e) {
@@ -182,6 +184,12 @@ function App() {
       setMsg('Bid placed!');
       refreshUser();
       viewAuction(selectedAuction._id, false);
+      loadAuctions(user._id);
+
+      setMyBids(prev => ({
+        ...prev,
+        [selectedAuction._id]: Number(bidAmount)
+      }));
     } catch (e: any) {
       setMsg(e.response?.data?.error || e.message);
     }
@@ -200,7 +208,7 @@ function App() {
       }
 
       if (activeTab === 'ACTIVE') {
-        loadAuctions();
+        loadAuctions(user._id);
         return;
       }
 
@@ -218,6 +226,15 @@ function App() {
     }, 2000);
     return () => clearInterval(interval);
   }, [user, selectedAuction, activeTab]);
+
+  useEffect(() => {
+    if (!user) return;
+    // Фоновая проверка инвентаря для анимации победы (не привязана к вкладке).
+    const interval = setInterval(() => {
+      loadInventory();
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   useEffect(() => {
     if (activeTab === 'ACTIVE') loadAuctions();
@@ -279,7 +296,10 @@ function App() {
 
         {selectedAuction ? (
           <div className="auction-detail">
-            <button onClick={() => setSelectedAuction(null)}>← Back</button>
+            <button onClick={() => {
+              setSelectedAuction(null);
+              loadAuctions(user!._id);
+            }}>← Back</button>
             <h2 className="text-center">{selectedAuction.title}</h2>
             <div className="round-info">
               <h3>Round {selectedAuction.currentRoundIndex + 1} / {selectedAuction.rounds.length}</h3>
