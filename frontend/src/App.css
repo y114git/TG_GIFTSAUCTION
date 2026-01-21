@@ -627,6 +627,8 @@ main {
 /* Form styles */
 .create-form {
   padding: 1.5rem;
+  max-width: 350px;
+  margin: 0 auto;
 }
 
 .form-group {
@@ -643,12 +645,17 @@ main {
 
 .form-group input {
   width: 100%;
+  max-width: 280px;
 }
 
 .form-row {
   display: flex;
   gap: 15px;
   margin-top: 15px;
+}
+
+.form-row .form-group input {
+  max-width: 120px;
 }
 
 /* Duration inputs */
