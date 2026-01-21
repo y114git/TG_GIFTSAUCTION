@@ -356,7 +356,7 @@ function App() {
             </div>
 
             <div className="bidding-zone">
-              <p>Min Bid: {selectedAuction.rounds[selectedAuction.currentRoundIndex]?.minBid}</p>
+              <p className="text-center">Min Bid: {selectedAuction.rounds[selectedAuction.currentRoundIndex]?.minBid}</p>
               <input
                 type="number"
                 value={bidAmount}
@@ -366,7 +366,7 @@ function App() {
             </div>
 
             <div className="leaderboard">
-              <h3>Top Bids (Winners Zone)</h3>
+              <h3 className="text-center">Top Bids (Winners Zone)</h3>
               {selectedAuction.topBids
                 ?.slice(0, selectedAuction.rounds[selectedAuction.currentRoundIndex].winnersCount)
                 .map((b, i) => (
@@ -380,7 +380,7 @@ function App() {
                     <span>{b.amount} Stars</span>
                   </div>
                 ))}
-              {(!selectedAuction.topBids || selectedAuction.topBids.length === 0) && <p>No bids yet</p>}
+              {(!selectedAuction.topBids || selectedAuction.topBids.length === 0) && <p className="text-center">No bids yet</p>}
 
               {(selectedAuction.topBids?.length || 0) > selectedAuction.rounds[selectedAuction.currentRoundIndex].winnersCount && (
                 <p className="text-center" style={{ opacity: 0.5, marginTop: 10 }}>

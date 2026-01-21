@@ -100,7 +100,7 @@ export class BidService {
         if (!round.endTime) return;
 
         // Антиснайпинг: если ставка прилетает в последние секунды, раунд продлевается.
-        const SNIPE_WINDOW_MS = 30 * 1000;
+        const SNIPE_WINDOW_MS = 15 * 1000;
         const EXTENSION_MS = 30 * 1000;
 
         const timeLeft = round.endTime.getTime() - now.getTime();
