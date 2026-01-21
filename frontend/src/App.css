@@ -4,27 +4,21 @@ body {
   background-color: #0e1621;
   color: #fff;
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   box-sizing: border-box;
   overflow-x: hidden;
 }
 
 .app-container {
   max-width: 600px;
-  width: 100%;
-  margin: 2rem auto;
+  width: calc(100% - 2rem);
+  margin: 1rem auto;
   background: #17212b;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   overflow: hidden;
-  min-height: 700px;
+  min-height: calc(100vh - 2rem);
   display: flex;
   flex-direction: column;
-  position: relative;
-  left: 0;
-  transform: none;
 }
 
 
@@ -34,7 +28,9 @@ body {
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
+  padding: 1rem;
+  box-sizing: border-box;
 }
 
 .card {
@@ -434,10 +430,6 @@ main {
 
 /* Mobile Adaptation */
 @media (max-width: 600px) {
-  body {
-    align-items: flex-start;
-  }
-
   .app-container {
     margin: 0;
     width: 100%;
@@ -449,61 +441,113 @@ main {
 
   header {
     flex-wrap: wrap;
-    gap: 10px;
-    padding: 10px;
+    gap: 8px;
+    padding: 12px;
   }
 
   .logo {
     width: 100%;
     justify-content: center;
+    font-size: 1.1rem;
   }
 
   .user-panel {
     width: 100%;
     align-items: center;
+    gap: 6px;
   }
 
   .balance {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     text-align: center;
   }
 
   .balance-actions {
     flex-wrap: nowrap;
+    justify-content: center;
+  }
+
+  .balance-actions button {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    font-size: 1rem;
   }
 
   .tabs {
-    justify-content: flex-start;
-    overflow-x: auto;
-    white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 5px;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 10px;
   }
 
   .tabs button {
     flex-shrink: 0;
-    padding: 8px 15px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
   }
 
   main {
-    padding: 15px;
+    padding: 12px;
     overflow-x: hidden;
   }
 
-  h2, h3 {
-    text-align: center;
-  }
-
-  .text-center {
+  h2, h3, .text-center {
     text-align: center;
   }
 
   .inventory-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+
+  .inventory-item {
+    padding: 12px;
+  }
+
+  .gift-icon {
+    font-size: 2.5rem;
   }
 
   .leaderboard {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+  }
+
+  .duration-inputs input {
+    width: 55px;
+  }
+
+  .auction-detail {
+    gap: 10px;
+  }
+
+  .round-info {
+    padding: 12px;
+  }
+
+  .bid-section {
+    flex-direction: column;
+  }
+
+  .bid-section input {
+    width: 100%;
+  }
+
+  .modal-content {
+    min-width: auto;
+    width: 90%;
+    max-width: 320px;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+
+  .login-card {
+    padding: 1.5rem;
+    width: 90%;
+    max-width: 300px;
+    min-width: auto;
   }
 }
 
