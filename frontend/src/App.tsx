@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { api, type Auction, type Transaction } from './api';
 import './App.css';
 
@@ -120,17 +120,30 @@ function App() {
     }
   };
 
-  const [prevInventoryCount, setPrevInventoryCount] = useState(0);
+  const prevInventoryCountRef = useRef(0);
+  const lastShownVictoryBidIdRef = useRef<string | null>(null);
 
   const loadInventory = async () => {
     if (!user) return;
     try {
       const items = await api.getInventory(user._id);
-      if (items.length > prevInventoryCount && prevInventoryCount > 0) {
-        const newItem = items[0];
-        setShowVictory(newItem.auction?.title || 'Gift');
+
+      // Победа показывается один раз на конкретный выигрыш (bidId), чтобы не повторять анимацию при частом polling.
+      const currentCount = prevInventoryCountRef.current;
+      const latest = items[0];
+      const latestBidId = latest?.bidId as string | undefined;
+
+      if (
+        latestBidId &&
+        items.length > currentCount &&
+        currentCount > 0 &&
+        lastShownVictoryBidIdRef.current !== latestBidId
+      ) {
+        lastShownVictoryBidIdRef.current = latestBidId;
+        setShowVictory(latest.auction?.title || 'Gift');
       }
-      setPrevInventoryCount(items.length);
+
+      prevInventoryCountRef.current = items.length;
       setInventory(items);
     } catch (e) {
       console.error(e);
@@ -213,7 +226,7 @@ function App() {
       }
 
       if (activeTab === 'INVENTORY') {
-        loadInventory();
+        // Инвентарь обновляется отдельным фоновым polling (см. отдельный useEffect ниже)
         return;
       }
 
