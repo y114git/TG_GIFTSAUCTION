@@ -12,7 +12,10 @@ dotenv.config();
 const server = fastify({ logger: true });
 
 server.register(cors, {
-    origin: '*', // Allow all for demo
+    origin: true, // Allow all origins
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'x-user-id'],
+    credentials: true,
 });
 
 // Register Routes

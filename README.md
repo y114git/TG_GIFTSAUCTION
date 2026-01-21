@@ -8,7 +8,7 @@
 
 Видео: [[КЛИК](https://youtu.be/grpvQfVUXA8)]
 
-Сайт: [ССЫЛКА]
+Сайт: [[КЛИК](https://tggiftsauction-production.up.railway.app)]
 
 ---
 
