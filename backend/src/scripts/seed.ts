@@ -8,8 +8,7 @@ dotenv.config();
 const seed = async () => {
     await connectDB();
 
-    // Clean up old active auctions
-    await Auction.deleteMany({}); // Dangerous in prod, safe for demo
+    await Auction.deleteMany({});
 
     const ROUND_DURATION = 1000 * 60; // 1 minute
 

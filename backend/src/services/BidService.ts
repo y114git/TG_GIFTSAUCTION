@@ -42,17 +42,6 @@ export class BidService {
             throw new Error(`Minimum bid is ${currentRound.minBid}`);
         }
 
-        // 2. Lock Funds
-        // This will throw if insufficient funds
-        // We treat the bid as new. If user is upgrading a bid, we might need diff logic?
-        // User rules: "You can increase your bid at any time".
-        // Implementation: Ideally we find existing bid for this round and "top up".
-        // For simplicity V1: Let's assume new bid. But wait, if they have a bid from previous round carried over?
-        // We should probably check if user already has an ACTIVE bid in this auction/round.
-
-        // Check for ANY existing active bid by this user in this auction
-        // We do not filter by roundIndex because a bid from a previous round (if active) 
-        // should be upgraded rather than creating a second simultaneous bid.
         const existingBid = await Bid.findOne({
             auctionId,
             userId,

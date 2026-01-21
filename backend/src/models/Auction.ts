@@ -21,7 +21,7 @@ export interface IAuction extends Document {
     status: AuctionStatus;
     rounds: IRound[];
     currentRoundIndex: number;
-    totalWinnersNeeded: number; // Total items to sell? Or maybe strictly per round. Let's stick to per round config.
+    totalWinnersNeeded: number;
     createdAt: Date;
 }
 

@@ -88,11 +88,7 @@ export class PaymentService {
             const user = await User.findById(userId).session(localSession);
             if (!user) throw new Error('User not found');
 
-            // We assume correct logic elsewhere ensured lockedBalance >= amount.
-            // But safety check:
             if (user.lockedBalance < amount) {
-                // This is a critical error state usually, but we proceed to fix ledger if possible
-                // or throw error? Let's throw for now to catch bugs.
                 throw new Error('Inconsistent locked balance state');
             }
 
@@ -129,30 +125,15 @@ export class PaymentService {
 
             if (user.lockedBalance < amount) {
                 console.error(`CAPTURE ERROR: User ${userId} has locked ${user.lockedBalance} but needs ${amount}. RefId: ${referenceId}`);
-                // Attempt auto-fix in dev/demo mode? 
-                // For now just log.
                 throw new Error(`Insufficient locked funds to capture. Locked: ${user.lockedBalance}, Needed: ${amount}`);
             }
 
             user.lockedBalance -= amount;
-            // balance was already deducted during lock.
-            // So we just reduce lockedBalance. Effectivly burning the tokens from user's perspective.
-
             await user.save({ session: localSession });
 
             await Transaction.create([{
                 userId,
-                amount: -amount, // It's a spend, but technically the deduction happened at lock. 
-                // However, for pure audit, we might want to record the "event". 
-                // But the balance change is 0 here (already moved out of available).
-                // Let's record it with 0 user-balance-impact or just specific type.
-                // But for `Transaction` model usage as a ledger of "Balance", the balance changed at LOCK.
-                // So we might log this with 0 amount but specific type to indicate finality?
-                // Or we treat "Locked" as part of User Wealth?
-                // Decision: "Balance" = Available. "Locked" = Reserved.
-                // Lock: Available -> Locked.
-                // Capture: Locked -> Burned.
-                // So at capture, we record the "use" of funds.
+                amount: -amount,
                 type: TransactionType.WIN_CAPTURE,
                 referenceId
             }], { session: localSession });

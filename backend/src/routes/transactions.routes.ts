@@ -14,7 +14,7 @@ export async function transactionRoutes(fastify: FastifyInstance) {
         try {
             const history = await Transaction.find({ userId })
                 .sort({ createdAt: -1 })
-                .limit(50); // Limit to last 50 for performance/UI cleanliness
+                .limit(50);
             return history;
         } catch (e: any) {
             return reply.code(500).send({ error: e.message });

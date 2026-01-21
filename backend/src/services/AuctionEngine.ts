@@ -44,29 +44,10 @@ export class AuctionEngine {
 
             console.log(`Resolving Round ${currentIndex} for Auction ${auctionId}`);
 
-            // 1. Fetch all ACTIVE bids for this round
-            // We need to carry over bids from previous rounds too if they weren't winners? 
-            // The logic says "lower bids automatically carried over".
-            // Users in this round include those who bid explicitly + those carried over.
-            // Any bid with roundIndex <= currentRoundIndex AND status = ACTIVE is a candidate.
-            // Wait, if it wasn't a winner in R1, it stays ACTIVE and is considered for R2.
-            // So we query all ACTIVE bids.
-
-            // 1. Fetch all ACTIVE bids for this round
-            // Sort by amount DESC, then createdAt ASC (First come first serve for ties)
             const allBids = await Bid.find({
                 auctionId: auction.id,
                 status: BidStatus.ACTIVE
             }).sort({ amount: -1, createdAt: 1 }).session(session);
-
-            // 2. Determine Winners
-            // "In each round, the top N bidders win". 
-            // We must ensure unique users. A user can't win twice in same round usually (or maybe they can if they placed multiple separate bids? logic says "participants").
-            // Let's assume unique USERS win.
-            // But BidService allows multiple active bids per user? 
-            // BidService: `existingBid` check means usually 1 active bid per user per round.
-            // But if race conditions happened or multiple devices, maybe multiple exist.
-            // Let's filter unique userId just in case to prevent double-charging error "Insufficient locked funds".
 
             const uniqueBids = [];
             const seenUsers = new Set();
@@ -74,30 +55,17 @@ export class AuctionEngine {
                 if (!seenUsers.has(b.userId.toString())) {
                     seenUsers.add(b.userId.toString());
                     uniqueBids.push(b);
-                } else {
-                    // This is a duplicate bid from same user? 
-                    // Should we refund it immediately as "Lost" effectively? 
-                    // Or keep it as "Loser" to be refunded in Loser loop?
-                    // Let's treat it as candidate for loser pool.
                 }
             }
-
-            // Actually, we need to split uniqueBids into winners and losers.
-            // And also keep the "duplicate user bids" in losers pile so they get refunded.
 
             const winnersCount = currentRound.winnersCount;
             const winners = uniqueBids.slice(0, winnersCount);
 
-            // Losers = (uniqueBids - winners) + (allBids that were skipped as duplicates)
-            // Easier way:
             const winnerIds = new Set(winners.map(w => w._id.toString()));
             const losers = allBids.filter(b => !winnerIds.has(b._id.toString()));
 
-            // 3. Process Winners
             for (const winBid of winners) {
                 winBid.status = BidStatus.WINNER;
-                // roundIndex marks WHEN they won? Or when they placed bid? 
-                // Let's keep roundIndex as origin, simple.
                 await winBid.save({ session });
 
                 // Capture funds - PASS SESSION

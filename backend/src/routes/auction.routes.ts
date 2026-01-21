@@ -7,6 +7,26 @@ import { Bid, BidStatus } from '../models/Bid';
 const auctionCreationCooldown = new Map<string, number>();
 const AUCTION_COOLDOWN_MS = 5000;
 
+const sanitizeString = (str: string, maxLength: number = 100): string => {
+    if (typeof str !== 'string') return '';
+    return str.trim().slice(0, maxLength).replace(/[<>\"'`$\\]/g, '').replace(/\s+/g, ' ');
+};
+
+const isValidNumber = (val: any, min: number, max: number): boolean => {
+    const num = Number(val);
+    return !isNaN(num) && isFinite(num) && num >= min && num <= max;
+};
+
+const userLocks = new Map<string, Promise<any>>();
+const withUserLock = async <T>(userId: string, fn: () => Promise<T>): Promise<T> => {
+    const prev = userLocks.get(userId) || Promise.resolve();
+    const current = prev.then(() => fn()).catch((e) => { throw e; });
+    userLocks.set(userId, current.catch(() => {}));
+    try { return await current; } finally {
+        if (userLocks.get(userId) === current.catch(() => {})) userLocks.delete(userId);
+    }
+};
+
 export async function auctionRoutes(fastify: FastifyInstance) {
 
     // List active auctions
@@ -24,8 +44,6 @@ export async function auctionRoutes(fastify: FastifyInstance) {
             return { error: 'Not found' };
         }
 
-        // Include top bids for current round context
-        // We could aggregate or just simple query
         const topBids = await Bid.find({
             auctionId: id,
             roundIndex: auction.currentRoundIndex,
@@ -43,10 +61,15 @@ export async function auctionRoutes(fastify: FastifyInstance) {
 
         if (!userId) return reply.code(401).send({ error: 'Unauthorized' });
 
+        // Validate bid amount
+        if (!isValidNumber(amount, 1, 10000000)) {
+            return reply.code(400).send({ error: 'Invalid bid amount' });
+        }
+
         try {
-            const bid = await BidService.placeBid(userId, id, amount);
+            const bid = await withUserLock(userId, () => BidService.placeBid(userId, id, Math.floor(Number(amount))));
             return bid;
-        } catch (e: any) { // Type 'any' used for error to access message safely in catch block in TS in this context
+        } catch (e: any) {
             return reply.code(400).send({ error: e.message });
         }
     });
@@ -65,16 +88,16 @@ export async function auctionRoutes(fastify: FastifyInstance) {
         
         const data = req.body as any;
 
-        // Validation (before setting cooldown)
-        if (!data.title || data.title.trim().length === 0) {
-            return reply.code(400).send({ error: 'Gift name is required' });
+        // Sanitize and validate title
+        const title = sanitizeString(data.title, 100);
+        if (!title || title.length < 2) {
+            return reply.code(400).send({ error: 'Gift name is required (2-100 characters)' });
         }
 
-        // Config defaults
-        const roundsCount = data.roundsCount || 1;
-        const duration = Math.max(data.duration || 60000, 30000); // minimum 30 seconds
-        const winnersCount = data.winnersCount || 1;
-        const minBid = data.minBid || 0;
+        const roundsCount = isValidNumber(data.roundsCount, 1, 1000) ? Number(data.roundsCount) : 1;
+        const duration = isValidNumber(data.duration, 30000, 3600000) ? Number(data.duration) : 60000;
+        const winnersCount = isValidNumber(data.winnersCount, 1, 100) ? Number(data.winnersCount) : 1;
+        const minBid = isValidNumber(data.minBid, 0, 1000000) ? Number(data.minBid) : 0;
 
         // Construct rounds dynamically
         const rounds = [];
@@ -89,7 +112,7 @@ export async function auctionRoutes(fastify: FastifyInstance) {
         }
 
         const auction = await Auction.create({
-            title: data.title,
+            title: title, // Use sanitized title
             status: AuctionStatus.ACTIVE,
             rounds: rounds,
             currentRoundIndex: 0,

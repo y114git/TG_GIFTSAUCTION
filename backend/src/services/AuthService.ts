@@ -9,8 +9,6 @@ export class AuthService {
         let user = await User.findOne({ username });
         if (!user) {
             user = await User.create({ username });
-            // Give some initial funds for demo
-            // In real app, this would be a separate flow/payment
             await PaymentService.deposit(user.id, 1000);
         }
         return user;

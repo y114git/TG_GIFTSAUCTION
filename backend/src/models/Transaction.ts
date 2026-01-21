@@ -10,9 +10,9 @@ export enum TransactionType {
 
 export interface ITransaction extends Document {
     userId: mongoose.Types.ObjectId;
-    amount: number; // Positive or negative
+    amount: number;
     type: TransactionType;
-    referenceId?: string; // e.g., AuctionID or BidID
+    referenceId?: string;
     createdAt: Date;
 }
 

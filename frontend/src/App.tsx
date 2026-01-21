@@ -181,9 +181,9 @@ function App() {
       await api.placeBid(selectedAuction._id, Number(bidAmount), user._id);
       setMsg('Bid placed!');
       refreshUser();
-      viewAuction(selectedAuction._id, false); // Reset to minBid after success? Or keep? Let's reset.
+      viewAuction(selectedAuction._id, false);
     } catch (e: any) {
-      setMsg(`Error: ${e.response?.data?.error || e.message}`);
+      setMsg(e.response?.data?.error || e.message);
     }
   };
 
@@ -396,7 +396,7 @@ function App() {
 
             {/* CREATE TAB */}
             {activeTab === 'CREATE' && (
-              <div className="create-container">
+              <div className="create-container slide-enter">
                 <h2 className="text-center">Create New Auction</h2>
                 <div className="card create-form">
                   <div className="form-group">
@@ -457,7 +457,7 @@ function App() {
                       minBid,
                       winnersCount,
                       duration: durationMs,
-                      roundsCount: 1 // Simple v1
+                      roundsCount: 1
                     }, user!._id).then(() => {
                       setNewAuctionTitle('');
                       setActiveTab('ACTIVE');
@@ -465,7 +465,7 @@ function App() {
                       setMsg('Auction created!');
                       setTimeout(() => setMsg(''), 3000);
                     }).catch((e: any) => {
-                      setMsg(`Error: ${e.response?.data?.error || e.message}`);
+                      setMsg(e.response?.data?.error || e.message);
                     });
 
                   }}>Create Auction</button>
@@ -501,7 +501,7 @@ function App() {
                 setMsg('Deposit successful!');
                 setTimeout(() => setMsg(''), 3000);
               } catch (e: any) { 
-                setMsg(`Error: ${e.response?.data?.error || e.message}`);
+                setMsg(e.response?.data?.error || e.message);
               }
             }
           }}
@@ -535,7 +535,7 @@ function App() {
                 setMsg('Withdrawal successful!');
                 setTimeout(() => setMsg(''), 3000);
               } catch (e: any) { 
-                setMsg(`Error: ${e.response?.data?.error || e.message}`);
+                setMsg(e.response?.data?.error || e.message);
               }
             }
           }}

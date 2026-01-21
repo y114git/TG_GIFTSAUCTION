@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export enum BidStatus {
     ACTIVE = 'ACTIVE',
     WINNER = 'WINNER',
-    OUTBID = 'OUTBID', // Technically not needed if we just check rank, but good for history
+    OUTBID = 'OUTBID',
     LOST = 'LOST'
 }
 
@@ -23,10 +23,9 @@ const BidSchema: Schema = new Schema({
     amount: { type: Number, required: true },
     roundIndex: { type: Number, required: true },
     status: { type: String, enum: Object.values(BidStatus), default: BidStatus.ACTIVE },
-    snapshotTitle: { type: String } // Snapshot of auction title for inventory display after auction deletion
+    snapshotTitle: { type: String }
 }, { timestamps: true });
 
-// Compound index for efficient looking up of top bids in a round
 BidSchema.index({ auctionId: 1, roundIndex: 1, amount: -1 });
 
 export const Bid = mongoose.model<IBid>('Bid', BidSchema);

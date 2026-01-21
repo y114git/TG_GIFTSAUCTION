@@ -89,7 +89,7 @@ export const api = {
     },
 
     createAuction: async (data: any, userId: string) => {
-        // Using admin endpoint for demo simplicity
+        
         const res = await axios.post(`${API_URL}/admin/auctions`, data, {
             headers: { 'x-user-id': userId }
         });
