@@ -61,6 +61,11 @@ function App() {
   const [depositModalOpen, setDepositModalOpen] = useState(false);
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
   const [modalAmount, setModalAmount] = useState('');
+  
+  // Transfer gift modal
+  const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const [transferBidId, setTransferBidId] = useState('');
+  const [transferRecipient, setTransferRecipient] = useState('');
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [inventory, setInventory] = useState<any[]>([]);
   const [history, setHistory] = useState<Transaction[]>([]);
@@ -226,9 +231,6 @@ function App() {
       <header>
         <div className="logo"><img src="/favicon.png" alt="logo" className="logo-icon" /> Gift Auction</div>
         <div className="balance-container">
-          <button className="history-btn-icon" title="Transaction History" onClick={() => { setSelectedAuction(null); setActiveTab('HISTORY'); }}>
-            📜
-          </button>
           <span className="balance">{user.username} | <strong>{user.balance} Stars</strong></span>
           <div className="balance-actions">
             <button className="deposit-btn" title="Add Funds" onClick={() => {
@@ -239,6 +241,9 @@ function App() {
               setModalAmount('');
               setWithdrawModalOpen(true);
             }}>-</button>
+            <button className="history-btn-icon" title="Transaction History" onClick={() => { setSelectedAuction(null); setActiveTab('HISTORY'); }}>
+              <img src="/history.png" alt="history" />
+            </button>
             <button className="exit-btn" onClick={handleLogout}>Exit</button>
           </div>
         </div>
@@ -327,9 +332,18 @@ function App() {
             {activeTab === 'INVENTORY' && (
               <div className="inventory-list slide-enter">
                 <h2 className="text-center">My Gifts</h2>
+                <p className="text-center" style={{ opacity: 0.6, fontSize: '0.9rem', marginTop: -10 }}>Click on a gift to transfer it</p>
                 <div className="inventory-grid">
                   {inventory.map((item, i) => (
-                    <div key={i} className="inventory-item">
+                    <div 
+                      key={i} 
+                      className="inventory-item clickable"
+                      onClick={() => {
+                        setTransferBidId(item.bidId);
+                        setTransferRecipient('');
+                        setTransferModalOpen(true);
+                      }}
+                    >
                       <div className="gift-icon">🎁</div>
                       <h3>{item.auction?.title || 'Unknown Gift'}</h3>
                       <p>Won for: {item.amount} Stars</p>
@@ -494,6 +508,41 @@ function App() {
           }}
         >
           Withdraw
+        </button>
+      </Modal>
+
+      {/* Transfer Gift Modal */}
+      <Modal 
+        isOpen={transferModalOpen} 
+        onClose={() => setTransferModalOpen(false)} 
+        title="Transfer Gift"
+      >
+        <p style={{ marginBottom: 15, opacity: 0.8 }}>Enter the username of the recipient:</p>
+        <input
+          type="text"
+          value={transferRecipient}
+          onChange={e => setTransferRecipient(e.target.value)}
+          placeholder="Username"
+          autoFocus
+        />
+        <button 
+          className="primary-btn"
+          style={{ marginTop: 15, width: '100%' }}
+          onClick={async () => {
+            if (transferRecipient.trim()) {
+              try {
+                await api.transferGift(transferBidId, transferRecipient.trim(), user!._id);
+                setTransferModalOpen(false);
+                loadInventory();
+                setMsg('Gift transferred successfully!');
+                setTimeout(() => setMsg(''), 3000);
+              } catch (e: any) { 
+                setMsg(`Error: ${e.response?.data?.error || e.message}`);
+              }
+            }
+          }}
+        >
+          Transfer
         </button>
       </Modal>
     </div>

@@ -59,6 +59,10 @@
 
 Ставки проигравших участников остаются активными в следующем раунде. Средства остаются заблокированными до победы или завершения аукциона.
 
+### Передача подарков
+
+Выигранные подарки можно передать другому пользователю. В инвентаре нажмите на подарок и введите username получателя.
+
 ---
 
 ## Архитектура
@@ -273,6 +277,15 @@ GET /api/transactions/:userId
   { "type": "bid_lock", "amount": -100, "metadata": { "auctionId": "..." } },
   { "type": "win", "amount": -100, "metadata": { "item": "Premium Gift" } }
 ]
+```
+
+### Передача подарка
+
+```
+POST /me/gift/transfer
+{ "bidId": "...", "recipientUsername": "player456" }
+
+Ответ: { "success": true, "message": "Gift transferred to player456" }
 ```
 
 ---

@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { AuthService } from '../services/AuthService';
 import { PaymentService } from '../services/PaymentService';
 import { User } from '../models/User';
+import { Bid, BidStatus } from '../models/Bid';
 
 // Rate limiting for deposits/withdrawals (3 seconds per user)
 const depositCooldown = new Map<string, number>();
@@ -82,6 +83,47 @@ export async function authRoutes(fastify: FastifyInstance) {
             return user;
         } catch (e: any) {
             return reply.code(400).send({ error: e.message });
+        }
+    });
+
+    // Transfer gift to another user
+    fastify.post('/me/gift/transfer', async (req, reply) => {
+        const userId = req.headers['x-user-id'] as string;
+        const { bidId, recipientUsername } = req.body as { bidId: string; recipientUsername: string };
+
+        if (!userId) return reply.code(401).send({ error: 'Unauthorized' });
+        if (!bidId || !recipientUsername) return reply.code(400).send({ error: 'Missing bidId or recipientUsername' });
+
+        try {
+            // Find the gift (winning bid) that belongs to the user
+            const bid = await Bid.findOne({ 
+                _id: bidId, 
+                userId, 
+                status: BidStatus.WINNER 
+            });
+
+            if (!bid) {
+                return reply.code(404).send({ error: 'Gift not found in your inventory' });
+            }
+
+            // Find recipient by username
+            const recipient = await User.findOne({ username: recipientUsername });
+            if (!recipient) {
+                return reply.code(404).send({ error: 'User not found' });
+            }
+
+            // Can't transfer to yourself
+            if (recipient._id.toString() === userId) {
+                return reply.code(400).send({ error: 'Cannot transfer to yourself' });
+            }
+
+            // Transfer the gift
+            bid.userId = recipient._id;
+            await bid.save();
+
+            return { success: true, message: `Gift transferred to ${recipientUsername}` };
+        } catch (e: any) {
+            return reply.code(500).send({ error: e.message });
         }
     });
 }

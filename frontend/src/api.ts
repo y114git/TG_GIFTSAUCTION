@@ -94,5 +94,12 @@ export const api = {
             headers: { 'x-user-id': userId }
         });
         return res.data;
+    },
+
+    transferGift: async (bidId: string, recipientUsername: string, userId: string) => {
+        const res = await axios.post(`${API_URL}/me/gift/transfer`, { bidId, recipientUsername }, {
+            headers: { 'x-user-id': userId }
+        });
+        return res.data;
     }
 };
