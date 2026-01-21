@@ -4,19 +4,20 @@ body {
   background-color: #0e1621;
   color: #fff;
   min-height: 100vh;
+  display: flex;
+  justify-content: center;
   box-sizing: border-box;
   overflow-x: hidden;
 }
 
 .app-container {
   max-width: 600px;
-  width: calc(100% - 2rem);
-  margin: 1rem auto;
+  width: 100%;
+  margin: 2rem;
   background: #17212b;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   overflow: hidden;
-  min-height: calc(100vh - 2rem);
   display: flex;
   flex-direction: column;
 }
@@ -441,55 +442,44 @@ main {
 
   header {
     flex-wrap: wrap;
-    gap: 8px;
-    padding: 12px;
+    gap: 10px;
+    padding: 15px;
   }
 
   .logo {
     width: 100%;
     justify-content: center;
-    font-size: 1.1rem;
   }
 
   .user-panel {
     width: 100%;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
   }
 
   .balance {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     text-align: center;
   }
 
   .balance-actions {
-    flex-wrap: nowrap;
     justify-content: center;
-  }
-
-  .balance-actions button {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    font-size: 1rem;
+    gap: 8px;
   }
 
   .tabs {
     justify-content: center;
     flex-wrap: wrap;
-    gap: 5px;
-    padding: 10px;
+    gap: 8px;
+    padding: 10px 15px;
   }
 
   .tabs button {
-    flex-shrink: 0;
-    padding: 8px 12px;
-    font-size: 0.85rem;
+    padding: 10px 16px;
   }
 
   main {
-    padding: 12px;
-    overflow-x: hidden;
+    padding: 15px;
   }
 
   h2, h3, .text-center {
@@ -498,55 +488,25 @@ main {
 
   .inventory-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 10px;
-  }
-
-  .inventory-item {
-    padding: 12px;
-  }
-
-  .gift-icon {
-    font-size: 2.5rem;
   }
 
   .leaderboard {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
   }
 
   .duration-inputs input {
-    width: 55px;
-  }
-
-  .auction-detail {
-    gap: 10px;
-  }
-
-  .round-info {
-    padding: 12px;
-  }
-
-  .bid-section {
-    flex-direction: column;
-  }
-
-  .bid-section input {
-    width: 100%;
+    width: 60px;
   }
 
   .modal-content {
     min-width: auto;
     width: 90%;
-    max-width: 320px;
-  }
-
-  .modal-body {
-    padding: 16px;
+    max-width: 350px;
   }
 
   .login-card {
-    padding: 1.5rem;
     width: 90%;
-    max-width: 300px;
+    max-width: 320px;
     min-width: auto;
   }
 }
