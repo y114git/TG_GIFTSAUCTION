@@ -425,12 +425,12 @@ function App() {
                   </div>
 
                   <div className="form-group">
-                    <label>Rounds Count (1-1000)</label>
+                    <label>Rounds Count</label>
                     <input type="number" defaultValue={1} min={1} max={1000} id="newRoundsCount" />
                   </div>
 
                   <div className="form-group center">
-                    <label>Round Duration (Min 0:30)</label>
+                    <label>Round Duration</label>
                     <div className="duration-inputs">
                       <input 
                         type="number" 
