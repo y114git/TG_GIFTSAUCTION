@@ -66,6 +66,7 @@ function App() {
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [transferBidId, setTransferBidId] = useState('');
   const [transferRecipient, setTransferRecipient] = useState('');
+  const [transferError, setTransferError] = useState('');
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [inventory, setInventory] = useState<any[]>([]);
   const [history, setHistory] = useState<Transaction[]>([]);
@@ -212,8 +213,8 @@ function App() {
   if (!user) {
     return (
       <div className="container center">
-        <h1>Telegram Auction Immitation</h1>
-        <div className="card">
+        <h1>TG-GIFTSAUCTION (DEMO)</h1>
+        <div className="login-card">
           <h2 className="text-center">Login</h2>
           <input
             value={usernameInput}
@@ -221,6 +222,7 @@ function App() {
             placeholder="Username"
           />
           <button onClick={handleLogin}>Enter</button>
+          {msg && <p className="error-msg">{msg}</p>}
         </div>
       </div>
     );
@@ -230,7 +232,7 @@ function App() {
     <div className="app-container">
       <header>
         <div className="logo"><img src="/favicon.png" alt="logo" className="logo-icon" /> Gift Auction</div>
-        <div className="balance-container">
+        <div className="user-panel">
           <span className="balance">{user.username} | <strong>{user.balance} Stars</strong></span>
           <div className="balance-actions">
             <button className="deposit-btn" title="Add Funds" onClick={() => {
@@ -341,6 +343,7 @@ function App() {
                       onClick={() => {
                         setTransferBidId(item.bidId);
                         setTransferRecipient('');
+                        setTransferError('');
                         setTransferModalOpen(true);
                       }}
                     >
@@ -409,21 +412,32 @@ function App() {
                     </div>
                   </div>
                   <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column' }}>
-                    <label>Round duration (min)</label>
-                    <input type="number" defaultValue={1} id="newDuration" />
+                    <label>Round duration (m:ss)</label>
+                    <input type="text" defaultValue="1:00" id="newDuration" placeholder="1:30" />
                   </div>
 
                   <br />
                   <button onClick={() => {
                     const minBid = Number((document.getElementById('newMinBid') as HTMLInputElement).value);
                     const winnersCount = Number((document.getElementById('newWinnersCount') as HTMLInputElement).value);
-                    const durationMin = Number((document.getElementById('newDuration') as HTMLInputElement).value);
+                    const durationStr = (document.getElementById('newDuration') as HTMLInputElement).value;
+                    
+                    // Parse m:ss format
+                    const parts = durationStr.split(':');
+                    let durationMs = 60000; // default 1 min
+                    if (parts.length === 2) {
+                      const mins = parseInt(parts[0]) || 0;
+                      const secs = parseInt(parts[1]) || 0;
+                      durationMs = (mins * 60 + secs) * 1000;
+                    } else if (parts.length === 1) {
+                      durationMs = (parseInt(parts[0]) || 1) * 60000;
+                    }
 
                     api.createAuction({
                       title: newAuctionTitle,
                       minBid,
                       winnersCount,
-                      duration: durationMin * 60000,
+                      duration: durationMs,
                       roundsCount: 1 // Simple v1
                     }, user!._id).then(() => {
                       setNewAuctionTitle('');
@@ -525,19 +539,21 @@ function App() {
           placeholder="Username"
           autoFocus
         />
+        {transferError && <p className="error-msg" style={{ marginTop: 10 }}>{transferError}</p>}
         <button 
           className="primary-btn"
           style={{ marginTop: 15, width: '100%' }}
           onClick={async () => {
             if (transferRecipient.trim()) {
               try {
+                setTransferError('');
                 await api.transferGift(transferBidId, transferRecipient.trim(), user!._id);
                 setTransferModalOpen(false);
                 loadInventory();
                 setMsg('Gift transferred successfully!');
                 setTimeout(() => setMsg(''), 3000);
               } catch (e: any) { 
-                setMsg(`Error: ${e.response?.data?.error || e.message}`);
+                setTransferError(e.response?.data?.error || e.message);
               }
             }
           }}

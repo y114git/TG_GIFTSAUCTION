@@ -46,6 +46,23 @@ body {
   min-width: 300px;
 }
 
+.login-card {
+  background: #17212b;
+  border-radius: 12px;
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+  min-width: 300px;
+  padding: 2rem;
+}
+
+.error-msg {
+  color: #f87171;
+  text-align: center;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
 input {
   background: #242f3d;
   border: 1px solid #2b5278;
@@ -166,10 +183,11 @@ main {
   text-align: center;
 }
 
-.balance-container {
+.user-panel {
   display: flex;
-  align-items: center;
-  gap: 15px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
 }
 
 .balance-actions {
@@ -431,17 +449,17 @@ main {
 
   .logo {
     width: 100%;
+    justify-content: center;
   }
 
-  .balance-container {
+  .user-panel {
     width: 100%;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px;
+    align-items: center;
   }
 
   .balance {
     font-size: 0.9rem;
+    text-align: center;
   }
 
   .balance-actions {
@@ -464,6 +482,14 @@ main {
   main {
     padding: 15px;
     overflow-x: hidden;
+  }
+
+  h2, h3 {
+    text-align: center;
+  }
+
+  .text-center {
+    text-align: center;
   }
 
   .inventory-grid {
