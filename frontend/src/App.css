@@ -128,6 +128,8 @@ header {
 
 main {
   padding: 20px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .auction-card {
@@ -135,33 +137,33 @@ main {
   padding: 15px;
   border-radius: 8px;
   margin-bottom: 10px;
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  grid-template-rows: auto auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
   align-items: center;
   gap: 4px 10px;
 }
 
 .auction-card h3 {
-  grid-column: 1;
-  grid-row: 1;
   margin: 0;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .auction-card > p:not(.my-bid-info) {
-  grid-column: 2;
-  grid-row: 1;
   margin: 0;
+  flex-shrink: 0;
 }
 
 .auction-card > button {
-  grid-column: 3;
-  grid-row: 1;
+  flex-shrink: 0;
 }
 
 .auction-card .my-bid-info {
-  grid-column: 1 / -1;
-  grid-row: 2;
+  flex-basis: 100%;
   margin: 0;
   font-size: 0.85rem;
 }
