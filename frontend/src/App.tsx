@@ -350,6 +350,7 @@ function App() {
                       <div className="gift-icon">🎁</div>
                       <h3>{item.auction?.title || 'Unknown Gift'}</h3>
                       <p>Won for: {item.amount} Stars</p>
+                      <p className="winner-info">Winner: {item.winnerUsername}</p>
                       <span className="date">{new Date(item.date).toLocaleDateString()}</span>
                     </div>
                   ))}
@@ -412,26 +413,35 @@ function App() {
                     </div>
                   </div>
                   <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column' }}>
-                    <label>Round duration (m:ss)</label>
-                    <input type="text" defaultValue="1:00" id="newDuration" placeholder="1:30" />
+                    <label>Round duration (min 0:30)</label>
+                    <div className="duration-inputs">
+                      <input 
+                        type="number" 
+                        defaultValue={1} 
+                        min={0} 
+                        max={59}
+                        id="newDurationMin" 
+                        placeholder="min"
+                      />
+                      <span>:</span>
+                      <input 
+                        type="number" 
+                        defaultValue={0} 
+                        min={0} 
+                        max={59}
+                        id="newDurationSec" 
+                        placeholder="sec"
+                      />
+                    </div>
                   </div>
 
                   <br />
                   <button onClick={() => {
                     const minBid = Number((document.getElementById('newMinBid') as HTMLInputElement).value);
                     const winnersCount = Number((document.getElementById('newWinnersCount') as HTMLInputElement).value);
-                    const durationStr = (document.getElementById('newDuration') as HTMLInputElement).value;
-                    
-                    // Parse m:ss format
-                    const parts = durationStr.split(':');
-                    let durationMs = 60000; // default 1 min
-                    if (parts.length === 2) {
-                      const mins = parseInt(parts[0]) || 0;
-                      const secs = parseInt(parts[1]) || 0;
-                      durationMs = (mins * 60 + secs) * 1000;
-                    } else if (parts.length === 1) {
-                      durationMs = (parseInt(parts[0]) || 1) * 60000;
-                    }
+                    const mins = Math.max(0, Math.min(59, Number((document.getElementById('newDurationMin') as HTMLInputElement).value) || 0));
+                    const secs = Math.max(0, Math.min(59, Number((document.getElementById('newDurationSec') as HTMLInputElement).value) || 0));
+                    const durationMs = (mins * 60 + secs) * 1000;
 
                     // Minimum 30 seconds
                     if (durationMs < 30000) {

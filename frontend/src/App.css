@@ -310,6 +310,12 @@ main {
   margin-bottom: 10px;
 }
 
+.winner-info {
+  font-size: 0.85rem;
+  color: #40a7e3;
+  margin: 5px 0;
+}
+
 .inventory-item h3 {
   font-size: 1rem;
   margin: 5px 0;
@@ -587,4 +593,22 @@ main {
   box-sizing: border-box;
   font-size: 1.1rem;
   padding: 14px 16px;
+}
+
+/* Duration inputs */
+.duration-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.duration-inputs input {
+  width: 70px;
+  text-align: center;
+}
+
+.duration-inputs span {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #8fa0b3;
 }

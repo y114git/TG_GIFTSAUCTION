@@ -44,6 +44,11 @@ export async function authRoutes(fastify: FastifyInstance) {
             status: BidStatus.WINNER
         }).populate('auctionId');
 
+        // Get user info for each winning bid
+        const userIds = winnings.map(w => w.userId);
+        const users = await User.find({ _id: { $in: userIds } });
+        const userMap = new Map(users.map(u => [u._id.toString(), u.username]));
+
         return winnings.map(w => {
             // Because auction might be deleted, fall back to snapshotTitle
             const auctionTitle = (w.auctionId as any)?.title || w.snapshotTitle || 'Unknown Gift';
@@ -52,6 +57,7 @@ export async function authRoutes(fastify: FastifyInstance) {
                 bidId: w._id,
                 amount: w.amount,
                 date: w.createdAt,
+                winnerUsername: userMap.get(w.userId.toString()) || 'Unknown',
                 auction: {
                     title: auctionTitle
                 }
