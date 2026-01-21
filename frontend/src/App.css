@@ -6,6 +6,8 @@ body {
   min-height: 100vh;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
+  padding: 2rem;
   box-sizing: border-box;
   overflow-x: hidden;
 }
@@ -13,7 +15,7 @@ body {
 .app-container {
   max-width: 600px;
   width: 100%;
-  margin: 2rem;
+  min-height: 600px;
   background: #17212b;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
@@ -30,8 +32,15 @@ body {
   justify-content: center;
   width: 100%;
   min-height: 100vh;
-  padding: 1rem;
+  padding: 1.5rem;
   box-sizing: border-box;
+  text-align: center;
+}
+
+.container.center h1 {
+  font-size: clamp(1.5rem, 8vw, 2.5rem);
+  margin-bottom: 1.5rem;
+  word-break: break-word;
 }
 
 .card {
@@ -431,8 +440,11 @@ main {
 
 /* Mobile Adaptation */
 @media (max-width: 600px) {
+  body {
+    padding: 0;
+  }
+
   .app-container {
-    margin: 0;
     width: 100%;
     max-width: 100%;
     min-height: 100vh;
@@ -504,10 +516,15 @@ main {
     max-width: 350px;
   }
 
+  .container.center {
+    padding: 1rem;
+  }
+
   .login-card {
-    width: 90%;
-    max-width: 320px;
-    min-width: auto;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0;
+    padding: 1.5rem;
   }
 }
 
