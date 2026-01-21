@@ -1,138 +1,332 @@
-# Telegram Digital Gifts Auction Clone
+# Telegram Gifts Auction
 
-> **Contest Submission for Backend Development**
-> This project implements the complete backend and frontend mechanics of Telegram Gift Auctions, focusing on high-concurrency handling, financial integrity, and a premium user experience.
-
-## Key Features
-
-### 1. Advanced Auction Mechanics
-- **Multi-Round Auctions**: Auctions progress through $N$ rounds.
-- **Carry-Over Logic**: Bids that don't win in Round $i$ are automatically carried over to Round $i+1$, ensuring users don't need to re-bid constantly.
-- **Anti-Sniping**: 
-  - **Logic**: If a bid is placed in the last **30 seconds** of a round, the round timer extends by **30 seconds**.
-  - **Implementation**: Atomic updates in `BidService` using optimistic locking to prevent race conditions during high concurrency.
-
-### 2. Financial Integrity & Transactions
-- **Double-Entry Accounting**: Every action (Deposit, Bid, Refund, Win) is recorded as an immutable `Transaction` record.
-- **Funds Locking**:
-  - Bidding moves funds from `Balance` to `LockedBalance`.
-  - **Bid Upgrades**: Users can increase their bid at any time. The system calculates the difference and only locks the additional amount.
-- **Auditability**: Users can view their full transaction history with "Green/Red" indicators for inflows/outflows.
-
-### 3. Real-Time Architecture
-- **Tech Stack**: Node.js + Fastify (High Performance), TypeScript, MongoDB (Replica Set).
-- **Concurrency**: Tested with 50+ concurrent bots. Uses Mongoose concurrency versions (`__v`) to handle simultaneous bids on the same auction.
-- **Frontend**: React + Vite application with polling-based real-time updates (simulating WebSocket behavior for this demo scope).
+Конкурсная работа по Backend-разработке. Реализация механики аукционов Telegram Gift с обработкой конкурентных запросов и финансовой целостностью.
 
 ---
 
-## System Architecture
+## Демо
 
-### Backend Structure (`/backend`)
-- **`src/services/`**
-  - `AuctionEngine.ts`: The heartbeat of the system. Runs a loop to finalize rounds, distribute winnings, and transition auction states.
-  - `BidService.ts`: Handles bid placement, validation, fund locking, and anti-sniping logic.
-  - `PaymentService.ts`: Manages user balances and atomic transaction creation.
-- **`src/models/`**
-  - `User.ts`: Stores balance and locked funds.
-  - `Auction.ts`: Complex schema storing rounds, current state, and configuration.
-  - `Bid.ts`: Individual bid records.
-  - `Transaction.ts`: Immutable ledger of all financial movements.
-- **`src/routes/`**
-  - `transactions.routes.ts`: Exposes user history.
-  - `auction.routes.ts`: Auction interaction endpoints.
+Видео: [ССЫЛКА]
 
-### Frontend Structure (`/frontend`)
-- **React + TypeScript**: Type-safe component development.
-- **`App.tsx`**: Main application state manager. Handles:
-  - **Tabs**: Active Auctions, Inventory, History, Create.
-  - **Real-time Polling**: Updates balance, auction timer, and leaderboard every 2 seconds.
-- **UX/UI**: Dark-themed, premium feel aiming to match Telegram's aesthetic.
+Сайт: [ССЫЛКА]
 
 ---
 
-## Business Logic Deep Dive
+## Оглавление
 
-### The "Upgrade" Bid Strategy
-Unlike traditional auctions where every bid is new, our system treats a user's participation in an auction as a single persistent entity.
-1.  **First Bid**: User bids 100 stars. 100 stars are locked.
-2.  **Upgrade**: User increases bid to 150 stars.
-    -   System checks `LockedBalance`.
-    -   System locks **only 50 more stars**.
-    -   Total locked: 150.
-3.  **Lose Round**: If the user does not win (e.g., Round 1 ends and they are rank #11 for 10 spots), their bid remains **Active** for Round 2.
-4.  **Win**: If they win, 150 stars are captured (removed from system), and they receive the item in their Inventory.
-
-### Anti-Sniping Protection
-To prevent last-second "sniping" which discourages fair price discovery:
-- **Trigger**: `time_left < 30s`
-- **Action**: `end_time += 30s`
-- **Result**: The auction continues until bidding stabilizes.
+1. [Механика аукционов](#механика-аукционов)
+2. [Архитектура](#архитектура)
+3. [Выбор технологий](#выбор-технологий)
+4. [Запуск](#запуск)
+5. [API](#api)
+6. [Тестирование](#тестирование)
+7. [Демо](#демо)
 
 ---
 
-## Verification & Testing
+## Механика аукционов
 
-### Quick Load Test (Bot Swarm)
-To see the system in action with multiple concurrent users:
-```bash
-cd backend
-# Starts 50 bots that randomly join auctions and place bids
-npx ts-node src/scripts/bot_swarm.ts 50
+### Многораундовая структура
+
+Аукцион состоит из N раундов. В каждом раунде фиксированное количество победителей (например, 10). Побеждают участники с наибольшими ставками. Проигравшие автоматически переносятся в следующий раунд — повторная ставка не требуется.
+
 ```
-**Bot Behavior:**
--   **Realistic Identity**: Each bot is persistent with a unique name (e.g., "Bot_Alex_42").
--   **Smart Bidding**: Bots check if they are winning before bidding, adhere to financial limits, and have "human" delays.
--   **Observation**: Open the frontend and watch the leaderboard update live!
+Аукцион: "Premium Gift Box" — 10 штук, 3 раунда
 
-### Integration Testing
-The repository includes a simulation script to stress-test the engine mechanics without the frontend.
-
-#### Run the Headless Simulation
-```bash
-cd backend
-npx ts-node --transpile-only src/scripts/simulate_auction.ts
+Раунд 1: топ-10 по ставкам получают подарки
+Раунд 2: топ-10 из оставшихся получают подарки
+Раунд 3: топ-10 из оставшихся получают подарки
 ```
-**checks:**
-1.  **Financial Zero-Sum**: `TotalDeposits - (UserBalances + Locked + Captured)` must equal 0.
-2.  **Concurrency Safety**: No double-spending or negative balances using Optimistic Concurrency Control (`__v`).
+
+### Блокировка средств
+
+При ставке средства переходят из свободного баланса в заблокированный. При повышении ставки блокируется только разница.
+
+```
+Баланс: 1000, Заблокировано: 0
+
+Ставка 100 -> Баланс: 900, Заблокировано: 100
+Повышение до 150 -> Баланс: 850, Заблокировано: 150 (заблокировано +50, не +150)
+
+Победа -> Баланс: 850, Заблокировано: 0, Инвентарь: +1 подарок
+```
+
+### Anti-Sniping
+
+Ставка в последние 30 секунд раунда продлевает таймер на 30 секунд. Это предотвращает тактику "снайпинга" — перебивания ставок в последний момент.
+
+### Перенос ставок
+
+Ставки проигравших участников остаются активными в следующем раунде. Средства остаются заблокированными до победы или завершения аукциона.
 
 ---
 
-## How to Run
+## Архитектура
 
-### Prerequisites
-- Docker & Docker Compose
+```
+Frontend (React + Vite)
+    |
+    | HTTP REST API, polling 2 сек
+    v
+Backend (Node.js + Fastify)
+    |
+    +-- AuthService      — авторизация
+    +-- BidService       — ставки, anti-sniping, валидация
+    +-- PaymentService   — балансы, транзакции
+    +-- AuctionEngine    — фоновый процесс завершения раундов
+    |
+    v
+MongoDB (Replica Set)
+    +-- Users        — баланс, lockedBalance
+    +-- Auctions     — раунды, статус, items
+    +-- Bids         — ставки с версионированием
+    +-- Transactions — журнал операций
+```
 
-### Fast Start
+### Backend
+
+```
+backend/src/
+├── models/
+│   ├── User.ts          — пользователь, баланс
+│   ├── Auction.ts       — аукцион, раунды
+│   ├── Bid.ts           — ставка
+│   └── Transaction.ts   — запись в журнале
+├── services/
+│   ├── AuctionEngine.ts — завершение раундов, распределение выигрышей
+│   ├── BidService.ts    — размещение ставок, блокировка средств
+│   ├── PaymentService.ts— депозит, вывод, списание
+│   └── AuthService.ts   — регистрация и вход
+├── routes/              — REST эндпоинты
+└── scripts/             — bot_swarm, simulate_auction
+```
+
+### Frontend
+
+```
+frontend/src/
+├── components/   — React компоненты
+├── App.tsx       — состояние приложения, вкладки
+├── api.ts        — HTTP клиент
+└── main.tsx      — точка входа
+```
+
+---
+
+## Выбор технологий
+
+### Fastify вместо Express
+
+Fastify в 2-3 раза быстрее Express за счёт схема-ориентированной сериализации. Встроенная валидация через JSON Schema. TypeScript из коробки.
+
+Express медленнее и требует дополнительных пакетов для валидации. NestJS избыточен для проекта такого масштаба.
+
+### MongoDB с Replica Set
+
+Аукционы имеют вложенные структуры (раунды, items) — документная модель подходит лучше реляционной. Replica Set необходим для транзакций.
+
+Без транзакций возможна ситуация: средства списаны, но ставка не создана (сбой между операциями). С транзакциями — атомарность: либо обе операции выполнены, либо ни одна.
+
+Optimistic Concurrency Control через поле `__v` в Mongoose предотвращает race conditions при одновременных ставках.
+
+PostgreSQL подошёл бы, но потребовал бы больше кода для работы с вложенными структурами.
+
+### Polling вместо WebSocket
+
+Для демо-версии polling каждые 2 секунды достаточен. Упрощает деплой — не нужны sticky sessions. В production заменяется на Socket.IO без изменения архитектуры.
+
+### Docker Compose
+
+Mongo Replica Set требует специфичной инициализации. Docker Compose гарантирует воспроизводимость окружения и правильный порядок запуска сервисов.
+
+---
+
+## Запуск
+
+### Требования
+
+Docker и Docker Compose. Или: Node.js 22+, MongoDB 6.0+ с Replica Set.
+
+### Стек
+
+**Backend:**
+
+- Node.js 22
+- Fastify 4.26
+- Mongoose 9.1
+- TypeScript 5.9
+
+**Frontend:**
+
+- React 19.2
+- Vite 7.2
+- TypeScript 5.9
+
+**Инфраструктура:**
+
+- MongoDB 6.0 (Replica Set)
+- Docker + Docker Compose
+
+### Быстрый запуск (Docker Compose)
+
 ```bash
+git clone https://github.com/y114git/TG_GIFTSAUCTION.git
+cd TG_GIFTSAUCTION
 docker-compose up --build
 ```
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:3000
 
-### Manual Start (Dev Mode)
-**Backend:**
+Frontend: <http://localhost:5173>  
+Backend: <http://localhost:3000>  
+MongoDB: localhost:27017
+
+### Локальный запуск
+
+Запуск MongoDB:
+
+```bash
+docker run -d --name mongo-rs -p 27017:27017 mongo:6.0 --replSet rs0
+docker exec -it mongo-rs mongosh --eval "rs.initiate()"
+```
+
+Backend:
+
 ```bash
 cd backend
 npm install
 npm run dev
 ```
-**Frontend:**
+
+Frontend:
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
+### Переменные окружения
+
+| Переменная | Значение по умолчанию | Назначение |
+|------------|----------------------|------------|
+| MONGO_URI | mongodb://localhost:27017/auction_db | URI MongoDB |
+| PORT | 3000 | Порт backend |
+| VITE_API_URL | <http://localhost:3000> | URL backend для frontend |
+
 ---
 
-## Usage
+## API
 
-1.  **Login**: Enter any username (auto-registers).
-2.  **Funds**:
-    -   Click **(+)** to Deposit stars.
-    -   Click **(-)** to Withdraw stars (Simulated payout).
-3.  **Bid**: Select an active auction and place a bid.
-4.  **History**: Click the 📜 icon in the header to see your financial history (Deposits, Withdrawals, Bids, Wins).
-5.  **Inventory**: View won items in the "My Inventory" tab.
+### Авторизация
+
+```
+POST /api/auth/login
+{ "username": "player123" }
+
+Ответ: { "user": { "id": "...", "username": "player123", "balance": 0 } }
+```
+
+### Аукционы
+
+```
+GET /api/auctions              — список активных
+GET /api/auctions/:id          — конкретный аукцион
+
+POST /api/auctions
+{
+  "title": "Premium Gift",
+  "description": "Описание",
+  "itemsPerRound": 5,
+  "totalRounds": 3,
+  "roundDuration": 300,
+  "minBid": 10
+}
+```
+
+### Ставки
+
+```
+POST /api/bids
+{
+  "auctionId": "...",
+  "userId": "...",
+  "amount": 100
+}
+```
+
+### Платежи
+
+```
+POST /api/payments/deposit
+{ "userId": "...", "amount": 1000 }
+
+POST /api/payments/withdraw
+{ "userId": "...", "amount": 500 }
+```
+
+### Транзакции
+
+```
+GET /api/transactions/:userId
+
+Ответ: [
+  { "type": "deposit", "amount": 1000, "createdAt": "..." },
+  { "type": "bid_lock", "amount": -100, "metadata": { "auctionId": "..." } },
+  { "type": "win", "amount": -100, "metadata": { "item": "Premium Gift" } }
+]
+```
+
+---
+
+## Тестирование
+
+### Нагрузочный тест
+
+50 ботов с реалистичным поведением:
+
+```bash
+cd backend
+npx ts-node src/scripts/bot_swarm.ts 50
+```
+
+Боты проверяют баланс, делают ставки с задержками, повышают ставки случайным образом.
+
+### Симуляция аукциона
+
+Headless-тест без UI:
+
+```bash
+cd backend
+npx ts-node --transpile-only src/scripts/simulate_auction.ts
+```
+
+Проверяет:
+
+- Финансовый баланс: сумма депозитов равна сумме балансов + заблокировано + списано
+- Отсутствие двойных списаний при конкурентных запросах
+- Запись всех операций в журнал транзакций
+
+---
+
+## Структура репозитория
+
+```
+TG_GIFTSAUCTION/
+├── backend/
+│   ├── src/
+│   │   ├── models/
+│   │   ├── services/
+│   │   ├── routes/
+│   │   └── scripts/
+│   ├── Dockerfile
+│   └── package.json
+├── frontend/
+│   ├── src/
+│   ├── Dockerfile
+│   └── package.json
+├── docker-compose.yml
+└── README.md
+```
+
+---
+
+Автор: [Y114]
