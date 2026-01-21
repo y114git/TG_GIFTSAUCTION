@@ -10,6 +10,7 @@ body {
   padding: 2rem;
   box-sizing: border-box;
   overflow-x: hidden;
+  overflow-y: scroll;
 }
 
 .app-container {
@@ -135,8 +136,15 @@ main {
   border-radius: 8px;
   margin-bottom: 10px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
+}
+
+.auction-card .my-bid-info {
+  width: 100%;
+  margin: 5px 0 0 0;
 }
 
 .auction-detail {
@@ -676,4 +684,91 @@ main {
   font-size: 1.2rem;
   font-weight: bold;
   color: #8fa0b3;
+}
+
+.timer-ending {
+  color: #f59e0b;
+  animation: pulse 0.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.my-bid-info {
+  color: #40a7e3;
+  font-size: 0.9rem;
+  margin: 5px 0;
+}
+
+.victory-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.3s ease;
+}
+
+.victory-content {
+  text-align: center;
+  animation: victoryPop 0.5s ease;
+}
+
+@keyframes victoryPop {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.victory-icon {
+  font-size: 5rem;
+  margin-bottom: 20px;
+  animation: bounce 0.6s ease infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+.victory-content h2 {
+  font-size: 2.5rem;
+  color: #fbbf24;
+  margin: 0 0 10px 0;
+}
+
+.victory-content p {
+  font-size: 1.2rem;
+  color: #8fa0b3;
+  margin: 0;
+}
+
+.victory-content h3 {
+  font-size: 1.8rem;
+  color: #40a7e3;
+  margin: 10px 0 30px 0;
+}
+
+.victory-content button {
+  background: #40a7e3;
+  color: white;
+  border: none;
+  padding: 15px 40px;
+  font-size: 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.victory-content button:hover {
+  background: #3498db;
+  transform: scale(1.05);
 }

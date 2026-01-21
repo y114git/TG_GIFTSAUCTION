@@ -56,7 +56,26 @@ export async function authRoutes(fastify: FastifyInstance) {
         return user;
     });
 
-    // Inventory Endpoint
+    fastify.get('/me/bids', async (req, reply) => {
+        const userId = req.headers['x-user-id'] as string;
+        if (!userId) {
+            reply.code(401);
+            return { error: 'Unauthorized' };
+        }
+
+        const { Bid, BidStatus } = await import('../models/Bid');
+        const bids = await Bid.find({
+            userId,
+            status: BidStatus.ACTIVE
+        });
+
+        const bidMap: Record<string, number> = {};
+        for (const b of bids) {
+            bidMap[b.auctionId.toString()] = b.amount;
+        }
+        return bidMap;
+    });
+
     fastify.get('/me/inventory', async (req, reply) => {
         const userId = req.headers['x-user-id'] as string;
         if (!userId) {

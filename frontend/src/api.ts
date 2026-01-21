@@ -88,6 +88,13 @@ export const api = {
         return res.data;
     },
 
+    getMyBids: async (userId: string): Promise<Record<string, number>> => {
+        const res = await axios.get(`${API_URL}/me/bids`, {
+            headers: { 'x-user-id': userId }
+        });
+        return res.data;
+    },
+
     createAuction: async (data: any, userId: string) => {
         
         const res = await axios.post(`${API_URL}/admin/auctions`, data, {

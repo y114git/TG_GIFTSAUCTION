@@ -5,25 +5,30 @@ import './App.css';
 // Separate component for Countdown to avoid full app re-renders on every tick
 const CountDown = ({ targetDate }: { targetDate: string }) => {
   const [timeLeft, setTimeLeft] = useState('');
+  const [isEnded, setIsEnded] = useState(false);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const update = () => {
       const now = new Date().getTime();
       const end = new Date(targetDate).getTime();
       const diff = end - now;
 
       if (diff <= 0) {
-        setTimeLeft('00:00');
+        setTimeLeft('Finishing...');
+        setIsEnded(true);
       } else {
+        setIsEnded(false);
         const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const s = Math.floor((diff % (1000 * 60)) / 1000);
         setTimeLeft(`${m}:${s < 10 ? '0' + s : s}`);
       }
-    }, 1000);
+    };
+    update();
+    const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
   }, [targetDate]);
 
-  return <span>{timeLeft}</span>;
+  return <span className={isEnded ? 'timer-ending' : ''}>{timeLeft}</span>;
 }
 
 type Tab = 'ACTIVE' | 'INVENTORY' | 'CREATE' | 'HISTORY';
@@ -70,6 +75,8 @@ function App() {
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [inventory, setInventory] = useState<any[]>([]);
   const [history, setHistory] = useState<Transaction[]>([]);
+  const [myBids, setMyBids] = useState<Record<string, number>>({});
+  const [showVictory, setShowVictory] = useState<string | null>(null);
 
   // Create Auction state
   const [newAuctionTitle, setNewAuctionTitle] = useState('');
@@ -109,21 +116,30 @@ function App() {
     setNewAuctionTitle('');
   }
 
-  // Load Auctions
   const loadAuctions = async () => {
     try {
       const list = await api.getAuctions();
       setAuctions(list);
+      if (user) {
+        const bids = await api.getMyBids(user._id);
+        setMyBids(bids);
+      }
     } catch (e) {
       console.error(e);
     }
   };
 
-  // Load Inventory
+  const [prevInventoryCount, setPrevInventoryCount] = useState(0);
+
   const loadInventory = async () => {
     if (!user) return;
     try {
       const items = await api.getInventory(user._id);
+      if (items.length > prevInventoryCount && prevInventoryCount > 0) {
+        const newItem = items[0];
+        setShowVictory(newItem.auction?.title || 'Gift');
+      }
+      setPrevInventoryCount(items.length);
       setInventory(items);
     } catch (e) {
       console.error(e);
@@ -189,14 +205,13 @@ function App() {
 
 
 
-  // Polling for real-time updates based on Tab
   useEffect(() => {
     if (!user) return;
     const interval = setInterval(() => {
       refreshUser();
-      if (selectedAuction) viewAuction(selectedAuction._id, true); // PRESERVE INPUT on poll
+      loadInventory();
+      if (selectedAuction) viewAuction(selectedAuction._id, true);
       else if (activeTab === 'ACTIVE') loadAuctions();
-      else if (activeTab === 'INVENTORY') loadInventory();
       else if (activeTab === 'HISTORY') loadHistory();
     }, 2000);
     return () => clearInterval(interval);
@@ -324,6 +339,9 @@ function App() {
                     <h3>{a.title}</h3>
                     <p>Round {a.currentRoundIndex + 1}</p>
                     <button onClick={() => viewAuction(a._id)}>Participate</button>
+                    {myBids[a._id] && (
+                      <p className="my-bid-info">Your bid: {myBids[a._id]} {myBids[a._id] === 1 ? 'star' : 'stars'}</p>
+                    )}
                   </div>
                 ))}
                 {auctions.length === 0 && <p className="text-center">No active auctions.</p>}
@@ -580,6 +598,18 @@ function App() {
           Transfer
         </button>
       </Modal>
+
+      {showVictory && (
+        <div className="victory-overlay">
+          <div className="victory-content">
+            <div className="victory-icon">🎉</div>
+            <h2>Congratulations!</h2>
+            <p>You won</p>
+            <h3>{showVictory}</h3>
+            <button onClick={() => setShowVictory(null)}>Ok</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

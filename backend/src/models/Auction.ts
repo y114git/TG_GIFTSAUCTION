@@ -31,7 +31,7 @@ const RoundSchema = new Schema({
     startTime: { type: Date },
     endTime: { type: Date },
     winnersCount: { type: Number, required: true },
-    minBid: { type: Number, required: true, default: 0 },
+    minBid: { type: Number, required: true, default: 1 },
     isFinalized: { type: Boolean, default: false }
 });
 

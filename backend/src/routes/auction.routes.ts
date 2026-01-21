@@ -97,7 +97,7 @@ export async function auctionRoutes(fastify: FastifyInstance) {
         const roundsCount = isValidNumber(data.roundsCount, 1, 1000) ? Number(data.roundsCount) : 1;
         const duration = isValidNumber(data.duration, 30000, 3600000) ? Number(data.duration) : 60000;
         const winnersCount = isValidNumber(data.winnersCount, 1, 100) ? Number(data.winnersCount) : 1;
-        const minBid = isValidNumber(data.minBid, 0, 1000000) ? Number(data.minBid) : 0;
+        const minBid = isValidNumber(data.minBid, 1, 1000000) ? Number(data.minBid) : 1;
 
         // Construct rounds dynamically
         const rounds = [];
