@@ -122,25 +122,54 @@ function App() {
 
   const prevInventoryCountRef = useRef(0);
   const lastShownVictoryBidIdRef = useRef<string | null>(null);
+  const seenInventoryBidIdsRef = useRef<Set<string>>(new Set());
+  const inventoryInitializedRef = useRef(false);
 
   const loadInventory = async () => {
     if (!user) return;
     try {
-      const items = await api.getInventory(user._id);
+      const items: any[] = await api.getInventory(user._id);
+
+      items.sort((a: any, b: any) => {
+        const at = new Date(a.date).getTime();
+        const bt = new Date(b.date).getTime();
+        return bt - at;
+      });
 
       // Победа показывается один раз на конкретный выигрыш (bidId), чтобы не повторять анимацию при частом polling.
-      const currentCount = prevInventoryCountRef.current;
-      const latest = items[0];
-      const latestBidId = latest?.bidId as string | undefined;
+      const seen = seenInventoryBidIdsRef.current;
 
-      if (
-        latestBidId &&
-        items.length > currentCount &&
-        currentCount > 0 &&
-        lastShownVictoryBidIdRef.current !== latestBidId
-      ) {
-        lastShownVictoryBidIdRef.current = latestBidId;
-        setShowVictory(latest.auction?.title || 'Gift');
+      if (!inventoryInitializedRef.current) {
+        for (const it of items) {
+          if (it?.bidId) seen.add(String(it.bidId));
+        }
+        inventoryInitializedRef.current = true;
+        prevInventoryCountRef.current = items.length;
+        setInventory(items);
+        return;
+      }
+
+      let newlySeen: any | null = null;
+      for (const it of items) {
+        const bidId = it?.bidId ? String(it.bidId) : '';
+        if (bidId && !seen.has(bidId)) {
+          newlySeen = it;
+          break;
+        }
+      }
+
+      if (newlySeen) {
+        const bidId = String(newlySeen.bidId);
+        seen.add(bidId);
+
+        if (lastShownVictoryBidIdRef.current !== bidId) {
+          lastShownVictoryBidIdRef.current = bidId;
+          setShowVictory(newlySeen.auction?.title || 'Gift');
+        }
+      }
+
+      for (const it of items) {
+        if (it?.bidId) seen.add(String(it.bidId));
       }
 
       prevInventoryCountRef.current = items.length;
