@@ -28,11 +28,39 @@ const CountDown = ({ targetDate }: { targetDate: string }) => {
 
 type Tab = 'ACTIVE' | 'INVENTORY' | 'CREATE' | 'HISTORY';
 
+// Modal Component
+const Modal = ({ isOpen, onClose, title, children }: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  title: string; 
+  children: React.ReactNode 
+}) => {
+  if (!isOpen) return null;
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>{title}</h3>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 function App() {
   const [user, setUser] = useState<{ _id: string; username: string; balance: number } | null>(null);
   const [usernameInput, setUsernameInput] = useState('');
 
   const [activeTab, setActiveTab] = useState<Tab>('ACTIVE');
+  
+  // Modal state
+  const [depositModalOpen, setDepositModalOpen] = useState(false);
+  const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
+  const [modalAmount, setModalAmount] = useState('');
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [inventory, setInventory] = useState<any[]>([]);
   const [history, setHistory] = useState<Transaction[]>([]);
@@ -61,8 +89,8 @@ function App() {
       localStorage.setItem('userId', u._id);
       localStorage.setItem('username', u.username);
       loadAuctions();
-    } catch (e) {
-      alert('Login failed');
+    } catch (e: any) {
+      setMsg('Login failed');
     }
   };
 
@@ -203,26 +231,13 @@ function App() {
           </button>
           <span className="balance">{user.username} | <strong>{user.balance} Stars</strong></span>
           <div className="balance-actions">
-            <button className="deposit-btn" title="Add Funds" onClick={async (e) => {
-              e.preventDefault();
-              const amt = window.prompt('Amount to add:');
-              if (amt && Number(amt) > 0) {
-                try {
-                  await api.deposit(Number(amt), user._id);
-                  refreshUser();
-                } catch (e: any) { alert(e.response?.data?.error || e.message); }
-              }
+            <button className="deposit-btn" title="Add Funds" onClick={() => {
+              setModalAmount('');
+              setDepositModalOpen(true);
             }}>+</button>
-            <button className="withdraw-btn" title="Withdraw Funds" onClick={async (e) => {
-              e.preventDefault();
-              const amt = window.prompt('Amount to withdraw:');
-              if (amt && Number(amt) > 0) {
-                try {
-                  // Allow negative for withdraw (backend checks removed)
-                  await api.deposit(-Number(amt), user._id);
-                  refreshUser();
-                } catch (e: any) { alert(e.response?.data?.error || e.message); }
-              }
+            <button className="withdraw-btn" title="Withdraw Funds" onClick={() => {
+              setModalAmount('');
+              setWithdrawModalOpen(true);
             }}>-</button>
             <button className="exit-btn" onClick={handleLogout}>Exit</button>
           </div>
@@ -402,7 +417,9 @@ function App() {
                       loadAuctions();
                       setMsg('Auction created!');
                       setTimeout(() => setMsg(''), 3000);
-                    }).catch(e => alert(e.message));
+                    }).catch((e: any) => {
+                      setMsg(`Error: ${e.response?.data?.error || e.message}`);
+                    });
 
                   }}>Create Auction</button>
                 </div>
@@ -411,6 +428,74 @@ function App() {
           </>
         )}
       </main>
+      
+      {/* Deposit Modal */}
+      <Modal 
+        isOpen={depositModalOpen} 
+        onClose={() => setDepositModalOpen(false)} 
+        title="Add Funds"
+      >
+        <input
+          type="number"
+          value={modalAmount}
+          onChange={e => setModalAmount(e.target.value)}
+          placeholder="Enter amount"
+          autoFocus
+        />
+        <button 
+          className="primary-btn"
+          style={{ marginTop: 15, width: '100%' }}
+          onClick={async () => {
+            if (modalAmount && Number(modalAmount) > 0) {
+              try {
+                await api.deposit(Number(modalAmount), user!._id);
+                refreshUser();
+                setDepositModalOpen(false);
+                setMsg('Deposit successful!');
+                setTimeout(() => setMsg(''), 3000);
+              } catch (e: any) { 
+                setMsg(`Error: ${e.response?.data?.error || e.message}`);
+              }
+            }
+          }}
+        >
+          Deposit
+        </button>
+      </Modal>
+
+      {/* Withdraw Modal */}
+      <Modal 
+        isOpen={withdrawModalOpen} 
+        onClose={() => setWithdrawModalOpen(false)} 
+        title="Withdraw Funds"
+      >
+        <input
+          type="number"
+          value={modalAmount}
+          onChange={e => setModalAmount(e.target.value)}
+          placeholder="Enter amount"
+          autoFocus
+        />
+        <button 
+          className="primary-btn"
+          style={{ marginTop: 15, width: '100%' }}
+          onClick={async () => {
+            if (modalAmount && Number(modalAmount) > 0) {
+              try {
+                await api.deposit(-Number(modalAmount), user!._id);
+                refreshUser();
+                setWithdrawModalOpen(false);
+                setMsg('Withdrawal successful!');
+                setTimeout(() => setMsg(''), 3000);
+              } catch (e: any) { 
+                setMsg(`Error: ${e.response?.data?.error || e.message}`);
+              }
+            }
+          }}
+        >
+          Withdraw
+        </button>
+      </Modal>
     </div>
   );
 }

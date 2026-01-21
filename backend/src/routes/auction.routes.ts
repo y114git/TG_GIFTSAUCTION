@@ -3,6 +3,10 @@ import { Auction, AuctionStatus } from '../models/Auction';
 import { BidService } from '../services/BidService';
 import { Bid, BidStatus } from '../models/Bid';
 
+// Rate limiting for auction creation (5 seconds per user)
+const auctionCreationCooldown = new Map<string, number>();
+const AUCTION_COOLDOWN_MS = 5000;
+
 export async function auctionRoutes(fastify: FastifyInstance) {
 
     // List active auctions
@@ -47,8 +51,19 @@ export async function auctionRoutes(fastify: FastifyInstance) {
         }
     });
 
-    // Admin: Create Auction
+    // Admin: Create Auction (with rate limiting)
     fastify.post('/admin/auctions', async (req, reply) => {
+        const userId = req.headers['x-user-id'] as string || 'anonymous';
+        
+        // Rate limiting check
+        const lastCreation = auctionCreationCooldown.get(userId);
+        const now = Date.now();
+        if (lastCreation && (now - lastCreation) < AUCTION_COOLDOWN_MS) {
+            const waitTime = Math.ceil((AUCTION_COOLDOWN_MS - (now - lastCreation)) / 1000);
+            return reply.code(429).send({ error: `Please wait ${waitTime} seconds before creating another auction` });
+        }
+        auctionCreationCooldown.set(userId, now);
+        
         const data = req.body as any;
 
         // Config defaults
