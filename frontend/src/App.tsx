@@ -398,22 +398,25 @@ function App() {
             {activeTab === 'CREATE' && (
               <div className="create-container">
                 <h2 className="text-center">Create New Auction</h2>
-                <div className="card">
-                  <label>Gift Title</label>
-                  <input value={newAuctionTitle} onChange={e => setNewAuctionTitle(e.target.value)} placeholder="E.g. Rare Username" />
+                <div className="card create-form">
+                  <div className="form-group">
+                    <label>Gift Name</label>
+                    <input value={newAuctionTitle} onChange={e => setNewAuctionTitle(e.target.value)} placeholder="E.g. Rare Username" />
+                  </div>
 
-                  <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <div className="form-row">
+                    <div className="form-group">
                       <label>Min Bid</label>
                       <input type="number" defaultValue={10} id="newMinBid" />
                     </div>
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <div className="form-group">
                       <label>Winners Count</label>
                       <input type="number" defaultValue={1} id="newWinnersCount" />
                     </div>
                   </div>
-                  <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column' }}>
-                    <label>Round duration (min 0:30)</label>
+
+                  <div className="form-group center">
+                    <label>Round Duration (Min 0:30)</label>
                     <div className="duration-inputs">
                       <input 
                         type="number" 
