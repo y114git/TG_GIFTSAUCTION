@@ -154,13 +154,14 @@ function App() {
   const viewAuction = async (id: string, preserveInput = false) => {
     try {
       const data = await api.getAuctionDetails(id);
+      const prevRoundIndex = selectedAuction?.currentRoundIndex;
       setSelectedAuction(data);
 
-      if (!preserveInput) {
-        const currentRound = data.rounds[data.currentRoundIndex];
-        if (currentRound) {
-          setBidAmount(currentRound.minBid);
-        }
+      const currentRound = data.rounds[data.currentRoundIndex];
+      const roundChanged = prevRoundIndex !== undefined && prevRoundIndex !== data.currentRoundIndex;
+
+      if (currentRound && (!preserveInput || roundChanged)) {
+        setBidAmount(currentRound.minBid);
       }
     } catch (e: any) {
       if (e.response?.status === 404) {

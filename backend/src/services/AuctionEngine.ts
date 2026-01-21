@@ -89,9 +89,29 @@ export class AuctionEngine {
                 await auction.deleteOne({ session });
                 console.log(`Auction ${auction.id} finished and deleted.`);
             } else {
-                auction.currentRoundIndex = currentIndex + 1;
-                const nextRound = auction.rounds[auction.currentRoundIndex];
+                const nextIndex = currentIndex + 1;
+                auction.currentRoundIndex = nextIndex;
+                const nextRound = auction.rounds[nextIndex];
                 currentRound.isFinalized = true;
+
+                // Перенос проигравших ставок в следующий раунд: они остаются ACTIVE, но участвуют уже в nextIndex.
+                if (losers.length > 0) {
+                    const loserIds = losers.map(b => b._id);
+                    await Bid.updateMany(
+                        { _id: { $in: loserIds } },
+                        { $set: { roundIndex: nextIndex } },
+                        { session }
+                    );
+
+                    // Если в следующем раунде уже есть активные ставки (перенесённые), то запускаем таймер раунда автоматически.
+                    if (nextRound && !nextRound.startTime) {
+                        nextRound.startTime = now;
+                        const duration = nextRound.duration || 60000;
+                        nextRound.endTime = new Date(now.getTime() + duration);
+                        auction.markModified('rounds');
+                    }
+                }
+
                 await auction.save({ session });
             }
 
