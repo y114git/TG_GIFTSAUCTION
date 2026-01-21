@@ -138,10 +138,14 @@ main {
   border-radius: 8px;
   margin-bottom: 10px;
   display: flex;
-  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: 4px 10px;
+  gap: 10px;
+}
+
+.auction-card.participating {
+  background: linear-gradient(135deg, #1a5a3a 0%, #1a4a5a 100%);
+  border: 1px solid #2ecc71;
 }
 
 .auction-card h3 {
@@ -153,19 +157,13 @@ main {
   white-space: nowrap;
 }
 
-.auction-card > p:not(.my-bid-info) {
+.auction-card > p {
   margin: 0;
   flex-shrink: 0;
 }
 
 .auction-card > button {
   flex-shrink: 0;
-}
-
-.auction-card .my-bid-info {
-  flex-basis: 100%;
-  margin: 0;
-  font-size: 0.85rem;
 }
 
 .auction-detail {
@@ -715,12 +713,6 @@ main {
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
-}
-
-.my-bid-info {
-  color: #40a7e3;
-  font-size: 0.9rem;
-  margin: 5px 0;
 }
 
 .victory-overlay {

@@ -335,13 +335,10 @@ function App() {
               <div className="auction-list slide-enter"> {/* Animation class */}
                 <h2 className="text-center">Active Auctions</h2>
                 {auctions.map(a => (
-                  <div key={a._id} className="auction-card">
+                  <div key={a._id} className={`auction-card ${myBids[a._id] ? 'participating' : ''}`}>
                     <h3>{a.title}</h3>
                     <p>Round {a.currentRoundIndex + 1}</p>
                     <button onClick={() => viewAuction(a._id)}>Participate</button>
-                    {myBids[a._id] && (
-                      <p className="my-bid-info">Your bid: {myBids[a._id]} {myBids[a._id] === 1 ? 'star' : 'stars'}</p>
-                    )}
                   </div>
                 ))}
                 {auctions.length === 0 && <p className="text-center">No active auctions.</p>}
