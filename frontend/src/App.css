@@ -5,25 +5,27 @@ body {
   color: #fff;
   min-height: 100vh;
   display: flex;
-  /* Center the whole body content */
-  align-items: center;
-  /* Center vertically */
+  align-items: flex-start;
   justify-content: center;
-  /* Center horizontally */
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  box-sizing: border-box;
 }
 
 .app-container {
   max-width: 600px;
   width: 100%;
-  margin: 2rem;
+  margin: 2rem auto;
   background: #17212b;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   overflow: hidden;
   min-height: 700px;
-  /* Fix vertical jump (leans up) when content is short */
   display: flex;
   flex-direction: column;
+  position: relative;
+  left: 0;
+  transform: none;
 }
 
 
@@ -38,7 +40,6 @@ body {
 
 .card {
   background: #17212b;
-  padding: 2rem;
   border-radius: 12px;
   display: flex;
   gap: 10px;
@@ -83,6 +84,15 @@ header {
 .logo {
   font-weight: bold;
   font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
 
 main {
@@ -103,6 +113,18 @@ main {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  animation: fadeSlideIn 0.3s ease;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .round-info {

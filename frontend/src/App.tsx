@@ -224,7 +224,7 @@ function App() {
   return (
     <div className="app-container">
       <header>
-        <div className="logo">💎 Gift Auction</div>
+        <div className="logo"><img src="/favicon.png" alt="logo" className="logo-icon" /> Gift Auction</div>
         <div className="balance-container">
           <button className="history-btn-icon" title="Transaction History" onClick={() => { setSelectedAuction(null); setActiveTab('HISTORY'); }}>
             📜
