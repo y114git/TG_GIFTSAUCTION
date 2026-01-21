@@ -424,6 +424,11 @@ function App() {
                     </div>
                   </div>
 
+                  <div className="form-group">
+                    <label>Rounds Count (1-1000)</label>
+                    <input type="number" defaultValue={1} min={1} max={1000} id="newRoundsCount" />
+                  </div>
+
                   <div className="form-group center">
                     <label>Round Duration (Min 0:30)</label>
                     <div className="duration-inputs">
@@ -451,6 +456,7 @@ function App() {
                   <button onClick={() => {
                     const minBid = Number((document.getElementById('newMinBid') as HTMLInputElement).value);
                     const winnersCount = Number((document.getElementById('newWinnersCount') as HTMLInputElement).value);
+                    const roundsCount = Number((document.getElementById('newRoundsCount') as HTMLInputElement).value);
                     const mins = Math.max(0, Math.min(59, Number((document.getElementById('newDurationMin') as HTMLInputElement).value) || 0));
                     const secs = Math.max(0, Math.min(59, Number((document.getElementById('newDurationSec') as HTMLInputElement).value) || 0));
                     const durationMs = (mins * 60 + secs) * 1000;
@@ -460,12 +466,17 @@ function App() {
                       return;
                     }
 
+                    if (!Number.isFinite(roundsCount) || roundsCount < 1 || roundsCount > 1000) {
+                      setMsg('Rounds count must be between 1 and 1000');
+                      return;
+                    }
+
                     api.createAuction({
                       title: newAuctionTitle,
                       minBid,
                       winnersCount,
                       duration: durationMs,
-                      roundsCount: 1
+                      roundsCount
                     }, user!._id).then(async () => {
                       setNewAuctionTitle('');
                       await loadAuctions();
