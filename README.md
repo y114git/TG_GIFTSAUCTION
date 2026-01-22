@@ -18,7 +18,7 @@
 
 ## Демо
 
-Видео: [[КЛИК](https://youtu.be/grpvQfVUXA8)]
+Видео: [[КЛИК](https://youtu.be/g5u8a2vmCfg)]
 
 Сайт: [[КЛИК](https://tggiftsauction-production.up.railway.app)]
 
