@@ -1,5 +1,4 @@
 
-import mongoose from 'mongoose';
 import { Auction, AuctionStatus } from '../models/Auction';
 import { User, IUser } from '../models/User';
 import { Bid, BidStatus } from '../models/Bid';
@@ -7,7 +6,6 @@ import { BidService } from '../services/BidService';
 import { PaymentService } from '../services/PaymentService';
 import dotenv from 'dotenv';
 import { connectDB } from '../db';
-import { ObjectId } from 'mongodb';
 
 dotenv.config();
 
@@ -23,9 +21,25 @@ const DEFAULT_BOT_COUNT = 10;
 const INITIAL_BALANCE = 50000;
 const MIN_SLEEP = 2000;
 const MAX_SLEEP = 8000;
-const AGGRESSION_FACTOR = 0.3;
+
+const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
 
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+async function runWithConcurrency<T>(items: T[], concurrency: number, fn: (item: T) => Promise<void>) {
+    const workerCount = Math.max(1, Math.min(concurrency, items.length));
+    let idx = 0;
+
+    const worker = async () => {
+        while (true) {
+            const myIdx = idx++;
+            if (myIdx >= items.length) return;
+            await fn(items[myIdx]);
+        }
+    };
+
+    await Promise.all(Array.from({ length: workerCount }, () => worker()));
+}
 
 async function runSwarm() {
     console.log('>>> STARTING BOT SWARM <<<');
@@ -62,6 +76,15 @@ async function runSwarm() {
     let running = true;
     process.on('SIGINT', () => { running = false; console.log('\nStopping swarm...'); });
 
+    const cliConcurrency = process.argv[3] ? parseInt(process.argv[3]) : null;
+    const concurrency = cliConcurrency && !Number.isNaN(cliConcurrency) ? cliConcurrency : botCount;
+    console.log(`⚙️ Concurrency: ${concurrency}`);
+
+    const nextActionAtByBotId = new Map<string, number>();
+    for (const bot of bots) {
+        nextActionAtByBotId.set(bot._id.toString(), Date.now() + Math.floor(Math.random() * (MAX_SLEEP - MIN_SLEEP) + MIN_SLEEP));
+    }
+
     while (running) {
         try {
             const activeAuctions = await Auction.find({ status: AuctionStatus.ACTIVE });
@@ -72,23 +95,33 @@ async function runSwarm() {
                 continue;
             }
 
-            const activeBots = [...bots].sort(() => Math.random() - 0.5);
+            const now = Date.now();
+            const readyBots = bots.filter(b => (nextActionAtByBotId.get(b._id.toString()) ?? 0) <= now);
 
-            for (const bot of activeBots) {
-                if (!running) break;
+            if (readyBots.length === 0) {
+                await sleep(50);
+                continue;
+            }
+
+            const activeBots = readyBots.sort(() => Math.random() - 0.5);
+
+            await runWithConcurrency(activeBots, concurrency, async (bot) => {
+                if (!running) return;
+
+                const botId = bot._id.toString();
+                nextActionAtByBotId.set(botId, Date.now() + Math.floor(Math.random() * (MAX_SLEEP - MIN_SLEEP) + MIN_SLEEP));
 
                 const fresherBot = await User.findById(bot._id);
-                if (!fresherBot) continue;
+                if (!fresherBot) return;
 
                 const auction = activeAuctions[Math.floor(Math.random() * activeAuctions.length)];
-
-                const currentRound = auction.rounds[auction.currentRoundIndex];
-                if (!currentRound || currentRound.isFinalized) continue;
-
                 const freshAuction = await Auction.findById(auction._id);
-                if (!freshAuction) continue;
+                if (!freshAuction) return;
 
-                const winnersCount = freshAuction.rounds[freshAuction.currentRoundIndex].winnersCount;
+                const currentRound = freshAuction.rounds[freshAuction.currentRoundIndex];
+                if (!currentRound || currentRound.isFinalized) return;
+
+                const winnersCount = currentRound.winnersCount;
 
                 const topBids = await Bid.find({
                     auctionId: freshAuction._id,
@@ -108,47 +141,58 @@ async function runSwarm() {
 
                 const amIWinning = myRank !== -1 && myRank < winnersCount;
 
+                const minBid = currentRound.minBid;
+                const topAmount = topBids.length > 0 ? Number((topBids[0] as any).amount) : 0;
+
+                // Чем дальше цена ушла от minBid, тем меньше мотивация ботов продолжать разгон.
+                // ratio=1 -> aggression=1, ratio=5 -> ~0.33, ratio=10 -> ~0.18.
+                const ratio = topAmount > 0 ? topAmount / Math.max(1, minBid) : 1;
+                const aggression = clamp01(1 / (1 + (Math.max(0, ratio - 1) / 2)));
+
+                // Чем меньше времени до конца раунда, тем меньше шанс ставить.
+                // Почти полностью отключаем активность в окне анти-снайпинга.
+                let timeFactor = 1;
+                const timeLeftMs = currentRound.endTime ? (new Date(currentRound.endTime).getTime() - Date.now()) : null;
+                if (timeLeftMs !== null) {
+                    if (timeLeftMs <= 0) {
+                        timeFactor = 0;
+                    } else if (timeLeftMs < 15_000) {
+                        timeFactor = 0.03;
+                    } else if (timeLeftMs < 30_000) {
+                        timeFactor = 0.5;
+                    }
+                }
+
                 // Решение «ставить или нет» зависит от текущего места бота в топе.
-                let shouldBid = false;
-                if (myRank === -1) {
-                    shouldBid = Math.random() < 0.5;
-                } else if (amIWinning) {
-                    shouldBid = Math.random() < AGGRESSION_FACTOR;
-                } else {
-                    shouldBid = Math.random() < 0.8;
+                const baseProb = myRank === -1 ? 0.8 : (amIWinning ? 0.4 : 0.9);
+                const bidProb = clamp01(baseProb * aggression * timeFactor);
+                const shouldBid = Math.random() < bidProb;
+
+                if (!shouldBid) return;
+
+                let baseTarget = minBid;
+                if (topBids.length > 0) {
+                    baseTarget = Math.max(minBid, topAmount);
                 }
 
-                if (shouldBid) {
-                    const minBid = freshAuction.rounds[freshAuction.currentRoundIndex].minBid;
+                const maxIncrement = Math.max(10, Math.floor(500 * aggression));
+                const increment = Math.floor(Math.random() * maxIncrement) + 10;
+                const bidAmount = baseTarget + increment;
 
-                    let baseTarget = minBid;
-                    if (topBids.length > 0) {
-                        const topAmount = (topBids[0] as any).amount;
-                        baseTarget = Math.max(minBid, topAmount);
-                    }
+                if (fresherBot.balance + fresherBot.lockedBalance < bidAmount) {
+                    return;
+                }
 
-                    const increment = Math.floor(Math.random() * 500) + 10;
-                    const bidAmount = baseTarget + increment;
-
-                    if (fresherBot.balance + fresherBot.lockedBalance >= bidAmount) {
-                        try {
-                            const result = await BidService.placeBid(fresherBot._id.toString(), freshAuction._id.toString(), bidAmount);
-                            console.log(`   📝 ${fresherBot.username} bid ${bidAmount} on "${freshAuction.title}" (Round ${freshAuction.currentRoundIndex + 1})`);
-                            await sleep(Math.random() * 500 + 200);
-                        } catch (e: any) {
-                            if (e.message.includes("funds")) {
-                                console.log(`   ⚠️ ${fresherBot.username} out of funds for bid ${bidAmount}.`);
-                            }
-                        }
-                    } else {
-                        console.log(`   📉 ${fresherBot.username} too poor to compete (Bal: ${fresherBot.balance}).`);
+                try {
+                    await BidService.placeBid(fresherBot._id.toString(), freshAuction._id.toString(), bidAmount);
+                } catch (e: any) {
+                    if (e.message.includes("funds")) {
+                        return;
                     }
                 }
-            }
+            });
 
-            const cycleSleep = Math.floor(Math.random() * (MAX_SLEEP - MIN_SLEEP) + MIN_SLEEP);
-            console.log(`... Swarm resting for ${cycleSleep / 1000}s ...`);
-            await sleep(cycleSleep);
+            await sleep(10);
 
         } catch (e) {
             console.error("Swarm Error:", e);
