@@ -16,6 +16,7 @@ export class PaymentService {
             if (!user) throw new Error('User not found');
 
             // Баланс меняется только вместе с записью в Transaction, чтобы история совпадала с фактом.
+            // Transaction-лог - источник правды для финансовых операций.
             user.balance += amount;
             await user.save({ session: localSession });
 
@@ -51,6 +52,7 @@ export class PaymentService {
             }
 
             // Заблокированные средства используются для ставок: они больше не доступны для новых действий.
+            // referenceId связывает денежное движение с конкретным действием.
             user.balance -= amount;
             user.lockedBalance += amount;
             await user.save({ session: localSession });
@@ -87,6 +89,7 @@ export class PaymentService {
             }
 
             // Сценарий возврата: ставка проиграла или была отменена.
+            // Инвариант: lockedBalance не должен уходить в минус.
             user.lockedBalance -= amount;
             user.balance += amount;
             await user.save({ session: localSession });
@@ -124,6 +127,7 @@ export class PaymentService {
             }
 
             // Здесь доступный баланс не меняется: средства уже были сняты при lockFunds.
+            // Уменьшаем lockedBalance и фиксируем списание в журнале.
             user.lockedBalance -= amount;
             await user.save({ session: localSession });
 

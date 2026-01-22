@@ -20,7 +20,8 @@ const isValidNumber = (val: any, min: number, max: number): boolean => {
 
 const userLocks = new Map<string, Promise<any>>();
 const withUserLock = async <T>(userId: string, fn: () => Promise<T>): Promise<T> => {
-    // Последовательная очередь действий одного пользователя (в первую очередь — ставки).
+    // Последовательная очередь действий одного пользователя.
+    // Защищает от параллельных запросов одного клиента и снижает конфликтность при обновлении баланса.
     const prev = userLocks.get(userId) || Promise.resolve();
     const current = prev.then(() => fn()).catch((e) => { throw e; });
     userLocks.set(userId, current.catch(() => {}));

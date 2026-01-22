@@ -95,18 +95,26 @@ export async function authRoutes(fastify: FastifyInstance) {
             status: BidStatus.WINNER
         }).populate('auctionId');
 
-        const userIds = winnings.map(w => w.userId);
-        const users = await User.find({ _id: { $in: userIds } });
-        const userMap = new Map(users.map(u => [u._id.toString(), u.username]));
+        const me = await User.findById(userId);
+
+        const fromUserIds = winnings
+            .map((w: any) => w.transferredFromUserId)
+            .filter(Boolean);
+        const fromUsers = fromUserIds.length ? await User.find({ _id: { $in: fromUserIds } }) : [];
+        const fromUserMap = new Map(fromUsers.map(u => [u._id.toString(), u.username]));
 
         return winnings.map(w => {
             const auctionTitle = (w.auctionId as any)?.title || w.snapshotTitle || 'Unknown Gift';
+            const fromUsername = (w as any).transferredFromUserId
+                ? fromUserMap.get((w as any).transferredFromUserId.toString())
+                : undefined;
 
             return {
                 bidId: w._id,
                 amount: w.amount,
                 date: w.createdAt,
-                winnerUsername: userMap.get(w.userId.toString()) || 'Unknown',
+                winnerUsername: me?.username || 'Unknown',
+                receivedFromUsername: fromUsername,
                 auction: {
                     title: auctionTitle
                 }
@@ -180,6 +188,8 @@ export async function authRoutes(fastify: FastifyInstance) {
                 return reply.code(400).send({ error: 'Cannot transfer to yourself' });
             }
 
+            (bid as any).transferredFromUserId = bid.userId;
+            (bid as any).transferredAt = new Date();
             bid.userId = recipient._id;
             await bid.save();
 

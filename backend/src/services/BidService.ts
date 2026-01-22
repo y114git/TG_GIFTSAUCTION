@@ -5,8 +5,8 @@ import mongoose from 'mongoose';
 
 export class BidService {
     static async placeBid(userId: string, auctionId: string, amount: number): Promise<IBid> {
-        // Основной сценарий ставки: проверка состояния аукциона/раунда, блокировка средств, запись ставки.
-        // Денежная операция и запись ставки должны быть атомарными.
+        // Инвариант: нельзя допустить расхождение "деньги заблокированы, но ставка не создана" (или наоборот).
+        // Проверки + lockFunds + create/update Bid + anti-sniping выполняются в одной MongoDB транзакции.
         const session = await mongoose.startSession();
         session.startTransaction();
         try {
@@ -20,7 +20,7 @@ export class BidService {
             const now = new Date();
 
             if (!currentRound.startTime) {
-                // Первый бид в раунде запускает таймер: фиксируются startTime и endTime.
+                // Первый bid в раунде запускает таймер: фиксируются startTime и endTime.
                 currentRound.startTime = now;
                 const duration = currentRound.duration || 60000;
                 currentRound.endTime = new Date(now.getTime() + duration);
@@ -50,7 +50,7 @@ export class BidService {
                     throw new Error(`New bid (${amount}) must be higher than existing bid (${existingBid.amount})`);
                 }
 
-                // Дозакрепляется только разница между новой и предыдущей суммой.
+                // Повышение ставки: блокируется только разница, чтобы не блокировать сумму повторно.
                 const diff = amount - existingBid.amount;
                 await PaymentService.lockFunds(userId, diff, `UPGRADE_BID:${existingBid.id}`, session);
 

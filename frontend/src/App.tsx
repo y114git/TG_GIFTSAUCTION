@@ -70,7 +70,7 @@ function App() {
   const [inventory, setInventory] = useState<any[]>([]);
   const [history, setHistory] = useState<Transaction[]>([]);
   const [myBids, setMyBids] = useState<Record<string, number>>({});
-  const [showVictory, setShowVictory] = useState<string | null>(null);
+  const [showVictory, setShowVictory] = useState<{ title: string; fromUsername?: string } | null>(null);
   const [newAuctionTitle, setNewAuctionTitle] = useState('');
   const [selectedAuction, setSelectedAuction] = useState<Auction | null>(null);
   const [bidAmount, setBidAmount] = useState<number>(0);
@@ -164,7 +164,10 @@ function App() {
 
         if (lastShownVictoryBidIdRef.current !== bidId) {
           lastShownVictoryBidIdRef.current = bidId;
-          setShowVictory(newlySeen.auction?.title || 'Gift');
+          setShowVictory({
+            title: newlySeen.auction?.title || 'Gift',
+            fromUsername: newlySeen.receivedFromUsername
+          });
         }
       }
 
@@ -665,8 +668,12 @@ function App() {
           <div className="victory-content">
             <div className="victory-icon">🎉</div>
             <h2>Congratulations!</h2>
-            <p>You won</p>
-            <h3>{showVictory}</h3>
+            {showVictory.fromUsername ? (
+              <p>{showVictory.fromUsername} sent you</p>
+            ) : (
+              <p>You won</p>
+            )}
+            <h3>{showVictory.title}</h3>
             <button onClick={() => setShowVictory(null)}>Ok</button>
           </div>
         </div>

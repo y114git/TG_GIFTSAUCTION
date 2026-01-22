@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 export class AuctionEngine {
     static async resolveRound(auctionId: string) {
         // Итог раунда считается внутри транзакции: смена статусов ставок и списание/возврат средств должны быть атомарными.
+        // Инвариант: нельзя допустить ситуацию "ставка стала WINNER, но деньги не списались" (или наоборот).
         const session = await mongoose.startSession();
         session.startTransaction();
         try {
@@ -43,6 +44,8 @@ export class AuctionEngine {
                 status: BidStatus.ACTIVE
             }).sort({ amount: -1, createdAt: 1 }).session(session);
 
+            // Учитываются только ставки текущего раунда (roundIndex = currentIndex).
+
             // В рамках раунда учитывается одна ставка на пользователя (берётся максимальная, при равенстве — более ранняя).
             const uniqueBids = [];
             const seenUsers = new Set();
@@ -63,6 +66,7 @@ export class AuctionEngine {
                 winBid.status = BidStatus.WINNER;
                 await winBid.save({ session });
 
+                // Победа: списываем средства из lockedBalance.
                 await PaymentService.captureFunds(
                     winBid.userId.toString(),
                     winBid.amount,
@@ -75,6 +79,7 @@ export class AuctionEngine {
             const hasNextRound = (currentIndex + 1) < auction.rounds.length;
 
             if (!hasNextRound) {
+                // Финал: проигравшим возвращаем заблокированные средства.
                 for (const loseBid of losers) {
                     loseBid.status = BidStatus.LOST;
                     await loseBid.save({ session });
@@ -86,6 +91,7 @@ export class AuctionEngine {
                     );
                 }
 
+                // Аукцион завершен: удаляем документ.
                 await auction.deleteOne({ session });
                 console.log(`Auction ${auction.id} finished and deleted.`);
             } else {
@@ -94,7 +100,7 @@ export class AuctionEngine {
                 const nextRound = auction.rounds[nextIndex];
                 currentRound.isFinalized = true;
 
-                // Перенос проигравших ставок в следующий раунд: они остаются ACTIVE, но участвуют уже в nextIndex.
+                // Проигравшие остаются ACTIVE и переходят в следующий раунд (меняется roundIndex).
                 if (losers.length > 0) {
                     const loserIds = losers.map(b => b._id);
                     await Bid.updateMany(
@@ -103,7 +109,7 @@ export class AuctionEngine {
                         { session }
                     );
 
-                    // Если в следующем раунде уже есть активные ставки (перенесённые), то запускаем таймер раунда автоматически.
+                    // Если в следующем раунде уже есть ставки, запускаем таймер.
                     if (nextRound && !nextRound.startTime) {
                         nextRound.startTime = now;
                         const duration = nextRound.duration || 60000;
