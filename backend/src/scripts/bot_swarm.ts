@@ -9,7 +9,6 @@ import { connectDB } from '../db';
 
 dotenv.config();
 
-// directConnection помогает обойти проблемы с обнаружением replica set при запуске скрипта с хоста.
 process.env.MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/auction_db?directConnection=true';
 
 const NAMES = [
@@ -17,14 +16,92 @@ const NAMES = [
     "Elon", "Jeff", "Bill", "Mark", "Satya", "Sundar", "Tim", "Jensen", "Sam A.", "Vitalik"
 ];
 
-const DEFAULT_BOT_COUNT = 10;
-const INITIAL_BALANCE = 50000;
-const MIN_SLEEP = 2000;
-const MAX_SLEEP = 8000;
-
-const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
+const DEFAULT_BOT_COUNT = 50;
+const INITIAL_BALANCE = 500000;
 
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+interface RPSMetrics {
+    totalRequests: number;
+    successfulRequests: number;
+    failedRequests: number;
+    startTime: number;
+    lastSecondRequests: number;
+    lastSecondTimestamp: number;
+    currentRPS: number;
+    maxRPS: number;
+    responseTimes: number[];
+    activeBots: number;
+    sleepingBots: number;
+}
+
+const metrics: RPSMetrics = {
+    totalRequests: 0,
+    successfulRequests: 0,
+    failedRequests: 0,
+    startTime: Date.now(),
+    lastSecondRequests: 0,
+    lastSecondTimestamp: Date.now(),
+    currentRPS: 0,
+    maxRPS: 0,
+    responseTimes: [],
+    activeBots: 0,
+    sleepingBots: 0
+};
+
+function updateRPSMetrics() {
+    const now = Date.now();
+    const timeSinceLastSecond = now - metrics.lastSecondTimestamp;
+
+    if (timeSinceLastSecond >= 1000) {
+        metrics.currentRPS = Math.round((metrics.lastSecondRequests / timeSinceLastSecond) * 1000);
+        if (metrics.currentRPS > metrics.maxRPS) {
+            metrics.maxRPS = metrics.currentRPS;
+        }
+        metrics.lastSecondRequests = 0;
+        metrics.lastSecondTimestamp = now;
+    }
+}
+
+function recordRequest(success: boolean, responseTime: number) {
+    metrics.totalRequests++;
+    metrics.lastSecondRequests++;
+    
+    if (success) {
+        metrics.successfulRequests++;
+    } else {
+        metrics.failedRequests++;
+    }
+    
+    metrics.responseTimes.push(responseTime);
+    if (metrics.responseTimes.length > 1000) {
+        metrics.responseTimes.shift();
+    }
+    
+    updateRPSMetrics();
+}
+
+function getAverageResponseTime(): number {
+    if (metrics.responseTimes.length === 0) return 0;
+    const sum = metrics.responseTimes.reduce((a, b) => a + b, 0);
+    return Math.round(sum / metrics.responseTimes.length);
+}
+
+function displayMetrics() {
+    const elapsedSeconds = Math.floor((Date.now() - metrics.startTime) / 1000);
+    const avgRPS = elapsedSeconds > 0 ? Math.round(metrics.totalRequests / elapsedSeconds) : 0;
+    const avgResponseTime = getAverageResponseTime();
+
+    process.stdout.write('\x1b[2J\x1b[H');
+    
+    const output = [
+        `🚀 RPS LOAD TEST | Current: ${metrics.currentRPS} | Max: ${metrics.maxRPS} | Avg: ${avgRPS} | Elapsed: ${elapsedSeconds}s`,
+        `🤖 Bots Status: Active ${metrics.activeBots} | Sleeping ${metrics.sleepingBots} | Avg Response: ${avgResponseTime}ms`,
+        'Press Ctrl+C to stop\n'
+    ];
+    
+    process.stdout.write(output.join('\n'));
+}
 
 async function runWithConcurrency<T>(items: T[], concurrency: number, fn: (item: T) => Promise<void>) {
     const workerCount = Math.max(1, Math.min(concurrency, items.length));
@@ -42,12 +119,13 @@ async function runWithConcurrency<T>(items: T[], concurrency: number, fn: (item:
 }
 
 async function runSwarm() {
-    console.log('>>> STARTING BOT SWARM <<<');
+    console.log('╔════════════════════════════════════════════════════════════════╗');
+    console.log('║              🚀 RPS LOAD TESTING TOOL - STARTING              ║');
+    console.log('╚════════════════════════════════════════════════════════════════╝\n');
 
     await connectDB();
     console.log('✅ Connected to MongoDB');
 
-    // Количество ботов можно передать первым аргументом командной строки.
     const botCount = process.argv[2] ? parseInt(process.argv[2]) : DEFAULT_BOT_COUNT;
     console.log(`🤖 Initializing ${botCount} bots...`);
 
@@ -62,11 +140,9 @@ async function runSwarm() {
                 lockedBalance: 0
             });
             await PaymentService.deposit(user._id.toString(), INITIAL_BALANCE);
-            console.log(`   + Created ${name}`);
         } else {
             if (user.balance < 1000) {
                 await PaymentService.deposit(user._id.toString(), INITIAL_BALANCE);
-                console.log(`   $ Refilled ${name}`);
             }
         }
         bots.push(user);
@@ -74,131 +150,85 @@ async function runSwarm() {
     console.log(`✅ ${bots.length} active bots ready.`);
 
     let running = true;
-    process.on('SIGINT', () => { running = false; console.log('\nStopping swarm...'); });
+    process.on('SIGINT', () => { 
+        running = false; 
+        console.log('\n\n🛑 Stopping test...');
+        displayMetrics();
+        console.log('\n✅ Test completed. Final results displayed above.');
+        process.exit(0);
+    });
 
     const cliConcurrency = process.argv[3] ? parseInt(process.argv[3]) : null;
     const concurrency = cliConcurrency && !Number.isNaN(cliConcurrency) ? cliConcurrency : botCount;
-    console.log(`⚙️ Concurrency: ${concurrency}`);
+    console.log(`⚙️ Concurrency Level: ${concurrency}`);
+    console.log('\n🔥 Starting aggressive RPS test...\n');
+    
+    await sleep(2000);
+    metrics.startTime = Date.now();
+    metrics.lastSecondTimestamp = Date.now();
 
-    const nextActionAtByBotId = new Map<string, number>();
-    for (const bot of bots) {
-        nextActionAtByBotId.set(bot._id.toString(), Date.now() + Math.floor(Math.random() * (MAX_SLEEP - MIN_SLEEP) + MIN_SLEEP));
-    }
+    let displayInterval = setInterval(() => {
+        if (running) displayMetrics();
+    }, 500);
 
     while (running) {
         try {
             const activeAuctions = await Auction.find({ status: AuctionStatus.ACTIVE });
 
             if (activeAuctions.length === 0) {
-                console.log('zzz No active auctions. Sleeping 5s...');
-                await sleep(5000);
+                await sleep(2000);
                 continue;
             }
 
-            const now = Date.now();
-            const readyBots = bots.filter(b => (nextActionAtByBotId.get(b._id.toString()) ?? 0) <= now);
+            metrics.activeBots = Math.min(concurrency, bots.length);
+            metrics.sleepingBots = Math.max(0, bots.length - metrics.activeBots);
 
-            if (readyBots.length === 0) {
-                await sleep(50);
-                continue;
-            }
-
-            const activeBots = readyBots.sort(() => Math.random() - 0.5);
-
-            await runWithConcurrency(activeBots, concurrency, async (bot) => {
+            await runWithConcurrency(bots, concurrency, async (bot) => {
                 if (!running) return;
 
-                const botId = bot._id.toString();
-                nextActionAtByBotId.set(botId, Date.now() + Math.floor(Math.random() * (MAX_SLEEP - MIN_SLEEP) + MIN_SLEEP));
-
-                const fresherBot = await User.findById(bot._id);
-                if (!fresherBot) return;
-
-                const auction = activeAuctions[Math.floor(Math.random() * activeAuctions.length)];
-                const freshAuction = await Auction.findById(auction._id);
-                if (!freshAuction) return;
-
-                const currentRound = freshAuction.rounds[freshAuction.currentRoundIndex];
-                if (!currentRound || currentRound.isFinalized) return;
-
-                const winnersCount = currentRound.winnersCount;
-
-                const topBids = await Bid.find({
-                    auctionId: freshAuction._id,
-                    status: BidStatus.ACTIVE,
-                    roundIndex: freshAuction.currentRoundIndex
-                })
-                    .sort({ amount: -1 })
-                    .limit(winnersCount + 5)
-                    .populate('userId');
-
-                const myKey = fresherBot._id.toString();
-                const myRank = topBids.findIndex((b: any) => {
-                    const u = b.userId;
-                    const uid = u._id ? u._id.toString() : u.toString();
-                    return uid === myKey;
-                });
-
-                const amIWinning = myRank !== -1 && myRank < winnersCount;
-
-                const minBid = currentRound.minBid;
-                const topAmount = topBids.length > 0 ? Number((topBids[0] as any).amount) : 0;
-
-                // Чем дальше цена ушла от minBid, тем меньше мотивация ботов продолжать разгон.
-                // ratio=1 -> aggression=1, ratio=5 -> ~0.33, ratio=10 -> ~0.18.
-                const ratio = topAmount > 0 ? topAmount / Math.max(1, minBid) : 1;
-                const aggression = clamp01(1 / (1 + (Math.max(0, ratio - 1) / 2)));
-
-                // Чем меньше времени до конца раунда, тем меньше шанс ставить.
-                // Почти полностью отключаем активность в окне анти-снайпинга.
-                let timeFactor = 1;
-                const timeLeftMs = currentRound.endTime ? (new Date(currentRound.endTime).getTime() - Date.now()) : null;
-                if (timeLeftMs !== null) {
-                    if (timeLeftMs <= 0) {
-                        timeFactor = 0;
-                    } else if (timeLeftMs < 15_000) {
-                        timeFactor = 0.03;
-                    } else if (timeLeftMs < 30_000) {
-                        timeFactor = 0.5;
-                    }
-                }
-
-                // Решение «ставить или нет» зависит от текущего места бота в топе.
-                const baseProb = myRank === -1 ? 0.8 : (amIWinning ? 0.4 : 0.9);
-                const bidProb = clamp01(baseProb * aggression * timeFactor);
-                const shouldBid = Math.random() < bidProb;
-
-                if (!shouldBid) return;
-
-                let baseTarget = minBid;
-                if (topBids.length > 0) {
-                    baseTarget = Math.max(minBid, topAmount);
-                }
-
-                const maxIncrement = Math.max(10, Math.floor(500 * aggression));
-                const increment = Math.floor(Math.random() * maxIncrement) + 10;
-                const bidAmount = baseTarget + increment;
-
-                if (fresherBot.balance + fresherBot.lockedBalance < bidAmount) {
-                    return;
-                }
-
+                const requestStart = Date.now();
+                
                 try {
-                    await BidService.placeBid(fresherBot._id.toString(), freshAuction._id.toString(), bidAmount);
-                } catch (e: any) {
-                    if (e.message.includes("funds")) {
+                    const auction = activeAuctions[Math.floor(Math.random() * activeAuctions.length)];
+                    const freshAuction = await Auction.findById(auction._id);
+                    
+                    if (!freshAuction) {
+                        recordRequest(false, Date.now() - requestStart);
                         return;
                     }
+
+                    const currentRound = freshAuction.rounds[freshAuction.currentRoundIndex];
+                    if (!currentRound || currentRound.isFinalized) {
+                        recordRequest(false, Date.now() - requestStart);
+                        return;
+                    }
+
+                    const minBid = currentRound.minBid;
+                    const bidAmount = minBid + Math.floor(Math.random() * 100) + 1;
+
+                    const fresherBot = await User.findById(bot._id);
+                    if (!fresherBot || fresherBot.balance + fresherBot.lockedBalance < bidAmount) {
+                        recordRequest(false, Date.now() - requestStart);
+                        return;
+                    }
+
+                    await BidService.placeBid(fresherBot._id.toString(), freshAuction._id.toString(), bidAmount);
+                    recordRequest(true, Date.now() - requestStart);
+                    
+                } catch (e: any) {
+                    recordRequest(false, Date.now() - requestStart);
                 }
             });
 
-            await sleep(10);
+            await sleep(1);
 
-        } catch (e) {
-            console.error("Swarm Error:", e);
-            await sleep(5000);
+        } catch (e: any) {
+            recordRequest(false, 0);
+            await sleep(100);
         }
     }
+
+    clearInterval(displayInterval);
 }
 
 runSwarm();
