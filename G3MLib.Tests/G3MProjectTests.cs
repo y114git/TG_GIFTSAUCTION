@@ -251,13 +251,19 @@ public sealed class G3MProjectTests : IDisposable
         Assert.Equal("delta", project.RootElement.GetProperty("mode").GetString());
     }
 
+    // Progress<T> posts to the thread pool, so reports could still be in flight when the assertions ran.
+    private sealed class SyncProgress(Action<GameMakerProgress> onReport) : IProgress<GameMakerProgress>
+    {
+        public void Report(GameMakerProgress value) => onReport(value);
+    }
+
     [Fact]
     public async Task OpenReturnsTheResourceIndexWithoutReadingResourceFolders()
     {
         string baseFile = FixtureCopy("data-2026.win");
         G3MProjectResult exported = Export(baseFile, Path.Combine(_root, "project"));
         List<GameMakerProgress> reports = [];
-        G3MProject project = await G3MProjectService.OpenAsync(exported.Path, new Progress<GameMakerProgress>(reports.Add), TestContext.Current.CancellationToken);
+        G3MProject project = await G3MProjectService.OpenAsync(exported.Path, new SyncProgress(reports.Add), TestContext.Current.CancellationToken);
         Assert.Equal("Test", project.Name);
         Assert.Equal(G3MProjectService.FormatVersion, project.FormatVersion);
         Assert.Equal("full", project.Mode);

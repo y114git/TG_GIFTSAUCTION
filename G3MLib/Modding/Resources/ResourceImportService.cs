@@ -1165,24 +1165,23 @@ public static partial class ResourceImportService
 		}
 	}
 
+	// Linux and macOS return directory entries in no fixed order; sorting keeps import order the same on every platform.
+	private static string[] Sorted(string[] paths)
+	{
+		Array.Sort(paths, StringComparer.OrdinalIgnoreCase);
+		return paths;
+	}
+
 	private static string[] GetDirs(string path)
 	{
 		ModdingCancellation.Throw();
-		if (_pfs == null)
-		{
-			return Directory.GetDirectories(path);
-		}
-		return _pfs.GetDirectories(path);
+		return Sorted(_pfs == null ? Directory.GetDirectories(path) : _pfs.GetDirectories(path));
 	}
 
 	private static string[] GetFilesIn(string path, string pattern = "*")
 	{
 		ModdingCancellation.Throw();
-		if (_pfs == null)
-		{
-			return Directory.GetFiles(path, pattern);
-		}
-		return _pfs.GetFiles(path, pattern);
+		return Sorted(_pfs == null ? Directory.GetFiles(path, pattern) : _pfs.GetFiles(path, pattern));
 	}
 
 	private static bool FExists(string path)
