@@ -1,0 +1,29 @@
+/*
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at https://mozilla.org/MPL/2.0/.
+*/
+
+namespace G3MLib.Analyzer.Compiler.Errors;
+
+/// <summary>
+/// Represents an error produced by the compiler.
+/// </summary>
+public interface ICompileError
+{
+    /// <summary>
+    /// A simple, but possibly non-user-friendly error message.
+    /// </summary>
+    public string BaseMessage { get; }
+
+    /// <summary>
+    /// Generates a full, user-friendly error message based on the contents of this compile error.
+    /// </summary>
+    /// <returns>Generated message</returns>
+    public string GenerateMessage();
+
+    /// <summary>
+    /// The error as structured data: severity, code, message and source range.
+    /// </summary>
+    public GmlDiagnostic Diagnostic { get; }
+}
