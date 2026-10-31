@@ -43,11 +43,17 @@ public sealed class SpriteFramesTests(ITestOutputHelper output)
             await view.Ready;
             var play = view.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>().Single(b => b.Name == "SpritePlay");
             play.IsChecked = true;
-            for (var i = 0; i < 100 && view.Current == 0; i++) await Task.Delay(20);
+            for (var i = 0; i < 250 && view.Current == 0; i++)
+            {
+                await Task.Delay(20);
+                Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+            }
+
             Assert.Equal(1, view.Current);
             play.IsChecked = false;
             var stopped = view.Current;
             await Task.Delay(100);
+            Avalonia.Threading.Dispatcher.UIThread.RunJobs();
             Assert.Equal(stopped, view.Current);
             window.Close();
         });
