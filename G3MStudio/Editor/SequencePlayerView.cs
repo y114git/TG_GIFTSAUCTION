@@ -23,11 +23,18 @@ public sealed class SequencePlayerView : StackPanel
     private readonly TextBlock _label = new() { Name = "SequenceFrameLabel", Classes = { "muted" }, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
     private readonly DispatcherTimer _timer = new();
 
-    public SequencePlayerView(GameMakerSequence sequence, TextureBitmaps textures)
+    public SequencePlayerView(GameMakerSequence sequence, TextureBitmaps textures, EditHistory? history = null)
     {
         Name = "SequencePlayer";
         Spacing = 4;
         Canvas = new SequenceCanvas(sequence, textures);
+        if (history is not null)
+        {
+            // An edit of the keyframes can change what the canvas shows and how far it reaches.
+            AttachedToVisualTree += (_, _) => history.Changed += Canvas.Refit;
+            DetachedFromVisualTree += (_, _) => history.Changed -= Canvas.Refit;
+        }
+
         var length = double.IsFinite(sequence.Length) ? Math.Clamp(sequence.Length, 1, 100_000) : 1;
         _slider.Maximum = length;
         // GameMaker's speed is frames per second, or frames per game frame at an assumed 30 game frames per second.
@@ -51,7 +58,7 @@ public sealed class SequencePlayerView : StackPanel
     /// <summary>The whole sequence tab: the canvas with its playhead, the timeline (which draws the playhead and moves it on a click) and the tracks.</summary>
     public static StackPanel Tab(GameMakerSequence sequence, TextureBitmaps textures, Workspace? workspace)
     {
-        var player = new SequencePlayerView(sequence, textures);
+        var player = new SequencePlayerView(sequence, textures, workspace?.History);
         var timeline = new SequenceTimelineView(sequence, workspace);
         player.FrameChanged += frame => timeline.Playhead = frame;
         timeline.PlayheadRequested += frame => player.Frame = frame;
@@ -90,7 +97,7 @@ public sealed class SequenceCanvas : Control
 {
     private readonly GameMakerSequence _sequence;
     private readonly TextureBitmaps _textures;
-    private readonly Dictionary<GameMakerSprite, CroppedBitmap?> _pictures = [];
+    private readonly Dictionary<(GameMakerSprite Sprite, int Image), CroppedBitmap?> _pictures = [];
     private Rect? _box;
 
     public SequenceCanvas(GameMakerSequence sequence, TextureBitmaps textures)
@@ -116,21 +123,28 @@ public sealed class SequenceCanvas : Control
         }
     }
 
+    /// <summary>Works out the area to show again and redraws, after an edit.</summary>
+    public void Refit()
+    {
+        _box = null;
+        InvalidateVisual();
+    }
+
     /// <summary>What is drawn now; a test reads it.</summary>
     public IReadOnlyList<SequenceSprite> Sprites => SequenceEvaluator.At(_sequence, Frame);
 
-    private async Task LoadAsync(GameMakerSprite sprite)
+    private async Task LoadAsync(GameMakerSprite sprite, int image)
     {
-        _pictures[sprite] = null;
-        if (sprite.Textures is not { Count: > 0 } || sprite.Textures[0].Texture is not { TexturePage: { } page, SourceWidth: > 0, SourceHeight: > 0 } item || await _textures.GetAsync(page) is not { } bitmap) return;
-        _pictures[sprite] = new CroppedBitmap(bitmap, new PixelRect(item.SourceX, item.SourceY, item.SourceWidth, item.SourceHeight)); // shares the page bitmap, which the texture cache owns
+        _pictures[(sprite, image)] = null;
+        if (sprite.Textures is not { Count: > 0 } || sprite.Textures[image % sprite.Textures.Count].Texture is not { TexturePage: { } page, SourceWidth: > 0, SourceHeight: > 0 } item || await _textures.GetAsync(page) is not { } bitmap) return;
+        _pictures[(sprite, image)] = new CroppedBitmap(bitmap, new PixelRect(item.SourceX, item.SourceY, item.SourceWidth, item.SourceHeight)); // shares the page bitmap, which the texture cache owns
         InvalidateVisual();
     }
 
     /// <summary>
     /// The area to show, relative to the origin of the sequence: its canvas frame when it has a size, otherwise the extent of its sprites over the whole sequence
     /// (sampled, rotation ignored). Computed once.
-    /// shortcut: not computed again after an edit of the keyframes; reopen the tab, or add a refresh on the undo history.
+    /// It is computed again after an edit (<see cref="Refit"/>).
     /// </summary>
     private Rect Box
     {
@@ -167,9 +181,9 @@ public sealed class SequenceCanvas : Control
             context.DrawRectangle(null, guide, new Rect(shift + (new Vector(-_sequence.OriginX, -_sequence.OriginY) * zoom), new Size(_sequence.Width * zoom, _sequence.Height * zoom)));
         foreach (var shown in Sprites)
         {
-            if (!_pictures.TryGetValue(shown.Sprite, out var picture))
+            if (!_pictures.TryGetValue((shown.Sprite, shown.Image), out var picture))
             {
-                _ = LoadAsync(shown.Sprite);
+                _ = LoadAsync(shown.Sprite, shown.Image);
                 continue;
             }
 
