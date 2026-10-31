@@ -390,11 +390,22 @@ public sealed class FontGlyphsView : StackPanel
         return int.TryParse(text, System.Globalization.CultureInfo.InvariantCulture, out var number) ? number : null;
     }
 
+    /// <summary>The characters of <c>A-Z</c> or <c>U+0020-U+007E</c> (at most 2048), or just the one character a single code stands for; null when the text is neither.</summary>
+    public static IReadOnlyList<int>? ParseRange(string text)
+    {
+        var parts = text.Trim().Split('-', 2);
+        if (parts.Length == 2 && parts[0].Length > 0 && parts[1].Length > 0 && ParseCharacter(parts[0]) is { } from && ParseCharacter(parts[1]) is { } to)
+            return from <= to && to <= ushort.MaxValue && to - from < 2048 && from >= 0 ? [.. Enumerable.Range(from, to - from + 1)] : null;
+        return ParseCharacter(text) is { } one and >= 0 and <= ushort.MaxValue ? [one] : null;
+    }
+
     private void Add()
     {
-        if (_workspace is null || ParseCharacter(_newCharacter.Text ?? "") is not { } code || code is < 0 or > ushort.MaxValue) return;
-        if (_font.Glyphs.Any(g => g.Character == code)) return;
-        _workspace.Edit(new FontGlyphCommand(_font.Name.Content ?? "", FontGlyphCommand.Add, -1, (ushort)code));
+        if (_workspace is null || ParseRange(_newCharacter.Text ?? "") is not { } codes) return;
+        var font = _font.Name.Content ?? "";
+        var added = codes.Where(code => _font.Glyphs.All(g => g.Character != code)).Select(code => (EditCommand)new FontGlyphCommand(font, FontGlyphCommand.Add, -1, (ushort)code)).ToList();
+        if (added.Count == 1) _workspace.Edit(added[0]);
+        else if (added.Count > 1) _workspace.Edit(new GroupCommand(added));
     }
 
     private void Reload()
@@ -648,10 +659,27 @@ public sealed class AnimationCurveView : Control
         var (minY, maxY) = (all.Min(p => p.Value), all.Max(p => p.Value));
         double Span(float low, float high) => high - low < 1e-6 ? 1 : high - low;
         var (spanX, spanY) = (Span(minX, maxX), Span(minY, maxY));
-        Point Map(float x, float y) => new(24 + (x - minX) / spanX * Math.Max(1, Bounds.Width - 48), Bounds.Height - 24 - (y - minY) / spanY * Math.Max(1, Bounds.Height - 48));
+        Point Map(float x, float y) => new(44 + (x - minX) / spanX * Math.Max(1, Bounds.Width - 68), Bounds.Height - 24 - (y - minY) / spanY * Math.Max(1, Bounds.Height - 48));
         var axis = new Pen(new SolidColorBrush(Avalonia.Media.Colors.White, 0.25), 1);
+        var grid = new Pen(new SolidColorBrush(Avalonia.Media.Colors.White, 0.08), 1);
+        for (var q = 1; q < 4; q++)
+        {
+            context.DrawLine(grid, Map(minX, minY + (float)(spanY * q / 4)), Map(maxX, minY + (float)(spanY * q / 4)));
+            context.DrawLine(grid, Map(minX + (float)(spanX * q / 4), minY), Map(minX + (float)(spanX * q / 4), maxY));
+        }
+
         context.DrawLine(axis, Map(minX, minY), Map(maxX, minY));
         context.DrawLine(axis, Map(minX, minY), Map(minX, maxY));
+        void Label(float value, Point at)
+        {
+            var text = new FormattedText(value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture), System.Globalization.CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Typeface.Default, 11, Brushes.Gray);
+            context.DrawText(text, at);
+        }
+
+        Label(maxY, new Point(2, Map(minX, maxY).Y - 7));
+        Label(minY, new Point(2, Map(minX, minY).Y - 7));
+        Label(minX, new Point(Map(minX, minY).X - 4, Bounds.Height - 16));
+        Label(maxX, new Point(Map(maxX, minY).X - 12, Bounds.Height - 16));
         for (var c = 0; c < _curve.Channels.Count; c++)
         {
             var brush = Colors[c % Colors.Length];
@@ -659,7 +687,7 @@ public sealed class AnimationCurveView : Control
             for (var i = 1; i < points.Count; i++) context.DrawLine(new Pen(brush, 2), Map(points[i - 1].X, points[i - 1].Value), Map(points[i].X, points[i].Value));
             foreach (var p in points) context.DrawEllipse(brush, null, Map(p.X, p.Value), 3, 3);
             var label = new FormattedText(_curve.Channels[c].Name?.Content ?? "", System.Globalization.CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Typeface.Default, 12, brush);
-            context.DrawText(label, new Point(28 + c * 110, 4));
+            context.DrawText(label, new Point(48 + c * 110, 4));
         }
     }
 }

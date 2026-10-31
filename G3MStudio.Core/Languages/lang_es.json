@@ -514,7 +514,7 @@
   "fonts": {
     "glyphFilter": "Filtrar por carácter, U+código o número...",
     "glyphCount": "{count} glifos",
-    "glyphNew": "U+código o carácter",
+    "glyphNew": "U+código, carácter o rango (A-Z)",
     "glyphAdd": "Añadir glifo"
   },
   "paths": {

@@ -514,7 +514,7 @@
   "fonts": {
     "glyphFilter": "Фильтр: символ, U+код или число...",
     "glyphCount": "Глифов: {count}",
-    "glyphNew": "U+код или символ",
+    "glyphNew": "U+код, символ или диапазон (A-Z)",
     "glyphAdd": "Добавить глиф"
   },
   "paths": {

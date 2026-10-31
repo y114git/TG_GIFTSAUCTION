@@ -514,7 +514,7 @@
   "fonts": {
     "glyphFilter": "依字元、U+編碼或數字篩選...",
     "glyphCount": "共 {count} 個字形",
-    "glyphNew": "U+編碼或字元",
+    "glyphNew": "U+代碼、字元或範圍 (A-Z)",
     "glyphAdd": "新增字形"
   },
   "paths": {

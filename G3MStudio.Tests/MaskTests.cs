@@ -136,6 +136,18 @@ public sealed class MaskTests
     }
 
     [Fact]
+    public void AGlyphRangeIsParsedFromCharactersOrCodes()
+    {
+        Assert.Equal([65, 66, 67], Editor.FontGlyphsView.ParseRange("A-C"));
+        Assert.Equal([32, 33], Editor.FontGlyphsView.ParseRange("U+0020-U+0021"));
+        Assert.Equal([65], Editor.FontGlyphsView.ParseRange("A"));
+        Assert.Equal([45], Editor.FontGlyphsView.ParseRange("-"));
+        Assert.Null(Editor.FontGlyphsView.ParseRange("C-A"));
+        Assert.Null(Editor.FontGlyphsView.ParseRange("0-5000"));
+        Assert.Null(Editor.FontGlyphsView.ParseRange("nonsense"));
+    }
+
+    [Fact]
     public async Task AParticleSystemListsOneLinePerEmitter()
     {
         var folder = Environment.GetEnvironmentVariable("G3MSTUDIO_CORPUS_DIR");

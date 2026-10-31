@@ -514,7 +514,7 @@
   "fonts": {
     "glyphFilter": "文字、U+コード、数値で絞り込み...",
     "glyphCount": "グリフ {count} 個",
-    "glyphNew": "U+コードまたは文字",
+    "glyphNew": "U+コード、文字、範囲 (A-Z)",
     "glyphAdd": "グリフを追加"
   },
   "paths": {
