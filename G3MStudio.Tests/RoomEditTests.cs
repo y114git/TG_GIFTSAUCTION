@@ -668,7 +668,11 @@ public sealed class RoomEditTests
             }
 
             if (data.Shaders.FirstOrDefault() is { } shader)
-                Assert.All(new Editor.ShaderSourceView(shader).Sources, source => Assert.False(string.IsNullOrWhiteSpace(source.Text)));
+            {
+                var shaderView = new Editor.ShaderSourceView(shader);
+                Assert.All(shaderView.Sources, source => Assert.False(string.IsNullOrWhiteSpace(source.Text)));
+                Assert.Equal(shaderView.Sources.Count, shaderView.ItemCount);
+            }
 
         });
     }

@@ -457,22 +457,24 @@ public sealed class MaskTests
             using var dir = new TempDir();
             var userData = new UserData(dir.File("user"));
             using var workspace = await new WorkspaceService(userData, RecentFiles.Load(userData)).OpenAsync(file, cancellationToken: TestContext.Current.CancellationToken);
-            var path = workspace.Data.Paths?.FirstOrDefault(p => p.Points.Count > 0);
-            if (path is null) continue;
+            // A list whose items the grid edits itself: the first room that has one.
+            var room = workspace.Data.Rooms.FirstOrDefault(r => ListOf(PropertyModel.Describe(r)) is not null);
+            if (room is null) continue;
+            var list = ListOf(PropertyModel.Describe(room))!;
             await HeadlessApp.Run(() =>
             {
-                var tab = new Editor.PropertyGridTab(workspace, "paths", path.Name.Content ?? "");
+                var tab = new Editor.PropertyGridTab(workspace, "rooms", room.Name.Content ?? "");
                 var window = new Avalonia.Controls.Window { Content = tab, Width = 700, Height = 600 };
                 window.Show();
                 window.UpdateLayout();
-                IEnumerable<string?> Names() => Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(window).OfType<Avalonia.Controls.TextBox>().Select(b => b.Name);
-                Assert.DoesNotContain("Prop_Points[0].X", Names());
-                tab.Toggle("Points");
+                bool ItemsShown() => Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(window).OfType<Avalonia.Controls.TextBox>().Any(b => b.Name?.StartsWith("Prop_" + list + "[", StringComparison.Ordinal) == true);
+                Assert.False(ItemsShown());
+                tab.Toggle(list);
                 window.UpdateLayout();
-                Assert.Contains("Prop_Points[0].X", Names());
-                tab.Toggle("Points");
+                Assert.True(ItemsShown());
+                tab.Toggle(list);
                 window.UpdateLayout();
-                Assert.DoesNotContain("Prop_Points[0].X", Names());
+                Assert.False(ItemsShown());
                 return Task.CompletedTask;
             });
             return;
@@ -480,4 +482,7 @@ public sealed class MaskTests
 
         Assert.Skip("No path with points in the corpus.");
     }
+
+    private static string? ListOf(IReadOnlyList<PropertyRow> rows) =>
+        rows.Where(r => r.Kind == PropertyKind.List).Select(r => r.Path).FirstOrDefault(list => rows.Any(c => c.Kind == PropertyKind.Whole && !c.ReadOnly && c.Path.StartsWith(list + "[", StringComparison.Ordinal)));
 }

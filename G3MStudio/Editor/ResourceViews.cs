@@ -10,20 +10,20 @@ using G3MStudio.Rooms;
 
 namespace G3MStudio.Editor;
 
-/// <summary>A texture page item (a tile set, a font sheet or an embedded image) shown at its real size on a dark chequer, with a zoom of 1x to 8x.</summary>
+/// <summary>A texture page item (a tile set, a font sheet or an embedded image) on a dark chequer, with a zoom of 1x to 8x; it opens at the largest whole zoom that fits.</summary>
 public sealed class TextureItemView : DockPanel
 {
     private readonly Image _image = new() { Stretch = Stretch.None };
     private readonly TextBlock _caption = new() { Classes = { "muted" } };
+    private readonly Slider _zoomBar = new() { Minimum = 1, Maximum = 8, Value = 1, Width = 160, TickFrequency = 1, IsSnapToTickEnabled = true };
 
     public TextureItemView(GameMakerTexturePageItem? item, TextureBitmaps textures)
     {
         Name = "TextureItemView";
         Height = 300;
         RenderOptions.SetBitmapInterpolationMode(_image, BitmapInterpolationMode.None);
-        var zoom = new Slider { Minimum = 1, Maximum = 8, Value = 1, Width = 160, TickFrequency = 1, IsSnapToTickEnabled = true };
-        zoom.ValueChanged += (_, e) => Zoom = e.NewValue;
-        var bar = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 8, Children = { zoom, _caption } };
+        _zoomBar.ValueChanged += (_, e) => Zoom = e.NewValue;
+        var bar = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 8, Children = { _zoomBar, _caption } };
         SetDock(bar, Avalonia.Controls.Dock.Top);
         Children.Add(bar);
         Children.Add(new ScrollViewer { HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, Background = new SolidColorBrush(Color.FromRgb(40, 40, 46)), Content = _image });
@@ -62,6 +62,8 @@ public sealed class TextureItemView : DockPanel
 
         _image.Source = new CroppedBitmap(bitmap, new PixelRect(item.SourceX, item.SourceY, item.SourceWidth, item.SourceHeight));
         _caption.Text = $"{item.SourceWidth} x {item.SourceHeight}";
+        // Start at the largest whole scale that still fits the view, so a small sheet is readable without touching the slider.
+        _zoomBar.Value = Math.Clamp(Math.Floor(260.0 / Math.Max(item.SourceWidth, item.SourceHeight)), 1, 8);
         ApplyZoom();
     }
 }
@@ -662,13 +664,13 @@ public sealed class AnimationCurveView : Control
     }
 }
 
-/// <summary>The shader sources of a shader in text boxes, one per language the shader holds. With a workspace a changed source is saved with its Apply button as one undo step.</summary>
-public sealed class ShaderSourceView : StackPanel
+/// <summary>The shader sources of a shader, one tab per language the shader holds, each in a code view with line numbers. With a workspace a changed source is saved with its Apply button as one undo step.</summary>
+public sealed class ShaderSourceView : TabControl
 {
     public ShaderSourceView(GameMakerShader shader, Workspace? workspace = null)
     {
         Name = "ShaderSources";
-        Spacing = 4;
+        Height = 360;
         (string Title, string Property, string? Text)[] all =
         [
             ("GLSL ES vertex", nameof(GameMakerShader.GLSL_ES_Vertex), shader.GLSL_ES_Vertex?.Content), ("GLSL ES fragment", nameof(GameMakerShader.GLSL_ES_Fragment), shader.GLSL_ES_Fragment?.Content),
@@ -679,18 +681,35 @@ public sealed class ShaderSourceView : StackPanel
         Sources = [.. present.Select(s => (s.Title, Text: s.Text ?? string.Empty))];
         foreach (var (title, property, text) in present)
         {
-            var box = new TextBox { Text = text, IsReadOnly = workspace is null, AcceptsReturn = true, MaxHeight = 160, Name = "Shader_" + property, FontFamily = new FontFamily("Cascadia Mono, Consolas, monospace") };
-            Children.Add(new TextBlock { Text = title, Classes = { "muted" } });
-            Children.Add(box);
-            if (workspace is null) continue;
-            var apply = new Button { Name = "ShaderApply_" + property, Content = Loc.Current["strings.apply"] };
-            apply.Click += (_, _) =>
+            // The GML colors also suit GLSL comments, numbers and the shared keywords; shader types stay plain.
+            var box = GmlColorizer.CreateEditor(text ?? string.Empty, workspace is null, out var colorizer);
+            box.Name = "Shader_" + property;
+            box.TextChanged += (_, _) =>
             {
-                if (box.Text is { } changed && changed != PropertyModel.Read(shader, property)) workspace.Edit(new SetPropertyCommand("shaders", shader.Name.Content ?? "", property, changed));
+                colorizer.Tokenize(box.Text);
+                box.TextArea.TextView.Redraw();
             };
-            Children.Add(apply);
+            var page = new DockPanel();
+            if (workspace is not null)
+            {
+                var apply = new Button { Name = "ShaderApply_" + property, Content = Loc.Current["strings.apply"], Margin = new Thickness(0, 4) };
+                apply.Click += (_, _) =>
+                {
+                    if (box.Text is { } changed && changed != PropertyModel.Read(shader, property)) workspace.Edit(new SetPropertyCommand("shaders", shader.Name.Content ?? "", property, changed));
+                };
+                DockPanel.SetDock(apply, Avalonia.Controls.Dock.Top);
+                page.Children.Add(apply);
+            }
+
+            page.Children.Add(box);
+            Items.Add(new TabItem { Header = title, Content = page, FontSize = 13 });
         }
     }
+
+    /// <summary>The shader fields these tabs edit; the property list leaves them out so a source is not shown twice.</summary>
+    public static readonly string[] SourceProperties = [nameof(GameMakerShader.GLSL_ES_Vertex), nameof(GameMakerShader.GLSL_ES_Fragment), nameof(GameMakerShader.GLSL_Vertex), nameof(GameMakerShader.GLSL_Fragment), nameof(GameMakerShader.HLSL9_Vertex), nameof(GameMakerShader.HLSL9_Fragment)];
+
+    protected override Type StyleKeyOverride => typeof(TabControl);
 
     public IReadOnlyList<(string Title, string Text)> Sources { get; }
 }

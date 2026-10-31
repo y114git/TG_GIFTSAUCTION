@@ -272,6 +272,12 @@ CI on ci/studio at a9ccf7c: green on all six platforms (an earlier run failed on
 
 CI on ci/studio is green on all six platforms for the code up to the plugin panels commit. Windows x64 failed twice in four runs in GitPanelTests.ThePanelCommitsSwitchesBranchesAndPushesToARemote at the commit step, also after the wait was raised from 3 to 30 seconds, so it is not only slowness; the test now prints the panel message on that failure so the next red run shows the cause.
 
+### Menus, colors, editors and the live GameMaker comparison (2026-10-31)
+
+Done (OI-172 to OI-184): menus regrouped (File, Edit, View with panels, Project, Sprite, Room, Run, Mods, Tools, Window, Help; no one-item menus), localized panel titles, Inspector hosts the room layers and a resource summary, Settings has a category list with Colors (theme export and import), Code editor options and compact density, GML colorizer colors identifiers by kind, empty hints in Problems and Output, centered Start page. Compared with the live GameMaker (Start page, room, sprite, script, object and sound editors) and taken over: room toolbar buttons (grid, snap, views, zoom, fit), eye and lock icons on layer rows, Instance Creation Order and Room Creation Code buttons, collapsible sections (room settings, object Physics, sprite Texture settings and Collision mask), sprite Play and Pause, current line highlight, brace folding, INS and OVR indicator, spaced property names. Owner decision: keep the single Place tool. Not built on purpose (OI-183): reduce motion, number format culture, UndertaleModTool settings import, per-workspace scope. Not built: sprite origin lock, sound waveform; fonts, paths, shaders and the remaining editors are not yet compared with the live GameMaker. Translations of the five newer languages need native review.
+
+Verified: full Studio suite 273 passed, 3 skipped, 0 failed (local, with the corpus). CI on ci/studio at 9dddc76 (code up to the WAV length fix): green on all six platforms.
+
 ## Next actions
 
 M1 left after "M1 state" and "M1 part 2": quick open, settings UI and shortcut editor, full status bar items, Output and Problems panels, Project mode follow-ups (three-way merge of external changes, rebuild of a lost data file from the UI, project folder watcher and Git, project list with sizes, snapshot limits and UI, Reopen Closed Tab, tab drag and overflow list). Assumptions are OI-073 to OI-091.

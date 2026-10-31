@@ -113,6 +113,7 @@ public sealed class PropertyGridTab : DockPanel
         foreach (var described in PropertyModel.Describe(shown))
         {
             var row = _prefix.Length > 0 ? described with { Path = _prefix + "." + described.Path } : described;
+            if (_prefix.Length == 0 && Covered(row.Path)) continue;
             if (text.Length > 0 && row.Kind is not PropertyKind.Group && !row.Path.Contains(text, StringComparison.OrdinalIgnoreCase) && !row.Value.Contains(text, StringComparison.OrdinalIgnoreCase)) continue;
             // A filter shows every match; without one the rows under a closed heading stay out.
             if (text.Length == 0 && collapsed.Any(c => row.Path.StartsWith(c + ".", StringComparison.Ordinal) || row.Path.StartsWith(c + "[", StringComparison.Ordinal))) continue;
@@ -126,6 +127,14 @@ public sealed class PropertyGridTab : DockPanel
             if (row.Kind is PropertyKind.Group or PropertyKind.List) _headings[row.Path] = row.Kind;
         }
     }
+
+    /// <summary>The list of each type that the view above the property list already edits, so it is not listed twice.</summary>
+    private static readonly Dictionary<string, string> CoveredLists = new() { ["paths"] = "Points", ["fonts"] = "Glyphs", ["particleSystems"] = "Emitters", ["sequences"] = "Tracks", ["timelines"] = "Moments" };
+
+    /// <summary>True for a field the view above the list already edits (shader sources, the items of a list in <see cref="CoveredLists"/>).</summary>
+    private bool Covered(string path) => _type == "shaders"
+        ? ShaderSourceView.SourceProperties.Contains(path)
+        : CoveredLists.TryGetValue(_type, out var list) && (path == list || path.StartsWith(list + "[", StringComparison.Ordinal));
 
     /// <summary>Fields that GameMaker keeps in their own collapsible section; they start closed and sit after the general fields. A filter shows them in place.</summary>
     private static readonly Dictionary<string, (string Key, string[] Fields)[]> Sections = new()

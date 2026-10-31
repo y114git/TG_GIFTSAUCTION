@@ -72,6 +72,10 @@ public static class PropertyModel
             {
                 rows.Add(new PropertyRow(path, property.Name, PropertyKind.Info, $"{bytes.Length} bytes", depth, true));
             }
+            else if (value is IList { Count: 0 })
+            {
+                // An empty list has nothing to show or edit, so it gets no row.
+            }
             else if (value is IList list)
             {
                 rows.Add(new PropertyRow(path, property.Name, PropertyKind.List, $"{list.Count} items", depth, true));
