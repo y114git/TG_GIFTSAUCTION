@@ -204,6 +204,9 @@ public sealed class MaskTests
             if (sequence is null) continue;
             var view = new Editor.SequenceTracksView(sequence);
             Assert.True(view.Lines.Count >= sequence.Tracks.Count); // one line per track, nested ones too
+            var timeline = new Editor.SequenceTimelineView(sequence);
+            Assert.True(timeline.Rows.Count >= view.Lines.Count); // a row per track, plus moments and messages when there are some
+            Assert.True(timeline.Length >= 1);
             return;
         }
 

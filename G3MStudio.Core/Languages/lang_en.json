@@ -334,6 +334,7 @@
     "reset": "Reset",
     "restore": "Restore defaults",
     "restoreTip": "Resets the settings of the selected section.",
+    "profilesNote": "The run profile you pick is remembered for each data file.",
     "shortcutShared": "{shortcut} is also used by: {commands}.",
     "addFont": "Add font file...",
     "removeFont": "Remove",
@@ -532,6 +533,7 @@
     "addAction": "Add action"
   },
   "particles": {
+    "restart": "Restart",
     "add": "Add emitter"
   },
   "scripts": {
@@ -543,6 +545,8 @@
     "failed": "{name} failed: {reason}"
   },
   "sequences": {
+    "moments": "Moments",
+    "broadcast": "Broadcast messages",
     "addGroup": "Add group track",
     "newGroup": "Group"
   },

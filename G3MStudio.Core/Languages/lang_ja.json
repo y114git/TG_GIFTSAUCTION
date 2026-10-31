@@ -334,6 +334,7 @@
     "reset": "リセット",
     "restore": "既定値に戻す",
     "restoreTip": "選択中のセクションの設定を既定値にします。",
+    "profilesNote": "選んだ実行プロファイルは、データファイルごとに記憶されます。",
     "shortcutShared": "{shortcut} は次でも使用されています: {commands}。",
     "addFont": "フォントファイルを追加...",
     "removeFont": "削除",
@@ -532,6 +533,7 @@
     "addAction": "アクションを追加"
   },
   "particles": {
+    "restart": "最初から再生",
     "add": "エミッターを追加"
   },
   "scripts": {
@@ -543,6 +545,8 @@
     "failed": "{name} が失敗しました: {reason}"
   },
   "sequences": {
+    "moments": "モーメント",
+    "broadcast": "ブロードキャストメッセージ",
     "addGroup": "グループトラックを追加",
     "newGroup": "グループ"
   },

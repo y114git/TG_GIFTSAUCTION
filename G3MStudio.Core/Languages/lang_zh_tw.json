@@ -334,6 +334,7 @@
     "reset": "重設",
     "restore": "還原預設值",
     "restoreTip": "將所選區段的設定還原為預設值。",
+    "profilesNote": "所選的執行設定檔會依資料檔案分別記住。",
     "shortcutShared": "{shortcut} 也被以下命令使用：{commands}。",
     "addFont": "新增字型檔案...",
     "removeFont": "移除",
@@ -532,6 +533,7 @@
     "addAction": "新增動作"
   },
   "particles": {
+    "restart": "重新開始",
     "add": "新增發射器"
   },
   "scripts": {
@@ -543,6 +545,8 @@
     "failed": "{name} 失敗：{reason}"
   },
   "sequences": {
+    "moments": "時刻",
+    "broadcast": "廣播訊息",
     "addGroup": "新增群組軌道",
     "newGroup": "群組"
   },

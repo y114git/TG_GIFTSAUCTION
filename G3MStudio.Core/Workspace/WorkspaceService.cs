@@ -19,6 +19,33 @@ public sealed class WorkspaceService(UserData userData, RecentFiles recent)
 
     public event Action<Workspace?>? CurrentChanged;
 
+    private string? _lastActive;
+
+    /// <summary>The data file remembers the run profile picked while it is open (F-UI-6, the per-file part of the settings).</summary>
+    private void OnSettingsChanged()
+    {
+        var active = Settings.Current.ActiveRunProfile;
+        if (active == _lastActive) return;
+        _lastActive = active;
+        if (Current is not { } workspace || active.Length == 0 || Settings.Current.FileRunProfiles.GetValueOrDefault(workspace.Path) == active) return;
+        Settings.Update(x => x with { FileRunProfiles = new Dictionary<string, string>(x.FileRunProfiles) { [workspace.Path] = active } });
+    }
+
+    /// <summary>Picks the profile the file used last, when that profile still exists.</summary>
+    private void ApplyRunProfile(Workspace workspace)
+    {
+        if (_lastActive is null)
+        {
+            _lastActive = Settings.Current.ActiveRunProfile;
+            Settings.Changed += OnSettingsChanged;
+        }
+
+        var settings = Settings.Current;
+        if (!settings.FileRunProfiles.TryGetValue(workspace.Path, out var name) || settings.RunProfiles.FirstOrDefault(p => p.Name == name) is not { } profile) return;
+        _lastActive = name;
+        Settings.Update(x => x with { ActiveRunProfile = name, RunRunner = profile.Runner, RunArguments = profile.Arguments, RunDebugOutput = profile.DebugOutput });
+    }
+
     /// <summary>Reads the file with progress. The previous workspace is closed only after the new one has loaded.</summary>
     /// <exception cref="OperationCanceledException">Cancelled; nothing changes.</exception>
     public async Task<Workspace> OpenAsync(string path, IProgress<GameMakerProgress>? progress = null, CancellationToken cancellationToken = default)
@@ -38,6 +65,7 @@ public sealed class WorkspaceService(UserData userData, RecentFiles recent)
         workspace.StartJournal(UserData);
         Projects.Attach(workspace);
         Current = workspace;
+        ApplyRunProfile(workspace);
         Recent.Add(full, workspace.Name, workspace.Version, DateTimeOffset.Now);
         CurrentChanged?.Invoke(workspace);
         return workspace;

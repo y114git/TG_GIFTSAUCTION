@@ -45,6 +45,9 @@ public sealed record AppSettings
     /// <summary>The profile picked last, for the Settings page to show; empty when none.</summary>
     public string ActiveRunProfile { get; init; } = "";
 
+    /// <summary>The run profile each data file used last, full path to profile name; opening the file picks it again.</summary>
+    public IReadOnlyDictionary<string, string> FileRunProfiles { get; init; } = new Dictionary<string, string>();
+
     /// <summary>Shortcuts changed by the user, command id to gesture; an empty gesture means the command has none (<c>keybindings</c>).</summary>
     public IReadOnlyDictionary<string, string> Shortcuts { get; init; } = new Dictionary<string, string>();
 
@@ -66,6 +69,7 @@ public sealed record AppSettings
         var project = Project ?? new(); // a hand-edited file may hold null
         return this with
         {
+            FileRunProfiles = FileRunProfiles is null ? [] : FileRunProfiles.Where(p => p.Key is not null && p.Value is not null).ToDictionary(),
             RunProfiles = RunProfiles is null ? [] : [.. RunProfiles.Where(p => p is { Name.Length: > 0 }).DistinctBy(p => p.Name)],
             Shortcuts = Shortcuts is null ? new Dictionary<string, string>() : Shortcuts.Values.Any(v => v is null) ? Shortcuts.Where(p => p.Value is not null).ToDictionary() : Shortcuts, // a hand-edited file may hold null
             Colors = (Colors ?? new Dictionary<string, string>()).Where(p => ThemeColors.Editable.Contains(p.Key) && ThemeColors.IsValid(p.Value)).ToDictionary(),

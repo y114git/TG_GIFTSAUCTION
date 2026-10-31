@@ -41,6 +41,25 @@ public sealed class CurveViewTests
     }
 
     [Fact]
+    public async Task ATimelineWithANonFiniteLengthStillDrawsAndTicksStayFarApart()
+    {
+        await HeadlessApp.Run(() =>
+        {
+            var sequence = new GameMakerSequence { Name = new GameMakerString("seq_bad"), Length = float.PositiveInfinity, Tracks = [] };
+            var view = new SequenceTimelineView(sequence) { Width = 600 };
+            Assert.Equal(1, view.Length);
+            view.Measure(new Size(600, 200));
+            view.Arrange(new Rect(0, 0, 600, 200));
+            using var target = new RenderTargetBitmap(new PixelSize(600, 200));
+            target.Render(view);
+            Assert.Equal(1, SequenceTimelineView.Step(100));
+            Assert.True(SequenceTimelineView.Step(0.001) * 0.001 >= 48);
+            Assert.True(SequenceTimelineView.Step(1e-30) > 1e9);
+            return Task.CompletedTask;
+        });
+    }
+
+    [Fact]
     public async Task PickingARowOfThePointListSelectsThePointOnTheCanvas()
     {
         await HeadlessApp.Run(() =>

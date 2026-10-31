@@ -75,6 +75,13 @@ public sealed class ScreenshotTests
                         Dispatcher.UIThread.RunJobs();
                     }
 
+                    // A particle preview starts empty and steps with a timer; step it so the picture shows particles.
+                    if (type == "particleSystems" && Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(window).OfType<Editor.ParticlePreviewView>().FirstOrDefault() is { } preview)
+                    {
+                        for (var i = 0; i < 40; i++) preview.Advance();
+                        Dispatcher.UIThread.RunJobs();
+                    }
+
                     Shoot(window, Path.Combine(folder, $"02-{type}.png"));
                 }
 

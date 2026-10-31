@@ -334,6 +334,7 @@
     "reset": "초기화",
     "restore": "기본값 복원",
     "restoreTip": "선택한 섹션의 설정을 기본값으로 설정합니다.",
+    "profilesNote": "선택한 실행 프로필은 데이터 파일마다 기억됩니다.",
     "shortcutShared": "{shortcut}은(는) 다음에서도 사용됩니다: {commands}.",
     "addFont": "글꼴 파일 추가...",
     "removeFont": "제거",
@@ -532,6 +533,7 @@
     "addAction": "동작 추가"
   },
   "particles": {
+    "restart": "다시 시작",
     "add": "이미터 추가"
   },
   "scripts": {
@@ -543,6 +545,8 @@
     "failed": "{name} 실패: {reason}"
   },
   "sequences": {
+    "moments": "모먼트",
+    "broadcast": "브로드캐스트 메시지",
     "addGroup": "그룹 트랙 추가",
     "newGroup": "그룹"
   },

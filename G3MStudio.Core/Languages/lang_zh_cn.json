@@ -334,6 +334,7 @@
     "reset": "重置",
     "restore": "恢复默认值",
     "restoreTip": "将所选部分的设置恢复为默认值。",
+    "profilesNote": "所选的运行配置会按数据文件分别记住。",
     "shortcutShared": "{shortcut} 也被以下命令使用：{commands}。",
     "addFont": "添加字体文件...",
     "removeFont": "移除",
@@ -532,6 +533,7 @@
     "addAction": "添加动作"
   },
   "particles": {
+    "restart": "重新开始",
     "add": "添加发射器"
   },
   "scripts": {
@@ -543,6 +545,8 @@
     "failed": "{name} 失败：{reason}"
   },
   "sequences": {
+    "moments": "时刻",
+    "broadcast": "广播消息",
     "addGroup": "添加分组轨道",
     "newGroup": "分组"
   },

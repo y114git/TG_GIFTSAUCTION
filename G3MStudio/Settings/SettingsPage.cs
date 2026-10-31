@@ -349,6 +349,7 @@ public sealed class SettingsPage : UserControl
                 Row("settings.runArguments", runArguments),
                 debugOutput,
                 Row("settings.profiles", profiles, deleteProfile),
+                new TextBlock { Text = Loc.Current["settings.profilesNote"], Classes = { "muted" }, TextWrapping = TextWrapping.Wrap },
                 Row("settings.profileName", profileName, saveProfile),
                 Heading("settings.shortcuts"),
                 new ShortcutsEditor(_commands, _store),
