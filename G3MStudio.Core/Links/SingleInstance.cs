@@ -13,21 +13,22 @@ public sealed class SingleInstance : IDisposable
     private readonly CancellationTokenSource _stop = new();
     private Task? _loop;
 
-    public static string DefaultName => "G3MStudio-" + Environment.UserName.Replace('\\', '_').Replace('/', '_');
+    /// <summary>A short name for the user: macOS limits the path of a domain socket to about 100 characters, and the temporary folder there is already long.</summary>
+    public static string DefaultName => "g3ms-" + Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(Environment.UserName + "|" + Environment.UserDomainName)))[..12];
 
     /// <summary>Sends the text to the running program. False when none answers within the time.</summary>
     public static bool TrySend(string text, string? name = null, int milliseconds = 500)
     {
         try
         {
-            using var client = new NamedPipeClientStream(".", name ?? DefaultName, PipeDirection.Out);
+            using var client = new NamedPipeClientStream(".", name ?? DefaultName, PipeDirection.Out, PipeOptions.CurrentUserOnly); // only a server of the same user is accepted, so another user cannot take the name and read what is sent
             client.Connect(milliseconds);
             var bytes = Encoding.UTF8.GetBytes(text);
             client.Write(bytes, 0, bytes.Length);
             client.Flush();
             return true;
         }
-        catch (Exception e) when (e is TimeoutException or IOException or UnauthorizedAccessException)
+        catch (Exception e) when (e is TimeoutException or IOException or UnauthorizedAccessException or ArgumentOutOfRangeException)
         {
             return false;
         }
