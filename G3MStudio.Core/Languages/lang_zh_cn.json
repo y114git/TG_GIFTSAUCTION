@@ -462,6 +462,7 @@
     "packaged": "模组已保存到 {path}。请在 mod_config.json 中设置作者和游戏 ID。"
   },
   "sprites": {
+    "lockOrigin": "锁定原点",
     "play": "播放",
     "pause": "暂停",
     "pickPicture": "用于该帧的图片",

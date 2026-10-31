@@ -26,8 +26,10 @@ public sealed class SpriteFramesView : ScrollViewer
     private readonly GameMakerSprite _sprite;
     private readonly TextureBitmaps _textures;
     private GMImage?[] _shown = [];
+    private readonly List<OriginMarker> _markers = [];
     private readonly DispatcherTimer _playback = new();
     private readonly ToggleButton _play = new() { Name = "SpritePlay" };
+    private readonly ToggleButton _lock = new() { Name = "SpriteLockOrigin" };
     private readonly TextBlock _position = new() { Name = "SpritePosition", Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center };
 
     public SpriteFramesView(GameMakerSprite sprite, TextureBitmaps textures, EditHistory? history = null)
@@ -49,7 +51,9 @@ public sealed class SpriteFramesView : ScrollViewer
             else _playback.Stop();
         };
         DetachedFromVisualTree += (_, _) => _playback.Stop();
-        Content = new StackPanel { Children = { new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Margin = new Thickness(8, 4), Children = { _play, _position } }, _strip } };
+        _lock.Content = Loc.Current["sprites.lockOrigin"];
+        _lock.IsCheckedChanged += (_, _) => OriginLockChanged?.Invoke();
+        Content = new StackPanel { Children = { new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Margin = new Thickness(8, 4), Children = { _play, _lock, _position } }, _strip } };
         Show(0);
         Ready = RefillAsync();
         if (history is null) return;
@@ -59,6 +63,11 @@ public sealed class SpriteFramesView : ScrollViewer
 
     /// <summary>The frame the next replace applies to; click a frame to choose it.</summary>
     public int SelectedFrame { get; private set; }
+
+    /// <summary>True while the origin is locked: the property list then shows Origin X and Y read-only.</summary>
+    public bool OriginLocked => _lock.IsChecked == true;
+
+    public event Action? OriginLockChanged;
 
     /// <summary>The frame shown by playback, outlined in the strip.</summary>
     public int Current { get; private set; }
@@ -74,7 +83,7 @@ public sealed class SpriteFramesView : ScrollViewer
     public int FrameCount => _strip.Children.Count;
 
     /// <summary>Frames that show a picture now.</summary>
-    public int Pictures => _strip.Children.Count(c => c is StackPanel { Children: [Border { Child: Image }, ..] });
+    public int Pictures => _strip.Children.Count(c => c is StackPanel { Children: [Border { Child: Grid { Children: [Image, ..] } }, ..] });
 
     /// <summary>Completes when every frame has its picture, or is known to have none.</summary>
     public Task Ready { get; private set; }
@@ -84,6 +93,7 @@ public sealed class SpriteFramesView : ScrollViewer
     /// <summary>Redraws after an edit or undo that swapped a page picture under this sprite.</summary>
     private void OnHistoryChanged()
     {
+        foreach (var marker in _markers) marker.InvalidateVisual(); // an origin edit moves the crosshair
         if (_shown.Length == _sprite.Textures.Count && Enumerable.Range(0, _shown.Length).All(i => ReferenceEquals(_shown[i], PageImage(_sprite, i)))) return;
         for (var i = 0; i < _sprite.Textures.Count; i++)
             if (_sprite.Textures[i].Texture?.TexturePage is { } page) _textures.Forget(page);
@@ -112,11 +122,18 @@ public sealed class SpriteFramesView : ScrollViewer
             // Every frame sits in a cell of the same size, so the captions line up whatever the picture size.
             image.HorizontalAlignment = HorizontalAlignment.Center;
             image.VerticalAlignment = VerticalAlignment.Center;
-            var frame = new StackPanel { Spacing = 2, Children = { new Border { Width = MaxSide, Height = MaxSide, Child = image }, new TextBlock { Text = $"{i}  {item.SourceWidth}x{item.SourceHeight}", Classes = { "muted" } } } };
+            var frame = new StackPanel { Spacing = 2, Children = { new Border { Width = MaxSide, Height = MaxSide, Child = new Grid { Children = { image, Marker(image, scale) } } }, new TextBlock { Text = $"{i}  {item.SourceWidth}x{item.SourceHeight}", Classes = { "muted" } } } };
             frame.PointerPressed += (_, _) => SelectedFrame = index;
             if (_strip.Children.Count > i) _strip.Children[i] = frame;
             Show(Current);
         }
+    }
+
+    private OriginMarker Marker(Image image, double scale)
+    {
+        var marker = new OriginMarker(_sprite, scale) { Width = image.Width, Height = image.Height, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, IsHitTestVisible = false };
+        _markers.Add(marker);
+        return marker;
     }
 
     private static StackPanel EmptyFrame(int index) => new()
@@ -128,4 +145,19 @@ public sealed class SpriteFramesView : ScrollViewer
             new TextBlock { Text = index.ToString(System.Globalization.CultureInfo.InvariantCulture), Classes = { "muted" } },
         },
     };
+}
+
+/// <summary>A crosshair at the origin of a sprite, drawn over a frame that is shown at a whole-number scale.</summary>
+public sealed class OriginMarker(GameMakerSprite sprite, double scale) : Control
+{
+    public override void Render(DrawingContext context)
+    {
+        var at = new Point((sprite.OriginX + 0.5) * scale, (sprite.OriginY + 0.5) * scale);
+        if (!new Rect(Bounds.Size).Inflate(8).Contains(at)) return;
+        foreach (var (pen, reach) in new[] { (new Pen(Brushes.Black, 3), 6.5), (new Pen(Brushes.White, 1), 5.5) })
+        {
+            context.DrawLine(pen, at - new Vector(reach, 0), at + new Vector(reach, 0));
+            context.DrawLine(pen, at - new Vector(0, reach), at + new Vector(0, reach));
+        }
+    }
 }

@@ -136,6 +136,34 @@ public sealed class MaskTests
     }
 
     [Fact]
+    public async Task LockingTheSpriteOriginMakesTheOriginBoxesReadOnly()
+    {
+        var folder = Environment.GetEnvironmentVariable("G3MSTUDIO_CORPUS_DIR");
+        Assert.SkipWhen(string.IsNullOrEmpty(folder) || !Directory.Exists(folder), "G3MSTUDIO_CORPUS_DIR is not set");
+        var file = Directory.EnumerateFiles(folder, "data.win", SearchOption.AllDirectories).OrderBy(f => new FileInfo(f).Length).First();
+        using var dir = new TempDir();
+        var userData = new UserData(dir.File("user"));
+        using var workspace = await new WorkspaceService(userData, RecentFiles.Load(userData)).OpenAsync(file, cancellationToken: TestContext.Current.CancellationToken);
+        var sprite = workspace.Data.Sprites.First(sp => sp.Textures.Count > 0);
+        await HeadlessApp.Run(() =>
+        {
+            using var textures = new Rooms.TextureBitmaps();
+            var view = new Editor.SpriteFramesView(sprite, textures, workspace.History);
+            var tab = new Editor.PropertyGridTab(workspace, "sprites", sprite.Name.Content ?? "", view);
+            var window = new Avalonia.Controls.Window { Content = tab, Width = 800, Height = 700 };
+            window.Show();
+            Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+            Avalonia.Controls.TextBox Box() => Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(window).OfType<Avalonia.Controls.TextBox>().Single(b => b.Name == "Prop_OriginX");
+            Assert.True(Box().IsEnabled);
+            Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(view).OfType<Avalonia.Controls.Primitives.ToggleButton>().Single(b => b.Name == "SpriteLockOrigin").IsChecked = true;
+            Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+            Assert.False(Box().IsEnabled);
+            window.Close();
+            return Task.CompletedTask;
+        });
+    }
+
+    [Fact]
     public void AGlyphRangeIsParsedFromCharactersOrCodes()
     {
         Assert.Equal([65, 66, 67], Editor.FontGlyphsView.ParseRange("A-C"));

@@ -462,6 +462,7 @@
     "packaged": "모드를 {path}에 저장했습니다. mod_config.json에서 제작자와 게임 ID를 설정하세요."
   },
   "sprites": {
+    "lockOrigin": "원점 잠금",
     "play": "재생",
     "pause": "일시정지",
     "pickPicture": "프레임에 사용할 그림",

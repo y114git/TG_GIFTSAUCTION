@@ -462,6 +462,7 @@
     "packaged": "Mod を {path} に保存しました。mod_config.json で作者とゲーム ID を設定してください。"
   },
   "sprites": {
+    "lockOrigin": "原点をロック",
     "play": "再生",
     "pause": "一時停止",
     "pickPicture": "フレームに使う画像",

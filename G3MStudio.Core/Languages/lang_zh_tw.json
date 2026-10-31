@@ -462,6 +462,7 @@
     "packaged": "模組已儲存到 {path}。請在 mod_config.json 中設定作者與遊戲 ID。"
   },
   "sprites": {
+    "lockOrigin": "鎖定原點",
     "play": "播放",
     "pause": "暫停",
     "pickPicture": "用於該影格的圖片",

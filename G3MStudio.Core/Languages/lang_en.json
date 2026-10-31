@@ -462,6 +462,7 @@
     "packaged": "Mod saved to {path}. Edit its mod_config.json to set authors and the game id."
   },
   "sprites": {
+    "lockOrigin": "Lock origin",
     "play": "Play",
     "pause": "Pause",
     "pickPicture": "Picture for the frame",

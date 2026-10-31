@@ -462,6 +462,7 @@
     "packaged": "Mod guardado en {path}. Edita su mod_config.json para indicar autores y el id del juego."
   },
   "sprites": {
+    "lockOrigin": "Bloquear origen",
     "play": "Reproducir",
     "pause": "Pausa",
     "pickPicture": "Imagen para el fotograma",

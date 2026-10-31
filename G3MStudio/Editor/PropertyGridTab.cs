@@ -18,6 +18,7 @@ public sealed class PropertyGridTab : DockPanel
     private readonly StackPanel _rows = new() { Margin = new Thickness(8), Spacing = 2 };
     private readonly string _type, _name, _prefix;
     private bool _applying;
+    private readonly SpriteFramesView? _sprite;
 
     // Groups start open and lists closed (a list can hold thousands of rows); a click on the heading flips it.
     private readonly HashSet<string> _openLists = [];
@@ -31,6 +32,12 @@ public sealed class PropertyGridTab : DockPanel
     public PropertyGridTab(Workspace workspace, string type, string name, Control? header = null, string subPath = "")
     {
         (_workspace, _type, _name, _prefix) = (workspace, type, name, subPath);
+        if (header is SpriteFramesView sprite)
+        {
+            _sprite = sprite;
+            sprite.OriginLockChanged += Fill;
+        }
+
         if (Sections.TryGetValue(type, out var sections)) _closedGroups.UnionWith(sections.Select(x => "§" + x.Key));
         if (header is not null)
         {
@@ -194,7 +201,9 @@ public sealed class PropertyGridTab : DockPanel
         }
 
         line.Children.Add(label);
-        line.Children.Add(Editor(row));
+        var editor = Editor(row);
+        if (_sprite is { OriginLocked: true } && _prefix.Length == 0 && row.Path is "OriginX" or "OriginY") editor.IsEnabled = false;
+        line.Children.Add(editor);
         return line;
     }
 

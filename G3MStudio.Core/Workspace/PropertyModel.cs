@@ -26,7 +26,7 @@ public static class PropertyModel
     private static readonly HashSet<Type> Numbers = [typeof(byte), typeof(sbyte), typeof(short), typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong)];
 
     /// <summary>Members the library adds for its project asset interface; they repeat the name and type and are not data file fields.</summary>
-    private static readonly HashSet<string> InternalMembers = ["ProjectName", "ProjectAssetType", "ProjectExportable"];
+    private static readonly HashSet<string> InternalMembers = ["ProjectName", "ProjectAssetType", "ProjectExportable", "OriginXWrapper", "OriginYWrapper"]; // the wrappers only mirror OriginX and OriginY for the sequence flag
 
     private static readonly HashSet<Type> Reals = [typeof(float), typeof(double), typeof(decimal)];
 
