@@ -32,6 +32,69 @@ public sealed class SequenceEvaluatorTests
         Assert.Equal(7f, SequenceEvaluator.Value(FloatTrack(1, (0, float.NaN)), 0, 0, 7)); // a value that is not a number falls back
     }
 
+    private static GameMakerSequence.Track GraphicTrack(GameMakerSprite sprite, float key, float length, params GameMakerSequence.Track[] children)
+    {
+        var graphic = new GameMakerSequence.GraphicKeyframes { List = [] };
+        var keyframe = new GameMakerSequence.Keyframe<GameMakerSequence.GraphicKeyframes.Data> { Key = key, Length = length };
+        keyframe.Channels.Add(new GameMakerSequence.Keyframe<GameMakerSequence.GraphicKeyframes.Data>.KeyframeChannel
+        {
+            Value = new GameMakerSequence.GraphicKeyframes.Data { Resource = new GameMakerResourceById<GameMakerSprite, GameMakerChunkSPRT> { Resource = sprite } },
+        });
+        graphic.List.Add(keyframe);
+        var track = new GameMakerSequence.Track { Keyframes = graphic, Tracks = [] };
+        foreach (var child in children) track.Tracks.Add(child);
+        return track;
+    }
+
+    [Fact]
+    public void AGraphicShowsOnlyInsideItsKeyframeAndFollowsItsPositionAndImageIndexTracks()
+    {
+        using var sprite = new GameMakerSprite { Name = new GameMakerString("spr") };
+        var position = FloatTrack(0, (0, 4));
+        position.BuiltinName = GameMakerSequence.Track.TrackBuiltinName.Position;
+        var image = FloatTrack(0, (0, 0), (5, 2));
+        image.BuiltinName = GameMakerSequence.Track.TrackBuiltinName.ImageIndex;
+        using var sequence = new GameMakerSequence { Name = new GameMakerString("seq"), Tracks = [GraphicTrack(sprite, 2, 10, position, image)] };
+
+        Assert.Empty(SequenceEvaluator.At(sequence, 1));
+        var early = Assert.Single(SequenceEvaluator.At(sequence, 3));
+        Assert.Equal((4f, 0), (early.X, early.Image));
+        Assert.Equal(2, Assert.Single(SequenceEvaluator.At(sequence, 7)).Image);
+        Assert.Empty(SequenceEvaluator.At(sequence, 12)); // the keyframe covers frames 2 up to 12
+        Assert.Empty(SequenceEvaluator.At(sequence, float.NaN));
+    }
+
+    [Fact]
+    public void ANestedSequencePlaysInsideItsTrackFromTheFrameOfItsKeyframe()
+    {
+        using var sprite = new GameMakerSprite { Name = new GameMakerString("spr") };
+        using var inner = new GameMakerSequence { Name = new GameMakerString("inner"), Tracks = [GraphicTrack(sprite, 2, 5)] };
+        var nested = new GameMakerSequence.SequenceKeyframes { List = [] };
+        var keyframe = new GameMakerSequence.Keyframe<GameMakerSequence.SequenceKeyframes.Data> { Key = 10, Length = 20 };
+        keyframe.Channels.Add(new GameMakerSequence.Keyframe<GameMakerSequence.SequenceKeyframes.Data>.KeyframeChannel
+        {
+            Value = new GameMakerSequence.SequenceKeyframes.Data { Resource = new GameMakerResourceById<GameMakerSequence, GameMakerChunkSEQN> { Resource = inner } },
+        });
+        nested.List.Add(keyframe);
+        using var outer = new GameMakerSequence { Name = new GameMakerString("outer"), Tracks = [new GameMakerSequence.Track { Keyframes = nested, Tracks = [] }] };
+
+        Assert.Empty(SequenceEvaluator.At(outer, 11)); // inner frame 1: the sprite starts at 2
+        Assert.Single(SequenceEvaluator.At(outer, 13)); // inner frame 3
+        Assert.Empty(SequenceEvaluator.At(outer, 19)); // inner frame 9: past the sprite
+
+        // A sequence that contains itself ends at the depth limit instead of looping forever.
+        var loop = new GameMakerSequence.SequenceKeyframes { List = [] };
+        var again = new GameMakerSequence.Keyframe<GameMakerSequence.SequenceKeyframes.Data> { Key = 0, Length = 100 };
+        using var selfish = new GameMakerSequence { Name = new GameMakerString("selfish"), Tracks = [] };
+        again.Channels.Add(new GameMakerSequence.Keyframe<GameMakerSequence.SequenceKeyframes.Data>.KeyframeChannel
+        {
+            Value = new GameMakerSequence.SequenceKeyframes.Data { Resource = new GameMakerResourceById<GameMakerSequence, GameMakerChunkSEQN> { Resource = selfish } },
+        });
+        loop.List.Add(again);
+        selfish.Tracks.Add(new GameMakerSequence.Track { Keyframes = loop, Tracks = [] });
+        Assert.Empty(SequenceEvaluator.At(selfish, 5));
+    }
+
     [Fact]
     public async Task ASequenceOfARealGameShowsSpritesAtSomeFrame()
     {
