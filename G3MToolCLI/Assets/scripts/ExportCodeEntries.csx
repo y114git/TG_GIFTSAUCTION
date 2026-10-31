@@ -1,0 +1,139 @@
+using System;
+using System.IO;
+using System.Text;
+using System.Text.Json;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Security.Cryptography;
+using G3MLib.DataFile;
+using G3MLib.DataFile.Models;
+using G3MLib.DataFile.Decompiler;
+
+void PrintLine(string s) { if (Verbose) Console.WriteLine(s); }
+
+string SafeName(string name)
+{
+    var invalid = Path.GetInvalidFileNameChars();
+    var sb = new StringBuilder(name.Length);
+    foreach (var ch in name) sb.Append(invalid.Contains(ch) ? '_' : ch);
+    return sb.ToString();
+}
+
+string ShortHash(string value)
+{
+    byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));
+    return Convert.ToHexString(bytes, 0, 6).ToLowerInvariant();
+}
+
+string BuildEntryFolderName(GameMakerCode code)
+{
+    string originalName = code.Name?.Content ?? "__unnamed_code__";
+    int codeIndex = Data.Code.IndexOf(code);
+    string safeName = SafeName(originalName);
+    const int maxNamePartLength = 72;
+    if (safeName.Length > maxNamePartLength)
+        safeName = safeName.Substring(0, maxNamePartLength);
+
+    return $"{codeIndex:D6}_{ShortHash(originalName)}_{safeName}";
+}
+
+string GetOutputDirectory()
+{
+    string outputDir = OutputDir;
+    if (string.IsNullOrEmpty(outputDir))
+        throw new Exception("OutputDir is not set.");
+    string typeDir = Path.Combine(outputDir, "CodeEntries");
+    if (!Directory.Exists(typeDir))
+        Directory.CreateDirectory(typeDir);
+    return typeDir;
+}
+
+EnsureDataLoaded();
+
+if (Data.IsYYC())
+{
+    PrintLine("[ExportCodeEntries] YYC build detected - code export not available.");
+    return;
+}
+
+string codeOut = GetOutputDirectory();
+PrintLine($"[ExportCodeEntries] Exporting to: {codeOut}");
+
+List<GameMakerCode> allCode = Data.Code.Where(c => c?.Name?.Content != null).ToList();
+int topLevel = allCode.Count(c => c.ParentEntry is null);
+int children = allCode.Count - topLevel;
+PrintLine($"[ExportCodeEntries] Found {allCode.Count} code entries to export ({topLevel} top-level, {children} child).");
+
+GlobalDecompileContext globalDecompileContext = new(Data);
+G3MLib.Analyzer.Decompiler.IDecompileSettings decompilerSettings = Data.ToolInfo.DecompilerSettings;
+
+SetProgressBar(null, "Exporting Code Entries", 0, allCode.Count);
+StartProgressBarUpdater();
+
+await Task.Run(() => Parallel.ForEach(allCode, code => ExportCode(code, codeOut)));
+
+void ExportCode(GameMakerCode code, string outputDir)
+{
+    if (code?.Name?.Content == null)
+    {
+        IncrementProgressParallel();
+        return;
+    }
+
+    string originalCodeName = code.Name.Content;
+    string codeName = SafeName(originalCodeName);
+    string folderName = BuildEntryFolderName(code);
+    string resourceDir = Path.Combine(outputDir, folderName);
+    Directory.CreateDirectory(resourceDir);
+
+    string manifestPath = Path.Combine(resourceDir, "entry.json");
+    File.WriteAllText(
+        manifestPath,
+        JsonSerializer.Serialize(
+            new Dictionary<string, object?>
+            {
+                ["originalName"] = originalCodeName,
+                ["safeName"] = codeName,
+                ["folderName"] = folderName,
+                ["codeIndex"] = Data.Code.IndexOf(code),
+                ["isTopLevel"] = code.ParentEntry is null
+            },
+            new JsonSerializerOptions { WriteIndented = true }),
+        Encoding.UTF8);
+
+    // Export assembly for byte-perfect bytecode reproduction (all entries)
+    try
+    {
+        var locals = Data.CodeLocals.For(code);
+        string asm = code.Disassemble(Data.Variables, locals);
+        string asmPath = Path.Combine(resourceDir, "entry.asm");
+        File.WriteAllText(asmPath, asm, Encoding.UTF8);
+    }
+    catch (Exception asmEx)
+    {
+        PrintLine($"[ExportCodeEntries] Warning: ASM export failed for {originalCodeName}: {asmEx.Message}");
+    }
+
+    // Export GML only for top-level entries (children can't be compiled standalone)
+    if (code.ParentEntry is null)
+    {
+        string gmlPath = Path.Combine(resourceDir, "entry.gml");
+        try
+        {
+            string decompiled = new G3MLib.Analyzer.Decompiler.DecompileContext(globalDecompileContext, code, decompilerSettings).DecompileToString();
+            File.WriteAllText(gmlPath, decompiled, Encoding.UTF8);
+        }
+        catch (Exception e)
+        {
+            File.WriteAllText(gmlPath, "/*\nDECOMPILER FAILED!\n\n" + e.ToString() + "\n*/", Encoding.UTF8);
+        }
+    }
+
+    IncrementProgressParallel();
+}
+
+await StopProgressBarUpdater();
+HideProgressBar();
+
+PrintLine($"[ExportCodeEntries] Export complete. {allCode.Count} code entries exported to {codeOut}");
