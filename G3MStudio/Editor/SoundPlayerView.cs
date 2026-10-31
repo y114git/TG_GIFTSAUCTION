@@ -22,6 +22,7 @@ public sealed class SoundPlayerView : StackPanel
         var play = new Button { Name = "PlaySound", Content = Loc.Current["sounds.play"], IsEnabled = Bytes().Length > 0 };
         play.Click += (_, _) => Play();
         Children.Add(play);
+        if (WaveformView.Peaks(Bytes()) is { } peaks) Children.Add(new WaveformView(peaks));
         Children.Add(_status);
         _status.Text = Bytes().Length > 0
             ? Loc.Current.Format("sounds.info", ("kind", Extension()), ("kb", Bytes().Length / 1024), ("seconds", Seconds() is { } length ? Math.Round(length, 1).ToString(System.Globalization.CultureInfo.InvariantCulture) : "?"))

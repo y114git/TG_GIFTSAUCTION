@@ -247,6 +247,28 @@ public sealed class SpriteFramesTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void ThePeaksOfAPcmWavFollowItsLoudnessAndOtherDataHasNone()
+    {
+        var wav = new byte[44 + 8000 * 2];
+        System.Text.Encoding.ASCII.GetBytes("RIFF").CopyTo(wav, 0);
+        System.Text.Encoding.ASCII.GetBytes("WAVEfmt ").CopyTo(wav, 8);
+        BitConverter.GetBytes(16u).CopyTo(wav, 16);
+        BitConverter.GetBytes((ushort)1).CopyTo(wav, 20); // PCM
+        BitConverter.GetBytes((ushort)1).CopyTo(wav, 22); // mono
+        BitConverter.GetBytes((ushort)16).CopyTo(wav, 34);
+        System.Text.Encoding.ASCII.GetBytes("data").CopyTo(wav, 36);
+        BitConverter.GetBytes(16000u).CopyTo(wav, 40);
+        for (var i = 4000; i < 8000; i++) BitConverter.GetBytes((short)(i % 2 == 0 ? 16384 : -16384)).CopyTo(wav, 44 + i * 2); // loud second half
+
+        var peaks = WaveformView.Peaks(wav, 10)!;
+        Assert.Equal(10, peaks.Length);
+        Assert.Equal(0f, peaks[2]);
+        Assert.Equal(0.5f, peaks[7]);
+        Assert.Null(WaveformView.Peaks([1, 2, 3]));
+        Assert.Null(WaveformView.Peaks(new byte[100]));
+    }
+
+    [Fact]
     public async Task ARebuiltMaskCoversMostOfTheOriginalAndUndoRestoresIt()
     {
         var folder = Environment.GetEnvironmentVariable("G3MSTUDIO_CORPUS_DIR");
