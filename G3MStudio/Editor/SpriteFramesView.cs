@@ -5,7 +5,10 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using G3MLib.DataFile.Models;
 using G3MLib.DataFile.Util;
+using Avalonia.Controls.Primitives;
+using Avalonia.Threading;
 using G3MStudio.Core.Workspace;
+using G3MStudio.Localization;
 using G3MStudio.Rooms;
 
 namespace G3MStudio.Editor;
@@ -23,6 +26,9 @@ public sealed class SpriteFramesView : ScrollViewer
     private readonly GameMakerSprite _sprite;
     private readonly TextureBitmaps _textures;
     private GMImage?[] _shown = [];
+    private readonly DispatcherTimer _playback = new();
+    private readonly ToggleButton _play = new() { Name = "SpritePlay" };
+    private readonly TextBlock _position = new() { Name = "SpritePosition", Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center };
 
     public SpriteFramesView(GameMakerSprite sprite, TextureBitmaps textures, EditHistory? history = null)
     {
@@ -30,8 +36,21 @@ public sealed class SpriteFramesView : ScrollViewer
         Name = "SpriteFrames";
         HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto;
         VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled;
-        MaxHeight = MaxSide + 56;
-        Content = _strip;
+        MaxHeight = MaxSide + 96;
+        // GameMaker's playback speed is frames per second, or frames per game frame at an assumed 30 game frames per second.
+        var fps = Math.Max(1, _sprite.GMS2PlaybackSpeed * (_sprite.GMS2PlaybackSpeedType == AnimSpeedType.FramesPerGameFrame ? 30 : 1));
+        _playback.Interval = TimeSpan.FromSeconds(1 / fps);
+        _playback.Tick += (_, _) => Show((Current + 1) % Math.Max(1, _sprite.Textures.Count));
+        _play.Content = Loc.Current["sprites.play"];
+        _play.IsCheckedChanged += (_, _) =>
+        {
+            _play.Content = Loc.Current[_play.IsChecked == true ? "sprites.pause" : "sprites.play"];
+            if (_play.IsChecked == true && _sprite.Textures.Count > 1) _playback.Start();
+            else _playback.Stop();
+        };
+        DetachedFromVisualTree += (_, _) => _playback.Stop();
+        Content = new StackPanel { Children = { new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Margin = new Thickness(8, 4), Children = { _play, _position } }, _strip } };
+        Show(0);
         Ready = RefillAsync();
         if (history is null) return;
         history.Changed += OnHistoryChanged;
@@ -40,6 +59,17 @@ public sealed class SpriteFramesView : ScrollViewer
 
     /// <summary>The frame the next replace applies to; click a frame to choose it.</summary>
     public int SelectedFrame { get; private set; }
+
+    /// <summary>The frame shown by playback, outlined in the strip.</summary>
+    public int Current { get; private set; }
+
+    private void Show(int frame)
+    {
+        Current = frame;
+        _position.Text = $"{Loc.Current["rooms.inspector.frame"]} {frame + 1} / {_sprite.Textures.Count}";
+        for (var i = 0; i < _strip.Children.Count; i++)
+            if (_strip.Children[i] is StackPanel { Children: [Border cell, ..] }) cell.BorderThickness = new Thickness(i == frame ? 2 : 0);
+    }
 
     public int FrameCount => _strip.Children.Count;
 
@@ -85,6 +115,7 @@ public sealed class SpriteFramesView : ScrollViewer
             var frame = new StackPanel { Spacing = 2, Children = { new Border { Width = MaxSide, Height = MaxSide, Child = image }, new TextBlock { Text = $"{i}  {item.SourceWidth}x{item.SourceHeight}", Classes = { "muted" } } } };
             frame.PointerPressed += (_, _) => SelectedFrame = index;
             if (_strip.Children.Count > i) _strip.Children[i] = frame;
+            Show(Current);
         }
     }
 

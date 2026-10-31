@@ -80,6 +80,8 @@ public interface IShell
 
     void ShowCreationOrder();
 
+    void ShowCreationCode();
+
     void ExportMod();
 
     void CreatePatch();
@@ -155,7 +157,7 @@ public static class AppCommands
         ("menu.view", ["view.commandPalette", "-", .. Panels.Select(p => "view.panel." + p.ToLowerInvariant()), "-", "view.zoomIn", "view.zoomOut", "view.zoomReset", "view.fullscreen", "-", "view.language.en", "view.language.ru", "view.language.es", "view.language.ja", "view.language.ko", "view.language.zh_cn", "view.language.zh_tw"]),
         ("menu.project", ["project.enable", "project.sync", "project.options", "project.resolve", "project.moveDataFile", "project.disable"]),
         ("menu.sprite", ["edit.replaceFrame", "edit.duplicateFrame", "edit.removeFrame", "-", "edit.recalculateMask", "edit.importMask", "edit.exportMask"]),
-        ("menu.room", ["room.play", "-", "room.creationOrder", "room.exportTiles", "room.importTiles", "room.savePng"]),
+        ("menu.room", ["room.play", "-", "room.creationCode", "room.creationOrder", "room.exportTiles", "room.importTiles", "room.savePng"]),
         ("menu.run", ["run.game", "run.stop"]),
         ("menu.mods", ["mods.createPatch", "mods.applyPatch", "mods.mergePatches", "mods.validatePatch", "mods.compareFiles", "mods.exportMod"]),
         ("menu.tools", ["tools.plugins", "tools.strings", "tools.runScript", "tools.repackTextures"]),
@@ -193,6 +195,7 @@ public static class AppCommands
         Add("mods.mergePatches", null, shell.MergePatches);
         Add("mods.compareFiles", null, shell.CompareFiles);
         Add("tools.repackTextures", null, shell.RepackTextures, WorkspaceOpen);
+        Add("room.creationCode", null, shell.ShowCreationCode, RoomTab);
         Add("room.creationOrder", null, shell.ShowCreationOrder, RoomTab);
         Add("room.exportTiles", null, shell.ExportTiles, RoomTab);
         Add("room.importTiles", null, shell.ImportTiles, RoomTab);

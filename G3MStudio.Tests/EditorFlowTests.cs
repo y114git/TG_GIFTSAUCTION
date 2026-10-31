@@ -58,6 +58,25 @@ public sealed class EditorFlowTests
     }
 
     [Fact]
+    public async Task TheTypingModeShowsInsertOrOverwrite()
+    {
+        using var dir = new TempDir();
+        using var workspace = await Open(dir);
+        await HeadlessApp.Run(async () =>
+        {
+            var tab = new CodeEditorTab(workspace, "gml_Script_probe");
+            var window = new Window { Content = tab };
+            window.Show();
+            await tab.Ready;
+            var mode = tab.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Name == "TypingMode");
+            Assert.Equal("INS", mode.Text);
+            tab.Editor.TextArea.OverstrikeMode = true;
+            Assert.Equal("OVR", mode.Text);
+            window.Close();
+        });
+    }
+
+    [Fact]
     public async Task CodeThatDoesNotCompileIsRefusedWithAMessageAndChangesNothing()
     {
         using var dir = new TempDir();

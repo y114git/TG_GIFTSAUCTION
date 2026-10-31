@@ -31,6 +31,7 @@ public sealed class PropertyGridTab : DockPanel
     public PropertyGridTab(Workspace workspace, string type, string name, Control? header = null, string subPath = "")
     {
         (_workspace, _type, _name, _prefix) = (workspace, type, name, subPath);
+        if (Sections.TryGetValue(type, out var sections)) _closedGroups.UnionWith(sections.Select(x => "§" + x.Key));
         if (header is not null)
         {
             SetDock(header, Avalonia.Controls.Dock.Top);
@@ -108,16 +109,44 @@ public sealed class PropertyGridTab : DockPanel
         if (shown is null) return;
         var text = _filter.Text?.Trim() ?? "";
         var collapsed = new List<string>();
+        var kept = new List<PropertyRow>();
         foreach (var described in PropertyModel.Describe(shown))
         {
             var row = _prefix.Length > 0 ? described with { Path = _prefix + "." + described.Path } : described;
             if (text.Length > 0 && row.Kind is not PropertyKind.Group && !row.Path.Contains(text, StringComparison.OrdinalIgnoreCase) && !row.Value.Contains(text, StringComparison.OrdinalIgnoreCase)) continue;
             // A filter shows every match; without one the rows under a closed heading stay out.
             if (text.Length == 0 && collapsed.Any(c => row.Path.StartsWith(c + ".", StringComparison.Ordinal) || row.Path.StartsWith(c + "[", StringComparison.Ordinal))) continue;
-            _rows.Children.Add(Build(row));
-            if (row.Kind is PropertyKind.Group or PropertyKind.List) _headings[row.Path] = row.Kind;
+            kept.Add(row);
             if (text.Length == 0 && IsClosed(row)) collapsed.Add(row.Path);
         }
+
+        foreach (var row in _prefix.Length == 0 && text.Length == 0 ? Sectioned(kept) : kept)
+        {
+            _rows.Children.Add(Build(row));
+            if (row.Kind is PropertyKind.Group or PropertyKind.List) _headings[row.Path] = row.Kind;
+        }
+    }
+
+    /// <summary>Fields that GameMaker keeps in their own collapsible section; they start closed and sit after the general fields. A filter shows them in place.</summary>
+    private static readonly Dictionary<string, (string Key, string[] Fields)[]> Sections = new()
+    {
+        ["objects"] = [("properties.section.physics", ["UsesPhysics", "IsSensor", "CollisionShape", "Density", "Restitution", "Group", "LinearDamping", "AngularDamping", "Friction", "Awake", "Kinematic"])],
+        ["sprites"] = [("properties.section.texture", ["Transparent", "Smooth", "Preload"]), ("properties.section.mask", ["BBoxMode", "SepMasks", "MarginLeft", "MarginRight", "MarginBottom", "MarginTop"])],
+    };
+
+    private List<PropertyRow> Sectioned(List<PropertyRow> rows)
+    {
+        if (!Sections.TryGetValue(_type, out var sections)) return rows;
+        var inSection = sections.SelectMany(s => s.Fields).ToHashSet(StringComparer.Ordinal);
+        var result = rows.Where(r => !inSection.Contains(r.Path)).ToList();
+        foreach (var (key, fields) in sections)
+        {
+            var heading = new PropertyRow("§" + key, Loc.Current[key], PropertyKind.Group, "", 0, true);
+            result.Add(heading);
+            if (!IsClosed(heading)) result.AddRange(rows.Where(r => fields.Contains(r.Path)).Select(r => r with { Depth = 1 }));
+        }
+
+        return result;
     }
 
     private bool IsClosed(PropertyRow row) => row.Kind switch
@@ -145,7 +174,8 @@ public sealed class PropertyGridTab : DockPanel
     {
         var heading = row.Kind is PropertyKind.Group or PropertyKind.List;
         var label = new TextBlock { Text = heading ? (IsClosed(row) ? "▸ " : "▾ ") + Spaced(row.Name) : Spaced(row.Name), Margin = new Thickness(row.Depth * 16, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center, Classes = { row.Kind is PropertyKind.Group or PropertyKind.List ? "accent" : "plain" } };
-        var line = new DockPanel { LastChildFill = true };
+        // Read-only rows have no box, so they get the height of an editable row to keep the list evenly spaced.
+        var line = new DockPanel { LastChildFill = true, MinHeight = heading ? 0 : 34 };
         SetDock(label, Avalonia.Controls.Dock.Left);
         label.Width = 220;
         if (heading)

@@ -116,6 +116,7 @@
     },
     "room": {
       "play": "Play This Room",
+      "creationCode": "Room Creation Code...",
       "creationOrder": "Instance Creation Order...",
       "exportTiles": "Export Tiles as CSV...",
       "importTiles": "Import Tiles From CSV...",
@@ -379,6 +380,11 @@
     "newFile": "New file, not tracked yet."
   },
   "properties": {
+    "section": {
+      "physics": "Physics",
+      "texture": "Texture settings",
+      "mask": "Collision mask"
+    },
     "filter": "Filter properties",
     "refused": "{path}: {reason}",
     "missing": "{name} was not found in this data file."
@@ -456,6 +462,8 @@
     "packaged": "Mod saved to {path}. Edit its mod_config.json to set authors and the game id."
   },
   "sprites": {
+    "play": "Play",
+    "pause": "Pause",
     "pickPicture": "Picture for the frame",
     "noSprite": "Open a sprite and click the frame to replace.",
     "noMask": "This sprite has no collision mask.",
@@ -607,6 +615,7 @@
       "addTiles": "Tiles"
     },
     "noRoom": "Open a room first.",
+    "noCode": "This room has no creation code.",
     "fitTiles": "Resize tile grid",
     "noTileLayer": "Select a tile layer with a tile set first.",
     "pickCsv": "Choose a tile CSV",

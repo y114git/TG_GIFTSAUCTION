@@ -43,7 +43,12 @@ public sealed class CodeEditorTab : DockPanel
         _revert.Content = Loc.Current["code.revert"];
         _apply.Click += (_, _) => Apply();
         _revert.Click += (_, _) => Revert();
-        var bar = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 8, Margin = new Thickness(8, 4), Children = { _apply, _revert, _message } };
+        var mode = new TextBlock { Name = "TypingMode", Text = "INS", Classes = { "muted" }, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
+        Editor.TextArea.PropertyChanged += (_, e) =>
+        {
+            if (e.Property == AvaloniaEdit.Editing.TextArea.OverstrikeModeProperty) mode.Text = e.NewValue is true ? "OVR" : "INS";
+        };
+        var bar = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 8, Margin = new Thickness(8, 4), Children = { _apply, _revert, _message, mode } };
         SetDock(bar, Avalonia.Controls.Dock.Top);
         Children.Add(bar);
         Children.Add(Editor);

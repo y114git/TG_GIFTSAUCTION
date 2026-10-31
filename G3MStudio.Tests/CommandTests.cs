@@ -47,6 +47,8 @@ internal sealed class FakeShell : IShell
     public void ExportTiles() { }
     public void ImportTiles() { }
     public void ShowCreationOrder() { }
+
+    public void ShowCreationCode() { }
     public void ExportMod() { }
     public void CreatePatch() { }
     public void ApplyPatch() { }

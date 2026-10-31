@@ -30,7 +30,7 @@ public sealed class RoomPreview : DockPanel
     private bool _fitted;
     private uint? _shownLayer;
 
-    public RoomPreview(GameMakerRoom room, TextureBitmaps textures, Workspace? workspace = null, Action? creationOrder = null)
+    public RoomPreview(GameMakerRoom room, TextureBitmaps textures, Workspace? workspace = null, Action? creationOrder = null, Action? creationCode = null)
     {
         (_room, _textures, _workspace) = (room, textures, workspace);
         Name = "RoomPreview";
@@ -63,11 +63,16 @@ public sealed class RoomPreview : DockPanel
                 layers.LockChanged += ApplyLocks;
                 _inspector = new InstanceInspector(workspace, RoomName);
                 SidePanel = new StackPanel { Name = "RoomSidePanel", Spacing = 8, Children = { layers, _inspector, _paletteHost } };
-                if (creationOrder is not null)
+                if (creationOrder is not null && creationCode is not null)
                 {
-                    var order = new Button { Name = "RoomCreationOrder", Content = Loc.Current[AppCommands.TitleKey("room.creationOrder")] };
-                    order.Click += (_, _) => creationOrder();
-                    ((StackPanel)SidePanel).Children.Insert(1, order);
+                    Button Command(string name, string id, Action run)
+                    {
+                        var button = new Button { Name = name, Content = Loc.Current[AppCommands.TitleKey(id)] };
+                        button.Click += (_, _) => run();
+                        return button;
+                    }
+
+                    ((StackPanel)SidePanel).Children.Insert(1, new WrapPanel { Children = { Command("RoomCreationCode", "room.creationCode", creationCode), Command("RoomCreationOrder", "room.creationOrder", creationOrder) } });
                 }
 
                 View.SelectionChanged += () => _inspector.Show([.. View.Selection.OfType<GameMakerRoom.GameObject>()]);

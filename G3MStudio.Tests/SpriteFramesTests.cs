@@ -1,3 +1,4 @@
+using Avalonia.VisualTree;
 using Avalonia.Controls;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Models;
@@ -23,7 +24,32 @@ public sealed class SpriteFramesTests(ITestOutputHelper output)
             await view.Ready;
             Assert.Equal(2, view.FrameCount);
             Assert.Equal(0, view.Pictures);
-            Assert.Equal(2, ((StackPanel)view.Content!).Children.Count);
+        });
+    }
+
+    [Fact]
+    public async Task PlayingStepsThroughTheFramesAndPausingStops()
+    {
+        using var data = TestData.Create(0);
+        using var sprite = new GameMakerSprite { Name = data.Strings.MakeString("spr_two", out _), GMS2PlaybackSpeed = 1000 };
+        sprite.Textures.Add(new GameMakerSprite.TextureEntry());
+        sprite.Textures.Add(new GameMakerSprite.TextureEntry());
+        await HeadlessApp.Run(async () =>
+        {
+            using var textures = new TextureBitmaps();
+            var view = new SpriteFramesView(sprite, textures);
+            var window = new Window { Content = view };
+            window.Show();
+            await view.Ready;
+            var play = view.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ToggleButton>().Single(b => b.Name == "SpritePlay");
+            play.IsChecked = true;
+            for (var i = 0; i < 100 && view.Current == 0; i++) await Task.Delay(20);
+            Assert.Equal(1, view.Current);
+            play.IsChecked = false;
+            var stopped = view.Current;
+            await Task.Delay(100);
+            Assert.Equal(stopped, view.Current);
+            window.Close();
         });
     }
 
@@ -200,6 +226,24 @@ public sealed class SpriteFramesTests(ITestOutputHelper output)
             File.Delete(path);
         });
         Assert.Null(opened);
+    }
+
+    [Fact]
+    public async Task AWavWithoutAStoredLengthShowsItsLengthFromTheHeader()
+    {
+        using var data = TestData.Create(0);
+        var wav = new byte[44 + 16000];
+        System.Text.Encoding.ASCII.GetBytes("RIFF").CopyTo(wav, 0);
+        System.Text.Encoding.ASCII.GetBytes("WAVEfmt ").CopyTo(wav, 8);
+        BitConverter.GetBytes(16u).CopyTo(wav, 16);
+        BitConverter.GetBytes(8000u).CopyTo(wav, 28); // bytes per second
+        System.Text.Encoding.ASCII.GetBytes("data").CopyTo(wav, 36);
+        BitConverter.GetBytes(16000u).CopyTo(wav, 40);
+        using var sound = new GameMakerSound { Name = data.Strings.MakeString("snd_two", out _), AudioFile = new GameMakerEmbeddedAudio { Data = wav } };
+        await HeadlessApp.Run(() =>
+        {
+            Assert.Contains("2 s", new SoundPlayerView(sound, _ => true).Status, StringComparison.Ordinal);
+        });
     }
 
     [Fact]

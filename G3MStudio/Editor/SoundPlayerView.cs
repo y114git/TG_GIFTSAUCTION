@@ -24,13 +24,32 @@ public sealed class SoundPlayerView : StackPanel
         Children.Add(play);
         Children.Add(_status);
         _status.Text = Bytes().Length > 0
-            ? Loc.Current.Format("sounds.info", ("kind", Extension()), ("kb", Bytes().Length / 1024), ("seconds", Math.Round(sound.AudioLength, 1)))
+            ? Loc.Current.Format("sounds.info", ("kind", Extension()), ("kb", Bytes().Length / 1024), ("seconds", Seconds() is { } length ? Math.Round(length, 1).ToString(System.Globalization.CultureInfo.InvariantCulture) : "?"))
             : Loc.Current.Format("sounds.outside", ("file", sound.File?.Content ?? ""));
     }
 
     public string Status => _status.Text ?? "";
 
     private byte[] Bytes() => _sound.AudioFile?.Data ?? [];
+
+    /// <summary>The length from the data file, or from the header of a WAV; null when neither tells (OGG and MP3 are not decoded).</summary>
+    private double? Seconds()
+    {
+        if (_sound.AudioLength > 0) return _sound.AudioLength;
+        var bytes = Bytes();
+        if (Extension() != "wav" || bytes.Length < 12) return null;
+        uint byteRate = 0;
+        for (var at = 12; at + 8 <= bytes.Length;)
+        {
+            var size = BitConverter.ToUInt32(bytes, at + 4);
+            var id = System.Text.Encoding.ASCII.GetString(bytes, at, 4);
+            if (id == "fmt " && at + 20 <= bytes.Length) byteRate = BitConverter.ToUInt32(bytes, at + 16);
+            else if (id == "data") return byteRate > 0 ? Math.Min(size, bytes.Length - at - 8) / (double)byteRate : null;
+            at += 8 + (int)Math.Min(size + (size & 1), int.MaxValue - 8);
+        }
+
+        return null;
+    }
 
     /// <summary>The file type the bytes announce: WAV, OGG or MP3 (nothing else is guessed).</summary>
     private string Extension() => Bytes() switch

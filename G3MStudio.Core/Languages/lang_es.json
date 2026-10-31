@@ -116,6 +116,7 @@
     },
     "room": {
       "play": "Jugar esta sala",
+      "creationCode": "Código de creación de la sala...",
       "creationOrder": "Orden de creación de instancias...",
       "exportTiles": "Exportar teselas a CSV...",
       "importTiles": "Importar teselas desde CSV...",
@@ -379,6 +380,11 @@
     "newFile": "Archivo nuevo, aún sin seguimiento."
   },
   "properties": {
+    "section": {
+      "physics": "Física",
+      "texture": "Configuración de textura",
+      "mask": "Máscara de colisión"
+    },
     "filter": "Filtrar propiedades",
     "refused": "{path}: {reason}",
     "missing": "No se encontró {name} en este archivo de datos."
@@ -456,6 +462,8 @@
     "packaged": "Mod guardado en {path}. Edita su mod_config.json para indicar autores y el id del juego."
   },
   "sprites": {
+    "play": "Reproducir",
+    "pause": "Pausa",
     "pickPicture": "Imagen para el fotograma",
     "noSprite": "Abre un sprite y haz clic en el fotograma que quieres reemplazar.",
     "noMask": "Este sprite no tiene máscara de colisión.",
@@ -607,6 +615,7 @@
       "addTiles": "Tiles"
     },
     "noRoom": "Abre primero una sala.",
+    "noCode": "Esta sala no tiene código de creación.",
     "fitTiles": "Ajustar cuadrícula de teselas",
     "noTileLayer": "Elige primero una capa de teselas con un conjunto de teselas.",
     "pickCsv": "Elige un CSV de teselas",

@@ -50,6 +50,30 @@ public sealed class PropertyGridTests
     }
 
     [Fact]
+    public async Task PhysicsFieldsSitInAClosedSectionThatOpensOnAClickAndAFilterShowsThemInPlace()
+    {
+        using var dir = new TempDir();
+        using var workspace = await Open(dir);
+        await HeadlessApp.Run(() =>
+        {
+            var tab = new PropertyGridTab(workspace, "objects", "obj_0");
+            var window = new Window { Content = tab, Width = 700, Height = 500 };
+            window.Show();
+            Dispatcher.UIThread.RunJobs();
+            bool Shown() => tab.GetVisualDescendants().OfType<CheckBox>().Any(c => c.Name == "Prop_UsesPhysics");
+            Assert.False(Shown());
+            tab.Toggle("§properties.section.physics");
+            Assert.True(Shown());
+            tab.Toggle("§properties.section.physics");
+            tab.GetVisualDescendants().OfType<TextBox>().Single(t => t.Name == "PropertyFilter").Text = "UsesPhysics";
+            Dispatcher.UIThread.RunJobs();
+            Assert.True(Shown());
+            window.Close();
+            return Task.CompletedTask;
+        });
+    }
+
+    [Fact]
     public async Task AReferenceIsALinkThatOpensTheEntryItPointsAt()
     {
         using var dir = new TempDir();

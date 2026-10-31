@@ -116,6 +116,7 @@
     },
     "room": {
       "play": "このルームをプレイ",
+      "creationCode": "ルームの作成コード...",
       "creationOrder": "インスタンスの作成順...",
       "exportTiles": "タイルを CSV にエクスポート...",
       "importTiles": "CSV からタイルをインポート...",
@@ -379,6 +380,11 @@
     "newFile": "新しいファイルです。まだ追跡されていません。"
   },
   "properties": {
+    "section": {
+      "physics": "物理",
+      "texture": "テクスチャ設定",
+      "mask": "衝突マスク"
+    },
     "filter": "プロパティを絞り込み",
     "refused": "{path}: {reason}",
     "missing": "{name} はこのデータファイルに見つかりませんでした。"
@@ -456,6 +462,8 @@
     "packaged": "Mod を {path} に保存しました。mod_config.json で作者とゲーム ID を設定してください。"
   },
   "sprites": {
+    "play": "再生",
+    "pause": "一時停止",
     "pickPicture": "フレームに使う画像",
     "noSprite": "スプライトを開き、置き換えるフレームをクリックしてください。",
     "noMask": "このスプライトには衝突マスクがありません。",
@@ -607,6 +615,7 @@
       "addTiles": "タイル"
     },
     "noRoom": "先にルームを開いてください。",
+    "noCode": "このルームには作成コードがありません。",
     "fitTiles": "タイルグリッドを調整",
     "noTileLayer": "先にタイルセットを持つタイルレイヤーを選んでください。",
     "pickCsv": "タイルの CSV を選んでください",

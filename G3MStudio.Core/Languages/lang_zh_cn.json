@@ -116,6 +116,7 @@
     },
     "room": {
       "play": "试玩此房间",
+      "creationCode": "房间创建代码...",
       "creationOrder": "实例创建顺序...",
       "exportTiles": "将图块导出为 CSV...",
       "importTiles": "从 CSV 导入图块...",
@@ -379,6 +380,11 @@
     "newFile": "新文件，尚未跟踪。"
   },
   "properties": {
+    "section": {
+      "physics": "物理",
+      "texture": "纹理设置",
+      "mask": "碰撞遮罩"
+    },
     "filter": "筛选属性",
     "refused": "{path}：{reason}",
     "missing": "在此数据文件中找不到 {name}。"
@@ -456,6 +462,8 @@
     "packaged": "模组已保存到 {path}。请在 mod_config.json 中设置作者和游戏 ID。"
   },
   "sprites": {
+    "play": "播放",
+    "pause": "暂停",
     "pickPicture": "用于该帧的图片",
     "noSprite": "请打开一个精灵，并点击要替换的帧。",
     "noMask": "这个精灵没有碰撞遮罩。",
@@ -607,6 +615,7 @@
       "addTiles": "图块"
     },
     "noRoom": "请先打开一个房间。",
+    "noCode": "此房间没有创建代码。",
     "fitTiles": "调整图块网格",
     "noTileLayer": "请先选择带有图块集的图块图层。",
     "pickCsv": "选择图块 CSV",

@@ -8,16 +8,26 @@ namespace G3MStudio;
 /// <summary>Commands of the room editor that work on the room tab in front.</summary>
 public sealed partial class MainWindow
 {
+    private (Workspace Workspace, GameMakerRoom Room)? FrontRoom()
+    {
+        if (Workspaces.Current is { } workspace && Docking.ActiveTabId is { } id && _roomViews.ContainsKey(id)
+            && Docking.Tabs.Get(id)?.Key is { } key && ResourceTypes.SplitKey(key) is var (_, name)
+            && workspace.Data.Rooms.FirstOrDefault(r => r.Name.Content == name) is { } room)
+            return (workspace, room);
+        Notify(NotificationLevel.Info, Loc.Current["rooms.noRoom"]);
+        return null;
+    }
+
+    public void ShowCreationCode()
+    {
+        if (FrontRoom() is not var (_, room)) return;
+        if (room.CreationCodeId?.Name.Content is { } code) OpenCodeAt(code, 1, 1);
+        else Notify(NotificationLevel.Info, Loc.Current["rooms.noCode"]);
+    }
+
     public void ShowCreationOrder()
     {
-        if (Workspaces.Current is not { } workspace || Docking.ActiveTabId is not { } id || !_roomViews.ContainsKey(id)
-            || Docking.Tabs.Get(id)?.Key is not { } key || ResourceTypes.SplitKey(key) is not var (_, name)
-            || workspace.Data.Rooms.FirstOrDefault(r => r.Name.Content == name) is not { GameObjects: not null } room)
-        {
-            Notify(NotificationLevel.Info, Loc.Current["rooms.noRoom"]);
-            return;
-        }
-
+        if (FrontRoom() is not var (workspace, room) || room.GameObjects is null) return;
         new CreationOrderWindow(room, workspace).Show(this);
     }
 

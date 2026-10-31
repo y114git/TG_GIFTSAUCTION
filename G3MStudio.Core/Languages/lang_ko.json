@@ -116,6 +116,7 @@
     },
     "room": {
       "play": "이 룸 플레이",
+      "creationCode": "룸 생성 코드...",
       "creationOrder": "인스턴스 생성 순서...",
       "exportTiles": "타일을 CSV로 내보내기...",
       "importTiles": "CSV에서 타일 가져오기...",
@@ -379,6 +380,11 @@
     "newFile": "새 파일이며 아직 추적되지 않습니다."
   },
   "properties": {
+    "section": {
+      "physics": "물리",
+      "texture": "텍스처 설정",
+      "mask": "충돌 마스크"
+    },
     "filter": "속성 필터",
     "refused": "{path}: {reason}",
     "missing": "이 데이터 파일에서 {name}을(를) 찾을 수 없습니다."
@@ -456,6 +462,8 @@
     "packaged": "모드를 {path}에 저장했습니다. mod_config.json에서 제작자와 게임 ID를 설정하세요."
   },
   "sprites": {
+    "play": "재생",
+    "pause": "일시정지",
     "pickPicture": "프레임에 사용할 그림",
     "noSprite": "스프라이트를 열고 바꿀 프레임을 클릭하세요.",
     "noMask": "이 스프라이트에는 충돌 마스크가 없습니다.",
@@ -607,6 +615,7 @@
       "addTiles": "타일"
     },
     "noRoom": "먼저 룸을 열어 주세요.",
+    "noCode": "이 룸에는 생성 코드가 없습니다.",
     "fitTiles": "타일 격자 맞춤",
     "noTileLayer": "먼저 타일셋이 있는 타일 레이어를 고르세요.",
     "pickCsv": "타일 CSV를 고르세요",

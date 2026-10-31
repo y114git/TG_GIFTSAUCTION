@@ -116,6 +116,7 @@
     },
     "room": {
       "play": "試玩此房間",
+      "creationCode": "房間建立程式碼...",
       "creationOrder": "實例建立順序...",
       "exportTiles": "將圖磚匯出為 CSV...",
       "importTiles": "從 CSV 匯入圖磚...",
@@ -379,6 +380,11 @@
     "newFile": "新檔案，尚未追蹤。"
   },
   "properties": {
+    "section": {
+      "physics": "物理",
+      "texture": "紋理設定",
+      "mask": "碰撞遮罩"
+    },
     "filter": "篩選屬性",
     "refused": "{path}：{reason}",
     "missing": "在此資料檔案中找不到 {name}。"
@@ -456,6 +462,8 @@
     "packaged": "模組已儲存到 {path}。請在 mod_config.json 中設定作者與遊戲 ID。"
   },
   "sprites": {
+    "play": "播放",
+    "pause": "暫停",
     "pickPicture": "用於該影格的圖片",
     "noSprite": "請開啟一個精靈，並點選要取代的影格。",
     "noMask": "這個精靈沒有碰撞遮罩。",
@@ -607,6 +615,7 @@
       "addTiles": "圖塊"
     },
     "noRoom": "請先開啟一個房間。",
+    "noCode": "此房間沒有建立程式碼。",
     "fitTiles": "調整圖磚格線",
     "noTileLayer": "請先選擇有圖磚集的圖磚圖層。",
     "pickCsv": "選擇圖磚 CSV",
