@@ -616,6 +616,7 @@
     "tilesBad": "No se usó el CSV de teselas: {reason}",
     "snapped": "ajustado",
     "lock": "Bloq.",
+    "show": "Mostrar",
     "orderTitle": "Orden de creación",
     "orderTop": "Al principio",
     "orderEnd": "Al final",

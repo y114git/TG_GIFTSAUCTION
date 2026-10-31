@@ -616,6 +616,7 @@
     "tilesBad": "타일 CSV를 사용하지 못했습니다: {reason}",
     "snapped": "격자",
     "lock": "잠금",
+    "show": "표시",
     "orderTitle": "생성 순서",
     "orderTop": "맨 위로",
     "orderEnd": "맨 아래로",

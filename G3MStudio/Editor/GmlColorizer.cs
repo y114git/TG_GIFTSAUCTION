@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Media;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
+using AvaloniaEdit.Folding;
 using AvaloniaEdit.Rendering;
 using G3MLib.Analyzer.Compiler;
 
@@ -45,7 +46,33 @@ public sealed class GmlColorizer : DocumentColorizingTransformer
             if (_resolve("Syntax." + name) is { } found) _nameBrushes[name] = found;
     }
 
-    public void Tokenize(string text, bool gms2OrLater = true) => _tokens = GmlTokenizer.Tokenize(text, gms2OrLater);
+    public void Tokenize(string text, bool gms2OrLater = true)
+    {
+        _tokens = GmlTokenizer.Tokenize(text, gms2OrLater);
+        Foldings = BraceFoldings(text, _tokens);
+    }
+
+    /// <summary>The { } blocks of the last tokenized text that span more than one line, in offset order. Braces inside strings and comments are not tokens of their own.</summary>
+    public IReadOnlyList<NewFolding> Foldings { get; private set; } = [];
+
+    private static List<NewFolding> BraceFoldings(string text, IReadOnlyList<GmlToken> tokens)
+    {
+        var open = new Stack<int>();
+        var found = new List<NewFolding>();
+        foreach (var token in tokens)
+        {
+            if (token.Kind != GmlTokenKind.Separator || token.Span.EndOffset - token.Span.StartOffset != 1) continue;
+            if (text[token.Span.StartOffset] == '{') open.Push(token.Span.StartOffset);
+            else if (text[token.Span.StartOffset] == '}' && open.Count > 0)
+            {
+                var start = open.Pop();
+                if (text.AsSpan(start, token.Span.EndOffset - start).Contains((char)10)) found.Add(new NewFolding(start, token.Span.EndOffset));
+            }
+        }
+
+        found.Sort((a, b) => a.StartOffset.CompareTo(b.StartOffset));
+        return found;
+    }
 
     protected override void ColorizeLine(DocumentLine line)
     {

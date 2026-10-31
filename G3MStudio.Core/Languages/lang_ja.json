@@ -616,6 +616,7 @@
     "tilesBad": "タイルの CSV を使えませんでした: {reason}",
     "snapped": "グリッド",
     "lock": "ロック",
+    "show": "表示",
     "orderTitle": "作成順",
     "orderTop": "先頭へ",
     "orderEnd": "末尾へ",

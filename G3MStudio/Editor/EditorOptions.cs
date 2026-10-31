@@ -25,5 +25,6 @@ public static class EditorOptions
         editor.FontSize = FontSize;
         editor.WordWrap = WordWrap;
         editor.ShowLineNumbers = LineNumbers;
+        editor.Options.HighlightCurrentLine = true;
     }
 }

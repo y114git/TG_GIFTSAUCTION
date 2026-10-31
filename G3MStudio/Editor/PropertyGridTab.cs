@@ -129,6 +129,9 @@ public sealed class PropertyGridTab : DockPanel
 
     private readonly Dictionary<string, PropertyKind> _headings = [];
 
+    /// <summary>The field name as words: MarginLeft shows as "Margin Left". The path, filter and edits keep the field name.</summary>
+    private static string Spaced(string name) => string.Concat(name.Select((c, i) => i > 0 && char.IsUpper(c) && (char.IsLower(name[i - 1]) || char.IsDigit(name[i - 1])) ? " " + c : c.ToString()));
+
     /// <summary>Opens or closes the group or list with this path (what a click on its heading does).</summary>
     public void Toggle(string path)
     {
@@ -141,7 +144,7 @@ public sealed class PropertyGridTab : DockPanel
     private DockPanel Build(PropertyRow row)
     {
         var heading = row.Kind is PropertyKind.Group or PropertyKind.List;
-        var label = new TextBlock { Text = heading ? (IsClosed(row) ? "▸ " : "▾ ") + row.Name : row.Name, Margin = new Thickness(row.Depth * 16, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center, Classes = { row.Kind is PropertyKind.Group or PropertyKind.List ? "accent" : "plain" } };
+        var label = new TextBlock { Text = heading ? (IsClosed(row) ? "▸ " : "▾ ") + Spaced(row.Name) : Spaced(row.Name), Margin = new Thickness(row.Depth * 16, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center, Classes = { row.Kind is PropertyKind.Group or PropertyKind.List ? "accent" : "plain" } };
         var line = new DockPanel { LastChildFill = true };
         SetDock(label, Avalonia.Controls.Dock.Left);
         label.Width = 220;

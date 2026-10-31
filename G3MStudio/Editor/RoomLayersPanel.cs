@@ -1,5 +1,6 @@
 using System.Globalization;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using G3MLib.DataFile.Models;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
@@ -164,18 +165,28 @@ public sealed class RoomLayersPanel : DockPanel
         Edit([Command(RoomLayerCommand.Depth, layers[at], b.ToString(CultureInfo.InvariantCulture)), Command(RoomLayerCommand.Depth, layers[other], a.ToString(CultureInfo.InvariantCulture))]);
     }
 
+    private const string EyeIcon = "M12 5C7 5 2.7 8.1 1 12c1.7 3.9 6 7 11 7s9.300-3.100 11-7c-1.700-3.900-6-7-11-7zm0 11a4 4 0 110-8 4 4 0 010 8zm0-6a2 2 0 100 4 2 2 0 000-4z";
+    private const string LockIcon = "M18 8h-1V6a5 5 0 00-10 0v2H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V10a2 2 0 00-2-2zM9 6a3 3 0 016 0v2H9V6z";
+
+    private static ToggleButton IconToggle(string icon, string tip, bool on, Layer layer)
+    {
+        var button = new ToggleButton { IsChecked = on, Tag = layer, Padding = new Avalonia.Thickness(4), Background = Avalonia.Media.Brushes.Transparent, Content = new PathIcon { Data = Avalonia.Media.Geometry.Parse(icon), Width = 14, Height = 14 } };
+        ToolTip.SetTip(button, Loc.Current[tip]);
+        return button;
+    }
+
     private void Refresh()
     {
         _building = true;
         var selectedId = Selected?.LayerId;
         _list.ItemsSource = Layers.Select(layer =>
         {
-            var visible = new CheckBox { IsChecked = layer.IsVisible, Tag = layer };
+            var visible = IconToggle(EyeIcon, "rooms.show", layer.IsVisible, layer);
             visible.IsCheckedChanged += (_, _) =>
             {
                 if (!_building && visible.IsChecked != layer.IsVisible) Edit([Command(RoomLayerCommand.Visible, layer, visible.IsChecked == true ? "1" : "0")]);
             };
-            var locked = new CheckBox { Content = Loc.Current["rooms.lock"], IsChecked = Locked.Contains(layer.LayerId), Tag = layer };
+            var locked = IconToggle(LockIcon, "rooms.lock", Locked.Contains(layer.LayerId), layer);
             locked.IsCheckedChanged += (_, _) =>
             {
                 if (_building || (locked.IsChecked == true) == Locked.Contains(layer.LayerId)) return;

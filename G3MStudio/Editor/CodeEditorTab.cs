@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
 using AvaloniaEdit;
+using AvaloniaEdit.Folding;
 using AvaloniaEdit.Search;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
@@ -24,6 +25,7 @@ public sealed class CodeEditorTab : DockPanel
     private readonly Button _revert = new() { Name = "Revert" };
     private readonly DispatcherTimer _retokenize = new() { Interval = TimeSpan.FromMilliseconds(300) };
     private readonly SearchPanel _search;
+    private readonly FoldingManager _folding;
     private string _applied = "";
     private bool _loading, _applying;
     private int _loadId;
@@ -36,6 +38,7 @@ public sealed class CodeEditorTab : DockPanel
         Editor.Name = "Code";
         _colorizer.Classifier = GmlNames.For(workspace);
         _search = SearchPanel.Install(Editor);
+        _folding = FoldingManager.Install(Editor.TextArea);
         _apply.Content = Loc.Current["code.apply"];
         _revert.Content = Loc.Current["code.revert"];
         _apply.Click += (_, _) => Apply();
@@ -55,6 +58,7 @@ public sealed class CodeEditorTab : DockPanel
         {
             _retokenize.Stop();
             _colorizer.Tokenize(Editor.Text);
+            _folding.UpdateFoldings(_colorizer.Foldings, -1);
             Editor.TextArea.TextView.Redraw();
         };
         // Only a shown tab follows the model; a tab that was hidden meanwhile catches up when it is shown again.
@@ -150,6 +154,7 @@ public sealed class CodeEditorTab : DockPanel
             Editor.Text = text;
             _applied = text;
             _colorizer.Tokenize(text);
+            _folding.UpdateFoldings(_colorizer.Foldings, -1);
             Editor.TextArea.TextView.Redraw();
             Editor.IsReadOnly = false;
             Show("", false);

@@ -616,6 +616,7 @@
     "tilesBad": "CSV с тайлами не использован: {reason}",
     "snapped": "по сетке",
     "lock": "Блок.",
+    "show": "Показать",
     "orderTitle": "Порядок создания",
     "orderTop": "В начало",
     "orderEnd": "В конец",

@@ -616,6 +616,7 @@
     "tilesBad": "未能使用图块 CSV：{reason}",
     "snapped": "对齐",
     "lock": "锁定",
+    "show": "显示",
     "orderTitle": "创建顺序",
     "orderTop": "移到最前",
     "orderEnd": "移到最后",

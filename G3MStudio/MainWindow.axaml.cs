@@ -85,7 +85,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
             Control? header = resource switch
             {
                 GameMakerSprite sprite => RememberFrames(tab.Id, new SpriteFramesView(sprite, _textures, workspace.History)),
-                GameMakerRoom room => RememberRoom(tab.Id, new RoomPreview(room, _textures, workspace), tab.Key),
+                GameMakerRoom room => RememberRoom(tab.Id, new RoomPreview(room, _textures, workspace, ShowCreationOrder), tab.Key),
                 GameMakerSound sound => new SoundPlayerView(sound, UrlOpener),
                 GameMakerGameObject obj => new ObjectEventsView(obj, OpenEntry),
                 GameMakerBackground background => new TextureItemView(background.Texture, _textures),

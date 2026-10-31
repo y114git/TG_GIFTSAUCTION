@@ -1,3 +1,4 @@
+using G3MStudio.Core.Commands;
 using Avalonia;
 using Avalonia.Controls;
 using G3MLib.DataFile.Models;
@@ -29,7 +30,7 @@ public sealed class RoomPreview : DockPanel
     private bool _fitted;
     private uint? _shownLayer;
 
-    public RoomPreview(GameMakerRoom room, TextureBitmaps textures, Workspace? workspace = null)
+    public RoomPreview(GameMakerRoom room, TextureBitmaps textures, Workspace? workspace = null, Action? creationOrder = null)
     {
         (_room, _textures, _workspace) = (room, textures, workspace);
         Name = "RoomPreview";
@@ -62,6 +63,13 @@ public sealed class RoomPreview : DockPanel
                 layers.LockChanged += ApplyLocks;
                 _inspector = new InstanceInspector(workspace, RoomName);
                 SidePanel = new StackPanel { Name = "RoomSidePanel", Spacing = 8, Children = { layers, _inspector, _paletteHost } };
+                if (creationOrder is not null)
+                {
+                    var order = new Button { Name = "RoomCreationOrder", Content = Loc.Current[AppCommands.TitleKey("room.creationOrder")] };
+                    order.Click += (_, _) => creationOrder();
+                    ((StackPanel)SidePanel).Children.Insert(1, order);
+                }
+
                 View.SelectionChanged += () => _inspector.Show([.. View.Selection.OfType<GameMakerRoom.GameObject>()]);
                 layers.SelectionChanged += () =>
                 {

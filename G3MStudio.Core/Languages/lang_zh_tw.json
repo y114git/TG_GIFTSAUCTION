@@ -616,6 +616,7 @@
     "tilesBad": "未能使用圖磚 CSV：{reason}",
     "snapped": "對齊",
     "lock": "鎖定",
+    "show": "顯示",
     "orderTitle": "建立順序",
     "orderTop": "移到最前",
     "orderEnd": "移到最後",

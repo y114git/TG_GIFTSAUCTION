@@ -616,6 +616,7 @@
     "tilesBad": "The tile CSV was not used: {reason}",
     "snapped": "snapped",
     "lock": "Lock",
+    "show": "Show",
     "orderTitle": "Creation order",
     "orderTop": "To top",
     "orderEnd": "To end",
