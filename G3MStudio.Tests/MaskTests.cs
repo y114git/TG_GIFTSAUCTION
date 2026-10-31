@@ -159,6 +159,19 @@ public sealed class MaskTests
                 workspace.Undo();
                 Assert.Equal(before, (int)Math.Round((float)PropertyModel.ReadRaw(sequence, $"{row.r.Path}[{frame.Index}].Key")!));
                 Assert.False(view.Move(row.i, frame.Index, 0));
+
+                // The same move made with the pointer: press on the bar, drag three frames to the right, release.
+                var window = new Avalonia.Controls.Window { Content = view, Width = 800, Height = 600 };
+                window.Show();
+                window.UpdateLayout();
+                var scale = (view.Bounds.Width - 170 - 12) / view.Length;
+                var press = new Avalonia.Point(170 + (frame.Key * scale) + 2, 24 + (row.i * 22) + 11);
+                Avalonia.Headless.HeadlessWindowExtensions.MouseDown(window, press, Avalonia.Input.MouseButton.Left);
+                Avalonia.Headless.HeadlessWindowExtensions.MouseMove(window, press + new Avalonia.Vector(3 * scale, 0));
+                Avalonia.Headless.HeadlessWindowExtensions.MouseUp(window, press + new Avalonia.Vector(3 * scale, 0), Avalonia.Input.MouseButton.Left);
+                Assert.Equal(before + 3, (int)Math.Round((float)PropertyModel.ReadRaw(sequence, $"{row.r.Path}[{frame.Index}].Key")!));
+                workspace.Undo();
+                window.Close();
                 return Task.CompletedTask;
             });
             return;
