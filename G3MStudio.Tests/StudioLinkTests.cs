@@ -88,4 +88,35 @@ public sealed class StudioLinkTests
         Assert.True(SingleInstance.TrySend("g3mstudio://action/open", name));
         Assert.Equal("g3mstudio://action/open", await got.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken));
     }
+
+    [Fact]
+    public void FileAssociationsPointOnlyTheDataExtensionsAtTheProgramAndRemoveGivesThemBack()
+    {
+        using var dir = new TempDir();
+        var exe = dir.File("G3MStudio.exe");
+        File.WriteAllText(exe, "x");
+        Assert.Throws<FileNotFoundException>(() => FileAssociations.Register(dir.File("nothing.exe"), FileAssociations.Extensions));
+        if (!OperatingSystem.IsWindows())
+        {
+            Assert.False(FileAssociations.Supported);
+            Assert.Empty(FileAssociations.Registered());
+            return;
+        }
+
+        const string classes = @"Software\G3MStudioTests\Classes";
+        try
+        {
+            FileAssociations.Register(exe, [".win", ".csx"], classes); // .csx is not a data extension and is ignored
+            Assert.Equal([".win"], FileAssociations.Registered(classes));
+            using (var other = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(classes + @"\.unx")) other.SetValue("", "SomeoneElse.File"); // another program's extension stays
+            FileAssociations.Remove(classes);
+            Assert.Empty(FileAssociations.Registered(classes));
+            using var kept = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(classes + @"\.unx");
+            Assert.Equal("SomeoneElse.File", kept?.GetValue(""));
+        }
+        finally
+        {
+            Microsoft.Win32.Registry.CurrentUser.DeleteSubKeyTree(@"Software\G3MStudioTests", false);
+        }
+    }
 }

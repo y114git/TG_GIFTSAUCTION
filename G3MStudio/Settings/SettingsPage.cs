@@ -258,6 +258,35 @@ public sealed class SettingsPage : UserControl
                 linkState.Text = Loc.Current["settings.linksFailed"] + ": " + e.Message;
             }
         };
+        var assocState = new TextBlock { Name = "AssociationMessage", Classes = { "muted" }, TextWrapping = TextWrapping.Wrap };
+        string AssocText() => G3MStudio.Core.Links.FileAssociations.Registered() is { Count: > 0 } now ? Loc.Current.Format("settings.assocNow", ("types", string.Join(" ", now))) : Loc.Current["settings.assocNone"];
+        assocState.Text = G3MStudio.Core.Links.FileAssociations.Supported ? AssocText() : Loc.Current["settings.assocWindows"];
+        var useStudio = new Button { Name = "AssociateFiles", Content = Loc.Current["settings.assocUse"], IsEnabled = G3MStudio.Core.Links.FileAssociations.Supported };
+        var dropStudio = new Button { Name = "DissociateFiles", Content = Loc.Current["settings.assocStop"], IsEnabled = G3MStudio.Core.Links.FileAssociations.Supported };
+        useStudio.Click += (_, _) =>
+        {
+            try
+            {
+                G3MStudio.Core.Links.FileAssociations.Register(Environment.ProcessPath ?? "", G3MStudio.Core.Links.FileAssociations.Extensions);
+                assocState.Text = AssocText();
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException or PlatformNotSupportedException or System.Security.SecurityException)
+            {
+                assocState.Text = Loc.Current["settings.linksFailed"] + ": " + e.Message;
+            }
+        };
+        dropStudio.Click += (_, _) =>
+        {
+            try
+            {
+                G3MStudio.Core.Links.FileAssociations.Remove();
+                assocState.Text = AssocText();
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+            {
+                assocState.Text = Loc.Current["settings.linksFailed"] + ": " + e.Message;
+            }
+        };
         var location = new TextBox { Name = "Location", Text = _registry.RememberedRoot ?? "", MinWidth = 360 };
         location.TextChanged += (_, _) => { if (!_building && !string.IsNullOrWhiteSpace(location.Text)) _registry.RememberRoot(location.Text.Trim()); };
         var browse = new Button { Content = Loc.Current["project.location.browse"] };
@@ -355,6 +384,7 @@ public sealed class SettingsPage : UserControl
                 Row("settings.backups", Number("Backups", 1, 3, 1, s.BackupCount, (x, n) => x with { BackupCount = n })),
                 ask,
                 new StackPanel { Spacing = 4, Tag = Loc.Current["settings.registerLinks"], Children = { registerLinks, linkState } },
+                new StackPanel { Spacing = 4, Tag = Loc.Current["settings.assocUse"], Children = { new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { useStudio, dropStudio } }, assocState } },
                 Row("settings.location", location, browse),
                 Heading("settings.projects"),
                 Row("settings.autosave", Triggers("AutoSave", s.Project.AutoSave, (x, t) => x with { Project = x.Project with { AutoSave = t } }),
