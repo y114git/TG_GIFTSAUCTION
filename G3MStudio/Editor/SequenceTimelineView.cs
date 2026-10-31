@@ -38,6 +38,20 @@ public sealed class SequenceTimelineView : Control
 
     public IReadOnlyList<TimelineRow> Rows { get; private set; }
 
+    /// <summary>The frame of the playhead, drawn as a line across the rows.</summary>
+    public double Playhead
+    {
+        get;
+        set
+        {
+            field = value;
+            InvalidateVisual();
+        }
+    }
+
+    /// <summary>Raised with the frame under a click on the ruler.</summary>
+    public event Action<double>? PlayheadRequested;
+
     /// <summary>The length shown on the ruler, in frames.</summary>
     public double Length { get; private set; }
 
@@ -127,8 +141,15 @@ public sealed class SequenceTimelineView : Control
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
-        if (_workspace is null || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
         var at = e.GetPosition(this);
+        if (at.Y < RulerHeight && at.X >= LabelWidth)
+        {
+            PlayheadRequested?.Invoke(Math.Round((at.X - LabelWidth) / Scale));
+            return;
+        }
+
+        if (_workspace is null) return;
         if (HitTest(at) is not var (row, frame)) return;
         _pressedAt = at.X;
         _drag = (row, frame, 0);
@@ -174,6 +195,8 @@ public sealed class SequenceTimelineView : Control
             context.DrawText(Label(frame.ToString("0", CultureInfo.InvariantCulture), text), new Point(x + 3, 4));
         }
 
+        var playhead = LabelWidth + (Playhead * scale);
+        context.DrawLine(new Pen(accent, 1.5), new Point(playhead, 0), new Point(playhead, Bounds.Height));
         for (var i = 0; i < Rows.Count && RulerHeight + ((i + 1) * RowHeight) <= Bounds.Height + RowHeight; i++)
         {
             var (row, top) = (Rows[i], RulerHeight + (i * RowHeight));

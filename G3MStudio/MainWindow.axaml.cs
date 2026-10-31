@@ -93,7 +93,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
                 GameMakerEmbeddedImage image => new TextureItemView(image.TextureEntry, _textures),
                 GameMakerPath path => new PathEditor(path, workspace),
                 GameMakerParticleSystem system => new StackPanel { Spacing = 8, Children = { new ParticlePreviewView(system), new ParticleEmittersView(system, workspace) } },
-                GameMakerSequence sequence => new StackPanel { Spacing = 8, Children = { new SequenceTimelineView(sequence, workspace), new SequenceTracksView(sequence, workspace) } },
+                GameMakerSequence sequence => SequencePlayerView.Tab(sequence, _textures, workspace),
                 GameMakerAnimationCurve curve => new AnimationCurveView(curve),
                 GameMakerShader shader => new ShaderSourceView(shader, workspace),
                 GameMakerTimeline timeline => new TimelineStepsView(timeline, workspace, OpenEntry),

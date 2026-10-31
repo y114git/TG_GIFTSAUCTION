@@ -53,7 +53,7 @@ public sealed class ScreenshotTests
                         "fonts" => workspace.Data.Fonts.FirstOrDefault()?.Name.Content,
                         "paths" => workspace.Data.Paths.FirstOrDefault()?.Name.Content,
                         "particleSystems" => workspace.Data.ParticleSystems?.FirstOrDefault(p => p.Emitters?.Count > 0)?.Name.Content,
-                        "sequences" => workspace.Data.Sequences?.FirstOrDefault(q => q.Tracks?.Count > 0)?.Name.Content,
+                        "sequences" => workspace.Data.Sequences?.FirstOrDefault(q => Enumerable.Range(0, 40).Any(f => Core.Sequences.SequenceEvaluator.At(q, f).Count > 0))?.Name.Content ?? workspace.Data.Sequences?.FirstOrDefault(q => q.Tracks?.Count > 0)?.Name.Content,
                         "animationCurves" => workspace.Data.AnimationCurves?.FirstOrDefault()?.Name.Content,
                         "shaders" => workspace.Data.Shaders?.FirstOrDefault()?.Name.Content,
                         _ => workspace.Data.Scripts.FirstOrDefault()?.Name.Content,
@@ -73,6 +73,18 @@ public sealed class ScreenshotTests
                         window.Explorer.Select(ResourceTypes.KeyOf("objects", workspace.Data.GameObjects[0].Name.Content!));
                         await Task.Delay(300);
                         Dispatcher.UIThread.RunJobs();
+                    }
+
+                    // A sequence canvas shows the sprites at the playhead: move it to the first frame that has some.
+                    if (type == "sequences" && Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(window).OfType<Editor.SequencePlayerView>().FirstOrDefault() is { } player)
+                    {
+                        var sequence = workspace.Data.Sequences!.First(q => q.Name.Content == item);
+                        player.Frame = Enumerable.Range(0, 40).FirstOrDefault(f => Core.Sequences.SequenceEvaluator.At(sequence, f).Count > 0);
+                        for (var i = 0; i < 6; i++)
+                        {
+                            await Task.Delay(150);
+                            Dispatcher.UIThread.RunJobs();
+                        }
                     }
 
                     // A particle preview starts empty and steps with a timer; step it so the picture shows particles.
