@@ -332,6 +332,8 @@
     "pressKeys": "키를 누르세요...",
     "noShortcut": "없음",
     "reset": "초기화",
+    "restore": "기본값 복원",
+    "restoreTip": "선택한 섹션의 설정을 기본값으로 설정합니다.",
     "shortcutShared": "{shortcut}은(는) 다음에서도 사용됩니다: {commands}.",
     "addFont": "글꼴 파일 추가...",
     "removeFont": "제거",

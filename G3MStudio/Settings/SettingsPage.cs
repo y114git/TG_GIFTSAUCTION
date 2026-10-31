@@ -290,6 +290,27 @@ public sealed class SettingsPage : UserControl
         close.Click += (_, _) => _close();
         DockPanel.SetDock(close, Avalonia.Controls.Dock.Right);
 
+        // The defaults come from a new AppSettings, one reset per section in the order of the headings below.
+        var d = new AppSettings();
+        Func<AppSettings, AppSettings>[] resets =
+        [
+            x => x with { UiScale = d.UiScale, FontFamily = d.FontFamily, FontWeight = d.FontWeight, CompactDensity = d.CompactDensity },
+            x => x with { Colors = d.Colors },
+            x => x with { CodeFontSize = d.CodeFontSize, CodeWordWrap = d.CodeWordWrap, CodeLineNumbers = d.CodeLineNumbers },
+            x => x with { BackupCount = d.BackupCount, AskOnClose = d.AskOnClose },
+            x => x with { Project = d.Project },
+            x => x with { RunRunner = d.RunRunner, RunArguments = d.RunArguments, RunDebugOutput = d.RunDebugOutput, ActiveRunProfile = d.ActiveRunProfile },
+            x => x with { Shortcuts = d.Shortcuts },
+        ];
+        var restore = new Button { Name = "SettingsRestoreDefaults", Content = Loc.Current["settings.restore"], Margin = new Thickness(0, 0, 8, 0), HorizontalAlignment = HorizontalAlignment.Right };
+        ToolTip.SetTip(restore, Loc.Current["settings.restoreTip"]);
+        restore.Click += (_, _) =>
+        {
+            _store.Update(resets[Math.Clamp(_section, 0, resets.Length - 1)]);
+            Content = Build();
+        };
+        DockPanel.SetDock(restore, Avalonia.Controls.Dock.Right);
+
         var search = new TextBox { Name = "SettingsSearch", Text = _search, PlaceholderText = Loc.Current["settings.search"] };
         var page = new StackPanel
         {
@@ -298,7 +319,7 @@ public sealed class SettingsPage : UserControl
             Spacing = 10,
             Children =
             {
-                new DockPanel { Children = { close, new TextBlock { Text = Loc.Current["settings.title"], FontSize = 20 } } },
+                new DockPanel { Children = { close, restore, new TextBlock { Text = Loc.Current["settings.title"], FontSize = 20 } } },
                 search,
                 Heading("settings.appearance"),
                 Row("settings.language", language),

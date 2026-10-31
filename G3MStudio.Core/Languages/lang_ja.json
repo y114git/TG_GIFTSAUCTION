@@ -332,6 +332,8 @@
     "pressKeys": "キーを押してください...",
     "noShortcut": "なし",
     "reset": "リセット",
+    "restore": "既定値に戻す",
+    "restoreTip": "選択中のセクションの設定を既定値にします。",
     "shortcutShared": "{shortcut} は次でも使用されています: {commands}。",
     "addFont": "フォントファイルを追加...",
     "removeFont": "削除",

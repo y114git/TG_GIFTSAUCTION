@@ -332,6 +332,8 @@
     "pressKeys": "Press the keys...",
     "noShortcut": "None",
     "reset": "Reset",
+    "restore": "Restore defaults",
+    "restoreTip": "Resets the settings of the selected section.",
     "shortcutShared": "{shortcut} is also used by: {commands}.",
     "addFont": "Add font file...",
     "removeFont": "Remove",

@@ -332,6 +332,8 @@
     "pressKeys": "Pulsa las teclas...",
     "noShortcut": "Ninguno",
     "reset": "Restablecer",
+    "restore": "Restaurar valores predeterminados",
+    "restoreTip": "Restablece la configuración de la sección elegida.",
     "shortcutShared": "{shortcut} también lo usan: {commands}.",
     "addFont": "Añadir archivo de fuente...",
     "removeFont": "Quitar",

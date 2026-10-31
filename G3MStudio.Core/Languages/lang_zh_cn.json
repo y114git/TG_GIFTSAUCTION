@@ -332,6 +332,8 @@
     "pressKeys": "请按下按键...",
     "noShortcut": "无",
     "reset": "重置",
+    "restore": "恢复默认值",
+    "restoreTip": "将所选部分的设置恢复为默认值。",
     "shortcutShared": "{shortcut} 也被以下命令使用：{commands}。",
     "addFont": "添加字体文件...",
     "removeFont": "移除",
