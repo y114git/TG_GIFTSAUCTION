@@ -73,4 +73,18 @@ public sealed class StudioLinkTests
             Assert.True(File.Exists(Path.Combine(dir.File("apps"), LinkRegistration.DesktopFile)));
         }
     }
+
+    [Fact]
+    public async Task ALaterLaunchHandsItsTextToTheRunningProgramAndNothingAnswersWithoutOne()
+    {
+        var name = "G3MStudioTest-" + Guid.NewGuid().ToString("N");
+        Assert.False(SingleInstance.TrySend("nobody listens", name, 100));
+        var got = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var instance = new SingleInstance();
+        Assert.True(instance.Listen(got.SetResult, name));
+        using var second = new SingleInstance();
+        Assert.False(second.Listen(_ => { }, name)); // the name is taken, so this one is not the first
+        Assert.True(SingleInstance.TrySend("g3mstudio://action/open", name));
+        Assert.Equal("g3mstudio://action/open", await got.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken));
+    }
 }
