@@ -25,6 +25,31 @@ public sealed class TabsWorkspaceTests
     private static string[] Titles(MainWindow window) => [.. window.Docking.Documents().Select(d => d.Title)];
 
     [Fact]
+    public async Task AG3mstudioLinkOpensItsDataFileAndABrokenOneOnlyNotifies()
+    {
+        using var dir = new TempDir();
+        var path = TestData.WriteSample(dir, objects: 2);
+        await HeadlessApp.Run(async () =>
+        {
+            var window = NewWindow(dir);
+            try
+            {
+                window.OpenLink("g3mstudio://nonsense");
+                Assert.Null(window.Workspaces.Current);
+                window.OpenStartupFile([Core.Links.StudioLink.ForFile(path)]);
+                for (var i = 0; i < 100 && window.Workspaces.Current is null; i++)
+                {
+                    await Task.Delay(50);
+                    Dispatcher.UIThread.RunJobs();
+                }
+
+                Assert.Equal(Path.GetFullPath(path), window.Workspaces.Current?.Path);
+            }
+            finally { window.Close(); }
+        });
+    }
+
+    [Fact]
     public void TheOperatingSystemLanguageIsMatchedToAnAvailableOneAndEnglishOtherwise()
     {
         string[] available = ["en", "ru", "es", "ja", "ko", "zh_cn", "zh_tw"];

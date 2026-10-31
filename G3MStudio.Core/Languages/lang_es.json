@@ -344,6 +344,9 @@
     "reset": "Restablecer",
     "restore": "Restaurar valores predeterminados",
     "restoreTip": "Restablece la configuración de la sección elegida.",
+    "registerLinks": "Abrir enlaces g3mstudio:// con este programa",
+    "linksDone": "Los enlaces g3mstudio:// ahora se abren en este programa.",
+    "linksFailed": "No se pudieron registrar los enlaces",
     "reduceMotion": "Reducir movimiento (las vistas previas no se mueven)",
     "profilesNote": "El perfil de ejecución que elijas se recuerda para cada archivo de datos.",
     "shortcutShared": "{shortcut} también lo usan: {commands}.",
@@ -561,6 +564,10 @@
     "start": "Empezar",
     "skip": "Omitir configuración",
     "later": "Puedes cambiar el idioma más tarde en Configuración > Apariencia y volver a abrir esta ventana desde Ayuda > Primeros pasos."
+  },
+  "links": {
+    "unsupported": "Esta versión no admite este enlace.",
+    "unknown": "Enlace no reconocido."
   },
   "particles": {
     "restart": "Reiniciar",

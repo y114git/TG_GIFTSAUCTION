@@ -344,6 +344,9 @@
     "reset": "重置",
     "restore": "恢复默认值",
     "restoreTip": "将所选部分的设置恢复为默认值。",
+    "registerLinks": "用此程序打开 g3mstudio:// 链接",
+    "linksDone": "现在 g3mstudio:// 链接会在此程序中打开。",
+    "linksFailed": "无法注册链接",
     "reduceMotion": "减少动态效果（预览保持静止）",
     "profilesNote": "所选的运行配置会按数据文件分别记住。",
     "shortcutShared": "{shortcut} 也被以下命令使用：{commands}。",
@@ -561,6 +564,10 @@
     "start": "开始使用",
     "skip": "跳过设置",
     "later": "之后可在设置 > 外观中更改语言，也可通过帮助 > 入门再次打开此窗口。"
+  },
+  "links": {
+    "unsupported": "此版本不支持该链接。",
+    "unknown": "无法识别该链接。"
   },
   "particles": {
     "restart": "重新开始",

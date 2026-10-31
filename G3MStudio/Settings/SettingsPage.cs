@@ -244,6 +244,20 @@ public sealed class SettingsPage : UserControl
         var compact = new CheckBox { Name = "CompactDensity", Tag = Loc.Current["settings.compact"], Content = Loc.Current["settings.compact"], IsChecked = s.CompactDensity };
         compact.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { CompactDensity = compact.IsChecked == true }); };
 
+        var linkState = new TextBlock { Name = "LinkMessage", Classes = { "muted" }, TextWrapping = TextWrapping.Wrap };
+        var registerLinks = new Button { Name = "RegisterLinks", Content = Loc.Current["settings.registerLinks"], IsEnabled = G3MStudio.Core.Links.LinkRegistration.Supported };
+        registerLinks.Click += (_, _) =>
+        {
+            try
+            {
+                G3MStudio.Core.Links.LinkRegistration.Register(Environment.ProcessPath ?? "");
+                linkState.Text = Loc.Current["settings.linksDone"];
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException or PlatformNotSupportedException)
+            {
+                linkState.Text = Loc.Current["settings.linksFailed"] + ": " + e.Message;
+            }
+        };
         var location = new TextBox { Name = "Location", Text = _registry.RememberedRoot ?? "", MinWidth = 360 };
         location.TextChanged += (_, _) => { if (!_building && !string.IsNullOrWhiteSpace(location.Text)) _registry.RememberRoot(location.Text.Trim()); };
         var browse = new Button { Content = Loc.Current["project.location.browse"] };
@@ -340,6 +354,7 @@ public sealed class SettingsPage : UserControl
                 Heading("settings.files"),
                 Row("settings.backups", Number("Backups", 1, 3, 1, s.BackupCount, (x, n) => x with { BackupCount = n })),
                 ask,
+                new StackPanel { Spacing = 4, Tag = Loc.Current["settings.registerLinks"], Children = { registerLinks, linkState } },
                 Row("settings.location", location, browse),
                 Heading("settings.projects"),
                 Row("settings.autosave", Triggers("AutoSave", s.Project.AutoSave, (x, t) => x with { Project = x.Project with { AutoSave = t } }),

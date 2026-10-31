@@ -344,6 +344,9 @@
     "reset": "Reset",
     "restore": "Restore defaults",
     "restoreTip": "Resets the settings of the selected section.",
+    "registerLinks": "Open g3mstudio:// links with this program",
+    "linksDone": "Links of the form g3mstudio:// now open in this program.",
+    "linksFailed": "The links could not be registered",
     "reduceMotion": "Reduce motion (previews stand still)",
     "profilesNote": "The run profile you pick is remembered for each data file.",
     "shortcutShared": "{shortcut} is also used by: {commands}.",
@@ -561,6 +564,10 @@
     "start": "Get Started",
     "skip": "Skip Setup",
     "later": "You can change the language later in Settings > Appearance, and open this window again from Help > Getting Started."
+  },
+  "links": {
+    "unsupported": "This link is not supported by this version.",
+    "unknown": "Link not recognised."
   },
   "particles": {
     "restart": "Restart",

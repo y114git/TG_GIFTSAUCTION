@@ -580,7 +580,33 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
     /// <summary>Command line: the first argument that is not a flag is a data file to open.</summary>
     public void OpenStartupFile(IEnumerable<string> args)
     {
-        if (args.FirstOrDefault(a => !a.StartsWith("--", StringComparison.Ordinal)) is { } path) _ = OpenAsync(path);
+        if (args.FirstOrDefault(a => !a.StartsWith("--", StringComparison.Ordinal)) is not { } path) return;
+        if (path.StartsWith(Core.Links.StudioLink.Scheme, StringComparison.OrdinalIgnoreCase)) OpenLink(path);
+        else _ = OpenAsync(path);
+    }
+
+    /// <summary>Opens what a g3mstudio:// link names: a local data file, or one of the actions. A web address is not downloaded (it would need the confirmation and the cache of the mod import).</summary>
+    public void OpenLink(string text)
+    {
+        switch (Core.Links.StudioLink.Parse(text))
+        {
+            case { Kind: Core.Links.StudioLinkKind.File, Target: var file }:
+                _ = OpenAsync(file);
+                break;
+            case { Kind: Core.Links.StudioLinkKind.Action, Target: "open" }:
+                _ = Registry.Execute("file.open");
+                break;
+            case { Kind: Core.Links.StudioLinkKind.Action, Target: "patch-tools" }:
+                _ = Registry.Execute("mods.applyPatch");
+                break;
+            case { Kind: Core.Links.StudioLinkKind.Action }:
+            case { Kind: Core.Links.StudioLinkKind.Download }:
+                Notify(NotificationLevel.Info, Loc.Current["links.unsupported"]);
+                break;
+            default:
+                Notify(NotificationLevel.Warning, Loc.Current["links.unknown"]);
+                break;
+        }
     }
 
     public void Dispose()

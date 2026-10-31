@@ -344,6 +344,9 @@
     "reset": "リセット",
     "restore": "既定値に戻す",
     "restoreTip": "選択中のセクションの設定を既定値にします。",
+    "registerLinks": "g3mstudio:// リンクをこのプログラムで開く",
+    "linksDone": "g3mstudio:// リンクをこのプログラムで開くようになりました。",
+    "linksFailed": "リンクを登録できませんでした",
     "reduceMotion": "動きを減らす（プレビューを静止させる）",
     "profilesNote": "選んだ実行プロファイルは、データファイルごとに記憶されます。",
     "shortcutShared": "{shortcut} は次でも使用されています: {commands}。",
@@ -561,6 +564,10 @@
     "start": "はじめる",
     "skip": "セットアップをスキップ",
     "later": "言語は設定 > 外観であとから変更でき、このウィンドウはヘルプ > はじめにから再び開けます。"
+  },
+  "links": {
+    "unsupported": "このバージョンではこのリンクは使えません。",
+    "unknown": "リンクを認識できません。"
   },
   "particles": {
     "restart": "最初から再生",
