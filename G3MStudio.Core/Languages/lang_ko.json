@@ -25,6 +25,9 @@
     "room": "룸",
     "sprite": "스프라이트",
     "sub": {
+      "window": {
+        "layout": "레이아웃"
+      },
       "view": {
         "language": "언어",
         "panel": "패널"
@@ -32,6 +35,12 @@
     }
   },
   "cmd": {
+    "window": {
+      "layout": {
+        "reset": "레이아웃 초기화",
+        "saved": "저장한 레이아웃..."
+      }
+    },
     "file": {
       "open": "열기...",
       "openRecent": "최근 항목 열기",
@@ -98,6 +107,7 @@
       "open": "설정"
     },
     "help": {
+      "gettingStarted": "시작하기...",
       "about": "G3MStudio 정보",
       "documentation": "문서",
       "checkUpdates": "업데이트 확인..."
@@ -532,6 +542,25 @@
     "add": "모멘트 추가",
     "actionCode": "코드 항목 이름",
     "addAction": "동작 추가"
+  },
+  "layouts": {
+    "title": "저장한 레이아웃",
+    "name": "레이아웃 이름",
+    "save": "현재 레이아웃 저장",
+    "load": "불러오기",
+    "delete": "삭제",
+    "empty": "저장한 레이아웃이 아직 없습니다.",
+    "broken": "저장한 레이아웃을 읽을 수 없습니다."
+  },
+  "onboarding": {
+    "title": "G3MStudio에 오신 것을 환영합니다",
+    "heading": "G3MStudio에 오신 것을 환영합니다",
+    "body": "G3MStudio는 GameMaker 게임을 편집합니다. 스프라이트, 룸, 코드, 사운드 등을 다루고 모드와 패치도 만듭니다. 모든 선택은 나중에 바꿀 수 있습니다.",
+    "language": "언어",
+    "detected": "감지됨",
+    "start": "시작하기",
+    "skip": "설정 건너뛰기",
+    "later": "언어는 설정 > 모양에서 나중에 바꿀 수 있고, 이 창은 도움말 > 시작하기에서 다시 열 수 있습니다."
   },
   "particles": {
     "restart": "다시 시작",

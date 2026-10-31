@@ -119,6 +119,15 @@ public interface IShell
 
     void ShowStrings();
 
+    /// <summary>Puts the panels back where they start; open editors stay open.</summary>
+    void ResetLayout();
+
+    /// <summary>Opens the window that saves, loads and deletes named layouts.</summary>
+    void ShowLayouts();
+
+    /// <summary>The welcome window with the language choice.</summary>
+    void ShowOnboarding();
+
     void RunScript();
 
     /// <summary>Go to Resource (Ctrl+P).</summary>
@@ -161,8 +170,8 @@ public static class AppCommands
         ("menu.run", ["run.game", "run.stop"]),
         ("menu.mods", ["mods.createPatch", "mods.applyPatch", "mods.mergePatches", "mods.validatePatch", "mods.compareFiles", "mods.exportMod"]),
         ("menu.tools", ["tools.plugins", "tools.strings", "tools.runScript", "tools.repackTextures"]),
-        ("menu.window", ["tabs.close", "tabs.closeAll", "-", "tabs.pin", "tabs.keepOpen", "tabs.splitRight"]),
-        ("menu.help", ["help.documentation", "help.checkUpdates", "-", "help.about"]),
+        ("menu.window", ["tabs.close", "tabs.closeAll", "-", "tabs.pin", "tabs.keepOpen", "tabs.splitRight", "-", "window.layout.reset", "window.layout.saved"]),
+        ("menu.help", ["help.gettingStarted", "help.documentation", "help.checkUpdates", "-", "help.about"]),
     ];
 
     /// <summary>The language key of a command title: a panel command is named like the panel itself, every other one "cmd.&lt;id&gt;".</summary>
@@ -235,6 +244,9 @@ public static class AppCommands
         Add("settings.open", "Ctrl+OemComma", shell.ShowSettings);
         Add("tools.plugins", null, shell.ShowPlugins);
         Add("tools.strings", null, shell.ShowStrings, WorkspaceOpen);
+        Add("help.gettingStarted", null, shell.ShowOnboarding);
+        Add("window.layout.reset", null, shell.ResetLayout, WorkspaceOpen);
+        Add("window.layout.saved", null, shell.ShowLayouts, WorkspaceOpen);
         Add("tools.runScript", null, shell.RunScript, WorkspaceOpen);
         Add("help.about", null, shell.ShowAbout);
         Add("help.documentation", "F1", shell.OpenDocumentation);

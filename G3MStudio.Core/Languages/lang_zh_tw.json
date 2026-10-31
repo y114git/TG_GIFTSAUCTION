@@ -25,6 +25,9 @@
     "room": "房間",
     "sprite": "精靈",
     "sub": {
+      "window": {
+        "layout": "版面配置"
+      },
       "view": {
         "language": "語言",
         "panel": "面板"
@@ -32,6 +35,12 @@
     }
   },
   "cmd": {
+    "window": {
+      "layout": {
+        "reset": "重設版面配置",
+        "saved": "已儲存的版面配置..."
+      }
+    },
     "file": {
       "open": "開啟...",
       "openRecent": "開啟最近的檔案",
@@ -98,6 +107,7 @@
       "open": "設定"
     },
     "help": {
+      "gettingStarted": "入門...",
       "about": "關於 G3MStudio",
       "documentation": "文件",
       "checkUpdates": "檢查更新..."
@@ -532,6 +542,25 @@
     "add": "新增時刻",
     "actionCode": "程式碼項目名稱",
     "addAction": "新增動作"
+  },
+  "layouts": {
+    "title": "已儲存的版面配置",
+    "name": "版面配置名稱",
+    "save": "儲存目前的版面配置",
+    "load": "載入",
+    "delete": "刪除",
+    "empty": "尚無已儲存的版面配置。",
+    "broken": "無法讀取已儲存的版面配置。"
+  },
+  "onboarding": {
+    "title": "歡迎使用 G3MStudio",
+    "heading": "歡迎使用 G3MStudio",
+    "body": "G3MStudio 用於編輯 GameMaker 遊戲：圖框、房間、程式碼、聲音等，也可製作模組和修補程式。所有選擇之後都可以變更。",
+    "language": "語言",
+    "detected": "已偵測到",
+    "start": "開始使用",
+    "skip": "略過設定",
+    "later": "之後可在設定 > 外觀中變更語言，也可透過說明 > 入門再次開啟此視窗。"
   },
   "particles": {
     "restart": "重新開始",

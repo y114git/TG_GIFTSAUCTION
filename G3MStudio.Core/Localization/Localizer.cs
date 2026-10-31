@@ -47,6 +47,16 @@ public sealed class Localizer : INotifyPropertyChanged
         return text;
     }
 
+    /// <summary>The language that matches a culture (the language of the operating system), or English when none does. Chinese is split by script or region.</summary>
+    public static string Detect(System.Globalization.CultureInfo culture, IEnumerable<string> available)
+    {
+        var name = culture.Name.ToLowerInvariant();
+        var code = name.StartsWith("zh", StringComparison.Ordinal)
+            ? (name.Contains("hant", StringComparison.Ordinal) || name.EndsWith("-tw", StringComparison.Ordinal) || name.EndsWith("-hk", StringComparison.Ordinal) || name.EndsWith("-mo", StringComparison.Ordinal) ? "zh_tw" : "zh_cn")
+            : culture.TwoLetterISOLanguageName;
+        return available.Contains(code) ? code : FallbackLanguage;
+    }
+
     public void SetLanguage(string code)
     {
         if (!_strings.TryGetValue(code, out var strings)) throw new ArgumentException($"Unknown language '{code}'.", nameof(code));

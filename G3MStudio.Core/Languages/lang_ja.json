@@ -25,6 +25,9 @@
     "room": "ルーム",
     "sprite": "スプライト",
     "sub": {
+      "window": {
+        "layout": "レイアウト"
+      },
       "view": {
         "language": "言語",
         "panel": "パネル"
@@ -32,6 +35,12 @@
     }
   },
   "cmd": {
+    "window": {
+      "layout": {
+        "reset": "レイアウトをリセット",
+        "saved": "保存したレイアウト..."
+      }
+    },
     "file": {
       "open": "開く...",
       "openRecent": "最近使ったファイルを開く",
@@ -98,6 +107,7 @@
       "open": "設定"
     },
     "help": {
+      "gettingStarted": "はじめに...",
       "about": "G3MStudio について",
       "documentation": "ドキュメント",
       "checkUpdates": "アップデートを確認..."
@@ -532,6 +542,25 @@
     "add": "モーメントを追加",
     "actionCode": "コードエントリー名",
     "addAction": "アクションを追加"
+  },
+  "layouts": {
+    "title": "保存したレイアウト",
+    "name": "レイアウト名",
+    "save": "現在のレイアウトを保存",
+    "load": "読み込む",
+    "delete": "削除",
+    "empty": "保存したレイアウトはまだありません。",
+    "broken": "保存したレイアウトを読み込めませんでした。"
+  },
+  "onboarding": {
+    "title": "G3MStudioへようこそ",
+    "heading": "G3MStudioへようこそ",
+    "body": "G3MStudioはGameMakerのゲームを編集します。スプライト、ルーム、コード、サウンドなどに対応し、MODやパッチも作成できます。選択はあとから変更できます。",
+    "language": "言語",
+    "detected": "検出",
+    "start": "はじめる",
+    "skip": "セットアップをスキップ",
+    "later": "言語は設定 > 外観であとから変更でき、このウィンドウはヘルプ > はじめにから再び開けます。"
   },
   "particles": {
     "restart": "最初から再生",

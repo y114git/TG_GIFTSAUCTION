@@ -54,6 +54,12 @@ public sealed record AppSettings
     /// <summary>Tighter rows, buttons and boxes, for more on screen.</summary>
     public bool CompactDensity { get; init; }
 
+    /// <summary>Layouts the user saved, name to the dock layout as JSON (Window > Layout > Saved Layouts).</summary>
+    public IReadOnlyDictionary<string, string> SavedLayouts { get; init; } = new Dictionary<string, string>();
+
+    /// <summary>The first-launch welcome (language) was shown and answered or skipped.</summary>
+    public bool OnboardingDone { get; init; }
+
     /// <summary>Previews stand still instead of moving.</summary>
     public bool ReduceMotion { get; init; }
 
@@ -72,6 +78,7 @@ public sealed record AppSettings
         var project = Project ?? new(); // a hand-edited file may hold null
         return this with
         {
+            SavedLayouts = SavedLayouts is null ? [] : SavedLayouts.Where(p => !string.IsNullOrWhiteSpace(p.Key) && p.Value is not null).ToDictionary(),
             FileRunProfiles = FileRunProfiles is null ? [] : FileRunProfiles.Where(p => p.Key is not null && p.Value is not null).ToDictionary(),
             RunProfiles = RunProfiles is null ? [] : [.. RunProfiles.Where(p => p is { Name.Length: > 0 }).DistinctBy(p => p.Name)],
             Shortcuts = Shortcuts is null ? new Dictionary<string, string>() : Shortcuts.Values.Any(v => v is null) ? Shortcuts.Where(p => p.Value is not null).ToDictionary() : Shortcuts, // a hand-edited file may hold null

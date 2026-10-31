@@ -67,6 +67,12 @@ internal sealed class FakeShell : IShell
     public void ShowSettings() { }
     public void ShowPlugins() { }
     public void ShowStrings() { }
+
+    public void ResetLayout() { }
+
+    public void ShowLayouts() { }
+
+    public void ShowOnboarding() { }
     public void RunScript() { }
     public void QuickOpen() { }
     public void CloseTab() { }

@@ -25,6 +25,9 @@
     "room": "房间",
     "sprite": "精灵",
     "sub": {
+      "window": {
+        "layout": "布局"
+      },
       "view": {
         "language": "语言",
         "panel": "面板"
@@ -32,6 +35,12 @@
     }
   },
   "cmd": {
+    "window": {
+      "layout": {
+        "reset": "重置布局",
+        "saved": "已保存的布局..."
+      }
+    },
     "file": {
       "open": "打开...",
       "openRecent": "打开最近文件",
@@ -98,6 +107,7 @@
       "open": "设置"
     },
     "help": {
+      "gettingStarted": "入门...",
       "about": "关于 G3MStudio",
       "documentation": "文档",
       "checkUpdates": "检查更新..."
@@ -532,6 +542,25 @@
     "add": "添加时刻",
     "actionCode": "代码条目名称",
     "addAction": "添加动作"
+  },
+  "layouts": {
+    "title": "已保存的布局",
+    "name": "布局名称",
+    "save": "保存当前布局",
+    "load": "加载",
+    "delete": "删除",
+    "empty": "还没有已保存的布局。",
+    "broken": "无法读取已保存的布局。"
+  },
+  "onboarding": {
+    "title": "欢迎使用 G3MStudio",
+    "heading": "欢迎使用 G3MStudio",
+    "body": "G3MStudio 用于编辑 GameMaker 游戏：精灵、房间、代码、声音等，也可制作模组和补丁。所有选择之后都可以更改。",
+    "language": "语言",
+    "detected": "已检测到",
+    "start": "开始使用",
+    "skip": "跳过设置",
+    "later": "之后可在设置 > 外观中更改语言，也可通过帮助 > 入门再次打开此窗口。"
   },
   "particles": {
     "restart": "重新开始",

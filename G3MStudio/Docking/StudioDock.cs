@@ -102,8 +102,28 @@ public sealed class StudioDock
 
     public void Restore(string json)
     {
-        if (_serializer.Deserialize<IRootDock>(json) is not { } layout) throw new FormatException("The saved layout could not be read.");
-        Use(layout);
+        IRootDock? layout;
+        try
+        {
+            layout = _serializer.Deserialize<IRootDock>(json);
+        }
+        catch (System.Text.Json.JsonException e)
+        {
+            throw new FormatException("The saved layout could not be read.", e);
+        }
+
+        Use(layout ?? throw new FormatException("The saved layout could not be read."));
+    }
+
+    /// <summary>Places the panels as a saved layout does and keeps the editors that are open (the documents inside the saved layout are dropped).</summary>
+    public void ApplyLayout(string json)
+    {
+        var tabs = Tabs.Tabs.ToList();
+        Restore(json);
+        foreach (var document in Documents().ToList()) Factory.CloseDockable(document);
+        foreach (var tab in tabs) AddDocument(tab, Group());
+        Fill(Layout);
+        Changed?.Invoke();
     }
 
     /// <summary>Back to the default placement; every panel returns, none is lost. Open editors stay (design/shell.md section 10 item 7).</summary>

@@ -94,6 +94,22 @@ public sealed class DockingTests
     });
 
     [Fact]
+    public Task ASavedLayoutPlacesThePanelsAgainAndKeepsTheOpenEditors() => Run((dock, _) =>
+    {
+        var saved = dock.Save();
+        Open(dock, "spr_a");
+        Open(dock, "spr_b");
+        dock.Factory.CloseDockable(Panel<IDockable>(dock, "Search"));
+        Assert.Null(dock.Find<IDockable>("Search"));
+
+        dock.ApplyLayout(saved);
+        Assert.NotNull(dock.Find<IDockable>("Search")); // the panel the saved layout had is back
+        Assert.Equal("spr_a,spr_b", Titles(dock.Groups().Single())); // the editors that are open now stay
+        Assert.Equal(2, dock.Tabs.Tabs.Count);
+        Assert.Throws<FormatException>(() => dock.ApplyLayout("not a layout"));
+    });
+
+    [Fact]
     public Task AnEditorOpensAsATabInTheEditorGroup() => Run((dock, window) =>
     {
         Open(dock, "spr_a");

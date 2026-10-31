@@ -25,6 +25,9 @@
     "room": "Sala",
     "sprite": "Sprite",
     "sub": {
+      "window": {
+        "layout": "Diseño"
+      },
       "view": {
         "language": "Idioma",
         "panel": "Paneles"
@@ -32,6 +35,12 @@
     }
   },
   "cmd": {
+    "window": {
+      "layout": {
+        "reset": "Restablecer diseño",
+        "saved": "Diseños guardados..."
+      }
+    },
     "file": {
       "open": "Abrir...",
       "openRecent": "Abrir reciente",
@@ -98,6 +107,7 @@
       "open": "Configuración"
     },
     "help": {
+      "gettingStarted": "Primeros pasos...",
       "about": "Acerca de G3MStudio",
       "documentation": "Documentación",
       "checkUpdates": "Buscar actualizaciones..."
@@ -532,6 +542,25 @@
     "add": "Añadir momento",
     "actionCode": "Nombre de la entrada de código",
     "addAction": "Añadir acción"
+  },
+  "layouts": {
+    "title": "Diseños guardados",
+    "name": "Nombre del diseño",
+    "save": "Guardar el diseño actual",
+    "load": "Cargar",
+    "delete": "Eliminar",
+    "empty": "Aún no hay diseños guardados.",
+    "broken": "No se pudo leer el diseño guardado."
+  },
+  "onboarding": {
+    "title": "Bienvenido a G3MStudio",
+    "heading": "Bienvenido a G3MStudio",
+    "body": "G3MStudio edita juegos de GameMaker: sprites, salas, código, sonidos y más. También crea mods y parches. Todo se puede cambiar después.",
+    "language": "Idioma",
+    "detected": "Detectado",
+    "start": "Empezar",
+    "skip": "Omitir configuración",
+    "later": "Puedes cambiar el idioma más tarde en Configuración > Apariencia y volver a abrir esta ventana desde Ayuda > Primeros pasos."
   },
   "particles": {
     "restart": "Reiniciar",

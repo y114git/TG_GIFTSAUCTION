@@ -25,6 +25,9 @@
     "room": "Room",
     "sprite": "Sprite",
     "sub": {
+      "window": {
+        "layout": "Layout"
+      },
       "view": {
         "language": "Language",
         "panel": "Panels"
@@ -32,6 +35,12 @@
     }
   },
   "cmd": {
+    "window": {
+      "layout": {
+        "reset": "Reset Layout",
+        "saved": "Saved Layouts..."
+      }
+    },
     "file": {
       "open": "Open...",
       "openRecent": "Open Recent",
@@ -98,6 +107,7 @@
       "open": "Settings"
     },
     "help": {
+      "gettingStarted": "Getting Started...",
       "about": "About G3MStudio",
       "documentation": "Documentation",
       "checkUpdates": "Check for Updates..."
@@ -532,6 +542,25 @@
     "add": "Add moment",
     "actionCode": "Code entry name",
     "addAction": "Add action"
+  },
+  "layouts": {
+    "title": "Saved layouts",
+    "name": "Layout name",
+    "save": "Save current layout",
+    "load": "Load",
+    "delete": "Delete",
+    "empty": "No saved layouts yet.",
+    "broken": "The saved layout could not be read."
+  },
+  "onboarding": {
+    "title": "Welcome to G3MStudio",
+    "heading": "Welcome to G3MStudio",
+    "body": "G3MStudio edits GameMaker games: sprites, rooms, code, sounds and more. It also builds mods and patches. Every choice can be changed later.",
+    "language": "Language",
+    "detected": "Detected",
+    "start": "Get Started",
+    "skip": "Skip Setup",
+    "later": "You can change the language later in Settings > Appearance, and open this window again from Help > Getting Started."
   },
   "particles": {
     "restart": "Restart",

@@ -158,7 +158,7 @@ public sealed class ScreenshotTests
                 host.CreateTemplate("Sample Plugin");
                 host.Load();
                 var room = workspace.Data.Rooms.OrderByDescending(r => RoomInstanceCommand.Lists(r).Sum(l => l.Count)).First();
-                Window[] tools = [new StringsWindow(workspace), new PluginsWindow(host, (_, _) => Task.FromResult(true)), new CreationOrderWindow(room, workspace)];
+                Window[] tools = [new StringsWindow(workspace), new PluginsWindow(host, (_, _) => Task.FromResult(true)), new CreationOrderWindow(room, workspace), new OnboardingWindow([.. Localization.Loc.Current.Languages], "en", "ru", _ => { }, () => { }), new LayoutsWindow(() => ["Wide editor", "Debug"], _ => { }, _ => { }, _ => { })];
                 foreach (var tool in tools)
                 {
                     tool.Show();
