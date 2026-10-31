@@ -136,6 +136,38 @@ public sealed class MaskTests
     }
 
     [Fact]
+    public async Task DraggingAKeyframeOnTheTimelineMovesItsKeyAsOneUndoableEdit()
+    {
+        var folder = Environment.GetEnvironmentVariable("G3MSTUDIO_CORPUS_DIR");
+        Assert.SkipWhen(string.IsNullOrEmpty(folder) || !Directory.Exists(folder), "G3MSTUDIO_CORPUS_DIR is not set");
+        foreach (var file in Directory.EnumerateFiles(folder, "data.win", SearchOption.AllDirectories))
+        {
+            using var dir = new TempDir();
+            var userData = new UserData(dir.File("user"));
+            using var workspace = await new WorkspaceService(userData, RecentFiles.Load(userData)).OpenAsync(file, cancellationToken: TestContext.Current.CancellationToken);
+            var sequence = workspace.Data.Sequences?.FirstOrDefault(q => q.Tracks?.Count > 0 && new Editor.SequenceTimelineView(q).Rows.Any(r => r.Frames.Count > 0 && r.Path.StartsWith("Tracks[", StringComparison.Ordinal)));
+            if (sequence is null) continue;
+            await HeadlessApp.Run(() =>
+            {
+                var view = new Editor.SequenceTimelineView(sequence, workspace);
+                var row = view.Rows.Select((r, i) => (r, i)).First(x => x.r.Frames.Count > 0 && x.r.Path.StartsWith("Tracks[", StringComparison.Ordinal));
+                var frame = row.r.Frames[0];
+                var before = (int)Math.Round(frame.Key);
+                Assert.True(view.Move(row.i, frame.Index, 3));
+                Assert.Equal(before + 3, (int)Math.Round(PropertyModel.ReadRaw(sequence, $"{row.r.Path}[{frame.Index}].Key") is float key ? key : -1));
+                Assert.Single(workspace.History.Items);
+                workspace.Undo();
+                Assert.Equal(before, (int)Math.Round((float)PropertyModel.ReadRaw(sequence, $"{row.r.Path}[{frame.Index}].Key")!));
+                Assert.False(view.Move(row.i, frame.Index, 0));
+                return Task.CompletedTask;
+            });
+            return;
+        }
+
+        Assert.Skip("No sequence track with keyframes in the corpus.");
+    }
+
+    [Fact]
     public async Task LockingTheSpriteOriginMakesTheOriginBoxesReadOnly()
     {
         var folder = Environment.GetEnvironmentVariable("G3MSTUDIO_CORPUS_DIR");

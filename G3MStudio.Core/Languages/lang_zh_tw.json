@@ -334,6 +334,7 @@
     "reset": "重設",
     "restore": "還原預設值",
     "restoreTip": "將所選區段的設定還原為預設值。",
+    "reduceMotion": "減少動態效果（預覽保持靜止）",
     "profilesNote": "所選的執行設定檔會依資料檔案分別記住。",
     "shortcutShared": "{shortcut} 也被以下命令使用：{commands}。",
     "addFont": "新增字型檔案...",

@@ -44,6 +44,7 @@ public partial class MainWindow
         var s = Workspaces.Settings.Current;
         if (s.Language != Loc.Current.Language && Loc.Current.Languages.ContainsKey(s.Language)) Loc.Current.SetLanguage(s.Language);
         Classes.Set("compact", s.CompactDensity);
+        Editor.UiMotion.Set(s.ReduceMotion);
         ZoomFactor = s.UiScale / 100.0;
         ZoomHost.LayoutTransform = new ScaleTransform(ZoomFactor, ZoomFactor);
         if (s.FontFamily.Length > 0) FontFamily = Fonts.Resolve(s.FontFamily) ?? new FontFamily(s.FontFamily); else ClearValue(FontFamilyProperty);

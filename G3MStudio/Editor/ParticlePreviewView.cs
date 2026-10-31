@@ -37,7 +37,7 @@ public sealed class ParticlePreviewView : StackPanel
 
     private sealed class ParticleCanvas : Control
     {
-        private const int QuietSteps = 45;
+        private const int QuietSteps = 45, StillSteps = 40;
 
         private readonly GameMakerParticleSystem _system;
         private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromMilliseconds(16) };
@@ -50,16 +50,40 @@ public sealed class ParticlePreviewView : StackPanel
             Height = 280;
             ClipToBounds = true;
             _timer.Tick += (_, _) => Advance();
-            AttachedToVisualTree += (_, _) => _timer.Start();
-            DetachedFromVisualTree += (_, _) => _timer.Stop();
+            AttachedToVisualTree += (_, _) =>
+            {
+                UiMotion.Changed += Retime;
+                Retime();
+            };
+            DetachedFromVisualTree += (_, _) =>
+            {
+                UiMotion.Changed -= Retime;
+                _timer.Stop();
+            };
         }
 
         public ParticleSimulation Simulation { get; private set; }
+
+        /// <summary>With Reduce motion on the preview does not run: it shows the system as it looks after a short while.</summary>
+        private void Retime()
+        {
+            if (UiMotion.Reduced)
+            {
+                _timer.Stop();
+                Restart();
+            }
+            else
+            {
+                _timer.Start();
+            }
+        }
 
         public void Restart()
         {
             Simulation = new ParticleSimulation(_system);
             _quiet = 0;
+            if (UiMotion.Reduced)
+                for (var i = 0; i < StillSteps; i++) Simulation.Step();
             InvalidateVisual();
         }
 

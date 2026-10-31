@@ -334,6 +334,7 @@
     "reset": "Reset",
     "restore": "Restore defaults",
     "restoreTip": "Resets the settings of the selected section.",
+    "reduceMotion": "Reduce motion (previews stand still)",
     "profilesNote": "The run profile you pick is remembered for each data file.",
     "shortcutShared": "{shortcut} is also used by: {commands}.",
     "addFont": "Add font file...",

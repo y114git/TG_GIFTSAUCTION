@@ -74,6 +74,41 @@ public sealed class ParticleTests
     }
 
     [Fact]
+    public async Task ReduceMotionMakesThePreviewAStillPictureAndTheSettingIsStored()
+    {
+        var emitter = new GameMakerParticleSystemEmitter { Name = new GameMakerString("e"), EmitCount = 3, LifetimeMin = 500, LifetimeMax = 500 };
+        using var system = SystemOf(emitter);
+        await HeadlessApp.Run(() =>
+        {
+            try
+            {
+                var moving = new Editor.ParticlePreviewView(system);
+                var window = new Avalonia.Controls.Window { Content = moving };
+                window.Show();
+                Assert.Equal(0, moving.Simulation.Steps); // a moving preview starts empty and steps with its timer
+                window.Close();
+
+                Editor.UiMotion.Set(true);
+                var still = new Editor.ParticlePreviewView(system);
+                var second = new Avalonia.Controls.Window { Content = still };
+                second.Show();
+                Assert.True(still.Simulation.Steps >= 40 && still.Simulation.Count > 0);
+                var shown = still.Simulation.Steps;
+                Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+                Assert.Equal(shown, still.Simulation.Steps);
+                second.Close();
+            }
+            finally
+            {
+                Editor.UiMotion.Set(false);
+            }
+
+            return Task.CompletedTask;
+        });
+        Assert.False(new Core.Settings.AppSettings().ReduceMotion);
+    }
+
+    [Fact]
     public async Task EveryParticleSystemOfARealGameRunsWithinTheLimit()
     {
         var folder = Environment.GetEnvironmentVariable("G3MSTUDIO_CORPUS_DIR");

@@ -239,6 +239,8 @@ public sealed class SettingsPage : UserControl
         var codeNumbers = new CheckBox { Name = "CodeLineNumbers", Tag = Loc.Current["settings.codeLineNumbers"], Content = Loc.Current["settings.codeLineNumbers"], IsChecked = s.CodeLineNumbers };
         codeNumbers.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { CodeLineNumbers = codeNumbers.IsChecked == true }); };
 
+        var reduce = new CheckBox { Name = "ReduceMotion", Tag = Loc.Current["settings.reduceMotion"], Content = Loc.Current["settings.reduceMotion"], IsChecked = s.ReduceMotion };
+        reduce.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { ReduceMotion = reduce.IsChecked == true }); };
         var compact = new CheckBox { Name = "CompactDensity", Tag = Loc.Current["settings.compact"], Content = Loc.Current["settings.compact"], IsChecked = s.CompactDensity };
         compact.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { CompactDensity = compact.IsChecked == true }); };
 
@@ -294,7 +296,7 @@ public sealed class SettingsPage : UserControl
         var d = new AppSettings();
         Func<AppSettings, AppSettings>[] resets =
         [
-            x => x with { UiScale = d.UiScale, FontFamily = d.FontFamily, FontWeight = d.FontWeight, CompactDensity = d.CompactDensity },
+            x => x with { UiScale = d.UiScale, FontFamily = d.FontFamily, FontWeight = d.FontWeight, CompactDensity = d.CompactDensity, ReduceMotion = d.ReduceMotion },
             x => x with { Colors = d.Colors },
             x => x with { CodeFontSize = d.CodeFontSize, CodeWordWrap = d.CodeWordWrap, CodeLineNumbers = d.CodeLineNumbers },
             x => x with { BackupCount = d.BackupCount, AskOnClose = d.AskOnClose },
@@ -327,6 +329,7 @@ public sealed class SettingsPage : UserControl
                 Row("settings.fontFamily", family),
                 Row("settings.fontWeight", weight),
                 compact,
+                reduce,
                 FontFiles(),
                 Heading("settings.colors"),
                 Colors(),

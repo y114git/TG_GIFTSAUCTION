@@ -334,6 +334,7 @@
     "reset": "Restablecer",
     "restore": "Restaurar valores predeterminados",
     "restoreTip": "Restablece la configuración de la sección elegida.",
+    "reduceMotion": "Reducir movimiento (las vistas previas no se mueven)",
     "profilesNote": "El perfil de ejecución que elijas se recuerda para cada archivo de datos.",
     "shortcutShared": "{shortcut} también lo usan: {commands}.",
     "addFont": "Añadir archivo de fuente...",

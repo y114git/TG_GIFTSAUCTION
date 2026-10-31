@@ -54,6 +54,9 @@ public sealed record AppSettings
     /// <summary>Tighter rows, buttons and boxes, for more on screen.</summary>
     public bool CompactDensity { get; init; }
 
+    /// <summary>Previews stand still instead of moving.</summary>
+    public bool ReduceMotion { get; init; }
+
     /// <summary>Size of the text in code tabs, 8 to 32.</summary>
     public int CodeFontSize { get; init; } = 13;
 

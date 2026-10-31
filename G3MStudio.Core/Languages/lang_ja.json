@@ -334,6 +334,7 @@
     "reset": "リセット",
     "restore": "既定値に戻す",
     "restoreTip": "選択中のセクションの設定を既定値にします。",
+    "reduceMotion": "動きを減らす（プレビューを静止させる）",
     "profilesNote": "選んだ実行プロファイルは、データファイルごとに記憶されます。",
     "shortcutShared": "{shortcut} は次でも使用されています: {commands}。",
     "addFont": "フォントファイルを追加...",
