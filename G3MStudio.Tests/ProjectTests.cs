@@ -47,12 +47,12 @@ public sealed class ProjectTests
         var session = new Session(dir);
         var path = TestData.WriteSample(dir, objects: 3, withCode: true);
         var workspace = await session.Open(path);
-        var counts = new List<BatchProgress>();
+        var counts = new System.Collections.Concurrent.ConcurrentQueue<BatchProgress>(); // reports arrive from parallel workers
         Assert.True(session.Service.Projects.Registry.NeedsLocationQuestion);
         await Assert.ThrowsAsync<InvalidOperationException>(() => session.Service.Projects.EnableAsync(workspace, cancellationToken: TestContext.Current.CancellationToken));
 
 #pragma warning disable CA2025 // awaited below, before the workspace goes
-        var enabling = session.Service.Projects.EnableAsync(workspace, session.Root, remember: true, new SyncProgress<BatchProgress>(counts.Add), cancellationToken: TestContext.Current.CancellationToken);
+        var enabling = session.Service.Projects.EnableAsync(workspace, session.Root, remember: true, new SyncProgress<BatchProgress>(counts.Enqueue), cancellationToken: TestContext.Current.CancellationToken);
 #pragma warning restore CA2025
         Assert.False(workspace.Edit(Code("return 5;")));
         Assert.False(workspace.Edit(new RenameResourceCommand("objects", "obj_9", "x")));
