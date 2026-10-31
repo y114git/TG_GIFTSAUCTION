@@ -1,0 +1,676 @@
+{
+  "metadata": {
+    "language": "english",
+    "language_name": "English"
+  },
+  "app": {
+    "title": "G3MStudio",
+    "welcome": "Open a game data file to start.",
+    "ready": "Ready",
+    "language": "Language: {name}",
+    "openFailed": "Could not open '{name}': {reason}",
+    "recovered": "Recovered {count} unsaved edits"
+  },
+  "menu": {
+    "plugins": "Plugins",
+    "file": "File",
+    "edit": "Edit",
+    "view": "View",
+    "window": "Window",
+    "project": "Project",
+    "tools": "Tools",
+    "help": "Help",
+    "mods": "Mods",
+    "run": "Run",
+    "room": "Room",
+    "sprite": "Sprite",
+    "sub": {
+      "view": {
+        "language": "Language",
+        "panel": "Panels"
+      }
+    }
+  },
+  "cmd": {
+    "file": {
+      "open": "Open...",
+      "openRecent": "Open Recent",
+      "save": "Save",
+      "saveAs": "Save As...",
+      "close": "Close",
+      "exit": "Exit",
+      "saveCopy": "Save a Copy...",
+      "revert": "Revert to Saved...",
+      "exportSelection": "Export Selected Resource...",
+      "exportAll": "Export Everything...",
+      "import": "Import Resources..."
+    },
+    "edit": {
+      "undo": "Undo",
+      "redo": "Redo",
+      "rename": "Rename...",
+      "selectAll": "Select All",
+      "find": "Find",
+      "findInCode": "Find in Code...",
+      "findUsages": "Find Usages",
+      "replaceFrame": "Replace Sprite Frame...",
+      "duplicateFrame": "Duplicate Sprite Frame",
+      "removeFrame": "Remove Sprite Frame",
+      "recalculateMask": "Recalculate Collision Mask",
+      "importMask": "Import Mask...",
+      "exportMask": "Export Mask..."
+    },
+    "view": {
+      "commandPalette": "Command Palette...",
+      "fullscreen": "Toggle Full Screen",
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out",
+      "zoomReset": "Reset Zoom",
+      "language": {
+        "en": "Language: English",
+        "ru": "Language: Russian",
+        "es": "Language: Español",
+        "ja": "Language: 日本語",
+        "ko": "Language: 한국어",
+        "zh_cn": "Language: 简体中文",
+        "zh_tw": "Language: 繁體中文"
+      }
+    },
+    "project": {
+      "enable": "Enable Project",
+      "sync": "Sync to Data File",
+      "options": "Project Settings...",
+      "moveDataFile": "Change Data File Location...",
+      "disable": "Disable Project...",
+      "resolve": "Resolve Outside Changes..."
+    },
+    "tabs": {
+      "close": "Close Tab",
+      "closeAll": "Close All Tabs",
+      "pin": "Pin Tab",
+      "keepOpen": "Keep Tab Open",
+      "splitRight": "Split Right"
+    },
+    "go": {
+      "quickOpen": "Go to Resource..."
+    },
+    "settings": {
+      "open": "Settings"
+    },
+    "help": {
+      "about": "About G3MStudio",
+      "documentation": "Documentation",
+      "checkUpdates": "Check for Updates..."
+    },
+    "mods": {
+      "createPatch": "Create Patch...",
+      "applyPatch": "Apply Patch...",
+      "validatePatch": "Validate Patch...",
+      "mergePatches": "Merge Patches...",
+      "compareFiles": "Compare Data Files...",
+      "exportMod": "Export as Mod ZIP..."
+    },
+    "run": {
+      "game": "Run Game",
+      "stop": "Stop Game"
+    },
+    "room": {
+      "play": "Play This Room",
+      "creationOrder": "Instance Creation Order...",
+      "exportTiles": "Export Tiles as CSV...",
+      "importTiles": "Import Tiles From CSV...",
+      "savePng": "Save Room as PNG..."
+    },
+    "tools": {
+      "plugins": "Plugins...",
+      "strings": "Strings...",
+      "runScript": "Run Script...",
+      "repackTextures": "Repack Texture Pages..."
+    }
+  },
+  "palette": {
+    "title": "Command Palette",
+    "placeholder": "Type a command",
+    "empty": "No results for '{text}'."
+  },
+  "start": {
+    "open": "Open Data File...",
+    "recent": "Recent",
+    "empty": "No recent files.",
+    "drop": "Drop a data file here to open it.",
+    "missing": "File not found",
+    "opened": "Opened {time}",
+    "remove": "Remove",
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "clear": "Clear Recently Opened"
+  },
+  "explorer": {
+    "filter": "Filter resources...",
+    "count": "{count} resources",
+    "matches": "{matches} of {total}",
+    "noMatch": "No resources match '{filter}'.",
+    "opening": "Opening {name}... {percent}%",
+    "cancel": "Cancel",
+    "type": {
+      "general": "Game",
+      "sprites": "Sprites",
+      "tileSets": "Tile Sets",
+      "sounds": "Sounds",
+      "paths": "Paths",
+      "scripts": "Scripts",
+      "shaders": "Shaders",
+      "fonts": "Fonts",
+      "timelines": "Timelines",
+      "objects": "Objects",
+      "rooms": "Rooms",
+      "extensions": "Extensions",
+      "sequences": "Sequences",
+      "animationCurves": "Animation Curves",
+      "particleSystems": "Particle Systems",
+      "code": "Code",
+      "strings": "Strings",
+      "variables": "Variables",
+      "functions": "Functions",
+      "codeLocals": "Code Locals",
+      "texturePageItems": "Texture Page Items",
+      "embeddedTextures": "Embedded Textures",
+      "embeddedImages": "Embedded Images",
+      "embeddedAudio": "Embedded Audio",
+      "textureGroups": "Texture Groups",
+      "audioGroups": "Audio Groups",
+      "filterEffects": "Filter Effects",
+      "data": "Data"
+    }
+  },
+  "project": {
+    "state": {
+      "synced": "Synced",
+      "syncing": "Syncing...",
+      "exporting": "Exporting project...",
+      "notSynced": "{count} changes not synced to data file",
+      "changed": "Data file changed outside",
+      "enable": "Enable project"
+    },
+    "offer": "Keep a full copy of this game's resources in a project, with history?",
+    "enable": {
+      "button": "Enable project",
+      "action": "Enable project"
+    },
+    "location": {
+      "title": "Projects folder",
+      "label": "Where should projects be saved?",
+      "remember": "Remember this choice",
+      "browse": "Browse..."
+    },
+    "exporting": "Exporting {name}... {done} of {total} resources",
+    "cancelled": "Project export cancelled. Nothing was kept.",
+    "warnings": "The project was created, but {count} problems were reported. First: {first}",
+    "created": "Project created for {name}.",
+    "createFailed": "Could not create the project: {reason}",
+    "already": "This data file already has a project.",
+    "none": "Enable a project first.",
+    "writeFailed": "Could not write the project: {reason}",
+    "queueFailed": "A queued edit could not be applied: {reason}",
+    "settings": {
+      "title": "Project settings",
+      "autosave": "Autosave to the project",
+      "autosync": "Autosync to the data file",
+      "seconds": "seconds"
+    },
+    "trigger": {
+      "Off": "Off",
+      "AfterDelay": "After a delay",
+      "OnFocusLoss": "When the window loses focus",
+      "OnSave": "On save"
+    },
+    "move": {
+      "title": "Data file location",
+      "path": "New location",
+      "move": "Move",
+      "copy": "Copy",
+      "recreate": "Recreate from project",
+      "done": "Data file is now at {path}",
+      "failed": "Could not change the location: {reason}"
+    },
+    "disable": {
+      "title": "Disable project",
+      "message": "Keep the project (archived, it can be enabled again) or delete it to free disk space? The data file is not touched.",
+      "keep": "Keep project",
+      "delete": "Delete project"
+    },
+    "working": "Working on {name}...",
+    "merged": "Merged the outside changes into {name}.",
+    "mergeFailed": "Could not merge the outside changes: {reason}",
+    "external": {
+      "title": "Data file changed outside",
+      "message": "{name} was changed by another program since the project was last synced. Bring its changes into the project, replace the data file with the project, or keep both apart?",
+      "bring": "Bring changes in",
+      "overwrite": "Replace data file with project",
+      "keepBoth": "Keep both (archive the project)",
+      "later": "Decide later"
+    },
+    "conflicts": {
+      "title": "Resolve conflicts",
+      "message": "These resources changed in the project and in the data file. Choose the version to keep for each.",
+      "ours": "Keep project version",
+      "theirs": "Use data file version",
+      "apply": "Merge"
+    },
+    "rebuild": {
+      "title": "Data file cannot be opened",
+      "message": "{name} is missing or damaged, but it has a project. Build it again from the project?",
+      "button": "Rebuild from project",
+      "base": "Choose a copy of the game's data file to build on"
+    },
+    "rebuildFailed": "Could not rebuild the data file: {reason}"
+  },
+  "history": {
+    "start": "Opened state",
+    "rename": "Rename {old} to {new}",
+    "code": "Apply code to {entry}"
+  },
+  "rename": {
+    "title": "Rename",
+    "label": "New name for {name}",
+    "ok": "Rename"
+  },
+  "code": {
+    "apply": "Apply",
+    "revert": "Revert",
+    "decompiling": "Decompiling...",
+    "failed": "Could not save the code of '{entry}': {reason}",
+    "notApplied": "the text does not compile",
+    "showFailed": "Could not show the code of '{entry}': {reason}"
+  },
+  "notify": {
+    "button": "Notifications ({count})"
+  },
+  "prompt": {
+    "title": "Unsaved changes",
+    "direct": "{name} has {count} unsaved changes. Save them, or keep them in the journal for later?",
+    "project": "{name} has {count} changes that are not in the data file. Sync them, or keep them in the journal for later?",
+    "save": "Save",
+    "sync": "Sync changes",
+    "later": "Do it later"
+  },
+  "editor": {
+    "empty": "Nothing open. Press Ctrl+P to find a resource, or double-click one in the Explorer."
+  },
+  "save": {
+    "done": "Saved {name}",
+    "locked": "Could not save '{name}': the file is in use by {holder}. Your edits are kept.",
+    "lockedUnknown": "Could not save '{name}': the file is in use by another program. Your edits are kept.",
+    "invalid": "Could not save '{name}'. The written file did not match the model ({detail}). The original is untouched.",
+    "failed": "Could not save '{name}': {reason}",
+    "moveWithProject": "Move the data file of a project through Project > Data File Location."
+  },
+  "quick": {
+    "title": "Go to Resource",
+    "placeholder": "Type a resource or code name (spr: obj: scr: ...)"
+  },
+  "settings": {
+    "title": "Settings",
+    "close": "Close",
+    "default": "Default",
+    "appearance": "Appearance",
+    "language": "Language",
+    "scale": "Interface scale",
+    "fontFamily": "Font family (empty uses the theme font)",
+    "fontWeight": "Font weight",
+    "files": "Files",
+    "backups": "Backups of the data file (1 to 3)",
+    "askOnClose": "Ask before closing with unsaved changes",
+    "location": "Projects folder",
+    "projects": "Projects",
+    "autosave": "Autosave to the project",
+    "autosync": "Autosync to the data file",
+    "projectsNote": "These are the defaults for new projects; changing them also changes the open project.",
+    "shortcuts": "Keyboard shortcuts",
+    "shortcutFilter": "Filter commands or shortcuts",
+    "pressKeys": "Press the keys...",
+    "noShortcut": "None",
+    "reset": "Reset",
+    "shortcutShared": "{shortcut} is also used by: {commands}.",
+    "addFont": "Add font file...",
+    "removeFont": "Remove",
+    "fontFiles": "Font files",
+    "notAFont": "{file} is not a font file.",
+    "search": "Search settings",
+    "run": "Run",
+    "runRunner": "Runner (empty runs the game executable next to the data file)",
+    "runArguments": "Extra arguments",
+    "runDebugOutput": "Write the game log (-debugoutput)",
+    "profiles": "Run profile",
+    "profileName": "Profile name",
+    "profileSave": "Save as profile",
+    "profileDelete": "Delete profile",
+    "colors": "Colors",
+    "editor": "Code editor",
+    "codeFontSize": "Text size",
+    "codeWordWrap": "Wrap long lines",
+    "codeLineNumbers": "Show line numbers",
+    "themeExport": "Export theme...",
+    "themeImport": "Import theme...",
+    "themeBad": "The theme file was not used: {reason}",
+    "compact": "Compact density (more on screen)"
+  },
+  "git": {
+    "noProject": "Git tracks the project folder. Enable the project for this data file to use Git.",
+    "notInstalled": "Git is not installed or not on the PATH.",
+    "notRepository": "This project is not a Git repository.",
+    "init": "Initialize Repository",
+    "message": "Commit message",
+    "commit": "Commit",
+    "stageAll": "Stage All",
+    "unstageAll": "Unstage All",
+    "refresh": "Refresh",
+    "clean": "No changes.",
+    "failed": "Git: {reason}",
+    "lfs": "{count} large audio or image files found, for example {first}. Git LFS keeps the repository small.",
+    "newBranchName": "New branch name",
+    "newBranch": "New Branch",
+    "fetch": "Fetch",
+    "pull": "Pull",
+    "push": "Push",
+    "remoteUrl": "Remote address (URL or folder)",
+    "addRemote": "Add Remote",
+    "aheadBehind": "{ahead} ahead, {behind} behind",
+    "newFile": "New file, not tracked yet."
+  },
+  "properties": {
+    "filter": "Filter properties",
+    "refused": "{path}: {reason}",
+    "missing": "{name} was not found in this data file."
+  },
+  "about": {
+    "title": "About G3MStudio",
+    "copy": "Copy Version Info"
+  },
+  "search": {
+    "placeholder": "Find in code",
+    "case": "Match case",
+    "regex": "Regular expression",
+    "run": "Search",
+    "progress": "Searching... {done} of {total} entries",
+    "done": "{hits} matches in {entries} entries.",
+    "failed": "{count} entries could not be read and were skipped.",
+    "cancelled": "Search cancelled.",
+    "badPattern": "This pattern is not valid: {reason}",
+    "timeout": "The pattern takes too long on a line. Make it simpler."
+  },
+  "usages": {
+    "searching": "Looking for uses of {name}...",
+    "found": "{name} is used in {count} places.",
+    "none": "{name} is not used anywhere.",
+    "failed": "Could not search for {name}: {reason}"
+  },
+  "help": {
+    "noBrowser": "No browser could be started. Open {url} yourself."
+  },
+  "transfer": {
+    "pickExport": "Folder to export to",
+    "pickImport": "Folder to import from",
+    "unsupported": "{type} cannot be exported as files.",
+    "needsSave": "Save or revert your unsaved changes before importing, so the import does not mix with them.",
+    "noFolders": "{folder} holds no resource folders such as Sprites or GameObjects.",
+    "confirmTitle": "Please confirm",
+    "confirmImport": "Import {folders} from {folder}? The open data file changes in memory and this cannot be undone. Save to keep it, or Revert to Saved to drop it.",
+    "ok": "Ok",
+    "exportDone": "Exported to {folder}.",
+    "importDone": "Imported from {folder}. This cannot be undone: Save to keep it, or Revert to Saved.",
+    "summary": "{written} written, {skipped} skipped, {warnings} warnings, {failed} failed.",
+    "cancelledExport": "Export cancelled. Nothing was kept.",
+    "cancelledImport": "Import cancelled. The open data file holds part of it: Revert to Saved to start over.",
+    "failed": "The operation failed: {reason}",
+    "nothingToRevert": "There are no unsaved changes.",
+    "revertTitle": "Revert to Saved",
+    "confirmRevert": "Drop {count} unsaved changes of {name} and load the file again?"
+  },
+  "mods": {
+    "pickOriginal": "Original data file (the one the patch applies to)",
+    "pickData": "Data file to patch",
+    "pickPatch": "Patch file",
+    "pickPatchOut": "Save the patch as",
+    "pickDataOut": "Save the patched data file as",
+    "needsSave": "Save your changes first: the patch is made from the file on disk.",
+    "sameFile": "The output must be a different file from the one it is made from.",
+    "creating": "Creating patch",
+    "applying": "Applying patch",
+    "validating": "Checking patch",
+    "created": "Patch saved to {path}.",
+    "applied": "Patched data file saved to {path}.",
+    "valid": "{name} is a valid patch.",
+    "failed": "{what} failed: {reason}",
+    "cancelled": "Cancelled.",
+    "unknownError": "unknown error",
+    "pickPatches": "Patches to merge (two or more, made from the same original)",
+    "needTwo": "Choose at least two patches to merge.",
+    "merging": "Merging patches",
+    "merged": "Merged patch saved to {path}: {merged} changes merged automatically, {conflicts} conflicts.",
+    "pickReport": "Save the report as",
+    "comparing": "Comparing data files",
+    "compared": "Report saved to {path}: {count} differences.",
+    "pickModOut": "Save the mod as",
+    "packaging": "Packaging mod",
+    "packaged": "Mod saved to {path}. Edit its mod_config.json to set authors and the game id."
+  },
+  "sprites": {
+    "pickPicture": "Picture for the frame",
+    "noSprite": "Open a sprite and click the frame to replace.",
+    "noMask": "This sprite has no collision mask.",
+    "pickMask": "Choose a mask picture",
+    "pickMaskSave": "Save the mask as",
+    "maskImported": "Mask {index} of {sprite} was imported.",
+    "maskExported": "Mask {index} of {sprite} was saved to {path}.",
+    "badPicture": "{name} is not a picture that can be read: {reason}",
+    "replaced": "Frame {frame} of {sprite} replaced.",
+    "lastFrame": "A sprite needs at least one frame.",
+    "maskDone": "Collision mask of {sprite} rebuilt from its frames."
+  },
+  "run": {
+    "noRunner": "The game was not found next to {file}. Put the game executable in the same folder.",
+    "running": "The game is already running.",
+    "starting": "Starting {name}...",
+    "started": "{name} is running.",
+    "exited": "{name} exited with code {code}.",
+    "notRunning": "No game is running.",
+    "failed": "Could not start the game: {reason}",
+    "roomWarning": "Starting at room {room}: the game opens there directly, so anything an earlier room sets up (globals, saved state, persistent objects) is missing and the game may fail or look wrong. A room that is not in the room order cannot be started this way.",
+    "stopped": "Game stopped."
+  },
+  "update": {
+    "title": "Update",
+    "none": "G3MStudio {version} is the newest version.",
+    "ask": "G3MStudio {version} is available (you have {current}). Download it and restart to install?",
+    "failed": "The update failed: {reason}",
+    "notWritable": "the program folder cannot be written to; move G3MStudio to a folder you own",
+    "downloading": "Downloading G3MStudio {version}..."
+  },
+  "sounds": {
+    "play": "Play",
+    "info": "{kind} audio, {kb} KB, {seconds} s",
+    "outside": "This sound keeps its audio outside the data file ({file}).",
+    "noPlayer": "No program could play {path}. Open it yourself."
+  },
+  "strings": {
+    "kindName": "name",
+    "kindText": "text",
+    "uses": "Used in {count} places; changing the text changes all of them. To change one use only, edit that property in its own tab.",
+    "title": "Strings",
+    "filter": "Filter strings...",
+    "regex": "Regex",
+    "apply": "Change text",
+    "count": "{shown} of {total} strings"
+  },
+  "fonts": {
+    "glyphFilter": "Filter by character, U+code or number...",
+    "glyphCount": "{count} glyphs",
+    "glyphNew": "U+code or character",
+    "glyphAdd": "Add glyph"
+  },
+  "paths": {
+    "speed": "Speed %",
+    "moveAll": "Move all"
+  },
+  "timelines": {
+    "moment": "Moment {number} step",
+    "remove": "Remove",
+    "add": "Add moment",
+    "actionCode": "Code entry name",
+    "addAction": "Add action"
+  },
+  "particles": {
+    "add": "Add emitter"
+  },
+  "scripts": {
+    "pick": "Choose a script (.csx)",
+    "title": "Run script",
+    "confirm": "Run {name}?\n\nA script can change anything in the data file and can read and write any file on this computer. The change cannot be undone; Revert to Saved is the way back. Only run scripts you trust.\n\nThis runs UndertaleModTool-style .csx scripts, but only part of that tool's functions exist here: Data, FilePath, ScriptPath, ScriptMessage, ScriptWarning, ScriptError and ScriptQuestion (answered yes). Scripts that need dialogs, the decompiler helpers or the UI stop with a compile error that names the missing function.",
+    "running": "Running {name}...",
+    "done": "{name} finished.",
+    "failed": "{name} failed: {reason}"
+  },
+  "sequences": {
+    "addGroup": "Add group track",
+    "newGroup": "Group"
+  },
+  "inspector": {
+    "none": "Select a resource in the Explorer.",
+    "uses": "Used in {count} places"
+  },
+  "plugins": {
+    "check": "Check for update",
+    "updateAvailable": "A newer version is available. Use Update from GitHub.",
+    "upToDate": "The plugin is up to date.",
+    "update": "Update from GitHub",
+    "noOrigin": "This plugin was not installed from GitHub, so there is nothing to update from.",
+    "installUrl": "Install From GitHub",
+    "badUrl": "Use an address like https://github.com/owner/repository.",
+    "installZip": "Install ZIP...",
+    "installFolder": "Install Folder...",
+    "installTitle": "Install plugin",
+    "trust": "Install '{name}' {version}?\n\nSource: {source}\nAuthors: {authors}\nPermissions it says it needs: {permissions}\n\nPlugins have full access to your computer, like scripts. Only install plugins you trust.",
+    "title": "Plugins",
+    "new": "New Plugin",
+    "reload": "Reload",
+    "reloadAll": "Reload All",
+    "openFolder": "Open Folder",
+    "enabled": "On",
+    "empty": "No plugins yet. Put a plugin folder in {folder}, or create one with New Plugin.",
+    "permissions": "Permissions",
+    "error": "Error",
+    "state": {
+      "Active": "Active",
+      "Disabled": "Turned off",
+      "Failed": "Failed to start"
+    }
+  },
+  "rooms": {
+    "addLayer": "Add",
+    "deleteLayer": "Delete",
+    "layerUp": "Up",
+    "layerDown": "Down",
+    "renameLayer": "Rename",
+    "tool": {
+      "None": "Select",
+      "Place": "Place",
+      "Paint": "Paint",
+      "Erase": "Erase",
+      "Fill": "Fill",
+      "Rectangle": "Rectangle",
+      "Pick": "Pick"
+    },
+    "inspector": {
+      "x": "X",
+      "y": "Y",
+      "scaleX": "Scale X",
+      "scaleY": "Scale Y",
+      "rotation": "Rotation",
+      "frame": "Frame",
+      "speed": "Speed",
+      "object": "Object",
+      "none": "No instance selected.",
+      "title": "Instance {id} ({count} selected)"
+    },
+    "layerProp": {
+      "depth": "Depth",
+      "xoffset": "X offset",
+      "yoffset": "Y offset",
+      "hspeed": "H speed",
+      "vspeed": "V speed"
+    },
+    "layerKind": {
+      "addInstances": "Instances",
+      "addAssets": "Assets",
+      "addBackground": "Background",
+      "addTiles": "Tiles"
+    },
+    "noRoom": "Open a room first.",
+    "fitTiles": "Resize tile grid",
+    "noTileLayer": "Select a tile layer with a tile set first.",
+    "pickCsv": "Choose a tile CSV",
+    "pickCsvSave": "Save the tiles as",
+    "tilesExported": "Tiles of {layer} in {room} were saved to {path}.",
+    "tilesImported": "{count} tiles of {layer} were changed.",
+    "tilesBad": "The tile CSV was not used: {reason}",
+    "snapped": "snapped",
+    "lock": "Lock",
+    "orderTitle": "Creation order",
+    "orderTop": "To top",
+    "orderEnd": "To end",
+    "orderNote": "Creation order does not decide the order of events.",
+    "orderUp": "Move up",
+    "orderDown": "Move down",
+    "pickPng": "Save the picture as",
+    "pngSaved": "Room {room} saved to {path}.",
+    "pngFailed": "Could not save the picture: {reason}",
+    "flagMirror": "Mirror",
+    "flagFlip": "Flip",
+    "flagRotate": "Rotate",
+    "placing": "Click in the room to place {name}.",
+    "placeNone": "Select an object or a sprite in the Explorer, then click in the room.",
+    "grid": "Grid",
+    "snap": "Snap",
+    "views": "Views",
+    "zoomOut": "Zoom out",
+    "zoomIn": "Zoom in",
+    "fit": "Fit",
+    "actual": "Actual size"
+  },
+  "textures": {
+    "title": "Repack texture pages",
+    "repacking": "Repacking texture pages",
+    "confirm": "The pages of every texture group would go from {before} to {after}. This cannot be undone: save to keep it, or revert to the saved file. Repack now?",
+    "done": "Repacked: pages went from {before} to {after}. Save to keep it, or revert to the saved file."
+  },
+  "panel": {
+    "explorer": "Explorer",
+    "search": "Search",
+    "inspector": "Inspector",
+    "problems": "Problems",
+    "output": "Output",
+    "usages": "Usages",
+    "history": "History",
+    "git": "Git"
+  },
+  "colors": {
+    "Accent": "Accent",
+    "Syntax": {
+      "Keyword": "Keyword",
+      "Function": "Function",
+      "Variable": "Variable",
+      "Constant": "Constant",
+      "Asset": "Asset",
+      "String": "String",
+      "Number": "Number",
+      "Comment": "Comment",
+      "Operator": "Operator",
+      "Preprocessor": "Preprocessor"
+    }
+  },
+  "empty": {
+    "problems": "No problems.",
+    "output": "Nothing has been reported yet."
+  }
+}

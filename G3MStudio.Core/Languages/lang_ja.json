@@ -1,0 +1,676 @@
+{
+  "metadata": {
+    "language": "japanese",
+    "language_name": "日本語"
+  },
+  "app": {
+    "title": "G3MStudio",
+    "welcome": "ゲームのデータファイルを開いて始めましょう。",
+    "ready": "準備完了",
+    "language": "言語: {name}",
+    "openFailed": "「{name}」を開けませんでした: {reason}",
+    "recovered": "未保存の編集を {count} 件復元しました"
+  },
+  "menu": {
+    "plugins": "プラグイン",
+    "file": "ファイル",
+    "edit": "編集",
+    "view": "ビュー",
+    "window": "ウィンドウ",
+    "project": "プロジェクト",
+    "tools": "ツール",
+    "help": "ヘルプ",
+    "mods": "Mod",
+    "run": "実行",
+    "room": "ルーム",
+    "sprite": "スプライト",
+    "sub": {
+      "view": {
+        "language": "言語",
+        "panel": "パネル"
+      }
+    }
+  },
+  "cmd": {
+    "file": {
+      "open": "開く...",
+      "openRecent": "最近使ったファイルを開く",
+      "save": "保存",
+      "saveAs": "名前を付けて保存...",
+      "close": "閉じる",
+      "exit": "終了",
+      "saveCopy": "コピーを保存...",
+      "revert": "保存済みの状態に戻す...",
+      "exportSelection": "選択したリソースをエクスポート...",
+      "exportAll": "すべてエクスポート...",
+      "import": "リソースをインポート..."
+    },
+    "edit": {
+      "undo": "元に戻す",
+      "redo": "やり直し",
+      "rename": "名前の変更...",
+      "selectAll": "すべて選択",
+      "find": "検索",
+      "findInCode": "コード内を検索...",
+      "findUsages": "使用箇所を検索",
+      "replaceFrame": "スプライトのフレームを置換...",
+      "duplicateFrame": "スプライトのフレームを複製",
+      "removeFrame": "スプライトのフレームを削除",
+      "recalculateMask": "衝突マスクを再計算",
+      "importMask": "マスクをインポート...",
+      "exportMask": "マスクをエクスポート..."
+    },
+    "view": {
+      "commandPalette": "コマンドパレット...",
+      "fullscreen": "全画面表示の切り替え",
+      "zoomIn": "拡大",
+      "zoomOut": "縮小",
+      "zoomReset": "ズームをリセット",
+      "language": {
+        "en": "言語: English",
+        "ru": "言語: Русский",
+        "es": "言語: Español",
+        "ja": "言語: 日本語",
+        "ko": "言語: 한국어",
+        "zh_cn": "言語: 简体中文",
+        "zh_tw": "言語: 繁體中文"
+      }
+    },
+    "project": {
+      "enable": "プロジェクトを有効にする",
+      "sync": "データファイルに同期",
+      "options": "プロジェクトの設定...",
+      "moveDataFile": "データファイルの場所を変更...",
+      "disable": "プロジェクトを無効にする...",
+      "resolve": "外部の変更を解決..."
+    },
+    "tabs": {
+      "close": "タブを閉じる",
+      "closeAll": "すべてのタブを閉じる",
+      "pin": "タブを固定",
+      "keepOpen": "タブを開いたままにする",
+      "splitRight": "右に分割"
+    },
+    "go": {
+      "quickOpen": "リソースへ移動..."
+    },
+    "settings": {
+      "open": "設定"
+    },
+    "help": {
+      "about": "G3MStudio について",
+      "documentation": "ドキュメント",
+      "checkUpdates": "アップデートを確認..."
+    },
+    "mods": {
+      "createPatch": "パッチを作成...",
+      "applyPatch": "パッチを適用...",
+      "validatePatch": "パッチを検証...",
+      "mergePatches": "パッチをマージ...",
+      "compareFiles": "データファイルを比較...",
+      "exportMod": "Mod ZIP としてエクスポート..."
+    },
+    "run": {
+      "game": "ゲームを実行",
+      "stop": "ゲームを停止"
+    },
+    "room": {
+      "play": "このルームをプレイ",
+      "creationOrder": "インスタンスの作成順...",
+      "exportTiles": "タイルを CSV にエクスポート...",
+      "importTiles": "CSV からタイルをインポート...",
+      "savePng": "ルームを PNG として保存..."
+    },
+    "tools": {
+      "plugins": "プラグイン...",
+      "strings": "文字列...",
+      "runScript": "スクリプトを実行...",
+      "repackTextures": "テクスチャページを再パック..."
+    }
+  },
+  "palette": {
+    "title": "コマンドパレット",
+    "placeholder": "コマンドを入力",
+    "empty": "「{text}」に一致する結果はありません。"
+  },
+  "start": {
+    "open": "データファイルを開く...",
+    "recent": "最近",
+    "empty": "最近使ったファイルはありません。",
+    "drop": "データファイルをここにドロップして開きます。",
+    "missing": "ファイルが見つかりません",
+    "opened": "{time} に開きました",
+    "remove": "削除",
+    "pin": "固定",
+    "unpin": "固定を解除",
+    "clear": "最近開いた項目を消去"
+  },
+  "explorer": {
+    "filter": "リソースを絞り込み...",
+    "count": "{count} 件のリソース",
+    "matches": "{total} 件中 {matches} 件",
+    "noMatch": "「{filter}」に一致するリソースはありません。",
+    "opening": "{name} を開いています... {percent}%",
+    "cancel": "キャンセル",
+    "type": {
+      "general": "ゲーム",
+      "sprites": "スプライト",
+      "tileSets": "タイルセット",
+      "sounds": "サウンド",
+      "paths": "パス",
+      "scripts": "スクリプト",
+      "shaders": "シェーダー",
+      "fonts": "フォント",
+      "timelines": "タイムライン",
+      "objects": "オブジェクト",
+      "rooms": "ルーム",
+      "extensions": "拡張機能",
+      "sequences": "シーケンス",
+      "animationCurves": "アニメーションカーブ",
+      "particleSystems": "パーティクルシステム",
+      "code": "コード",
+      "strings": "文字列",
+      "variables": "変数",
+      "functions": "関数",
+      "codeLocals": "コードのローカル変数",
+      "texturePageItems": "テクスチャページ項目",
+      "embeddedTextures": "埋め込みテクスチャ",
+      "embeddedImages": "埋め込み画像",
+      "embeddedAudio": "埋め込みオーディオ",
+      "textureGroups": "テクスチャグループ",
+      "audioGroups": "オーディオグループ",
+      "filterEffects": "フィルターエフェクト",
+      "data": "データ"
+    }
+  },
+  "project": {
+    "state": {
+      "synced": "同期済み",
+      "syncing": "同期中...",
+      "exporting": "プロジェクトをエクスポート中...",
+      "notSynced": "{count} 件の変更がデータファイルに未同期",
+      "changed": "データファイルが外部で変更されました",
+      "enable": "プロジェクトを有効にする"
+    },
+    "offer": "このゲームのリソースの完全なコピーを、履歴付きでプロジェクトに保持しますか?",
+    "enable": {
+      "button": "プロジェクトを有効にする",
+      "action": "プロジェクトを有効にする"
+    },
+    "location": {
+      "title": "プロジェクトフォルダー",
+      "label": "プロジェクトの保存先を選んでください。",
+      "remember": "この選択を記憶する",
+      "browse": "参照..."
+    },
+    "exporting": "{name} をエクスポート中... {done} / {total} 件のリソース",
+    "cancelled": "プロジェクトのエクスポートをキャンセルしました。何も保持されていません。",
+    "warnings": "プロジェクトを作成しましたが、{count} 件の問題が報告されました。最初の問題: {first}",
+    "created": "{name} のプロジェクトを作成しました。",
+    "createFailed": "プロジェクトを作成できませんでした: {reason}",
+    "already": "このデータファイルにはすでにプロジェクトがあります。",
+    "none": "先にプロジェクトを有効にしてください。",
+    "writeFailed": "プロジェクトを書き込めませんでした: {reason}",
+    "queueFailed": "待機中の編集を適用できませんでした: {reason}",
+    "settings": {
+      "title": "プロジェクトの設定",
+      "autosave": "プロジェクトへ自動保存",
+      "autosync": "データファイルへ自動同期",
+      "seconds": "秒"
+    },
+    "trigger": {
+      "Off": "オフ",
+      "AfterDelay": "一定時間後",
+      "OnFocusLoss": "ウィンドウがフォーカスを失ったとき",
+      "OnSave": "保存時"
+    },
+    "move": {
+      "title": "データファイルの場所",
+      "path": "新しい場所",
+      "move": "移動",
+      "copy": "コピー",
+      "recreate": "プロジェクトから再作成",
+      "done": "データファイルは {path} に移動しました",
+      "failed": "場所を変更できませんでした: {reason}"
+    },
+    "disable": {
+      "title": "プロジェクトを無効にする",
+      "message": "プロジェクトを保持しますか (アーカイブされ、再度有効にできます)。それとも削除してディスク容量を空けますか? データファイルには触れません。",
+      "keep": "プロジェクトを保持",
+      "delete": "プロジェクトを削除"
+    },
+    "working": "{name} を処理中...",
+    "merged": "外部の変更を {name} にマージしました。",
+    "mergeFailed": "外部の変更をマージできませんでした: {reason}",
+    "external": {
+      "title": "データファイルが外部で変更されました",
+      "message": "前回のプロジェクト同期以降に、別のプログラムが {name} を変更しました。その変更をプロジェクトに取り込みますか、データファイルをプロジェクトで置き換えますか、それとも両方を別々に保持しますか?",
+      "bring": "変更を取り込む",
+      "overwrite": "データファイルをプロジェクトで置き換える",
+      "keepBoth": "両方を保持 (プロジェクトをアーカイブ)",
+      "later": "後で決める"
+    },
+    "conflicts": {
+      "title": "競合を解決",
+      "message": "これらのリソースはプロジェクトとデータファイルの両方で変更されました。それぞれ残す版を選んでください。",
+      "ours": "プロジェクト版を残す",
+      "theirs": "データファイル版を使う",
+      "apply": "マージ"
+    },
+    "rebuild": {
+      "title": "データファイルを開けません",
+      "message": "{name} が見つからないか破損していますが、プロジェクトがあります。プロジェクトから再構築しますか?",
+      "button": "プロジェクトから再構築",
+      "base": "ベースにするゲームのデータファイルのコピーを選んでください"
+    },
+    "rebuildFailed": "データファイルを再構築できませんでした: {reason}"
+  },
+  "history": {
+    "start": "開いた時点の状態",
+    "rename": "{old} を {new} に名前変更",
+    "code": "{entry} にコードを適用"
+  },
+  "rename": {
+    "title": "名前の変更",
+    "label": "{name} の新しい名前",
+    "ok": "名前を変更"
+  },
+  "code": {
+    "apply": "適用",
+    "revert": "元に戻す",
+    "decompiling": "デコンパイル中...",
+    "failed": "「{entry}」のコードを保存できませんでした: {reason}",
+    "notApplied": "テキストがコンパイルできません",
+    "showFailed": "「{entry}」のコードを表示できませんでした: {reason}"
+  },
+  "notify": {
+    "button": "通知 ({count})"
+  },
+  "prompt": {
+    "title": "未保存の変更",
+    "direct": "{name} には未保存の変更が {count} 件あります。保存しますか、それとも後のためにジャーナルに残しますか?",
+    "project": "{name} にはデータファイルに反映されていない変更が {count} 件あります。同期しますか、それとも後のためにジャーナルに残しますか?",
+    "save": "保存",
+    "sync": "変更を同期",
+    "later": "後で行う"
+  },
+  "editor": {
+    "empty": "何も開いていません。Ctrl+P でリソースを検索するか、エクスプローラーでダブルクリックしてください。"
+  },
+  "save": {
+    "done": "{name} を保存しました",
+    "locked": "「{name}」を保存できませんでした: ファイルは {holder} が使用中です。編集内容は保持されています。",
+    "lockedUnknown": "「{name}」を保存できませんでした: ファイルは別のプログラムが使用中です。編集内容は保持されています。",
+    "invalid": "「{name}」を保存できませんでした。書き込んだファイルがモデルと一致しませんでした ({detail})。元のファイルはそのままです。",
+    "failed": "「{name}」を保存できませんでした: {reason}",
+    "moveWithProject": "プロジェクトのデータファイルは、プロジェクト > データファイルの場所 から移動してください。"
+  },
+  "quick": {
+    "title": "リソースへ移動",
+    "placeholder": "リソース名またはコード名を入力 (spr: obj: scr: ...)"
+  },
+  "settings": {
+    "title": "設定",
+    "close": "閉じる",
+    "default": "既定",
+    "appearance": "外観",
+    "language": "言語",
+    "scale": "インターフェイスの拡大率",
+    "fontFamily": "フォントファミリー (空欄ならテーマのフォント)",
+    "fontWeight": "フォントの太さ",
+    "files": "ファイル",
+    "backups": "データファイルのバックアップ (1〜3)",
+    "askOnClose": "未保存の変更があるときは閉じる前に確認する",
+    "location": "プロジェクトフォルダー",
+    "projects": "プロジェクト",
+    "autosave": "プロジェクトへ自動保存",
+    "autosync": "データファイルへ自動同期",
+    "projectsNote": "新しいプロジェクトの既定値です。変更すると、開いているプロジェクトにも反映されます。",
+    "shortcuts": "キーボードショートカット",
+    "shortcutFilter": "コマンドまたはショートカットを絞り込み",
+    "pressKeys": "キーを押してください...",
+    "noShortcut": "なし",
+    "reset": "リセット",
+    "shortcutShared": "{shortcut} は次でも使用されています: {commands}。",
+    "addFont": "フォントファイルを追加...",
+    "removeFont": "削除",
+    "fontFiles": "フォントファイル",
+    "notAFont": "{file} はフォントファイルではありません。",
+    "search": "設定を検索",
+    "run": "実行",
+    "runRunner": "ランナー (空欄ならデータファイルの隣のゲーム実行ファイル)",
+    "runArguments": "追加の引数",
+    "runDebugOutput": "ゲームログを書き出す (-debugoutput)",
+    "profiles": "実行プロファイル",
+    "profileName": "プロファイル名",
+    "profileSave": "プロファイルに名前を付けて保存",
+    "profileDelete": "プロファイルを削除",
+    "colors": "色",
+    "editor": "コードエディター",
+    "codeFontSize": "文字サイズ",
+    "codeWordWrap": "長い行を折り返す",
+    "codeLineNumbers": "行番号を表示",
+    "themeExport": "テーマをエクスポート...",
+    "themeImport": "テーマをインポート...",
+    "themeBad": "テーマファイルを使えませんでした: {reason}",
+    "compact": "コンパクト表示（画面に多く表示）"
+  },
+  "git": {
+    "noProject": "Git はプロジェクトフォルダーを追跡します。Git を使うには、このデータファイルのプロジェクトを有効にしてください。",
+    "notInstalled": "Git がインストールされていないか、PATH にありません。",
+    "notRepository": "このプロジェクトは Git リポジトリではありません。",
+    "init": "リポジトリを初期化",
+    "message": "コミットメッセージ",
+    "commit": "コミット",
+    "stageAll": "すべてステージ",
+    "unstageAll": "すべてのステージを解除",
+    "refresh": "更新",
+    "clean": "変更なし。",
+    "failed": "Git: {reason}",
+    "lfs": "大きな音声または画像ファイルが {count} 件見つかりました (例: {first})。Git LFS を使うとリポジトリを小さく保てます。",
+    "newBranchName": "新しいブランチ名",
+    "newBranch": "新しいブランチ",
+    "fetch": "フェッチ",
+    "pull": "プル",
+    "push": "プッシュ",
+    "remoteUrl": "リモートのアドレス (URL またはフォルダー)",
+    "addRemote": "リモートを追加",
+    "aheadBehind": "{ahead} 先行、{behind} 遅れ",
+    "newFile": "新しいファイルです。まだ追跡されていません。"
+  },
+  "properties": {
+    "filter": "プロパティを絞り込み",
+    "refused": "{path}: {reason}",
+    "missing": "{name} はこのデータファイルに見つかりませんでした。"
+  },
+  "about": {
+    "title": "G3MStudio について",
+    "copy": "バージョン情報をコピー"
+  },
+  "search": {
+    "placeholder": "コード内を検索",
+    "case": "大文字と小文字を区別",
+    "regex": "正規表現",
+    "run": "検索",
+    "progress": "検索中... {done} / {total} 件のエントリ",
+    "done": "{entries} 件のエントリで {hits} 件一致しました。",
+    "failed": "{count} 件のエントリを読み取れなかったためスキップしました。",
+    "cancelled": "検索をキャンセルしました。",
+    "badPattern": "このパターンは無効です: {reason}",
+    "timeout": "このパターンは 1 行の処理に時間がかかりすぎます。もっと単純にしてください。"
+  },
+  "usages": {
+    "searching": "{name} の使用箇所を検索中...",
+    "found": "{name} は {count} か所で使われています。",
+    "none": "{name} はどこでも使われていません。",
+    "failed": "{name} を検索できませんでした: {reason}"
+  },
+  "help": {
+    "noBrowser": "ブラウザーを起動できませんでした。{url} を自分で開いてください。"
+  },
+  "transfer": {
+    "pickExport": "エクスポート先のフォルダー",
+    "pickImport": "インポート元のフォルダー",
+    "unsupported": "{type} はファイルとしてエクスポートできません。",
+    "needsSave": "インポートが未保存の変更と混ざらないよう、先に保存するか元に戻してください。",
+    "noFolders": "{folder} には Sprites や GameObjects などのリソースフォルダーがありません。",
+    "confirmTitle": "確認してください",
+    "confirmImport": "{folder} から {folders} をインポートしますか? 開いているデータファイルはメモリ上で変更され、元に戻せません。保存して残すか、保存済みの状態に戻して破棄してください。",
+    "ok": "OK",
+    "exportDone": "{folder} にエクスポートしました。",
+    "importDone": "{folder} からインポートしました。元に戻せません。保存して残すか、保存済みの状態に戻してください。",
+    "summary": "書き込み {written} 件、スキップ {skipped} 件、警告 {warnings} 件、失敗 {failed} 件。",
+    "cancelledExport": "エクスポートをキャンセルしました。何も保持されていません。",
+    "cancelledImport": "インポートをキャンセルしました。開いているデータファイルには一部が反映されています。保存済みの状態に戻してやり直してください。",
+    "failed": "操作に失敗しました: {reason}",
+    "nothingToRevert": "未保存の変更はありません。",
+    "revertTitle": "保存済みの状態に戻す",
+    "confirmRevert": "{name} の未保存の変更 {count} 件を破棄して、ファイルを読み込み直しますか?"
+  },
+  "mods": {
+    "pickOriginal": "元のデータファイル (パッチの適用先)",
+    "pickData": "パッチを当てるデータファイル",
+    "pickPatch": "パッチファイル",
+    "pickPatchOut": "パッチの保存先",
+    "pickDataOut": "パッチ適用後のデータファイルの保存先",
+    "needsSave": "先に変更を保存してください。パッチはディスク上のファイルから作成されます。",
+    "sameFile": "出力は、元になるファイルとは別のファイルにしてください。",
+    "creating": "パッチを作成中",
+    "applying": "パッチを適用中",
+    "validating": "パッチを確認中",
+    "created": "パッチを {path} に保存しました。",
+    "applied": "パッチ適用後のデータファイルを {path} に保存しました。",
+    "valid": "{name} は有効なパッチです。",
+    "failed": "{what} に失敗しました: {reason}",
+    "cancelled": "キャンセルしました。",
+    "unknownError": "不明なエラー",
+    "pickPatches": "マージするパッチ (同じ元ファイルから作った 2 つ以上)",
+    "needTwo": "マージするパッチを 2 つ以上選んでください。",
+    "merging": "パッチをマージ中",
+    "merged": "マージしたパッチを {path} に保存しました: 自動マージ {merged} 件、競合 {conflicts} 件。",
+    "pickReport": "レポートの保存先",
+    "comparing": "データファイルを比較中",
+    "compared": "レポートを {path} に保存しました: 差分 {count} 件。",
+    "pickModOut": "Mod の保存先",
+    "packaging": "Mod をパッケージ中",
+    "packaged": "Mod を {path} に保存しました。mod_config.json で作者とゲーム ID を設定してください。"
+  },
+  "sprites": {
+    "pickPicture": "フレームに使う画像",
+    "noSprite": "スプライトを開き、置き換えるフレームをクリックしてください。",
+    "noMask": "このスプライトには衝突マスクがありません。",
+    "pickMask": "マスク画像を選んでください",
+    "pickMaskSave": "マスクの保存先",
+    "maskImported": "{sprite} のマスク {index} をインポートしました。",
+    "maskExported": "{sprite} のマスク {index} を {path} に保存しました。",
+    "badPicture": "{name} は読み取れる画像ではありません: {reason}",
+    "replaced": "{sprite} のフレーム {frame} を置き換えました。",
+    "lastFrame": "スプライトには少なくとも 1 つのフレームが必要です。",
+    "maskDone": "{sprite} の衝突マスクをフレームから再生成しました。"
+  },
+  "run": {
+    "noRunner": "{file} の隣にゲームが見つかりません。ゲームの実行ファイルを同じフォルダーに置いてください。",
+    "running": "ゲームはすでに実行中です。",
+    "starting": "{name} を起動中...",
+    "started": "{name} が実行中です。",
+    "exited": "{name} がコード {code} で終了しました。",
+    "notRunning": "実行中のゲームはありません。",
+    "failed": "ゲームを起動できませんでした: {reason}",
+    "roomWarning": "ルーム {room} から開始します。ゲームはそのルームで直接始まるため、前のルームが設定する内容（グローバル変数、セーブ状態、永続オブジェクト）が欠け、ゲームが失敗したり表示が崩れたりすることがあります。ルーム順に含まれないルームはこの方法では開始できません。",
+    "stopped": "ゲームを停止しました。"
+  },
+  "update": {
+    "title": "アップデート",
+    "none": "G3MStudio {version} は最新バージョンです。",
+    "ask": "G3MStudio {version} が利用できます (現在は {current})。ダウンロードして再起動し、インストールしますか?",
+    "failed": "アップデートに失敗しました: {reason}",
+    "notWritable": "プログラムのフォルダーに書き込めません。G3MStudio を自分のフォルダーに移動してください",
+    "downloading": "G3MStudio {version} をダウンロード中..."
+  },
+  "sounds": {
+    "play": "再生",
+    "info": "{kind} オーディオ、{kb} KB、{seconds} 秒",
+    "outside": "このサウンドの音声はデータファイルの外にあります ({file})。",
+    "noPlayer": "{path} を再生できるプログラムがありません。自分で開いてください。"
+  },
+  "strings": {
+    "kindName": "名前",
+    "kindText": "テキスト",
+    "uses": "{count} か所で使用。テキストを変更するとすべて変わります。1 か所だけ変えるには、そのプロパティを各タブで編集してください。",
+    "title": "文字列",
+    "filter": "文字列を絞り込み...",
+    "regex": "正規表現",
+    "apply": "テキストを変更",
+    "count": "{total} 件中 {shown} 件"
+  },
+  "fonts": {
+    "glyphFilter": "文字、U+コード、数値で絞り込み...",
+    "glyphCount": "グリフ {count} 個",
+    "glyphNew": "U+コードまたは文字",
+    "glyphAdd": "グリフを追加"
+  },
+  "paths": {
+    "speed": "速度 %",
+    "moveAll": "すべて移動"
+  },
+  "timelines": {
+    "moment": "モーメント {number} のステップ",
+    "remove": "削除",
+    "add": "モーメントを追加",
+    "actionCode": "コードエントリー名",
+    "addAction": "アクションを追加"
+  },
+  "particles": {
+    "add": "エミッターを追加"
+  },
+  "scripts": {
+    "pick": "スクリプト (.csx) を選んでください",
+    "title": "スクリプトの実行",
+    "confirm": "{name} を実行しますか？\n\nスクリプトはデータファイルのあらゆる内容を変更でき、このコンピューター上の任意のファイルを読み書きできます。変更は元に戻せません。戻すには「保存済みに戻す」を使います。信頼できるスクリプトだけを実行してください。\n\nUndertaleModTool 形式の .csx スクリプトを実行しますが、そのツールの機能の一部しかありません: Data、FilePath、ScriptPath、ScriptMessage、ScriptWarning、ScriptError、ScriptQuestion（常に「はい」）。ダイアログ、デコンパイラ補助、UI が必要なスクリプトは、足りない関数名を示すコンパイルエラーで止まります。",
+    "running": "{name} を実行中...",
+    "done": "{name} が完了しました。",
+    "failed": "{name} が失敗しました: {reason}"
+  },
+  "sequences": {
+    "addGroup": "グループトラックを追加",
+    "newGroup": "グループ"
+  },
+  "inspector": {
+    "none": "エクスプローラーでリソースを選んでください。",
+    "uses": "{count} か所で使用"
+  },
+  "plugins": {
+    "check": "更新を確認",
+    "updateAvailable": "新しいバージョンがあります。「GitHub から更新」を使ってください。",
+    "upToDate": "プラグインは最新です。",
+    "update": "GitHub から更新",
+    "noOrigin": "このプラグインは GitHub からインストールされていないため、更新元がありません。",
+    "installUrl": "GitHub からインストール",
+    "badUrl": "https://github.com/owner/repository の形式のアドレスを使ってください。",
+    "installZip": "ZIP からインストール...",
+    "installFolder": "フォルダーからインストール...",
+    "installTitle": "プラグインのインストール",
+    "trust": "「{name}」{version} をインストールしますか？\n\n入手元: {source}\n作者: {authors}\n必要と申告された権限: {permissions}\n\nプラグインはスクリプトと同じく、コンピューターへの完全なアクセス権を持ちます。信頼できるプラグインだけをインストールしてください。",
+    "title": "プラグイン",
+    "new": "新規プラグイン",
+    "reload": "再読み込み",
+    "reloadAll": "すべて再読み込み",
+    "openFolder": "フォルダーを開く",
+    "enabled": "オン",
+    "empty": "プラグインはまだありません。プラグインのフォルダーを {folder} に置くか、「新規プラグイン」で作成してください。",
+    "permissions": "権限",
+    "error": "エラー",
+    "state": {
+      "Active": "動作中",
+      "Disabled": "オフ",
+      "Failed": "起動に失敗"
+    }
+  },
+  "rooms": {
+    "addLayer": "追加",
+    "deleteLayer": "削除",
+    "layerUp": "上へ",
+    "layerDown": "下へ",
+    "renameLayer": "名前を変更",
+    "tool": {
+      "None": "選択",
+      "Place": "配置",
+      "Paint": "ペイント",
+      "Erase": "消去",
+      "Fill": "塗りつぶし",
+      "Rectangle": "矩形",
+      "Pick": "スポイト"
+    },
+    "inspector": {
+      "x": "X",
+      "y": "Y",
+      "scaleX": "スケール X",
+      "scaleY": "スケール Y",
+      "rotation": "回転",
+      "frame": "フレーム",
+      "speed": "速度",
+      "object": "オブジェクト",
+      "none": "インスタンスが選択されていません。",
+      "title": "インスタンス {id} ({count} 件選択)"
+    },
+    "layerProp": {
+      "depth": "深度",
+      "xoffset": "X オフセット",
+      "yoffset": "Y オフセット",
+      "hspeed": "水平速度",
+      "vspeed": "垂直速度"
+    },
+    "layerKind": {
+      "addInstances": "インスタンス",
+      "addAssets": "アセット",
+      "addBackground": "背景",
+      "addTiles": "タイル"
+    },
+    "noRoom": "先にルームを開いてください。",
+    "fitTiles": "タイルグリッドを調整",
+    "noTileLayer": "先にタイルセットを持つタイルレイヤーを選んでください。",
+    "pickCsv": "タイルの CSV を選んでください",
+    "pickCsvSave": "タイルの保存先",
+    "tilesExported": "{room} の {layer} のタイルを {path} に保存しました。",
+    "tilesImported": "{layer} のタイルを {count} 個変更しました。",
+    "tilesBad": "タイルの CSV を使えませんでした: {reason}",
+    "snapped": "グリッド",
+    "lock": "ロック",
+    "orderTitle": "作成順",
+    "orderTop": "先頭へ",
+    "orderEnd": "末尾へ",
+    "orderNote": "作成順はイベントの実行順を決めません。",
+    "orderUp": "上へ",
+    "orderDown": "下へ",
+    "pickPng": "画像の保存先",
+    "pngSaved": "ルーム {room} を {path} に保存しました。",
+    "pngFailed": "画像を保存できませんでした: {reason}",
+    "flagMirror": "左右反転",
+    "flagFlip": "上下反転",
+    "flagRotate": "回転",
+    "placing": "ルームをクリックして {name} を配置します。",
+    "placeNone": "エクスプローラーでオブジェクトかスプライトを選び、ルームをクリックしてください。",
+    "grid": "グリッド",
+    "snap": "スナップ",
+    "views": "ビュー",
+    "zoomOut": "縮小",
+    "zoomIn": "拡大",
+    "fit": "全体表示",
+    "actual": "実寸"
+  },
+  "textures": {
+    "title": "テクスチャページを再パック",
+    "repacking": "テクスチャページを再パック中",
+    "confirm": "すべてのテクスチャグループのページが {before} から {after} になります。元に戻せません。保存して残すか、保存済みのファイルに戻してください。今すぐ再パックしますか?",
+    "done": "再パックしました: ページ数は {before} から {after} になりました。保存して残すか、保存済みのファイルに戻してください。"
+  },
+  "panel": {
+    "explorer": "エクスプローラー",
+    "search": "検索",
+    "inspector": "インスペクター",
+    "problems": "問題",
+    "output": "出力",
+    "usages": "使用箇所",
+    "history": "履歴",
+    "git": "Git"
+  },
+  "colors": {
+    "Accent": "アクセント",
+    "Syntax": {
+      "Keyword": "キーワード",
+      "Function": "関数",
+      "Variable": "変数",
+      "Constant": "定数",
+      "Asset": "アセット",
+      "String": "文字列",
+      "Number": "数値",
+      "Comment": "コメント",
+      "Operator": "演算子",
+      "Preprocessor": "プリプロセッサ"
+    }
+  },
+  "empty": {
+    "problems": "問題はありません。",
+    "output": "まだ報告はありません。"
+  }
+}

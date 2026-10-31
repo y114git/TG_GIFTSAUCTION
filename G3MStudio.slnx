@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="G3MStudio.Core/G3MStudio.Core.csproj" />
+  <Project Path="G3MStudio.Tests/G3MStudio.Tests.csproj" />
+  <Project Path="G3MStudio/G3MStudio.csproj" />
+</Solution>

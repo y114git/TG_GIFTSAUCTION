@@ -1,0 +1,33 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:docking="using:G3MStudio.Docking"
+        xmlns:dockc="using:Dock.Avalonia.Controls">
+  <Style Selector="Window">
+    <Setter Property="Background" Value="{DynamicResource Bg.Window}" />
+    <Setter Property="Foreground" Value="{DynamicResource Text}" />
+    <Setter Property="FontFamily" Value="{DynamicResource Font.Body}" />
+    <Setter Property="FontWeight" Value="{DynamicResource Font.Weight}" />
+    <Setter Property="FontSize" Value="{DynamicResource FontSize.Body}" />
+  </Style>
+  <!-- List rows are one line of text: the theme default is more than twice as tall. -->
+  <Style Selector="ListBoxItem">
+    <Setter Property="MinHeight" Value="24" />
+    <Setter Property="Padding" Value="6,2" />
+  </Style>
+  <!-- Compact density (Settings > Appearance): the window carries the class "compact". -->
+  <Style Selector="Window.compact ListBoxItem"><Setter Property="MinHeight" Value="20" /><Setter Property="Padding" Value="4,0" /></Style>
+  <Style Selector="Window.compact Button"><Setter Property="Padding" Value="8,2" /><Setter Property="MinHeight" Value="24" /></Style>
+  <Style Selector="Window.compact TextBox"><Setter Property="MinHeight" Value="24" /><Setter Property="Padding" Value="6,2" /></Style>
+  <Style Selector="TextBlock.muted"><Setter Property="Foreground" Value="{DynamicResource Text.Muted}" /></Style>
+  <Style Selector="TextBlock.accent"><Setter Property="Foreground" Value="{DynamicResource Text.Accent}" /></Style>
+  <Style Selector="Button.primary">
+    <Setter Property="Background" Value="{DynamicResource Accent.Fill}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Text.Accent}" />
+    <Setter Property="Foreground" Value="#0F0F0F" />
+    <Setter Property="FontWeight" Value="Bold" />
+  </Style>
+  <!-- A preview tab shows its name in italics (design/shell.md 9.1). -->
+  <Style Selector="dockc|DocumentTabStripItem">
+    <Setter Property="FontStyle" Value="{Binding (docking:StudioDock.IsPreview), Converter={x:Static docking:StudioDock.ItalicWhenTrue}}" />
+  </Style>
+</Styles>

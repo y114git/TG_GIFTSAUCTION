@@ -1,0 +1,676 @@
+{
+  "metadata": {
+    "language": "spanish",
+    "language_name": "Español"
+  },
+  "app": {
+    "title": "G3MStudio",
+    "welcome": "Abre un archivo de datos del juego para empezar.",
+    "ready": "Listo",
+    "language": "Idioma: {name}",
+    "openFailed": "No se pudo abrir «{name}»: {reason}",
+    "recovered": "Se recuperaron {count} ediciones sin guardar"
+  },
+  "menu": {
+    "plugins": "Complementos",
+    "file": "Archivo",
+    "edit": "Edición",
+    "view": "Vista",
+    "window": "Ventana",
+    "project": "Proyecto",
+    "tools": "Herramientas",
+    "help": "Ayuda",
+    "mods": "Mods",
+    "run": "Ejecutar",
+    "room": "Sala",
+    "sprite": "Sprite",
+    "sub": {
+      "view": {
+        "language": "Idioma",
+        "panel": "Paneles"
+      }
+    }
+  },
+  "cmd": {
+    "file": {
+      "open": "Abrir...",
+      "openRecent": "Abrir reciente",
+      "save": "Guardar",
+      "saveAs": "Guardar como...",
+      "close": "Cerrar",
+      "exit": "Salir",
+      "saveCopy": "Guardar una copia...",
+      "revert": "Volver a lo guardado...",
+      "exportSelection": "Exportar el recurso seleccionado...",
+      "exportAll": "Exportar todo...",
+      "import": "Importar recursos..."
+    },
+    "edit": {
+      "undo": "Deshacer",
+      "redo": "Rehacer",
+      "rename": "Renombrar...",
+      "selectAll": "Seleccionar todo",
+      "find": "Buscar",
+      "findInCode": "Buscar en el código...",
+      "findUsages": "Buscar usos",
+      "replaceFrame": "Reemplazar fotograma del sprite...",
+      "duplicateFrame": "Duplicar fotograma del sprite",
+      "removeFrame": "Quitar fotograma del sprite",
+      "recalculateMask": "Recalcular máscara de colisión",
+      "importMask": "Importar máscara...",
+      "exportMask": "Exportar máscara..."
+    },
+    "view": {
+      "commandPalette": "Paleta de comandos...",
+      "fullscreen": "Alternar pantalla completa",
+      "zoomIn": "Acercar",
+      "zoomOut": "Alejar",
+      "zoomReset": "Restablecer zoom",
+      "language": {
+        "en": "Idioma: English",
+        "ru": "Idioma: Русский",
+        "es": "Idioma: Español",
+        "ja": "Idioma: 日本語",
+        "ko": "Idioma: 한국어",
+        "zh_cn": "Idioma: 简体中文",
+        "zh_tw": "Idioma: 繁體中文"
+      }
+    },
+    "project": {
+      "enable": "Activar proyecto",
+      "sync": "Sincronizar con el archivo de datos",
+      "options": "Configuración del proyecto...",
+      "moveDataFile": "Cambiar ubicación del archivo de datos...",
+      "disable": "Desactivar proyecto...",
+      "resolve": "Resolver cambios externos..."
+    },
+    "tabs": {
+      "close": "Cerrar pestaña",
+      "closeAll": "Cerrar todas las pestañas",
+      "pin": "Fijar pestaña",
+      "keepOpen": "Mantener pestaña abierta",
+      "splitRight": "Dividir a la derecha"
+    },
+    "go": {
+      "quickOpen": "Ir al recurso..."
+    },
+    "settings": {
+      "open": "Configuración"
+    },
+    "help": {
+      "about": "Acerca de G3MStudio",
+      "documentation": "Documentación",
+      "checkUpdates": "Buscar actualizaciones..."
+    },
+    "mods": {
+      "createPatch": "Crear parche...",
+      "applyPatch": "Aplicar parche...",
+      "validatePatch": "Validar parche...",
+      "mergePatches": "Combinar parches...",
+      "compareFiles": "Comparar archivos de datos...",
+      "exportMod": "Exportar como ZIP de mod..."
+    },
+    "run": {
+      "game": "Ejecutar el juego",
+      "stop": "Detener el juego"
+    },
+    "room": {
+      "play": "Jugar esta sala",
+      "creationOrder": "Orden de creación de instancias...",
+      "exportTiles": "Exportar teselas a CSV...",
+      "importTiles": "Importar teselas desde CSV...",
+      "savePng": "Guardar sala como PNG..."
+    },
+    "tools": {
+      "plugins": "Complementos...",
+      "strings": "Cadenas...",
+      "runScript": "Ejecutar script...",
+      "repackTextures": "Reempaquetar páginas de texturas..."
+    }
+  },
+  "palette": {
+    "title": "Paleta de comandos",
+    "placeholder": "Escribe un comando",
+    "empty": "Sin resultados para «{text}»."
+  },
+  "start": {
+    "open": "Abrir archivo de datos...",
+    "recent": "Recientes",
+    "empty": "No hay archivos recientes.",
+    "drop": "Suelta aquí un archivo de datos para abrirlo.",
+    "missing": "Archivo no encontrado",
+    "opened": "Abierto {time}",
+    "remove": "Quitar",
+    "pin": "Fijar",
+    "unpin": "Desfijar",
+    "clear": "Borrar abiertos recientemente"
+  },
+  "explorer": {
+    "filter": "Filtrar recursos...",
+    "count": "{count} recursos",
+    "matches": "{matches} de {total}",
+    "noMatch": "Ningún recurso coincide con «{filter}».",
+    "opening": "Abriendo {name}... {percent} %",
+    "cancel": "Cancelar",
+    "type": {
+      "general": "Juego",
+      "sprites": "Sprites",
+      "tileSets": "Tilesets",
+      "sounds": "Sonidos",
+      "paths": "Rutas",
+      "scripts": "Scripts",
+      "shaders": "Shaders",
+      "fonts": "Fuentes",
+      "timelines": "Líneas de tiempo",
+      "objects": "Objetos",
+      "rooms": "Salas",
+      "extensions": "Extensiones",
+      "sequences": "Secuencias",
+      "animationCurves": "Curvas de animación",
+      "particleSystems": "Sistemas de partículas",
+      "code": "Código",
+      "strings": "Cadenas",
+      "variables": "Variables",
+      "functions": "Funciones",
+      "codeLocals": "Locales de código",
+      "texturePageItems": "Elementos de página de texturas",
+      "embeddedTextures": "Texturas incrustadas",
+      "embeddedImages": "Imágenes incrustadas",
+      "embeddedAudio": "Audio incrustado",
+      "textureGroups": "Grupos de texturas",
+      "audioGroups": "Grupos de audio",
+      "filterEffects": "Efectos de filtro",
+      "data": "Datos"
+    }
+  },
+  "project": {
+    "state": {
+      "synced": "Sincronizado",
+      "syncing": "Sincronizando...",
+      "exporting": "Exportando proyecto...",
+      "notSynced": "{count} cambios sin sincronizar con el archivo de datos",
+      "changed": "Archivo de datos modificado desde fuera",
+      "enable": "Activar proyecto"
+    },
+    "offer": "¿Guardar una copia completa de los recursos de este juego en un proyecto, con historial?",
+    "enable": {
+      "button": "Activar proyecto",
+      "action": "Activar proyecto"
+    },
+    "location": {
+      "title": "Carpeta de proyectos",
+      "label": "¿Dónde se deben guardar los proyectos?",
+      "remember": "Recordar esta elección",
+      "browse": "Examinar..."
+    },
+    "exporting": "Exportando {name}... {done} de {total} recursos",
+    "cancelled": "Exportación del proyecto cancelada. No se conservó nada.",
+    "warnings": "Se creó el proyecto, pero se informó de {count} problemas. El primero: {first}",
+    "created": "Proyecto creado para {name}.",
+    "createFailed": "No se pudo crear el proyecto: {reason}",
+    "already": "Este archivo de datos ya tiene un proyecto.",
+    "none": "Activa primero un proyecto.",
+    "writeFailed": "No se pudo escribir el proyecto: {reason}",
+    "queueFailed": "No se pudo aplicar una edición en cola: {reason}",
+    "settings": {
+      "title": "Configuración del proyecto",
+      "autosave": "Autoguardado en el proyecto",
+      "autosync": "Autosincronización con el archivo de datos",
+      "seconds": "segundos"
+    },
+    "trigger": {
+      "Off": "Desactivado",
+      "AfterDelay": "Tras una pausa",
+      "OnFocusLoss": "Al perder el foco la ventana",
+      "OnSave": "Al guardar"
+    },
+    "move": {
+      "title": "Ubicación del archivo de datos",
+      "path": "Nueva ubicación",
+      "move": "Mover",
+      "copy": "Copiar",
+      "recreate": "Recrear desde el proyecto",
+      "done": "El archivo de datos está ahora en {path}",
+      "failed": "No se pudo cambiar la ubicación: {reason}"
+    },
+    "disable": {
+      "title": "Desactivar proyecto",
+      "message": "¿Conservar el proyecto (archivado, se puede volver a activar) o eliminarlo para liberar espacio en disco? El archivo de datos no se toca.",
+      "keep": "Conservar proyecto",
+      "delete": "Eliminar proyecto"
+    },
+    "working": "Trabajando en {name}...",
+    "merged": "Los cambios externos se combinaron en {name}.",
+    "mergeFailed": "No se pudieron combinar los cambios externos: {reason}",
+    "external": {
+      "title": "Archivo de datos modificado desde fuera",
+      "message": "Otro programa modificó {name} desde la última sincronización del proyecto. ¿Traer sus cambios al proyecto, reemplazar el archivo de datos con el proyecto o mantener ambos por separado?",
+      "bring": "Traer los cambios",
+      "overwrite": "Reemplazar el archivo de datos con el proyecto",
+      "keepBoth": "Mantener ambos (archivar el proyecto)",
+      "later": "Decidir más tarde"
+    },
+    "conflicts": {
+      "title": "Resolver conflictos",
+      "message": "Estos recursos cambiaron en el proyecto y en el archivo de datos. Elige la versión que se conserva para cada uno.",
+      "ours": "Conservar la versión del proyecto",
+      "theirs": "Usar la versión del archivo de datos",
+      "apply": "Combinar"
+    },
+    "rebuild": {
+      "title": "No se puede abrir el archivo de datos",
+      "message": "Falta {name} o está dañado, pero tiene un proyecto. ¿Volver a construirlo desde el proyecto?",
+      "button": "Reconstruir desde el proyecto",
+      "base": "Elige una copia del archivo de datos del juego como base"
+    },
+    "rebuildFailed": "No se pudo reconstruir el archivo de datos: {reason}"
+  },
+  "history": {
+    "start": "Estado abierto",
+    "rename": "Renombrar {old} a {new}",
+    "code": "Aplicar código a {entry}"
+  },
+  "rename": {
+    "title": "Renombrar",
+    "label": "Nuevo nombre para {name}",
+    "ok": "Renombrar"
+  },
+  "code": {
+    "apply": "Aplicar",
+    "revert": "Revertir",
+    "decompiling": "Descompilando...",
+    "failed": "No se pudo guardar el código de «{entry}»: {reason}",
+    "notApplied": "el texto no compila",
+    "showFailed": "No se pudo mostrar el código de «{entry}»: {reason}"
+  },
+  "notify": {
+    "button": "Notificaciones ({count})"
+  },
+  "prompt": {
+    "title": "Cambios sin guardar",
+    "direct": "{name} tiene {count} cambios sin guardar. ¿Guardarlos o mantenerlos en el diario para después?",
+    "project": "{name} tiene {count} cambios que no están en el archivo de datos. ¿Sincronizarlos o mantenerlos en el diario para después?",
+    "save": "Guardar",
+    "sync": "Sincronizar cambios",
+    "later": "Hacerlo más tarde"
+  },
+  "editor": {
+    "empty": "No hay nada abierto. Pulsa Ctrl+P para buscar un recurso o haz doble clic en uno del Explorador."
+  },
+  "save": {
+    "done": "{name} guardado",
+    "locked": "No se pudo guardar «{name}»: {holder} está usando el archivo. Tus ediciones se conservan.",
+    "lockedUnknown": "No se pudo guardar «{name}»: otro programa está usando el archivo. Tus ediciones se conservan.",
+    "invalid": "No se pudo guardar «{name}». El archivo escrito no coincidía con el modelo ({detail}). El original no se tocó.",
+    "failed": "No se pudo guardar «{name}»: {reason}",
+    "moveWithProject": "Mueve el archivo de datos de un proyecto desde Proyecto > Ubicación del archivo de datos."
+  },
+  "quick": {
+    "title": "Ir al recurso",
+    "placeholder": "Escribe el nombre de un recurso o código (spr: obj: scr: ...)"
+  },
+  "settings": {
+    "title": "Configuración",
+    "close": "Cerrar",
+    "default": "Predeterminado",
+    "appearance": "Apariencia",
+    "language": "Idioma",
+    "scale": "Escala de la interfaz",
+    "fontFamily": "Familia de fuente (vacío usa la del tema)",
+    "fontWeight": "Grosor de la fuente",
+    "files": "Archivos",
+    "backups": "Copias de seguridad del archivo de datos (1 a 3)",
+    "askOnClose": "Preguntar antes de cerrar con cambios sin guardar",
+    "location": "Carpeta de proyectos",
+    "projects": "Proyectos",
+    "autosave": "Autoguardado en el proyecto",
+    "autosync": "Autosincronización con el archivo de datos",
+    "projectsNote": "Son los valores predeterminados de los proyectos nuevos; cambiarlos también cambia el proyecto abierto.",
+    "shortcuts": "Atajos de teclado",
+    "shortcutFilter": "Filtrar comandos o atajos",
+    "pressKeys": "Pulsa las teclas...",
+    "noShortcut": "Ninguno",
+    "reset": "Restablecer",
+    "shortcutShared": "{shortcut} también lo usan: {commands}.",
+    "addFont": "Añadir archivo de fuente...",
+    "removeFont": "Quitar",
+    "fontFiles": "Archivos de fuente",
+    "notAFont": "{file} no es un archivo de fuente.",
+    "search": "Buscar en la configuración",
+    "run": "Ejecución",
+    "runRunner": "Ejecutor (vacío usa el ejecutable del juego junto al archivo de datos)",
+    "runArguments": "Argumentos adicionales",
+    "runDebugOutput": "Escribir el registro del juego (-debugoutput)",
+    "profiles": "Perfil de ejecución",
+    "profileName": "Nombre del perfil",
+    "profileSave": "Guardar como perfil",
+    "profileDelete": "Eliminar perfil",
+    "colors": "Colores",
+    "editor": "Editor de código",
+    "codeFontSize": "Tamaño del texto",
+    "codeWordWrap": "Ajustar líneas largas",
+    "codeLineNumbers": "Mostrar números de línea",
+    "themeExport": "Exportar tema...",
+    "themeImport": "Importar tema...",
+    "themeBad": "No se usó el archivo de tema: {reason}",
+    "compact": "Densidad compacta (más en pantalla)"
+  },
+  "git": {
+    "noProject": "Git sigue la carpeta del proyecto. Activa el proyecto de este archivo de datos para usar Git.",
+    "notInstalled": "Git no está instalado o no está en el PATH.",
+    "notRepository": "Este proyecto no es un repositorio de Git.",
+    "init": "Inicializar repositorio",
+    "message": "Mensaje de commit",
+    "commit": "Commit",
+    "stageAll": "Preparar todo",
+    "unstageAll": "Quitar todo de preparación",
+    "refresh": "Actualizar",
+    "clean": "Sin cambios.",
+    "failed": "Git: {reason}",
+    "lfs": "Se encontraron {count} archivos grandes de audio o imagen, por ejemplo {first}. Git LFS mantiene el repositorio pequeño.",
+    "newBranchName": "Nombre de la nueva rama",
+    "newBranch": "Nueva rama",
+    "fetch": "Fetch",
+    "pull": "Pull",
+    "push": "Push",
+    "remoteUrl": "Dirección remota (URL o carpeta)",
+    "addRemote": "Añadir remoto",
+    "aheadBehind": "{ahead} por delante, {behind} por detrás",
+    "newFile": "Archivo nuevo, aún sin seguimiento."
+  },
+  "properties": {
+    "filter": "Filtrar propiedades",
+    "refused": "{path}: {reason}",
+    "missing": "No se encontró {name} en este archivo de datos."
+  },
+  "about": {
+    "title": "Acerca de G3MStudio",
+    "copy": "Copiar información de versión"
+  },
+  "search": {
+    "placeholder": "Buscar en el código",
+    "case": "Coincidir mayúsculas",
+    "regex": "Expresión regular",
+    "run": "Buscar",
+    "progress": "Buscando... {done} de {total} entradas",
+    "done": "{hits} coincidencias en {entries} entradas.",
+    "failed": "No se pudieron leer {count} entradas y se omitieron.",
+    "cancelled": "Búsqueda cancelada.",
+    "badPattern": "Este patrón no es válido: {reason}",
+    "timeout": "El patrón tarda demasiado en una línea. Hazlo más simple."
+  },
+  "usages": {
+    "searching": "Buscando usos de {name}...",
+    "found": "{name} se usa en {count} lugares.",
+    "none": "{name} no se usa en ningún sitio.",
+    "failed": "No se pudo buscar {name}: {reason}"
+  },
+  "help": {
+    "noBrowser": "No se pudo iniciar ningún navegador. Abre {url} tú mismo."
+  },
+  "transfer": {
+    "pickExport": "Carpeta de destino de la exportación",
+    "pickImport": "Carpeta desde la que importar",
+    "unsupported": "{type} no se puede exportar como archivos.",
+    "needsSave": "Guarda o revierte tus cambios sin guardar antes de importar, para que la importación no se mezcle con ellos.",
+    "noFolders": "{folder} no contiene carpetas de recursos como Sprites o GameObjects.",
+    "confirmTitle": "Confirma, por favor",
+    "confirmImport": "¿Importar {folders} desde {folder}? El archivo de datos abierto cambia en memoria y no se puede deshacer. Guarda para conservarlo o vuelve a lo guardado para descartarlo.",
+    "ok": "Aceptar",
+    "exportDone": "Exportado a {folder}.",
+    "importDone": "Importado desde {folder}. No se puede deshacer: guarda para conservarlo o vuelve a lo guardado.",
+    "summary": "{written} escritos, {skipped} omitidos, {warnings} avisos, {failed} fallidos.",
+    "cancelledExport": "Exportación cancelada. No se conservó nada.",
+    "cancelledImport": "Importación cancelada. El archivo de datos abierto contiene parte de ella: vuelve a lo guardado para empezar de nuevo.",
+    "failed": "La operación falló: {reason}",
+    "nothingToRevert": "No hay cambios sin guardar.",
+    "revertTitle": "Volver a lo guardado",
+    "confirmRevert": "¿Descartar {count} cambios sin guardar de {name} y cargar el archivo de nuevo?"
+  },
+  "mods": {
+    "pickOriginal": "Archivo de datos original (al que se aplica el parche)",
+    "pickData": "Archivo de datos que se va a parchear",
+    "pickPatch": "Archivo de parche",
+    "pickPatchOut": "Guardar el parche como",
+    "pickDataOut": "Guardar el archivo de datos parcheado como",
+    "needsSave": "Guarda primero tus cambios: el parche se crea a partir del archivo en disco.",
+    "sameFile": "El resultado debe ser un archivo distinto de aquel a partir del cual se crea.",
+    "creating": "Creando parche",
+    "applying": "Aplicando parche",
+    "validating": "Comprobando parche",
+    "created": "Parche guardado en {path}.",
+    "applied": "Archivo de datos parcheado guardado en {path}.",
+    "valid": "{name} es un parche válido.",
+    "failed": "{what} falló: {reason}",
+    "cancelled": "Cancelado.",
+    "unknownError": "error desconocido",
+    "pickPatches": "Parches que combinar (dos o más, creados desde el mismo original)",
+    "needTwo": "Elige al menos dos parches para combinar.",
+    "merging": "Combinando parches",
+    "merged": "Parche combinado guardado en {path}: {merged} cambios combinados automáticamente, {conflicts} conflictos.",
+    "pickReport": "Guardar el informe como",
+    "comparing": "Comparando archivos de datos",
+    "compared": "Informe guardado en {path}: {count} diferencias.",
+    "pickModOut": "Guardar el mod como",
+    "packaging": "Empaquetando el mod",
+    "packaged": "Mod guardado en {path}. Edita su mod_config.json para indicar autores y el id del juego."
+  },
+  "sprites": {
+    "pickPicture": "Imagen para el fotograma",
+    "noSprite": "Abre un sprite y haz clic en el fotograma que quieres reemplazar.",
+    "noMask": "Este sprite no tiene máscara de colisión.",
+    "pickMask": "Elige una imagen de máscara",
+    "pickMaskSave": "Guardar la máscara como",
+    "maskImported": "Se importó la máscara {index} de {sprite}.",
+    "maskExported": "La máscara {index} de {sprite} se guardó en {path}.",
+    "badPicture": "{name} no es una imagen que se pueda leer: {reason}",
+    "replaced": "Fotograma {frame} de {sprite} reemplazado.",
+    "lastFrame": "Un sprite necesita al menos un fotograma.",
+    "maskDone": "Máscara de colisión de {sprite} reconstruida a partir de sus fotogramas."
+  },
+  "run": {
+    "noRunner": "No se encontró el juego junto a {file}. Pon el ejecutable del juego en la misma carpeta.",
+    "running": "El juego ya se está ejecutando.",
+    "starting": "Iniciando {name}...",
+    "started": "{name} se está ejecutando.",
+    "exited": "{name} terminó con el código {code}.",
+    "notRunning": "No se está ejecutando ningún juego.",
+    "failed": "No se pudo iniciar el juego: {reason}",
+    "roomWarning": "Inicio en la sala {room}: el juego se abre directamente en ella, así que falta todo lo que preparan las salas anteriores (globales, estado guardado, objetos persistentes) y el juego puede fallar o verse mal. Una sala que no está en el orden de salas no puede iniciarse así.",
+    "stopped": "Juego detenido."
+  },
+  "update": {
+    "title": "Actualización",
+    "none": "G3MStudio {version} es la versión más reciente.",
+    "ask": "Hay una versión nueva de G3MStudio, la {version} (tienes la {current}). ¿Descargarla y reiniciar para instalarla?",
+    "failed": "La actualización falló: {reason}",
+    "notWritable": "no se puede escribir en la carpeta del programa; mueve G3MStudio a una carpeta tuya",
+    "downloading": "Descargando G3MStudio {version}..."
+  },
+  "sounds": {
+    "play": "Reproducir",
+    "info": "Audio {kind}, {kb} KB, {seconds} s",
+    "outside": "Este sonido guarda su audio fuera del archivo de datos ({file}).",
+    "noPlayer": "Ningún programa pudo reproducir {path}. Para Abrir el archivo, hazlo tú mismo."
+  },
+  "strings": {
+    "kindName": "nombre",
+    "kindText": "texto",
+    "uses": "Se usa en {count} lugares; cambiar el texto los cambia todos. Para cambiar solo un uso, edita esa propiedad en su pestaña.",
+    "title": "Cadenas",
+    "filter": "Filtrar cadenas...",
+    "regex": "Regex",
+    "apply": "Cambiar texto",
+    "count": "{shown} de {total} cadenas"
+  },
+  "fonts": {
+    "glyphFilter": "Filtrar por carácter, U+código o número...",
+    "glyphCount": "{count} glifos",
+    "glyphNew": "U+código o carácter",
+    "glyphAdd": "Añadir glifo"
+  },
+  "paths": {
+    "speed": "Velocidad %",
+    "moveAll": "Mover todos"
+  },
+  "timelines": {
+    "moment": "Paso del momento {number}",
+    "remove": "Quitar",
+    "add": "Añadir momento",
+    "actionCode": "Nombre de la entrada de código",
+    "addAction": "Añadir acción"
+  },
+  "particles": {
+    "add": "Añadir emisor"
+  },
+  "scripts": {
+    "pick": "Elige un script (.csx)",
+    "title": "Ejecutar script",
+    "confirm": "¿Ejecutar {name}?\n\nUn script puede cambiar cualquier cosa del archivo de datos y leer y escribir cualquier archivo de este equipo. El cambio no se puede deshacer; Revertir al guardado es la vuelta atrás. Ejecuta solo scripts de confianza.\n\nSe ejecutan scripts .csx al estilo de UndertaleModTool, pero aquí solo existe parte de las funciones de esa herramienta: Data, FilePath, ScriptPath, ScriptMessage, ScriptWarning, ScriptError y ScriptQuestion (respondida con sí). Los scripts que necesitan diálogos, las ayudas del descompilador o la interfaz se detienen con un error de compilación que nombra la función que falta.",
+    "running": "Ejecutando {name}...",
+    "done": "{name} terminó.",
+    "failed": "{name} falló: {reason}"
+  },
+  "sequences": {
+    "addGroup": "Añadir pista de grupo",
+    "newGroup": "Grupo"
+  },
+  "inspector": {
+    "none": "Selecciona un recurso en el Explorador.",
+    "uses": "Se usa en {count} lugares"
+  },
+  "plugins": {
+    "check": "Buscar actualización",
+    "updateAvailable": "Hay una versión más nueva. Usa Actualizar desde GitHub.",
+    "upToDate": "El complemento está al día.",
+    "update": "Actualizar desde GitHub",
+    "noOrigin": "Este complemento no se instaló desde GitHub, así que no hay de dónde actualizarlo.",
+    "installUrl": "Instalar desde GitHub",
+    "badUrl": "Usa una dirección como https://github.com/owner/repository.",
+    "installZip": "Instalar ZIP...",
+    "installFolder": "Instalar carpeta...",
+    "installTitle": "Instalar complemento",
+    "trust": "¿Instalar '{name}' {version}?\n\nOrigen: {source}\nAutores: {authors}\nPermisos que dice necesitar: {permissions}\n\nLos complementos tienen acceso total a tu equipo, como los scripts. Instala solo los que te inspiren confianza.",
+    "title": "Complementos",
+    "new": "Nuevo complemento",
+    "reload": "Recargar",
+    "reloadAll": "Recargar todos",
+    "openFolder": "Abrir carpeta",
+    "enabled": "Activo",
+    "empty": "Aún no hay complementos. Pon una carpeta de complemento en {folder} o crea uno con Nuevo complemento.",
+    "permissions": "Permisos",
+    "error": "Error",
+    "state": {
+      "Active": "Activo",
+      "Disabled": "Desactivado",
+      "Failed": "No se pudo iniciar"
+    }
+  },
+  "rooms": {
+    "addLayer": "Añadir",
+    "deleteLayer": "Eliminar",
+    "layerUp": "Subir",
+    "layerDown": "Bajar",
+    "renameLayer": "Renombrar",
+    "tool": {
+      "None": "Seleccionar",
+      "Place": "Colocar",
+      "Paint": "Pintar",
+      "Erase": "Borrar",
+      "Fill": "Rellenar",
+      "Rectangle": "Rectángulo",
+      "Pick": "Cuentagotas"
+    },
+    "inspector": {
+      "x": "X",
+      "y": "Y",
+      "scaleX": "Escala X",
+      "scaleY": "Escala Y",
+      "rotation": "Rotación",
+      "frame": "Fotograma",
+      "speed": "Velocidad",
+      "object": "Objeto",
+      "none": "Ninguna instancia seleccionada.",
+      "title": "Instancia {id} ({count} seleccionadas)"
+    },
+    "layerProp": {
+      "depth": "Profundidad",
+      "xoffset": "Desplazamiento X",
+      "yoffset": "Desplazamiento Y",
+      "hspeed": "Velocidad H",
+      "vspeed": "Velocidad V"
+    },
+    "layerKind": {
+      "addInstances": "Instancias",
+      "addAssets": "Recursos",
+      "addBackground": "Fondo",
+      "addTiles": "Tiles"
+    },
+    "noRoom": "Abre primero una sala.",
+    "fitTiles": "Ajustar cuadrícula de teselas",
+    "noTileLayer": "Elige primero una capa de teselas con un conjunto de teselas.",
+    "pickCsv": "Elige un CSV de teselas",
+    "pickCsvSave": "Guardar las teselas como",
+    "tilesExported": "Las teselas de {layer} en {room} se guardaron en {path}.",
+    "tilesImported": "Se cambiaron {count} teselas de {layer}.",
+    "tilesBad": "No se usó el CSV de teselas: {reason}",
+    "snapped": "ajustado",
+    "lock": "Bloq.",
+    "orderTitle": "Orden de creación",
+    "orderTop": "Al principio",
+    "orderEnd": "Al final",
+    "orderNote": "El orden de creación no decide el orden de los eventos.",
+    "orderUp": "Subir",
+    "orderDown": "Bajar",
+    "pickPng": "Guardar la imagen como",
+    "pngSaved": "Sala {room} guardada en {path}.",
+    "pngFailed": "No se pudo guardar la imagen: {reason}",
+    "flagMirror": "Reflejar",
+    "flagFlip": "Voltear",
+    "flagRotate": "Girar",
+    "placing": "Haz clic en la sala para colocar {name}.",
+    "placeNone": "Selecciona un objeto o un sprite en el Explorador y haz clic en la sala.",
+    "grid": "Cuadrícula",
+    "snap": "Ajuste",
+    "views": "Vistas",
+    "zoomOut": "Alejar",
+    "zoomIn": "Acercar",
+    "fit": "Ajustar",
+    "actual": "Tamaño real"
+  },
+  "textures": {
+    "title": "Reempaquetar páginas de texturas",
+    "repacking": "Reempaquetando páginas de texturas",
+    "confirm": "Las páginas de cada grupo de texturas pasarían de {before} a {after}. No se puede deshacer: guarda para conservarlo o vuelve al archivo guardado. ¿Reempaquetar ahora?",
+    "done": "Reempaquetado: las páginas pasaron de {before} a {after}. Guarda para conservarlo o vuelve al archivo guardado."
+  },
+  "panel": {
+    "explorer": "Explorador",
+    "search": "Búsqueda",
+    "inspector": "Inspector",
+    "problems": "Problemas",
+    "output": "Salida",
+    "usages": "Usos",
+    "history": "Historial",
+    "git": "Git"
+  },
+  "colors": {
+    "Accent": "Acento",
+    "Syntax": {
+      "Keyword": "Palabra clave",
+      "Function": "Función",
+      "Variable": "Variable",
+      "Constant": "Constante",
+      "Asset": "Recurso",
+      "String": "Cadena",
+      "Number": "Número",
+      "Comment": "Comentario",
+      "Operator": "Operador",
+      "Preprocessor": "Preprocesador"
+    }
+  },
+  "empty": {
+    "problems": "No hay problemas.",
+    "output": "Aún no se ha informado de nada."
+  }
+}

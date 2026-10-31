@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- the generated P/Invoke stubs of LibraryImport -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="G3MLib" Version="1.1.0" />
+    <EmbeddedResource Include="Languages\*.json" />
+    <InternalsVisibleTo Include="G3MStudio.Tests" />
+  </ItemGroup>
+
+</Project>

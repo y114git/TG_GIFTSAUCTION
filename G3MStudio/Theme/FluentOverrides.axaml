@@ -1,0 +1,105 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Fluent resource keys replaced by tokens. Tokens.axaml must be merged before this file. -->
+  <ResourceDictionary.ThemeDictionaries>
+    <ResourceDictionary x:Key="Dark">
+      <Color x:Key="SystemAccentColor">#039D5B</Color>
+      <Color x:Key="SystemRegionColor">#282828</Color>
+      <Color x:Key="SystemAltHighColor">#222222</Color>
+      <Color x:Key="SystemAltMediumHighColor">#CC222222</Color>
+      <Color x:Key="SystemAltMediumColor">#99222222</Color>
+      <Color x:Key="SystemAltMediumLowColor">#66222222</Color>
+      <Color x:Key="SystemAltLowColor">#33222222</Color>
+      <Color x:Key="SystemBaseHighColor">#E8E9EB</Color>
+      <Color x:Key="SystemBaseMediumHighColor">#CCE8E9EB</Color>
+      <Color x:Key="SystemBaseMediumColor">#9CA3AF</Color>
+      <Color x:Key="SystemBaseMediumLowColor">#669CA3AF</Color>
+      <Color x:Key="SystemBaseLowColor">#339CA3AF</Color>
+      <Color x:Key="SystemChromeHighColor">#5A6370</Color>
+      <Color x:Key="SystemChromeMediumColor">#3A4A43</Color>
+      <Color x:Key="SystemChromeMediumLowColor">#2B3431</Color>
+      <Color x:Key="SystemChromeLowColor">#222222</Color>
+      <Color x:Key="SystemChromeAltLowColor">#222222</Color>
+      <Color x:Key="SystemChromeBlackLowColor">#1B1B1B</Color>
+      <Color x:Key="SystemChromeGrayColor">#9CA3AF</Color>
+      <Color x:Key="SystemListLowColor">#3A4A43</Color>
+      <Color x:Key="SystemListMediumColor">#4E5763</Color>
+    </ResourceDictionary>
+  </ResourceDictionary.ThemeDictionaries>
+
+  <StaticResource x:Key="ButtonBorderThemeThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="ToggleButtonBorderThemeThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="CheckBoxBorderThemeThickness" ResourceKey="Border.Width" />
+  <x:Double x:Key="RadioButtonBorderThemeThickness">2</x:Double>
+  <StaticResource x:Key="TextControlBorderThemeThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="TextControlBorderThemeThicknessFocused" ResourceKey="Border.Width" />
+  <StaticResource x:Key="ComboBoxBorderThemeThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="ComboBoxDropdownBorderThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="ListBoxBorderThemeThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="TreeViewItemBorderThemeThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="ToolTipBorderThemeThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="MenuFlyoutPresenterBorderThemeThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="FlyoutBorderThemeThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="ProgressBarBorderThemeThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="SliderBorderThemeThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="SplitButtonBorderThemeThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="HyperlinkButtonBorderThemeThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="ExpanderHeaderBorderThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="ExpanderChevronBorderThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="ExpanderContentDownBorderThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="ExpanderContentLeftBorderThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="ExpanderContentRightBorderThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="ExpanderContentUpBorderThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="GroupBoxBorderThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="AutoCompleteListBorderThemeThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="CalendarDatePickerBorderThemeThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="TimePickerBorderThemeThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="ToggleSwitchOuterBorderStrokeThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="DateTimeFlyoutBorderThickness" ResourceKey="Border.Width" />
+  <StaticResource x:Key="DateTimeFlyoutButtonBorderThickness" ResourceKey="Border.Width" />
+  <x:Double x:Key="TabItemPipeThickness">2</x:Double>
+  <x:Double x:Key="TabStripItemPipeThickness">2</x:Double>
+
+  <StaticResource x:Key="ControlCornerRadius" ResourceKey="Radius.Control" />
+  <StaticResource x:Key="OverlayCornerRadius" ResourceKey="Radius.Panel" />
+
+  <StaticResource x:Key="ButtonBackground" ResourceKey="Bg.Surface" />
+  <StaticResource x:Key="ButtonBackgroundPointerOver" ResourceKey="Hover" />
+  <StaticResource x:Key="ButtonBackgroundPressed" ResourceKey="Pressed" />
+  <StaticResource x:Key="ButtonBackgroundDisabled" ResourceKey="Disabled.Bg" />
+  <StaticResource x:Key="ButtonBorderBrush" ResourceKey="Border" />
+  <StaticResource x:Key="ButtonBorderBrushPointerOver" ResourceKey="Border" />
+  <StaticResource x:Key="ButtonBorderBrushPressed" ResourceKey="Text" />
+  <StaticResource x:Key="ButtonBorderBrushDisabled" ResourceKey="Disabled.Border" />
+  <StaticResource x:Key="ButtonForeground" ResourceKey="Text" />
+  <StaticResource x:Key="ButtonForegroundPointerOver" ResourceKey="Text" />
+  <StaticResource x:Key="ButtonForegroundPressed" ResourceKey="Text" />
+  <StaticResource x:Key="ButtonForegroundDisabled" ResourceKey="Disabled.Text" />
+
+  <StaticResource x:Key="TextControlBackground" ResourceKey="Bg.Sunken" />
+  <StaticResource x:Key="TextControlBackgroundPointerOver" ResourceKey="Bg.Sunken" />
+  <StaticResource x:Key="TextControlBackgroundFocused" ResourceKey="Bg.Sunken" />
+  <StaticResource x:Key="TextControlBackgroundDisabled" ResourceKey="Disabled.Bg" />
+  <StaticResource x:Key="TextControlBorderBrush" ResourceKey="Border" />
+  <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="Border" />
+  <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="Select" />
+  <StaticResource x:Key="TextControlBorderBrushDisabled" ResourceKey="Disabled.Border" />
+  <StaticResource x:Key="TextControlForeground" ResourceKey="Text" />
+
+  <StaticResource x:Key="ComboBoxBackground" ResourceKey="Bg.Surface" />
+  <StaticResource x:Key="ComboBoxBackgroundPointerOver" ResourceKey="Hover" />
+  <StaticResource x:Key="ComboBoxBackgroundPressed" ResourceKey="Pressed" />
+  <StaticResource x:Key="ComboBoxBorderBrush" ResourceKey="Border" />
+  <StaticResource x:Key="ComboBoxBorderBrushPointerOver" ResourceKey="Border" />
+  <StaticResource x:Key="ComboBoxBorderBrushPressed" ResourceKey="Text" />
+  <StaticResource x:Key="ComboBoxDropDownBackground" ResourceKey="Bg.Overlay" />
+  <StaticResource x:Key="ComboBoxDropDownBorderBrush" ResourceKey="Border" />
+
+  <StaticResource x:Key="ToolTipBackground" ResourceKey="Bg.Overlay" />
+  <StaticResource x:Key="ToolTipBorderBrush" ResourceKey="Border" />
+  <StaticResource x:Key="ToolTipForeground" ResourceKey="Text" />
+
+  <StaticResource x:Key="MenuFlyoutPresenterBackground" ResourceKey="Bg.Overlay" />
+  <StaticResource x:Key="MenuFlyoutPresenterBorderBrush" ResourceKey="Border" />
+  <StaticResource x:Key="FlyoutPresenterBackground" ResourceKey="Bg.Overlay" />
+</ResourceDictionary>

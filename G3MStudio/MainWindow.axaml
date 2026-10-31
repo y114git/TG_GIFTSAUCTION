@@ -1,0 +1,37 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:G3MStudio.Localization"
+        xmlns:dock="using:Dock.Avalonia.Controls"
+        xmlns:start="using:G3MStudio.Start"
+        xmlns:notify="using:G3MStudio.Notifications"
+        x:Class="G3MStudio.MainWindow"
+        Width="1100" Height="700">
+  <LayoutTransformControl Name="ZoomHost">
+    <DockPanel>
+      <Menu Name="MainMenu" DockPanel.Dock="Top" />
+      <Border DockPanel.Dock="Bottom" Background="{DynamicResource Bg.Raised}" BorderBrush="{DynamicResource Border.Subtle}" BorderThickness="0,2,0,0" Padding="8,2">
+        <DockPanel>
+          <Button DockPanel.Dock="Right" Name="ProjectButton" IsVisible="False" Padding="6,0" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
+          <Button DockPanel.Dock="Right" Name="NotifyButton" IsVisible="False" Padding="6,0" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
+          <TextBlock DockPanel.Dock="Right" Name="LanguageStatus" Classes="muted" FontSize="{DynamicResource FontSize.Caption}" />
+          <TextBlock Name="StatusText" FontSize="{DynamicResource FontSize.Caption}" />
+        </DockPanel>
+      </Border>
+      <Grid>
+        <start:StartPage Name="Start" />
+        <Grid Name="WorkArea" IsVisible="False">
+          <dock:DockControl Name="DockHost" />
+        </Grid>
+        <Border Name="SettingsHost" IsVisible="False" Background="{DynamicResource Bg.Window}" />
+        <Border Name="Progress" IsVisible="False" Background="{DynamicResource Bg.Overlay}">
+          <StackPanel Width="360" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <TextBlock Name="ProgressText" />
+            <ProgressBar Name="ProgressBar" Minimum="0" Maximum="1" />
+            <Button Name="CancelButton" HorizontalAlignment="Right" Content="{loc:Tr explorer.cancel}" />
+          </StackPanel>
+        </Border>
+        <notify:ToastHost Name="Toasts" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8" />
+      </Grid>
+    </DockPanel>
+  </LayoutTransformControl>
+</Window>

@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:G3MStudio.Localization"
+             xmlns:local="using:G3MStudio.Start"
+             x:Class="G3MStudio.Start.StartPage">
+  <ScrollViewer>
+    <StackPanel MaxWidth="920" Margin="32,64,32,32" Spacing="14" HorizontalAlignment="Center">
+      <TextBlock Text="G3MStudio" FontSize="32" />
+      <TextBlock Text="{loc:Tr app.welcome}" Classes="muted" />
+      <Button Name="OpenButton" Classes="primary" HorizontalAlignment="Left" Padding="20,8" Content="{loc:Tr start.open}" />
+      <TextBlock Text="{loc:Tr start.recent}" FontSize="{DynamicResource FontSize.Title}" Margin="0,10,0,0" />
+      <TextBlock Name="EmptyRecent" Text="{loc:Tr start.empty}" Classes="muted" />
+      <ItemsControl Name="Cards">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="local:RecentCard">
+            <Border Width="280" Margin="0,0,8,8" Padding="8" Background="{DynamicResource Bg.Surface}"
+                    BorderBrush="{DynamicResource Border.Subtle}" BorderThickness="2" CornerRadius="{DynamicResource Radius.Panel}">
+              <StackPanel Spacing="4">
+                <Button Tag="{Binding Path}" Click="OnCardClick" IsEnabled="{Binding Exists}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                  <StackPanel>
+                    <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding Version}" Classes="muted" />
+                    <TextBlock Text="{Binding Path}" Classes="muted" FontSize="{DynamicResource FontSize.Caption}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding Opened}" Classes="muted" FontSize="{DynamicResource FontSize.Caption}" />
+                    <TextBlock Text="{Binding Missing}" Foreground="{DynamicResource Warning}" IsVisible="{Binding !Exists}" />
+                  </StackPanel>
+                </Button>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <Button Tag="{Binding Path}" Click="OnPinClick" Content="{Binding PinText}" />
+                  <Button Tag="{Binding Path}" Click="OnRemoveClick" Content="{Binding RemoveText}" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <Button Name="ClearButton" HorizontalAlignment="Left" Content="{loc:Tr start.clear}" />
+      <Border Margin="0,16,0,0" Padding="24" BorderBrush="{DynamicResource Border.Subtle}" BorderThickness="2" CornerRadius="{DynamicResource Radius.Panel}">
+        <TextBlock Text="{loc:Tr start.drop}" Classes="muted" HorizontalAlignment="Center" />
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

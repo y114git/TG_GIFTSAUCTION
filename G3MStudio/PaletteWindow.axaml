@@ -1,0 +1,22 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:G3MStudio.Localization"
+        xmlns:local="using:G3MStudio"
+        x:Class="G3MStudio.PaletteWindow"
+        Title="{loc:Tr palette.title}" Width="560" SizeToContent="Height"
+        CanResize="False" ShowInTaskbar="False" WindowStartupLocation="CenterOwner">
+  <StackPanel Margin="8" Spacing="6">
+    <TextBox Name="Input" PlaceholderText="{loc:Tr palette.placeholder}" />
+    <ListBox Name="Results" MaxHeight="320">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="local:PaletteItem">
+          <DockPanel>
+            <TextBlock DockPanel.Dock="Right" Text="{Binding Shortcut}" Classes="muted" />
+            <TextBlock Text="{Binding Title}" />
+          </DockPanel>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+    <TextBlock Name="Empty" Classes="muted" IsVisible="False" />
+  </StackPanel>
+</Window>

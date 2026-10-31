@@ -1,0 +1,676 @@
+{
+  "metadata": {
+    "language": "chinese_simplified",
+    "language_name": "简体中文"
+  },
+  "app": {
+    "title": "G3MStudio",
+    "welcome": "打开游戏数据文件即可开始。",
+    "ready": "就绪",
+    "language": "语言: {name}",
+    "openFailed": "无法打开“{name}”：{reason}",
+    "recovered": "已恢复 {count} 项未保存的编辑"
+  },
+  "menu": {
+    "plugins": "插件",
+    "file": "文件",
+    "edit": "编辑",
+    "view": "视图",
+    "window": "窗口",
+    "project": "项目",
+    "tools": "工具",
+    "help": "帮助",
+    "mods": "模组",
+    "run": "运行",
+    "room": "房间",
+    "sprite": "精灵",
+    "sub": {
+      "view": {
+        "language": "语言",
+        "panel": "面板"
+      }
+    }
+  },
+  "cmd": {
+    "file": {
+      "open": "打开...",
+      "openRecent": "打开最近文件",
+      "save": "保存",
+      "saveAs": "另存为...",
+      "close": "关闭",
+      "exit": "退出",
+      "saveCopy": "保存副本...",
+      "revert": "还原到已保存...",
+      "exportSelection": "导出所选资源...",
+      "exportAll": "导出全部...",
+      "import": "导入资源..."
+    },
+    "edit": {
+      "undo": "撤销",
+      "redo": "重做",
+      "rename": "重命名...",
+      "selectAll": "全选",
+      "find": "查找",
+      "findInCode": "在代码中查找...",
+      "findUsages": "查找用法",
+      "replaceFrame": "替换精灵帧...",
+      "duplicateFrame": "复制精灵帧",
+      "removeFrame": "删除精灵帧",
+      "recalculateMask": "重新计算碰撞遮罩",
+      "importMask": "导入遮罩...",
+      "exportMask": "导出遮罩..."
+    },
+    "view": {
+      "commandPalette": "命令面板...",
+      "fullscreen": "切换全屏",
+      "zoomIn": "放大",
+      "zoomOut": "缩小",
+      "zoomReset": "重置缩放",
+      "language": {
+        "en": "语言: English",
+        "ru": "语言: Русский",
+        "es": "语言: Español",
+        "ja": "语言: 日本語",
+        "ko": "语言: 한국어",
+        "zh_cn": "语言: 简体中文",
+        "zh_tw": "语言: 繁體中文"
+      }
+    },
+    "project": {
+      "enable": "启用项目",
+      "sync": "同步到数据文件",
+      "options": "项目设置...",
+      "moveDataFile": "更改数据文件位置...",
+      "disable": "停用项目...",
+      "resolve": "解决外部更改..."
+    },
+    "tabs": {
+      "close": "关闭标签页",
+      "closeAll": "关闭所有标签页",
+      "pin": "固定标签页",
+      "keepOpen": "保持标签页打开",
+      "splitRight": "向右拆分"
+    },
+    "go": {
+      "quickOpen": "转到资源..."
+    },
+    "settings": {
+      "open": "设置"
+    },
+    "help": {
+      "about": "关于 G3MStudio",
+      "documentation": "文档",
+      "checkUpdates": "检查更新..."
+    },
+    "mods": {
+      "createPatch": "创建补丁...",
+      "applyPatch": "应用补丁...",
+      "validatePatch": "验证补丁...",
+      "mergePatches": "合并补丁...",
+      "compareFiles": "比较数据文件...",
+      "exportMod": "导出为模组 ZIP..."
+    },
+    "run": {
+      "game": "运行游戏",
+      "stop": "停止游戏"
+    },
+    "room": {
+      "play": "试玩此房间",
+      "creationOrder": "实例创建顺序...",
+      "exportTiles": "将图块导出为 CSV...",
+      "importTiles": "从 CSV 导入图块...",
+      "savePng": "将房间保存为 PNG..."
+    },
+    "tools": {
+      "plugins": "插件...",
+      "strings": "字符串...",
+      "runScript": "运行脚本...",
+      "repackTextures": "重新打包纹理页..."
+    }
+  },
+  "palette": {
+    "title": "命令面板",
+    "placeholder": "输入命令",
+    "empty": "没有与“{text}”匹配的结果。"
+  },
+  "start": {
+    "open": "打开数据文件...",
+    "recent": "最近",
+    "empty": "没有最近的文件。",
+    "drop": "将数据文件拖放到此处即可打开。",
+    "missing": "未找到文件",
+    "opened": "打开于 {time}",
+    "remove": "移除",
+    "pin": "固定",
+    "unpin": "取消固定",
+    "clear": "清除最近打开的项目"
+  },
+  "explorer": {
+    "filter": "筛选资源...",
+    "count": "{count} 个资源",
+    "matches": "{total} 个中的 {matches} 个",
+    "noMatch": "没有与“{filter}”匹配的资源。",
+    "opening": "正在打开 {name}... {percent}%",
+    "cancel": "取消",
+    "type": {
+      "general": "游戏",
+      "sprites": "精灵",
+      "tileSets": "图块集",
+      "sounds": "声音",
+      "paths": "路径",
+      "scripts": "脚本",
+      "shaders": "着色器",
+      "fonts": "字体",
+      "timelines": "时间线",
+      "objects": "对象",
+      "rooms": "房间",
+      "extensions": "扩展",
+      "sequences": "序列",
+      "animationCurves": "动画曲线",
+      "particleSystems": "粒子系统",
+      "code": "代码",
+      "strings": "字符串",
+      "variables": "变量",
+      "functions": "函数",
+      "codeLocals": "代码局部变量",
+      "texturePageItems": "纹理页项目",
+      "embeddedTextures": "嵌入纹理",
+      "embeddedImages": "嵌入图像",
+      "embeddedAudio": "嵌入音频",
+      "textureGroups": "纹理组",
+      "audioGroups": "音频组",
+      "filterEffects": "滤镜效果",
+      "data": "数据"
+    }
+  },
+  "project": {
+    "state": {
+      "synced": "已同步",
+      "syncing": "正在同步...",
+      "exporting": "正在导出项目...",
+      "notSynced": "{count} 项更改尚未同步到数据文件",
+      "changed": "数据文件已在外部更改",
+      "enable": "启用项目"
+    },
+    "offer": "是否在项目中保留此游戏资源的完整副本并记录历史?",
+    "enable": {
+      "button": "启用项目",
+      "action": "启用项目"
+    },
+    "location": {
+      "title": "项目文件夹",
+      "label": "项目应保存在哪里?",
+      "remember": "记住此选择",
+      "browse": "浏览..."
+    },
+    "exporting": "正在导出 {name}... {done} / {total} 个资源",
+    "cancelled": "已取消项目导出。未保留任何内容。",
+    "warnings": "项目已创建，但报告了 {count} 个问题。第一个：{first}",
+    "created": "已为 {name} 创建项目。",
+    "createFailed": "无法创建项目：{reason}",
+    "already": "此数据文件已有项目。",
+    "none": "请先启用项目。",
+    "writeFailed": "无法写入项目：{reason}",
+    "queueFailed": "无法应用排队的编辑：{reason}",
+    "settings": {
+      "title": "项目设置",
+      "autosave": "自动保存到项目",
+      "autosync": "自动同步到数据文件",
+      "seconds": "秒"
+    },
+    "trigger": {
+      "Off": "关闭",
+      "AfterDelay": "延迟后",
+      "OnFocusLoss": "窗口失去焦点时",
+      "OnSave": "保存时"
+    },
+    "move": {
+      "title": "数据文件位置",
+      "path": "新位置",
+      "move": "移动",
+      "copy": "复制",
+      "recreate": "从项目重新创建",
+      "done": "数据文件现在位于 {path}",
+      "failed": "无法更改位置：{reason}"
+    },
+    "disable": {
+      "title": "停用项目",
+      "message": "保留项目（归档，可再次启用），还是删除以释放磁盘空间？数据文件不会被改动。",
+      "keep": "保留项目",
+      "delete": "删除项目"
+    },
+    "working": "正在处理 {name}...",
+    "merged": "已将外部更改合并到 {name}。",
+    "mergeFailed": "无法合并外部更改：{reason}",
+    "external": {
+      "title": "数据文件已在外部更改",
+      "message": "自上次同步项目以来，{name} 已被其他程序更改。要将其更改带入项目、用项目替换数据文件，还是两者分开保留？",
+      "bring": "带入更改",
+      "overwrite": "用项目替换数据文件",
+      "keepBoth": "两者都保留（归档项目）",
+      "later": "稍后决定"
+    },
+    "conflicts": {
+      "title": "解决冲突",
+      "message": "这些资源在项目和数据文件中都已更改。请为每个资源选择要保留的版本。",
+      "ours": "保留项目版本",
+      "theirs": "使用数据文件版本",
+      "apply": "合并"
+    },
+    "rebuild": {
+      "title": "无法打开数据文件",
+      "message": "{name} 缺失或已损坏，但它有项目。要从项目重新生成吗？",
+      "button": "从项目重新生成",
+      "base": "请选择一份游戏数据文件的副本作为基础"
+    },
+    "rebuildFailed": "无法重新生成数据文件：{reason}"
+  },
+  "history": {
+    "start": "打开时的状态",
+    "rename": "将 {old} 重命名为 {new}",
+    "code": "将代码应用到 {entry}"
+  },
+  "rename": {
+    "title": "重命名",
+    "label": "{name} 的新名称",
+    "ok": "重命名"
+  },
+  "code": {
+    "apply": "应用",
+    "revert": "还原",
+    "decompiling": "正在反编译...",
+    "failed": "无法保存“{entry}”的代码：{reason}",
+    "notApplied": "文本无法编译",
+    "showFailed": "无法显示“{entry}”的代码：{reason}"
+  },
+  "notify": {
+    "button": "通知 ({count})"
+  },
+  "prompt": {
+    "title": "未保存的更改",
+    "direct": "{name} 有 {count} 项未保存的更改。要保存它们，还是留在日志中稍后处理？",
+    "project": "{name} 有 {count} 项更改不在数据文件中。要同步它们，还是留在日志中稍后处理？",
+    "save": "保存",
+    "sync": "同步更改",
+    "later": "稍后再做"
+  },
+  "editor": {
+    "empty": "没有打开的内容。按 Ctrl+P 查找资源，或在资源管理器中双击一项。"
+  },
+  "save": {
+    "done": "已保存 {name}",
+    "locked": "无法保存“{name}”：文件正被 {holder} 使用。你的编辑已保留。",
+    "lockedUnknown": "无法保存“{name}”：文件正被其他程序使用。你的编辑已保留。",
+    "invalid": "无法保存“{name}”。写出的文件与模型不一致（{detail}）。原文件未改动。",
+    "failed": "无法保存“{name}”：{reason}",
+    "moveWithProject": "请通过 项目 > 数据文件位置 移动项目的数据文件。"
+  },
+  "quick": {
+    "title": "转到资源",
+    "placeholder": "输入资源或代码名称 (spr: obj: scr: ...)"
+  },
+  "settings": {
+    "title": "设置",
+    "close": "关闭",
+    "default": "默认",
+    "appearance": "外观",
+    "language": "语言",
+    "scale": "界面缩放",
+    "fontFamily": "字体系列（留空则使用主题字体）",
+    "fontWeight": "字重",
+    "files": "文件",
+    "backups": "数据文件备份（1 至 3）",
+    "askOnClose": "关闭时若有未保存的更改则先询问",
+    "location": "项目文件夹",
+    "projects": "项目",
+    "autosave": "自动保存到项目",
+    "autosync": "自动同步到数据文件",
+    "projectsNote": "这是新项目的默认值；更改它们也会更改已打开的项目。",
+    "shortcuts": "键盘快捷键",
+    "shortcutFilter": "筛选命令或快捷键",
+    "pressKeys": "请按下按键...",
+    "noShortcut": "无",
+    "reset": "重置",
+    "shortcutShared": "{shortcut} 也被以下命令使用：{commands}。",
+    "addFont": "添加字体文件...",
+    "removeFont": "移除",
+    "fontFiles": "字体文件",
+    "notAFont": "{file} 不是字体文件。",
+    "search": "搜索设置",
+    "run": "运行",
+    "runRunner": "运行器（留空则使用数据文件旁的游戏可执行文件）",
+    "runArguments": "额外参数",
+    "runDebugOutput": "写入游戏日志 (-debugoutput)",
+    "profiles": "运行配置",
+    "profileName": "配置名称",
+    "profileSave": "另存为配置",
+    "profileDelete": "删除配置",
+    "colors": "颜色",
+    "editor": "代码编辑器",
+    "codeFontSize": "文字大小",
+    "codeWordWrap": "自动换行",
+    "codeLineNumbers": "显示行号",
+    "themeExport": "导出主题...",
+    "themeImport": "导入主题...",
+    "themeBad": "未能使用主题文件：{reason}",
+    "compact": "紧凑密度（屏幕显示更多）"
+  },
+  "git": {
+    "noProject": "Git 跟踪项目文件夹。请为此数据文件启用项目以使用 Git。",
+    "notInstalled": "未安装 Git，或不在 PATH 中。",
+    "notRepository": "此项目不是 Git 仓库。",
+    "init": "初始化仓库",
+    "message": "提交信息",
+    "commit": "提交",
+    "stageAll": "全部暂存",
+    "unstageAll": "取消全部暂存",
+    "refresh": "刷新",
+    "clean": "没有更改。",
+    "failed": "Git：{reason}",
+    "lfs": "发现 {count} 个大型音频或图像文件，例如 {first}。Git LFS 可让仓库保持精简。",
+    "newBranchName": "新分支名称",
+    "newBranch": "新建分支",
+    "fetch": "抓取",
+    "pull": "拉取",
+    "push": "推送",
+    "remoteUrl": "远程地址（URL 或文件夹）",
+    "addRemote": "添加远程",
+    "aheadBehind": "领先 {ahead}，落后 {behind}",
+    "newFile": "新文件，尚未跟踪。"
+  },
+  "properties": {
+    "filter": "筛选属性",
+    "refused": "{path}：{reason}",
+    "missing": "在此数据文件中找不到 {name}。"
+  },
+  "about": {
+    "title": "关于 G3MStudio",
+    "copy": "复制版本信息"
+  },
+  "search": {
+    "placeholder": "在代码中查找",
+    "case": "区分大小写",
+    "regex": "正则表达式",
+    "run": "搜索",
+    "progress": "正在搜索... {done} / {total} 个条目",
+    "done": "在 {entries} 个条目中找到 {hits} 处匹配。",
+    "failed": "有 {count} 个条目无法读取，已跳过。",
+    "cancelled": "搜索已取消。",
+    "badPattern": "此模式无效：{reason}",
+    "timeout": "此模式在某一行上耗时过长。请简化它。"
+  },
+  "usages": {
+    "searching": "正在查找 {name} 的用法...",
+    "found": "{name} 在 {count} 处被使用。",
+    "none": "{name} 未在任何地方使用。",
+    "failed": "无法搜索 {name}：{reason}"
+  },
+  "help": {
+    "noBrowser": "无法启动浏览器。请自行打开 {url}。"
+  },
+  "transfer": {
+    "pickExport": "导出到的文件夹",
+    "pickImport": "导入来源文件夹",
+    "unsupported": "{type} 无法导出为文件。",
+    "needsSave": "请先保存或还原未保存的更改，以免导入与它们混在一起。",
+    "noFolders": "{folder} 中没有 Sprites 或 GameObjects 之类的资源文件夹。",
+    "confirmTitle": "请确认",
+    "confirmImport": "要从 {folder} 导入 {folders} 吗？打开的数据文件会在内存中更改，且无法撤销。保存以保留，或还原到已保存状态以丢弃。",
+    "ok": "确定",
+    "exportDone": "已导出到 {folder}。",
+    "importDone": "已从 {folder} 导入。此操作无法撤销：保存以保留，或还原到已保存状态。",
+    "summary": "已写入 {written} 项，跳过 {skipped} 项，警告 {warnings} 项，失败 {failed} 项。",
+    "cancelledExport": "导出已取消。未保留任何内容。",
+    "cancelledImport": "导入已取消。打开的数据文件中包含其中一部分：请还原到已保存状态后重新开始。",
+    "failed": "操作失败：{reason}",
+    "nothingToRevert": "没有未保存的更改。",
+    "revertTitle": "还原到已保存",
+    "confirmRevert": "要放弃 {name} 的 {count} 项未保存更改并重新加载文件吗？"
+  },
+  "mods": {
+    "pickOriginal": "原始数据文件（补丁所应用的文件）",
+    "pickData": "要打补丁的数据文件",
+    "pickPatch": "补丁文件",
+    "pickPatchOut": "将补丁保存为",
+    "pickDataOut": "将已打补丁的数据文件保存为",
+    "needsSave": "请先保存更改：补丁由磁盘上的文件生成。",
+    "sameFile": "输出必须是与来源不同的文件。",
+    "creating": "正在创建补丁",
+    "applying": "正在应用补丁",
+    "validating": "正在检查补丁",
+    "created": "补丁已保存到 {path}。",
+    "applied": "已打补丁的数据文件已保存到 {path}。",
+    "valid": "{name} 是有效的补丁。",
+    "failed": "{what}失败：{reason}",
+    "cancelled": "已取消。",
+    "unknownError": "未知错误",
+    "pickPatches": "要合并的补丁（来自同一原始文件的两个或更多）",
+    "needTwo": "请至少选择两个要合并的补丁。",
+    "merging": "正在合并补丁",
+    "merged": "合并后的补丁已保存到 {path}：自动合并 {merged} 项更改，{conflicts} 个冲突。",
+    "pickReport": "将报告保存为",
+    "comparing": "正在比较数据文件",
+    "compared": "报告已保存到 {path}：{count} 处差异。",
+    "pickModOut": "将模组保存为",
+    "packaging": "正在打包模组",
+    "packaged": "模组已保存到 {path}。请在 mod_config.json 中设置作者和游戏 ID。"
+  },
+  "sprites": {
+    "pickPicture": "用于该帧的图片",
+    "noSprite": "请打开一个精灵，并点击要替换的帧。",
+    "noMask": "这个精灵没有碰撞遮罩。",
+    "pickMask": "选择遮罩图片",
+    "pickMaskSave": "将遮罩保存为",
+    "maskImported": "已导入 {sprite} 的遮罩 {index}。",
+    "maskExported": "已将 {sprite} 的遮罩 {index} 保存到 {path}。",
+    "badPicture": "{name} 不是可读取的图片：{reason}",
+    "replaced": "已替换 {sprite} 的第 {frame} 帧。",
+    "lastFrame": "精灵至少需要一帧。",
+    "maskDone": "已根据各帧重建 {sprite} 的碰撞遮罩。"
+  },
+  "run": {
+    "noRunner": "在 {file} 旁边找不到游戏。请把游戏可执行文件放在同一文件夹中。",
+    "running": "游戏已在运行。",
+    "starting": "正在启动 {name}...",
+    "started": "{name} 正在运行。",
+    "exited": "{name} 已退出，退出码为 {code}。",
+    "notRunning": "没有正在运行的游戏。",
+    "failed": "无法启动游戏：{reason}",
+    "roomWarning": "从房间 {room} 开始：游戏会直接在该房间打开，因此之前房间所做的设置（全局变量、存档状态、持久对象）都不存在，游戏可能出错或显示不正常。不在房间顺序中的房间无法这样启动。",
+    "stopped": "游戏已停止。"
+  },
+  "update": {
+    "title": "更新",
+    "none": "G3MStudio {version} 已是最新版本。",
+    "ask": "G3MStudio {version} 可用（你现在是 {current}）。要下载并重启以安装吗？",
+    "failed": "更新失败：{reason}",
+    "notWritable": "无法写入程序文件夹；请把 G3MStudio 移到你自己的文件夹",
+    "downloading": "正在下载 G3MStudio {version}..."
+  },
+  "sounds": {
+    "play": "播放",
+    "info": "{kind} 音频，{kb} KB，{seconds} 秒",
+    "outside": "此声音的音频存放在数据文件之外 ({file})。",
+    "noPlayer": "没有程序可以播放 {path}。请自行打开。"
+  },
+  "strings": {
+    "kindName": "名称",
+    "kindText": "文本",
+    "uses": "在 {count} 处使用；更改文本会同时更改所有位置。若只想改一处，请在其自己的标签页中编辑该属性。",
+    "title": "字符串",
+    "filter": "筛选字符串...",
+    "regex": "正则表达式",
+    "apply": "更改文本",
+    "count": "共 {total} 条，显示 {shown} 条"
+  },
+  "fonts": {
+    "glyphFilter": "按字符、U+编码或数字筛选...",
+    "glyphCount": "共 {count} 个字形",
+    "glyphNew": "U+编码或字符",
+    "glyphAdd": "添加字形"
+  },
+  "paths": {
+    "speed": "速度 %",
+    "moveAll": "全部移动"
+  },
+  "timelines": {
+    "moment": "时刻 {number} 的步数",
+    "remove": "移除",
+    "add": "添加时刻",
+    "actionCode": "代码条目名称",
+    "addAction": "添加动作"
+  },
+  "particles": {
+    "add": "添加发射器"
+  },
+  "scripts": {
+    "pick": "选择脚本 (.csx)",
+    "title": "运行脚本",
+    "confirm": "运行 {name}？\n\n脚本可以更改数据文件中的任何内容，也可以读写这台电脑上的任何文件。更改无法撤销，可用“还原为已保存”恢复。只运行你信任的脚本。\n\n这里运行 UndertaleModTool 风格的 .csx 脚本，但只提供该工具的一部分函数：Data、FilePath、ScriptPath、ScriptMessage、ScriptWarning、ScriptError 和 ScriptQuestion（一律回答“是”）。需要对话框、反编译助手或界面的脚本会因编译错误而停止，错误会指出缺少的函数。",
+    "running": "正在运行 {name}...",
+    "done": "{name} 已完成。",
+    "failed": "{name} 失败：{reason}"
+  },
+  "sequences": {
+    "addGroup": "添加分组轨道",
+    "newGroup": "分组"
+  },
+  "inspector": {
+    "none": "请在资源管理器中选择一个资源。",
+    "uses": "在 {count} 处使用"
+  },
+  "plugins": {
+    "check": "检查更新",
+    "updateAvailable": "有新版本。请使用“从 GitHub 更新”。",
+    "upToDate": "插件已是最新。",
+    "update": "从 GitHub 更新",
+    "noOrigin": "此插件不是从 GitHub 安装的，没有可更新的来源。",
+    "installUrl": "从 GitHub 安装",
+    "badUrl": "请使用 https://github.com/owner/repository 这样的地址。",
+    "installZip": "从 ZIP 安装...",
+    "installFolder": "从文件夹安装...",
+    "installTitle": "安装插件",
+    "trust": "安装“{name}”{version}？\n\n来源：{source}\n作者：{authors}\n声明需要的权限：{permissions}\n\n插件和脚本一样可以完全访问你的电脑。请只安装你信任的插件。",
+    "title": "插件",
+    "new": "新建插件",
+    "reload": "重新加载",
+    "reloadAll": "全部重新加载",
+    "openFolder": "打开文件夹",
+    "enabled": "启用",
+    "empty": "还没有插件。请把插件文件夹放到 {folder}，或用“新建插件”创建一个。",
+    "permissions": "权限",
+    "error": "错误",
+    "state": {
+      "Active": "运行中",
+      "Disabled": "已关闭",
+      "Failed": "启动失败"
+    }
+  },
+  "rooms": {
+    "addLayer": "添加",
+    "deleteLayer": "删除",
+    "layerUp": "上移",
+    "layerDown": "下移",
+    "renameLayer": "重命名",
+    "tool": {
+      "None": "选择",
+      "Place": "放置",
+      "Paint": "绘制",
+      "Erase": "擦除",
+      "Fill": "填充",
+      "Rectangle": "矩形",
+      "Pick": "取色"
+    },
+    "inspector": {
+      "x": "X",
+      "y": "Y",
+      "scaleX": "缩放 X",
+      "scaleY": "缩放 Y",
+      "rotation": "旋转",
+      "frame": "帧",
+      "speed": "速度",
+      "object": "对象",
+      "none": "未选择实例。",
+      "title": "实例 {id}（已选 {count} 个）"
+    },
+    "layerProp": {
+      "depth": "深度",
+      "xoffset": "X 偏移",
+      "yoffset": "Y 偏移",
+      "hspeed": "水平速度",
+      "vspeed": "垂直速度"
+    },
+    "layerKind": {
+      "addInstances": "实例",
+      "addAssets": "资产",
+      "addBackground": "背景",
+      "addTiles": "图块"
+    },
+    "noRoom": "请先打开一个房间。",
+    "fitTiles": "调整图块网格",
+    "noTileLayer": "请先选择带有图块集的图块图层。",
+    "pickCsv": "选择图块 CSV",
+    "pickCsvSave": "将图块保存为",
+    "tilesExported": "已将 {room} 中 {layer} 的图块保存到 {path}。",
+    "tilesImported": "已更改 {layer} 的 {count} 个图块。",
+    "tilesBad": "未能使用图块 CSV：{reason}",
+    "snapped": "对齐",
+    "lock": "锁定",
+    "orderTitle": "创建顺序",
+    "orderTop": "移到最前",
+    "orderEnd": "移到最后",
+    "orderNote": "创建顺序不决定事件的顺序。",
+    "orderUp": "上移",
+    "orderDown": "下移",
+    "pickPng": "将图片保存为",
+    "pngSaved": "房间 {room} 已保存到 {path}。",
+    "pngFailed": "无法保存图片：{reason}",
+    "flagMirror": "镜像",
+    "flagFlip": "翻转",
+    "flagRotate": "旋转",
+    "placing": "在房间中点击以放置 {name}。",
+    "placeNone": "请在资源管理器中选择对象或精灵，然后在房间中点击。",
+    "grid": "网格",
+    "snap": "吸附",
+    "views": "视图",
+    "zoomOut": "缩小",
+    "zoomIn": "放大",
+    "fit": "适应",
+    "actual": "实际大小"
+  },
+  "textures": {
+    "title": "重新打包纹理页",
+    "repacking": "正在重新打包纹理页",
+    "confirm": "所有纹理组的页数将从 {before} 变为 {after}。此操作无法撤销：保存以保留，或还原到已保存的文件。现在重新打包吗？",
+    "done": "已重新打包：页数从 {before} 变为 {after}。保存以保留，或还原到已保存的文件。"
+  },
+  "panel": {
+    "explorer": "资源管理器",
+    "search": "搜索",
+    "inspector": "检查器",
+    "problems": "问题",
+    "output": "输出",
+    "usages": "用法",
+    "history": "历史",
+    "git": "Git"
+  },
+  "colors": {
+    "Accent": "强调色",
+    "Syntax": {
+      "Keyword": "关键字",
+      "Function": "函数",
+      "Variable": "变量",
+      "Constant": "常量",
+      "Asset": "资源",
+      "String": "字符串",
+      "Number": "数字",
+      "Comment": "注释",
+      "Operator": "运算符",
+      "Preprocessor": "预处理器"
+    }
+  },
+  "empty": {
+    "problems": "没有问题。",
+    "output": "尚无任何报告。"
+  }
+}

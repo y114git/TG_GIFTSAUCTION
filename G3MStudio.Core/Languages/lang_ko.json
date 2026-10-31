@@ -1,0 +1,676 @@
+{
+  "metadata": {
+    "language": "korean",
+    "language_name": "한국어"
+  },
+  "app": {
+    "title": "G3MStudio",
+    "welcome": "게임 데이터 파일을 열어 시작하세요.",
+    "ready": "준비됨",
+    "language": "언어: {name}",
+    "openFailed": "'{name}'을(를) 열 수 없습니다: {reason}",
+    "recovered": "저장되지 않은 편집 {count}개를 복구했습니다"
+  },
+  "menu": {
+    "plugins": "플러그인",
+    "file": "파일",
+    "edit": "편집",
+    "view": "뷰",
+    "window": "창",
+    "project": "프로젝트",
+    "tools": "도구",
+    "help": "도움말",
+    "mods": "모드",
+    "run": "실행",
+    "room": "룸",
+    "sprite": "스프라이트",
+    "sub": {
+      "view": {
+        "language": "언어",
+        "panel": "패널"
+      }
+    }
+  },
+  "cmd": {
+    "file": {
+      "open": "열기...",
+      "openRecent": "최근 항목 열기",
+      "save": "저장",
+      "saveAs": "다른 이름으로 저장...",
+      "close": "닫기",
+      "exit": "종료",
+      "saveCopy": "사본 저장...",
+      "revert": "저장된 상태로 되돌리기...",
+      "exportSelection": "선택한 리소스 내보내기...",
+      "exportAll": "모두 내보내기...",
+      "import": "리소스 가져오기..."
+    },
+    "edit": {
+      "undo": "실행 취소",
+      "redo": "다시 실행",
+      "rename": "이름 바꾸기...",
+      "selectAll": "모두 선택",
+      "find": "찾기",
+      "findInCode": "코드에서 찾기...",
+      "findUsages": "사용 위치 찾기",
+      "replaceFrame": "스프라이트 프레임 바꾸기...",
+      "duplicateFrame": "스프라이트 프레임 복제",
+      "removeFrame": "스프라이트 프레임 제거",
+      "recalculateMask": "충돌 마스크 다시 계산",
+      "importMask": "마스크 가져오기...",
+      "exportMask": "마스크 내보내기..."
+    },
+    "view": {
+      "commandPalette": "명령 팔레트...",
+      "fullscreen": "전체 화면 전환",
+      "zoomIn": "확대",
+      "zoomOut": "축소",
+      "zoomReset": "확대/축소 초기화",
+      "language": {
+        "en": "언어: English",
+        "ru": "언어: Русский",
+        "es": "언어: Español",
+        "ja": "언어: 日本語",
+        "ko": "언어: 한국어",
+        "zh_cn": "언어: 简体中文",
+        "zh_tw": "언어: 繁體中文"
+      }
+    },
+    "project": {
+      "enable": "프로젝트 사용",
+      "sync": "데이터 파일에 동기화",
+      "options": "프로젝트 설정...",
+      "moveDataFile": "데이터 파일 위치 변경...",
+      "disable": "프로젝트 사용 안 함...",
+      "resolve": "외부 변경 해결..."
+    },
+    "tabs": {
+      "close": "탭 닫기",
+      "closeAll": "모든 탭 닫기",
+      "pin": "탭 고정",
+      "keepOpen": "탭 열어 두기",
+      "splitRight": "오른쪽으로 분할"
+    },
+    "go": {
+      "quickOpen": "리소스로 이동..."
+    },
+    "settings": {
+      "open": "설정"
+    },
+    "help": {
+      "about": "G3MStudio 정보",
+      "documentation": "문서",
+      "checkUpdates": "업데이트 확인..."
+    },
+    "mods": {
+      "createPatch": "패치 만들기...",
+      "applyPatch": "패치 적용...",
+      "validatePatch": "패치 검증...",
+      "mergePatches": "패치 병합...",
+      "compareFiles": "데이터 파일 비교...",
+      "exportMod": "모드 ZIP으로 내보내기..."
+    },
+    "run": {
+      "game": "게임 실행",
+      "stop": "게임 중지"
+    },
+    "room": {
+      "play": "이 룸 플레이",
+      "creationOrder": "인스턴스 생성 순서...",
+      "exportTiles": "타일을 CSV로 내보내기...",
+      "importTiles": "CSV에서 타일 가져오기...",
+      "savePng": "룸을 PNG로 저장..."
+    },
+    "tools": {
+      "plugins": "플러그인...",
+      "strings": "문자열...",
+      "runScript": "스크립트 실행...",
+      "repackTextures": "텍스처 페이지 다시 패킹..."
+    }
+  },
+  "palette": {
+    "title": "명령 팔레트",
+    "placeholder": "명령 입력",
+    "empty": "'{text}'에 대한 결과가 없습니다."
+  },
+  "start": {
+    "open": "데이터 파일 열기...",
+    "recent": "최근 항목",
+    "empty": "최근 파일이 없습니다.",
+    "drop": "데이터 파일을 여기로 끌어다 놓으면 열 수 있습니다.",
+    "missing": "파일을 찾을 수 없음",
+    "opened": "{time}에 열림",
+    "remove": "제거",
+    "pin": "고정",
+    "unpin": "고정 해제",
+    "clear": "최근 연 항목 지우기"
+  },
+  "explorer": {
+    "filter": "리소스 필터...",
+    "count": "리소스 {count}개",
+    "matches": "{total}개 중 {matches}개",
+    "noMatch": "'{filter}'과(와) 일치하는 리소스가 없습니다.",
+    "opening": "{name} 여는 중... {percent}%",
+    "cancel": "취소",
+    "type": {
+      "general": "게임",
+      "sprites": "스프라이트",
+      "tileSets": "타일셋",
+      "sounds": "사운드",
+      "paths": "경로",
+      "scripts": "스크립트",
+      "shaders": "셰이더",
+      "fonts": "글꼴",
+      "timelines": "타임라인",
+      "objects": "오브젝트",
+      "rooms": "룸",
+      "extensions": "확장",
+      "sequences": "시퀀스",
+      "animationCurves": "애니메이션 곡선",
+      "particleSystems": "파티클 시스템",
+      "code": "코드",
+      "strings": "문자열",
+      "variables": "변수",
+      "functions": "함수",
+      "codeLocals": "코드 로컬",
+      "texturePageItems": "텍스처 페이지 항목",
+      "embeddedTextures": "내장 텍스처",
+      "embeddedImages": "내장 이미지",
+      "embeddedAudio": "내장 오디오",
+      "textureGroups": "텍스처 그룹",
+      "audioGroups": "오디오 그룹",
+      "filterEffects": "필터 효과",
+      "data": "데이터"
+    }
+  },
+  "project": {
+    "state": {
+      "synced": "동기화됨",
+      "syncing": "동기화 중...",
+      "exporting": "프로젝트 내보내는 중...",
+      "notSynced": "{count}개 변경 사항이 데이터 파일에 동기화되지 않음",
+      "changed": "데이터 파일이 외부에서 변경됨",
+      "enable": "프로젝트 사용"
+    },
+    "offer": "이 게임 리소스의 전체 사본을 기록과 함께 프로젝트로 보관할까요?",
+    "enable": {
+      "button": "프로젝트 사용",
+      "action": "프로젝트 사용"
+    },
+    "location": {
+      "title": "프로젝트 폴더",
+      "label": "프로젝트를 어디에 저장할까요?",
+      "remember": "이 선택 기억",
+      "browse": "찾아보기..."
+    },
+    "exporting": "{name} 내보내는 중... 리소스 {done}/{total}",
+    "cancelled": "프로젝트 내보내기가 취소되었습니다. 아무것도 남지 않았습니다.",
+    "warnings": "프로젝트를 만들었지만 문제 {count}개가 보고되었습니다. 첫 번째: {first}",
+    "created": "{name}의 프로젝트를 만들었습니다.",
+    "createFailed": "프로젝트를 만들 수 없습니다: {reason}",
+    "already": "이 데이터 파일에는 이미 프로젝트가 있습니다.",
+    "none": "먼저 프로젝트를 사용하도록 설정하세요.",
+    "writeFailed": "프로젝트를 쓸 수 없습니다: {reason}",
+    "queueFailed": "대기 중인 편집을 적용할 수 없습니다: {reason}",
+    "settings": {
+      "title": "프로젝트 설정",
+      "autosave": "프로젝트에 자동 저장",
+      "autosync": "데이터 파일에 자동 동기화",
+      "seconds": "초"
+    },
+    "trigger": {
+      "Off": "끔",
+      "AfterDelay": "지연 후",
+      "OnFocusLoss": "창이 포커스를 잃을 때",
+      "OnSave": "저장할 때"
+    },
+    "move": {
+      "title": "데이터 파일 위치",
+      "path": "새 위치",
+      "move": "이동",
+      "copy": "복사",
+      "recreate": "프로젝트에서 다시 만들기",
+      "done": "데이터 파일이 이제 {path}에 있습니다",
+      "failed": "위치를 변경할 수 없습니다: {reason}"
+    },
+    "disable": {
+      "title": "프로젝트 사용 안 함",
+      "message": "프로젝트를 보관할까요(보관되며 다시 사용할 수 있음), 아니면 디스크 공간을 위해 삭제할까요? 데이터 파일은 건드리지 않습니다.",
+      "keep": "프로젝트 보관",
+      "delete": "프로젝트 삭제"
+    },
+    "working": "{name} 작업 중...",
+    "merged": "외부 변경 사항을 {name}에 병합했습니다.",
+    "mergeFailed": "외부 변경 사항을 병합할 수 없습니다: {reason}",
+    "external": {
+      "title": "데이터 파일이 외부에서 변경됨",
+      "message": "프로젝트를 마지막으로 동기화한 뒤 다른 프로그램이 {name}을(를) 변경했습니다. 변경 사항을 프로젝트로 가져올까요, 데이터 파일을 프로젝트로 교체할까요, 아니면 둘 다 따로 둘까요?",
+      "bring": "변경 사항 가져오기",
+      "overwrite": "데이터 파일을 프로젝트로 교체",
+      "keepBoth": "둘 다 유지(프로젝트 보관)",
+      "later": "나중에 결정"
+    },
+    "conflicts": {
+      "title": "충돌 해결",
+      "message": "이 리소스는 프로젝트와 데이터 파일 모두에서 변경되었습니다. 각각 유지할 버전을 선택하세요.",
+      "ours": "프로젝트 버전 유지",
+      "theirs": "데이터 파일 버전 사용",
+      "apply": "병합"
+    },
+    "rebuild": {
+      "title": "데이터 파일을 열 수 없음",
+      "message": "{name}이(가) 없거나 손상되었지만 프로젝트가 있습니다. 프로젝트에서 다시 빌드할까요?",
+      "button": "프로젝트에서 다시 빌드",
+      "base": "기준으로 삼을 게임 데이터 파일의 사본을 선택하세요"
+    },
+    "rebuildFailed": "데이터 파일을 다시 빌드할 수 없습니다: {reason}"
+  },
+  "history": {
+    "start": "열었을 때의 상태",
+    "rename": "{old}을(를) {new}(으)로 이름 바꾸기",
+    "code": "{entry}에 코드 적용"
+  },
+  "rename": {
+    "title": "이름 바꾸기",
+    "label": "{name}의 새 이름",
+    "ok": "이름 바꾸기"
+  },
+  "code": {
+    "apply": "적용",
+    "revert": "되돌리기",
+    "decompiling": "디컴파일 중...",
+    "failed": "'{entry}'의 코드를 저장할 수 없습니다: {reason}",
+    "notApplied": "텍스트가 컴파일되지 않습니다",
+    "showFailed": "'{entry}'의 코드를 표시할 수 없습니다: {reason}"
+  },
+  "notify": {
+    "button": "알림 ({count})"
+  },
+  "prompt": {
+    "title": "저장되지 않은 변경 사항",
+    "direct": "{name}에 저장되지 않은 변경 사항이 {count}개 있습니다. 저장할까요, 아니면 나중을 위해 저널에 남길까요?",
+    "project": "{name}에 데이터 파일에 반영되지 않은 변경 사항이 {count}개 있습니다. 동기화할까요, 아니면 나중을 위해 저널에 남길까요?",
+    "save": "저장",
+    "sync": "변경 사항 동기화",
+    "later": "나중에 하기"
+  },
+  "editor": {
+    "empty": "열린 항목이 없습니다. Ctrl+P로 리소스를 찾거나 탐색기에서 두 번 클릭하세요."
+  },
+  "save": {
+    "done": "{name}을(를) 저장했습니다",
+    "locked": "'{name}'을(를) 저장할 수 없습니다: {holder}에서 파일을 사용 중입니다. 편집 내용은 유지됩니다.",
+    "lockedUnknown": "'{name}'을(를) 저장할 수 없습니다: 다른 프로그램에서 파일을 사용 중입니다. 편집 내용은 유지됩니다.",
+    "invalid": "'{name}'을(를) 저장할 수 없습니다. 작성한 파일이 모델과 일치하지 않았습니다({detail}). 원본은 그대로입니다.",
+    "failed": "'{name}'을(를) 저장할 수 없습니다: {reason}",
+    "moveWithProject": "프로젝트의 데이터 파일은 프로젝트 > 데이터 파일 위치에서 옮기세요."
+  },
+  "quick": {
+    "title": "리소스로 이동",
+    "placeholder": "리소스 또는 코드 이름 입력 (spr: obj: scr: ...)"
+  },
+  "settings": {
+    "title": "설정",
+    "close": "닫기",
+    "default": "기본값",
+    "appearance": "모양",
+    "language": "언어",
+    "scale": "인터페이스 배율",
+    "fontFamily": "글꼴 모음(비워 두면 테마 글꼴)",
+    "fontWeight": "글꼴 두께",
+    "files": "파일",
+    "backups": "데이터 파일 백업(1~3)",
+    "askOnClose": "저장되지 않은 변경 사항이 있으면 닫기 전에 묻기",
+    "location": "프로젝트 폴더",
+    "projects": "프로젝트",
+    "autosave": "프로젝트에 자동 저장",
+    "autosync": "데이터 파일에 자동 동기화",
+    "projectsNote": "새 프로젝트의 기본값입니다. 변경하면 열려 있는 프로젝트에도 적용됩니다.",
+    "shortcuts": "키보드 단축키",
+    "shortcutFilter": "명령 또는 단축키 필터",
+    "pressKeys": "키를 누르세요...",
+    "noShortcut": "없음",
+    "reset": "초기화",
+    "shortcutShared": "{shortcut}은(는) 다음에서도 사용됩니다: {commands}.",
+    "addFont": "글꼴 파일 추가...",
+    "removeFont": "제거",
+    "fontFiles": "글꼴 파일",
+    "notAFont": "{file}은(는) 글꼴 파일이 아닙니다.",
+    "search": "설정 검색",
+    "run": "실행",
+    "runRunner": "러너(비워 두면 데이터 파일 옆의 게임 실행 파일)",
+    "runArguments": "추가 인수",
+    "runDebugOutput": "게임 로그 쓰기 (-debugoutput)",
+    "profiles": "실행 프로필",
+    "profileName": "프로필 이름",
+    "profileSave": "다른 이름으로 프로필 저장",
+    "profileDelete": "프로필 삭제",
+    "colors": "색상",
+    "editor": "코드 편집기",
+    "codeFontSize": "글자 크기",
+    "codeWordWrap": "긴 줄 줄바꿈",
+    "codeLineNumbers": "줄 번호 표시",
+    "themeExport": "테마 내보내기...",
+    "themeImport": "테마 가져오기...",
+    "themeBad": "테마 파일을 사용하지 못했습니다: {reason}",
+    "compact": "조밀한 배치 (화면에 더 많이 표시)"
+  },
+  "git": {
+    "noProject": "Git은 프로젝트 폴더를 추적합니다. Git을 사용하려면 이 데이터 파일의 프로젝트를 사용하도록 설정하세요.",
+    "notInstalled": "Git이 설치되어 있지 않거나 PATH에 없습니다.",
+    "notRepository": "이 프로젝트는 Git 저장소가 아닙니다.",
+    "init": "저장소 초기화",
+    "message": "커밋 메시지",
+    "commit": "커밋",
+    "stageAll": "모두 스테이징",
+    "unstageAll": "모두 스테이징 해제",
+    "refresh": "새로 고침",
+    "clean": "변경 사항 없음.",
+    "failed": "Git: {reason}",
+    "lfs": "큰 오디오 또는 이미지 파일 {count}개를 찾았습니다(예: {first}). Git LFS를 쓰면 저장소를 작게 유지할 수 있습니다.",
+    "newBranchName": "새 브랜치 이름",
+    "newBranch": "새 브랜치",
+    "fetch": "가져오기(Fetch)",
+    "pull": "풀(Pull)",
+    "push": "푸시(Push)",
+    "remoteUrl": "원격 주소(URL 또는 폴더)",
+    "addRemote": "원격 추가",
+    "aheadBehind": "{ahead}개 앞서고 {behind}개 뒤처짐",
+    "newFile": "새 파일이며 아직 추적되지 않습니다."
+  },
+  "properties": {
+    "filter": "속성 필터",
+    "refused": "{path}: {reason}",
+    "missing": "이 데이터 파일에서 {name}을(를) 찾을 수 없습니다."
+  },
+  "about": {
+    "title": "G3MStudio 정보",
+    "copy": "버전 정보 복사"
+  },
+  "search": {
+    "placeholder": "코드에서 찾기",
+    "case": "대/소문자 구분",
+    "regex": "정규식",
+    "run": "검색",
+    "progress": "검색 중... 항목 {done}/{total}",
+    "done": "항목 {entries}개에서 {hits}개 일치.",
+    "failed": "항목 {count}개를 읽을 수 없어 건너뛰었습니다.",
+    "cancelled": "검색이 취소되었습니다.",
+    "badPattern": "이 패턴은 올바르지 않습니다: {reason}",
+    "timeout": "이 패턴은 한 줄에서 너무 오래 걸립니다. 더 단순하게 만드세요."
+  },
+  "usages": {
+    "searching": "{name}의 사용 위치를 찾는 중...",
+    "found": "{name}은(는) {count}곳에서 사용됩니다.",
+    "none": "{name}은(는) 어디에서도 사용되지 않습니다.",
+    "failed": "{name}을(를) 검색할 수 없습니다: {reason}"
+  },
+  "help": {
+    "noBrowser": "브라우저를 시작할 수 없습니다. {url}을(를) 직접 열어 주세요."
+  },
+  "transfer": {
+    "pickExport": "내보낼 폴더",
+    "pickImport": "가져올 폴더",
+    "unsupported": "{type}은(는) 파일로 내보낼 수 없습니다.",
+    "needsSave": "가져오기가 저장되지 않은 변경 사항과 섞이지 않도록 먼저 저장하거나 되돌리세요.",
+    "noFolders": "{folder}에는 Sprites나 GameObjects 같은 리소스 폴더가 없습니다.",
+    "confirmTitle": "확인해 주세요",
+    "confirmImport": "{folder}에서 {folders}을(를) 가져올까요? 열려 있는 데이터 파일이 메모리에서 바뀌며 되돌릴 수 없습니다. 저장해서 유지하거나 저장된 상태로 되돌려 버리세요.",
+    "ok": "확인",
+    "exportDone": "{folder}(으)로 내보냈습니다.",
+    "importDone": "{folder}에서 가져왔습니다. 되돌릴 수 없습니다. 저장해서 유지하거나 저장된 상태로 되돌리세요.",
+    "summary": "{written}개 기록, {skipped}개 건너뜀, 경고 {warnings}개, 실패 {failed}개.",
+    "cancelledExport": "내보내기가 취소되었습니다. 아무것도 남지 않았습니다.",
+    "cancelledImport": "가져오기가 취소되었습니다. 열려 있는 데이터 파일에 일부가 반영되어 있으니 저장된 상태로 되돌려 다시 시작하세요.",
+    "failed": "작업에 실패했습니다: {reason}",
+    "nothingToRevert": "저장되지 않은 변경 사항이 없습니다.",
+    "revertTitle": "저장된 상태로 되돌리기",
+    "confirmRevert": "{name}의 저장되지 않은 변경 사항 {count}개를 버리고 파일을 다시 불러올까요?"
+  },
+  "mods": {
+    "pickOriginal": "원본 데이터 파일(패치가 적용되는 파일)",
+    "pickData": "패치할 데이터 파일",
+    "pickPatch": "패치 파일",
+    "pickPatchOut": "패치를 저장할 이름",
+    "pickDataOut": "패치된 데이터 파일을 저장할 이름",
+    "needsSave": "먼저 변경 사항을 저장하세요. 패치는 디스크의 파일로 만들어집니다.",
+    "sameFile": "출력은 원본과 다른 파일이어야 합니다.",
+    "creating": "패치 만드는 중",
+    "applying": "패치 적용 중",
+    "validating": "패치 확인 중",
+    "created": "패치를 {path}에 저장했습니다.",
+    "applied": "패치된 데이터 파일을 {path}에 저장했습니다.",
+    "valid": "{name}은(는) 올바른 패치입니다.",
+    "failed": "{what} 실패: {reason}",
+    "cancelled": "취소되었습니다.",
+    "unknownError": "알 수 없는 오류",
+    "pickPatches": "병합할 패치(같은 원본에서 만든 두 개 이상)",
+    "needTwo": "병합할 패치를 두 개 이상 선택하세요.",
+    "merging": "패치 병합 중",
+    "merged": "병합한 패치를 {path}에 저장했습니다: 자동 병합 {merged}개, 충돌 {conflicts}개.",
+    "pickReport": "보고서를 저장할 이름",
+    "comparing": "데이터 파일 비교 중",
+    "compared": "보고서를 {path}에 저장했습니다: 차이 {count}개.",
+    "pickModOut": "모드를 저장할 이름",
+    "packaging": "모드 패키징 중",
+    "packaged": "모드를 {path}에 저장했습니다. mod_config.json에서 제작자와 게임 ID를 설정하세요."
+  },
+  "sprites": {
+    "pickPicture": "프레임에 사용할 그림",
+    "noSprite": "스프라이트를 열고 바꿀 프레임을 클릭하세요.",
+    "noMask": "이 스프라이트에는 충돌 마스크가 없습니다.",
+    "pickMask": "마스크 그림을 고르세요",
+    "pickMaskSave": "마스크를 저장할 위치",
+    "maskImported": "{sprite}의 마스크 {index}을(를) 가져왔습니다.",
+    "maskExported": "{sprite}의 마스크 {index}을(를) {path}에 저장했습니다.",
+    "badPicture": "{name}은(는) 읽을 수 있는 그림이 아닙니다: {reason}",
+    "replaced": "{sprite}의 프레임 {frame}을(를) 바꿨습니다.",
+    "lastFrame": "스프라이트에는 프레임이 하나 이상 필요합니다.",
+    "maskDone": "{sprite}의 충돌 마스크를 프레임에서 다시 만들었습니다."
+  },
+  "run": {
+    "noRunner": "{file} 옆에서 게임을 찾을 수 없습니다. 게임 실행 파일을 같은 폴더에 두세요.",
+    "running": "게임이 이미 실행 중입니다.",
+    "starting": "{name} 시작 중...",
+    "started": "{name}이(가) 실행 중입니다.",
+    "exited": "{name}이(가) 코드 {code}(으)로 종료되었습니다.",
+    "notRunning": "실행 중인 게임이 없습니다.",
+    "failed": "게임을 시작할 수 없습니다: {reason}",
+    "roomWarning": "룸 {room}에서 시작합니다. 게임이 그 룸에서 바로 열리므로 이전 룸이 준비하는 내용(전역 변수, 저장 상태, 지속 오브젝트)이 없어 게임이 실패하거나 이상하게 보일 수 있습니다. 룸 순서에 없는 룸은 이 방법으로 시작할 수 없습니다.",
+    "stopped": "게임이 중지되었습니다."
+  },
+  "update": {
+    "title": "업데이트",
+    "none": "G3MStudio {version}이(가) 최신 버전입니다.",
+    "ask": "G3MStudio {version}을(를) 사용할 수 있습니다(현재 {current}). 다운로드하고 다시 시작하여 설치할까요?",
+    "failed": "업데이트에 실패했습니다: {reason}",
+    "notWritable": "프로그램 폴더에 쓸 수 없습니다. G3MStudio를 본인 소유의 폴더로 옮기세요",
+    "downloading": "G3MStudio {version} 다운로드 중..."
+  },
+  "sounds": {
+    "play": "재생",
+    "info": "{kind} 오디오, {kb}KB, {seconds}초",
+    "outside": "이 사운드의 오디오는 데이터 파일 밖에 있습니다({file}).",
+    "noPlayer": "{path}을(를) 재생할 프로그램이 없습니다. 직접 열어 주세요."
+  },
+  "strings": {
+    "kindName": "이름",
+    "kindText": "텍스트",
+    "uses": "{count}곳에서 사용 중이며, 텍스트를 바꾸면 모두 바뀝니다. 한 곳만 바꾸려면 해당 속성을 자기 탭에서 편집하세요.",
+    "title": "문자열",
+    "filter": "문자열 필터...",
+    "regex": "정규식",
+    "apply": "텍스트 변경",
+    "count": "문자열 {total}개 중 {shown}개"
+  },
+  "fonts": {
+    "glyphFilter": "문자, U+코드 또는 숫자로 필터...",
+    "glyphCount": "글리프 {count}개",
+    "glyphNew": "U+코드 또는 문자",
+    "glyphAdd": "글리프 추가"
+  },
+  "paths": {
+    "speed": "속도 %",
+    "moveAll": "모두 이동"
+  },
+  "timelines": {
+    "moment": "모멘트 {number} 스텝",
+    "remove": "제거",
+    "add": "모멘트 추가",
+    "actionCode": "코드 항목 이름",
+    "addAction": "동작 추가"
+  },
+  "particles": {
+    "add": "이미터 추가"
+  },
+  "scripts": {
+    "pick": "스크립트(.csx)를 고르세요",
+    "title": "스크립트 실행",
+    "confirm": "{name}을(를) 실행할까요?\n\n스크립트는 데이터 파일의 무엇이든 바꿀 수 있고 이 컴퓨터의 모든 파일을 읽고 쓸 수 있습니다. 변경은 되돌릴 수 없으며, 저장본으로 되돌리기로 복구합니다. 신뢰하는 스크립트만 실행하세요.\n\nUndertaleModTool 방식의 .csx 스크립트를 실행하지만, 그 도구의 기능 중 일부만 있습니다: Data, FilePath, ScriptPath, ScriptMessage, ScriptWarning, ScriptError, ScriptQuestion(항상 예). 대화상자, 디컴파일러 도우미, UI가 필요한 스크립트는 없는 함수 이름을 알려 주는 컴파일 오류로 멈춥니다.",
+    "running": "{name} 실행 중...",
+    "done": "{name}이(가) 끝났습니다.",
+    "failed": "{name} 실패: {reason}"
+  },
+  "sequences": {
+    "addGroup": "그룹 트랙 추가",
+    "newGroup": "그룹"
+  },
+  "inspector": {
+    "none": "탐색기에서 리소스를 고르세요.",
+    "uses": "{count}곳에서 사용"
+  },
+  "plugins": {
+    "check": "업데이트 확인",
+    "updateAvailable": "새 버전이 있습니다. 'GitHub에서 업데이트'를 사용하세요.",
+    "upToDate": "플러그인이 최신입니다.",
+    "update": "GitHub에서 업데이트",
+    "noOrigin": "이 플러그인은 GitHub에서 설치되지 않아 업데이트할 곳이 없습니다.",
+    "installUrl": "GitHub에서 설치",
+    "badUrl": "https://github.com/owner/repository 형식의 주소를 사용하세요.",
+    "installZip": "ZIP에서 설치...",
+    "installFolder": "폴더에서 설치...",
+    "installTitle": "플러그인 설치",
+    "trust": "'{name}' {version}을(를) 설치할까요?\n\n출처: {source}\n제작자: {authors}\n필요하다고 밝힌 권한: {permissions}\n\n플러그인은 스크립트처럼 컴퓨터에 대한 모든 권한을 가집니다. 신뢰하는 플러그인만 설치하세요.",
+    "title": "플러그인",
+    "new": "새 플러그인",
+    "reload": "다시 불러오기",
+    "reloadAll": "모두 다시 불러오기",
+    "openFolder": "폴더 열기",
+    "enabled": "켜짐",
+    "empty": "아직 플러그인이 없습니다. 플러그인 폴더를 {folder}에 넣거나 새 플러그인으로 만드세요.",
+    "permissions": "권한",
+    "error": "오류",
+    "state": {
+      "Active": "실행 중",
+      "Disabled": "꺼짐",
+      "Failed": "시작하지 못함"
+    }
+  },
+  "rooms": {
+    "addLayer": "추가",
+    "deleteLayer": "삭제",
+    "layerUp": "위로",
+    "layerDown": "아래로",
+    "renameLayer": "이름 바꾸기",
+    "tool": {
+      "None": "선택",
+      "Place": "배치",
+      "Paint": "칠하기",
+      "Erase": "지우기",
+      "Fill": "채우기",
+      "Rectangle": "사각형",
+      "Pick": "스포이트"
+    },
+    "inspector": {
+      "x": "X",
+      "y": "Y",
+      "scaleX": "배율 X",
+      "scaleY": "배율 Y",
+      "rotation": "회전",
+      "frame": "프레임",
+      "speed": "속도",
+      "object": "오브젝트",
+      "none": "선택한 인스턴스가 없습니다.",
+      "title": "인스턴스 {id} ({count}개 선택됨)"
+    },
+    "layerProp": {
+      "depth": "깊이",
+      "xoffset": "X 오프셋",
+      "yoffset": "Y 오프셋",
+      "hspeed": "가로 속도",
+      "vspeed": "세로 속도"
+    },
+    "layerKind": {
+      "addInstances": "인스턴스",
+      "addAssets": "애셋",
+      "addBackground": "배경",
+      "addTiles": "타일"
+    },
+    "noRoom": "먼저 룸을 열어 주세요.",
+    "fitTiles": "타일 격자 맞춤",
+    "noTileLayer": "먼저 타일셋이 있는 타일 레이어를 고르세요.",
+    "pickCsv": "타일 CSV를 고르세요",
+    "pickCsvSave": "타일을 저장할 위치",
+    "tilesExported": "{room}의 {layer} 타일을 {path}에 저장했습니다.",
+    "tilesImported": "{layer}의 타일 {count}개를 바꿨습니다.",
+    "tilesBad": "타일 CSV를 사용하지 못했습니다: {reason}",
+    "snapped": "격자",
+    "lock": "잠금",
+    "orderTitle": "생성 순서",
+    "orderTop": "맨 위로",
+    "orderEnd": "맨 아래로",
+    "orderNote": "생성 순서는 이벤트 순서를 정하지 않습니다.",
+    "orderUp": "위로",
+    "orderDown": "아래로",
+    "pickPng": "그림을 저장할 이름",
+    "pngSaved": "룸 {room}을(를) {path}에 저장했습니다.",
+    "pngFailed": "그림을 저장할 수 없습니다: {reason}",
+    "flagMirror": "좌우 반전",
+    "flagFlip": "상하 반전",
+    "flagRotate": "회전",
+    "placing": "룸을 클릭해 {name}을(를) 배치합니다.",
+    "placeNone": "탐색기에서 오브젝트나 스프라이트를 고른 뒤 룸을 클릭하세요.",
+    "grid": "격자",
+    "snap": "스냅",
+    "views": "뷰",
+    "zoomOut": "축소",
+    "zoomIn": "확대",
+    "fit": "맞춤",
+    "actual": "실제 크기"
+  },
+  "textures": {
+    "title": "텍스처 페이지 다시 패킹",
+    "repacking": "텍스처 페이지 다시 패킹 중",
+    "confirm": "모든 텍스처 그룹의 페이지가 {before}개에서 {after}개로 바뀝니다. 되돌릴 수 없습니다. 저장해서 유지하거나 저장된 파일로 되돌리세요. 지금 다시 패킹할까요?",
+    "done": "다시 패킹했습니다: 페이지가 {before}개에서 {after}개가 되었습니다. 저장해서 유지하거나 저장된 파일로 되돌리세요."
+  },
+  "panel": {
+    "explorer": "탐색기",
+    "search": "검색",
+    "inspector": "인스펙터",
+    "problems": "문제",
+    "output": "출력",
+    "usages": "사용처",
+    "history": "기록",
+    "git": "Git"
+  },
+  "colors": {
+    "Accent": "강조색",
+    "Syntax": {
+      "Keyword": "키워드",
+      "Function": "함수",
+      "Variable": "변수",
+      "Constant": "상수",
+      "Asset": "에셋",
+      "String": "문자열",
+      "Number": "숫자",
+      "Comment": "주석",
+      "Operator": "연산자",
+      "Preprocessor": "전처리기"
+    }
+  },
+  "empty": {
+    "problems": "문제가 없습니다.",
+    "output": "아직 보고된 내용이 없습니다."
+  }
+}

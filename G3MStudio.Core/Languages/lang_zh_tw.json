@@ -1,0 +1,676 @@
+{
+  "metadata": {
+    "language": "chinese_traditional",
+    "language_name": "繁體中文"
+  },
+  "app": {
+    "title": "G3MStudio",
+    "welcome": "開啟遊戲資料檔案即可開始。",
+    "ready": "就緒",
+    "language": "語言: {name}",
+    "openFailed": "無法開啟「{name}」：{reason}",
+    "recovered": "已復原 {count} 項未儲存的編輯"
+  },
+  "menu": {
+    "plugins": "外掛",
+    "file": "檔案",
+    "edit": "編輯",
+    "view": "視圖",
+    "window": "視窗",
+    "project": "專案",
+    "tools": "工具",
+    "help": "說明",
+    "mods": "模組",
+    "run": "執行",
+    "room": "房間",
+    "sprite": "精靈",
+    "sub": {
+      "view": {
+        "language": "語言",
+        "panel": "面板"
+      }
+    }
+  },
+  "cmd": {
+    "file": {
+      "open": "開啟...",
+      "openRecent": "開啟最近的檔案",
+      "save": "儲存",
+      "saveAs": "另存新檔...",
+      "close": "關閉",
+      "exit": "結束",
+      "saveCopy": "儲存副本...",
+      "revert": "還原到已儲存...",
+      "exportSelection": "匯出所選資源...",
+      "exportAll": "匯出全部...",
+      "import": "匯入資源..."
+    },
+    "edit": {
+      "undo": "復原",
+      "redo": "重做",
+      "rename": "重新命名...",
+      "selectAll": "全選",
+      "find": "尋找",
+      "findInCode": "在程式碼中尋找...",
+      "findUsages": "尋找用法",
+      "replaceFrame": "取代精靈影格...",
+      "duplicateFrame": "複製精靈影格",
+      "removeFrame": "刪除精靈影格",
+      "recalculateMask": "重新計算碰撞遮罩",
+      "importMask": "匯入遮罩...",
+      "exportMask": "匯出遮罩..."
+    },
+    "view": {
+      "commandPalette": "命令選擇區...",
+      "fullscreen": "切換全螢幕",
+      "zoomIn": "放大",
+      "zoomOut": "縮小",
+      "zoomReset": "重設縮放",
+      "language": {
+        "en": "語言: English",
+        "ru": "語言: Русский",
+        "es": "語言: Español",
+        "ja": "語言: 日本語",
+        "ko": "語言: 한국어",
+        "zh_cn": "語言: 简体中文",
+        "zh_tw": "語言: 繁體中文"
+      }
+    },
+    "project": {
+      "enable": "啟用專案",
+      "sync": "同步到資料檔案",
+      "options": "專案設定...",
+      "moveDataFile": "變更資料檔案位置...",
+      "disable": "停用專案...",
+      "resolve": "解決外部變更..."
+    },
+    "tabs": {
+      "close": "關閉分頁",
+      "closeAll": "關閉所有分頁",
+      "pin": "固定分頁",
+      "keepOpen": "保持分頁開啟",
+      "splitRight": "向右分割"
+    },
+    "go": {
+      "quickOpen": "前往資源..."
+    },
+    "settings": {
+      "open": "設定"
+    },
+    "help": {
+      "about": "關於 G3MStudio",
+      "documentation": "文件",
+      "checkUpdates": "檢查更新..."
+    },
+    "mods": {
+      "createPatch": "建立修補...",
+      "applyPatch": "套用修補...",
+      "validatePatch": "驗證修補...",
+      "mergePatches": "合併修補...",
+      "compareFiles": "比較資料檔案...",
+      "exportMod": "匯出為模組 ZIP..."
+    },
+    "run": {
+      "game": "執行遊戲",
+      "stop": "停止遊戲"
+    },
+    "room": {
+      "play": "試玩此房間",
+      "creationOrder": "實例建立順序...",
+      "exportTiles": "將圖磚匯出為 CSV...",
+      "importTiles": "從 CSV 匯入圖磚...",
+      "savePng": "將房間儲存為 PNG..."
+    },
+    "tools": {
+      "plugins": "外掛...",
+      "strings": "字串...",
+      "runScript": "執行指令碼...",
+      "repackTextures": "重新打包紋理頁..."
+    }
+  },
+  "palette": {
+    "title": "命令選擇區",
+    "placeholder": "輸入命令",
+    "empty": "沒有符合「{text}」的結果。"
+  },
+  "start": {
+    "open": "開啟資料檔案...",
+    "recent": "最近",
+    "empty": "沒有最近的檔案。",
+    "drop": "將資料檔案拖放到此處即可開啟。",
+    "missing": "找不到檔案",
+    "opened": "開啟於 {time}",
+    "remove": "移除",
+    "pin": "固定",
+    "unpin": "取消固定",
+    "clear": "清除最近開啟的項目"
+  },
+  "explorer": {
+    "filter": "篩選資源...",
+    "count": "{count} 個資源",
+    "matches": "{total} 個中的 {matches} 個",
+    "noMatch": "沒有符合「{filter}」的資源。",
+    "opening": "正在開啟 {name}... {percent}%",
+    "cancel": "取消",
+    "type": {
+      "general": "遊戲",
+      "sprites": "精靈",
+      "tileSets": "圖塊集",
+      "sounds": "音效",
+      "paths": "路徑",
+      "scripts": "指令碼",
+      "shaders": "著色器",
+      "fonts": "字型",
+      "timelines": "時間軸",
+      "objects": "物件",
+      "rooms": "房間",
+      "extensions": "擴充功能",
+      "sequences": "序列",
+      "animationCurves": "動畫曲線",
+      "particleSystems": "粒子系統",
+      "code": "程式碼",
+      "strings": "字串",
+      "variables": "變數",
+      "functions": "函式",
+      "codeLocals": "程式碼區域變數",
+      "texturePageItems": "紋理頁項目",
+      "embeddedTextures": "內嵌紋理",
+      "embeddedImages": "內嵌影像",
+      "embeddedAudio": "內嵌音訊",
+      "textureGroups": "紋理群組",
+      "audioGroups": "音訊群組",
+      "filterEffects": "濾鏡效果",
+      "data": "資料"
+    }
+  },
+  "project": {
+    "state": {
+      "synced": "已同步",
+      "syncing": "正在同步...",
+      "exporting": "正在匯出專案...",
+      "notSynced": "{count} 項變更尚未同步到資料檔案",
+      "changed": "資料檔案已在外部變更",
+      "enable": "啟用專案"
+    },
+    "offer": "是否在專案中保留此遊戲資源的完整副本並記錄歷程?",
+    "enable": {
+      "button": "啟用專案",
+      "action": "啟用專案"
+    },
+    "location": {
+      "title": "專案資料夾",
+      "label": "專案應儲存在哪裡?",
+      "remember": "記住此選擇",
+      "browse": "瀏覽..."
+    },
+    "exporting": "正在匯出 {name}... {done} / {total} 個資源",
+    "cancelled": "已取消專案匯出。未保留任何內容。",
+    "warnings": "專案已建立，但回報了 {count} 個問題。第一個：{first}",
+    "created": "已為 {name} 建立專案。",
+    "createFailed": "無法建立專案：{reason}",
+    "already": "此資料檔案已有專案。",
+    "none": "請先啟用專案。",
+    "writeFailed": "無法寫入專案：{reason}",
+    "queueFailed": "無法套用佇列中的編輯：{reason}",
+    "settings": {
+      "title": "專案設定",
+      "autosave": "自動儲存到專案",
+      "autosync": "自動同步到資料檔案",
+      "seconds": "秒"
+    },
+    "trigger": {
+      "Off": "關閉",
+      "AfterDelay": "延遲後",
+      "OnFocusLoss": "視窗失去焦點時",
+      "OnSave": "儲存時"
+    },
+    "move": {
+      "title": "資料檔案位置",
+      "path": "新位置",
+      "move": "移動",
+      "copy": "複製",
+      "recreate": "從專案重新建立",
+      "done": "資料檔案現在位於 {path}",
+      "failed": "無法變更位置：{reason}"
+    },
+    "disable": {
+      "title": "停用專案",
+      "message": "保留專案（封存，可再次啟用），還是刪除以釋放磁碟空間？資料檔案不會被更動。",
+      "keep": "保留專案",
+      "delete": "刪除專案"
+    },
+    "working": "正在處理 {name}...",
+    "merged": "已將外部變更合併到 {name}。",
+    "mergeFailed": "無法合併外部變更：{reason}",
+    "external": {
+      "title": "資料檔案已在外部變更",
+      "message": "自上次同步專案以來，{name} 已被其他程式變更。要將其變更帶入專案、用專案取代資料檔案，還是兩者分開保留？",
+      "bring": "帶入變更",
+      "overwrite": "用專案取代資料檔案",
+      "keepBoth": "兩者都保留（封存專案）",
+      "later": "稍後決定"
+    },
+    "conflicts": {
+      "title": "解決衝突",
+      "message": "這些資源在專案和資料檔案中都已變更。請為每個資源選擇要保留的版本。",
+      "ours": "保留專案版本",
+      "theirs": "使用資料檔案版本",
+      "apply": "合併"
+    },
+    "rebuild": {
+      "title": "無法開啟資料檔案",
+      "message": "{name} 遺失或已損毀，但它有專案。要從專案重新建置嗎？",
+      "button": "從專案重新建置",
+      "base": "請選擇一份遊戲資料檔案的副本作為基礎"
+    },
+    "rebuildFailed": "無法重新建置資料檔案：{reason}"
+  },
+  "history": {
+    "start": "開啟時的狀態",
+    "rename": "將 {old} 重新命名為 {new}",
+    "code": "將程式碼套用到 {entry}"
+  },
+  "rename": {
+    "title": "重新命名",
+    "label": "{name} 的新名稱",
+    "ok": "重新命名"
+  },
+  "code": {
+    "apply": "套用",
+    "revert": "還原",
+    "decompiling": "正在反編譯...",
+    "failed": "無法儲存「{entry}」的程式碼：{reason}",
+    "notApplied": "文字無法編譯",
+    "showFailed": "無法顯示「{entry}」的程式碼：{reason}"
+  },
+  "notify": {
+    "button": "通知 ({count})"
+  },
+  "prompt": {
+    "title": "未儲存的變更",
+    "direct": "{name} 有 {count} 項未儲存的變更。要儲存它們，還是留在日誌中稍後處理？",
+    "project": "{name} 有 {count} 項變更不在資料檔案中。要同步它們，還是留在日誌中稍後處理？",
+    "save": "儲存",
+    "sync": "同步變更",
+    "later": "稍後再做"
+  },
+  "editor": {
+    "empty": "沒有開啟的內容。按 Ctrl+P 尋找資源，或在總管中按兩下一項。"
+  },
+  "save": {
+    "done": "已儲存 {name}",
+    "locked": "無法儲存「{name}」：檔案正被 {holder} 使用。你的編輯已保留。",
+    "lockedUnknown": "無法儲存「{name}」：檔案正被其他程式使用。你的編輯已保留。",
+    "invalid": "無法儲存「{name}」。寫出的檔案與模型不一致（{detail}）。原檔案未更動。",
+    "failed": "無法儲存「{name}」：{reason}",
+    "moveWithProject": "請透過 專案 > 資料檔案位置 移動專案的資料檔案。"
+  },
+  "quick": {
+    "title": "前往資源",
+    "placeholder": "輸入資源或程式碼名稱 (spr: obj: scr: ...)"
+  },
+  "settings": {
+    "title": "設定",
+    "close": "關閉",
+    "default": "預設",
+    "appearance": "外觀",
+    "language": "語言",
+    "scale": "介面縮放",
+    "fontFamily": "字型家族（留空則使用主題字型）",
+    "fontWeight": "字重",
+    "files": "檔案",
+    "backups": "資料檔案備份（1 至 3）",
+    "askOnClose": "關閉時若有未儲存的變更則先詢問",
+    "location": "專案資料夾",
+    "projects": "專案",
+    "autosave": "自動儲存到專案",
+    "autosync": "自動同步到資料檔案",
+    "projectsNote": "這是新專案的預設值；變更它們也會變更已開啟的專案。",
+    "shortcuts": "鍵盤快速鍵",
+    "shortcutFilter": "篩選命令或快速鍵",
+    "pressKeys": "請按下按鍵...",
+    "noShortcut": "無",
+    "reset": "重設",
+    "shortcutShared": "{shortcut} 也被以下命令使用：{commands}。",
+    "addFont": "新增字型檔案...",
+    "removeFont": "移除",
+    "fontFiles": "字型檔案",
+    "notAFont": "{file} 不是字型檔案。",
+    "search": "搜尋設定",
+    "run": "執行",
+    "runRunner": "執行器（留空則使用資料檔案旁的遊戲執行檔案）",
+    "runArguments": "額外參數",
+    "runDebugOutput": "寫入遊戲記錄 (-debugoutput)",
+    "profiles": "執行設定檔",
+    "profileName": "設定檔名稱",
+    "profileSave": "另存新檔為設定檔",
+    "profileDelete": "刪除設定檔",
+    "colors": "顏色",
+    "editor": "程式碼編輯器",
+    "codeFontSize": "文字大小",
+    "codeWordWrap": "自動換行",
+    "codeLineNumbers": "顯示行號",
+    "themeExport": "匯出佈景主題...",
+    "themeImport": "匯入佈景主題...",
+    "themeBad": "未能使用佈景主題檔案：{reason}",
+    "compact": "緊湊密度（畫面顯示更多）"
+  },
+  "git": {
+    "noProject": "Git 會追蹤專案資料夾。請為此資料檔案啟用專案以使用 Git。",
+    "notInstalled": "未安裝 Git，或不在 PATH 中。",
+    "notRepository": "此專案不是 Git 儲存庫。",
+    "init": "初始化儲存庫",
+    "message": "提交訊息",
+    "commit": "提交",
+    "stageAll": "全部暫存",
+    "unstageAll": "取消全部暫存",
+    "refresh": "重新整理",
+    "clean": "沒有變更。",
+    "failed": "Git：{reason}",
+    "lfs": "發現 {count} 個大型音訊或影像檔，例如 {first}。Git LFS 可讓儲存庫保持精簡。",
+    "newBranchName": "新分支名稱",
+    "newBranch": "新增分支",
+    "fetch": "擷取",
+    "pull": "提取",
+    "push": "推送",
+    "remoteUrl": "遠端位址（URL 或資料夾）",
+    "addRemote": "新增遠端",
+    "aheadBehind": "領先 {ahead}，落後 {behind}",
+    "newFile": "新檔案，尚未追蹤。"
+  },
+  "properties": {
+    "filter": "篩選屬性",
+    "refused": "{path}：{reason}",
+    "missing": "在此資料檔案中找不到 {name}。"
+  },
+  "about": {
+    "title": "關於 G3MStudio",
+    "copy": "複製版本資訊"
+  },
+  "search": {
+    "placeholder": "在程式碼中尋找",
+    "case": "區分大小寫",
+    "regex": "規則運算式",
+    "run": "搜尋",
+    "progress": "正在搜尋... {done} / {total} 個項目",
+    "done": "在 {entries} 個項目中找到 {hits} 處符合。",
+    "failed": "有 {count} 個項目無法讀取，已略過。",
+    "cancelled": "搜尋已取消。",
+    "badPattern": "此模式無效：{reason}",
+    "timeout": "此模式在某一行上耗時過長。請簡化它。"
+  },
+  "usages": {
+    "searching": "正在尋找 {name} 的用法...",
+    "found": "{name} 在 {count} 處被使用。",
+    "none": "{name} 未在任何地方使用。",
+    "failed": "無法搜尋 {name}：{reason}"
+  },
+  "help": {
+    "noBrowser": "無法啟動瀏覽器。請自行開啟 {url}。"
+  },
+  "transfer": {
+    "pickExport": "匯出到的資料夾",
+    "pickImport": "匯入來源資料夾",
+    "unsupported": "{type} 無法匯出為檔案。",
+    "needsSave": "請先儲存或還原未儲存的變更，以免匯入與它們混在一起。",
+    "noFolders": "{folder} 中沒有 Sprites 或 GameObjects 之類的資源資料夾。",
+    "confirmTitle": "請確認",
+    "confirmImport": "要從 {folder} 匯入 {folders} 嗎？開啟的資料檔案會在記憶體中變更，且無法復原。儲存以保留，或還原到已儲存狀態以捨棄。",
+    "ok": "確定",
+    "exportDone": "已匯出到 {folder}。",
+    "importDone": "已從 {folder} 匯入。此操作無法復原：儲存以保留，或還原到已儲存狀態。",
+    "summary": "已寫入 {written} 項，略過 {skipped} 項，警告 {warnings} 項，失敗 {failed} 項。",
+    "cancelledExport": "匯出已取消。未保留任何內容。",
+    "cancelledImport": "匯入已取消。開啟的資料檔案中包含其中一部分：請還原到已儲存狀態後重新開始。",
+    "failed": "操作失敗：{reason}",
+    "nothingToRevert": "沒有未儲存的變更。",
+    "revertTitle": "還原到已儲存",
+    "confirmRevert": "要捨棄 {name} 的 {count} 項未儲存變更並重新載入檔案嗎？"
+  },
+  "mods": {
+    "pickOriginal": "原始資料檔案（修補所套用的檔案）",
+    "pickData": "要修補的資料檔案",
+    "pickPatch": "修補檔案",
+    "pickPatchOut": "將修補儲存為",
+    "pickDataOut": "將已修補的資料檔案儲存為",
+    "needsSave": "請先儲存變更：修補由磁碟上的檔案產生。",
+    "sameFile": "輸出必須是與來源不同的檔案。",
+    "creating": "正在建立修補",
+    "applying": "正在套用修補",
+    "validating": "正在檢查修補",
+    "created": "修補已儲存到 {path}。",
+    "applied": "已修補的資料檔案已儲存到 {path}。",
+    "valid": "{name} 是有效的修補。",
+    "failed": "{what}失敗：{reason}",
+    "cancelled": "已取消。",
+    "unknownError": "未知錯誤",
+    "pickPatches": "要合併的修補（來自同一原始檔案的兩個或更多）",
+    "needTwo": "請至少選擇兩個要合併的修補。",
+    "merging": "正在合併修補",
+    "merged": "合併後的修補已儲存到 {path}：自動合併 {merged} 項變更，{conflicts} 個衝突。",
+    "pickReport": "將報告儲存為",
+    "comparing": "正在比較資料檔案",
+    "compared": "報告已儲存到 {path}：{count} 處差異。",
+    "pickModOut": "將模組儲存為",
+    "packaging": "正在打包模組",
+    "packaged": "模組已儲存到 {path}。請在 mod_config.json 中設定作者與遊戲 ID。"
+  },
+  "sprites": {
+    "pickPicture": "用於該影格的圖片",
+    "noSprite": "請開啟一個精靈，並點選要取代的影格。",
+    "noMask": "這個精靈沒有碰撞遮罩。",
+    "pickMask": "選擇遮罩圖片",
+    "pickMaskSave": "將遮罩儲存為",
+    "maskImported": "已匯入 {sprite} 的遮罩 {index}。",
+    "maskExported": "已將 {sprite} 的遮罩 {index} 儲存到 {path}。",
+    "badPicture": "{name} 不是可讀取的圖片：{reason}",
+    "replaced": "已取代 {sprite} 的第 {frame} 影格。",
+    "lastFrame": "精靈至少需要一個影格。",
+    "maskDone": "已根據各影格重建 {sprite} 的碰撞遮罩。"
+  },
+  "run": {
+    "noRunner": "在 {file} 旁邊找不到遊戲。請把遊戲執行檔案放在同一資料夾中。",
+    "running": "遊戲已在執行。",
+    "starting": "正在啟動 {name}...",
+    "started": "{name} 正在執行。",
+    "exited": "{name} 已結束，結束代碼為 {code}。",
+    "notRunning": "沒有正在執行的遊戲。",
+    "failed": "無法啟動遊戲：{reason}",
+    "roomWarning": "從房間 {room} 開始：遊戲會直接在該房間開啟，因此先前房間所做的設定（全域變數、存檔狀態、持續物件）都不存在，遊戲可能出錯或顯示不正常。不在房間順序中的房間無法這樣啟動。",
+    "stopped": "遊戲已停止。"
+  },
+  "update": {
+    "title": "更新",
+    "none": "G3MStudio {version} 已是最新版本。",
+    "ask": "G3MStudio {version} 可用（你目前是 {current}）。要下載並重新啟動以安裝嗎？",
+    "failed": "更新失敗：{reason}",
+    "notWritable": "無法寫入程式資料夾；請把 G3MStudio 移到你自己的資料夾",
+    "downloading": "正在下載 G3MStudio {version}..."
+  },
+  "sounds": {
+    "play": "播放",
+    "info": "{kind} 音訊，{kb} KB，{seconds} 秒",
+    "outside": "此音效的音訊存放在資料檔案之外 ({file})。",
+    "noPlayer": "沒有程式可以播放 {path}。請自行開啟。"
+  },
+  "strings": {
+    "kindName": "名稱",
+    "kindText": "文字",
+    "uses": "在 {count} 處使用；變更文字會同時變更所有位置。若只想改一處，請在其自己的分頁中編輯該屬性。",
+    "title": "字串",
+    "filter": "篩選字串...",
+    "regex": "規則運算式",
+    "apply": "變更文字",
+    "count": "共 {total} 筆，顯示 {shown} 筆"
+  },
+  "fonts": {
+    "glyphFilter": "依字元、U+編碼或數字篩選...",
+    "glyphCount": "共 {count} 個字形",
+    "glyphNew": "U+編碼或字元",
+    "glyphAdd": "新增字形"
+  },
+  "paths": {
+    "speed": "速度 %",
+    "moveAll": "全部移動"
+  },
+  "timelines": {
+    "moment": "時刻 {number} 的步數",
+    "remove": "移除",
+    "add": "新增時刻",
+    "actionCode": "程式碼項目名稱",
+    "addAction": "新增動作"
+  },
+  "particles": {
+    "add": "新增發射器"
+  },
+  "scripts": {
+    "pick": "選擇指令碼 (.csx)",
+    "title": "執行指令碼",
+    "confirm": "執行 {name}？\n\n指令碼可以變更資料檔中的任何內容，也可以讀寫這台電腦上的任何檔案。變更無法復原，可用「還原為已儲存」回復。只執行你信任的指令碼。\n\n這裡執行 UndertaleModTool 風格的 .csx 指令碼，但只提供該工具的一部分函式：Data、FilePath、ScriptPath、ScriptMessage、ScriptWarning、ScriptError 與 ScriptQuestion（一律回答「是」）。需要對話方塊、反編譯輔助或介面的指令碼會因編譯錯誤而停止，錯誤會指出缺少的函式。",
+    "running": "正在執行 {name}...",
+    "done": "{name} 已完成。",
+    "failed": "{name} 失敗：{reason}"
+  },
+  "sequences": {
+    "addGroup": "新增群組軌道",
+    "newGroup": "群組"
+  },
+  "inspector": {
+    "none": "請在資源管理員中選擇一個資源。",
+    "uses": "在 {count} 處使用"
+  },
+  "plugins": {
+    "check": "檢查更新",
+    "updateAvailable": "有新版本。請使用「從 GitHub 更新」。",
+    "upToDate": "外掛已是最新。",
+    "update": "從 GitHub 更新",
+    "noOrigin": "此外掛不是從 GitHub 安裝的，沒有可更新的來源。",
+    "installUrl": "從 GitHub 安裝",
+    "badUrl": "請使用 https://github.com/owner/repository 這樣的網址。",
+    "installZip": "從 ZIP 安裝...",
+    "installFolder": "從資料夾安裝...",
+    "installTitle": "安裝外掛",
+    "trust": "安裝「{name}」{version}？\n\n來源：{source}\n作者：{authors}\n聲明需要的權限：{permissions}\n\n外掛和指令碼一樣可以完全存取你的電腦。請只安裝你信任的外掛。",
+    "title": "外掛",
+    "new": "新增外掛",
+    "reload": "重新載入",
+    "reloadAll": "全部重新載入",
+    "openFolder": "開啟資料夾",
+    "enabled": "啟用",
+    "empty": "目前沒有外掛。請把外掛資料夾放到 {folder}，或用「新增外掛」建立一個。",
+    "permissions": "權限",
+    "error": "錯誤",
+    "state": {
+      "Active": "執行中",
+      "Disabled": "已關閉",
+      "Failed": "啟動失敗"
+    }
+  },
+  "rooms": {
+    "addLayer": "新增",
+    "deleteLayer": "刪除",
+    "layerUp": "上移",
+    "layerDown": "下移",
+    "renameLayer": "重新命名",
+    "tool": {
+      "None": "選取",
+      "Place": "放置",
+      "Paint": "繪製",
+      "Erase": "清除",
+      "Fill": "填滿",
+      "Rectangle": "矩形",
+      "Pick": "吸取"
+    },
+    "inspector": {
+      "x": "X",
+      "y": "Y",
+      "scaleX": "縮放 X",
+      "scaleY": "縮放 Y",
+      "rotation": "旋轉",
+      "frame": "影格",
+      "speed": "速度",
+      "object": "物件",
+      "none": "未選取實例。",
+      "title": "實例 {id}（已選 {count} 個）"
+    },
+    "layerProp": {
+      "depth": "深度",
+      "xoffset": "X 位移",
+      "yoffset": "Y 位移",
+      "hspeed": "水平速度",
+      "vspeed": "垂直速度"
+    },
+    "layerKind": {
+      "addInstances": "實例",
+      "addAssets": "資產",
+      "addBackground": "背景",
+      "addTiles": "圖塊"
+    },
+    "noRoom": "請先開啟一個房間。",
+    "fitTiles": "調整圖磚格線",
+    "noTileLayer": "請先選擇有圖磚集的圖磚圖層。",
+    "pickCsv": "選擇圖磚 CSV",
+    "pickCsvSave": "將圖磚儲存為",
+    "tilesExported": "已將 {room} 中 {layer} 的圖磚儲存到 {path}。",
+    "tilesImported": "已變更 {layer} 的 {count} 個圖磚。",
+    "tilesBad": "未能使用圖磚 CSV：{reason}",
+    "snapped": "對齊",
+    "lock": "鎖定",
+    "orderTitle": "建立順序",
+    "orderTop": "移到最前",
+    "orderEnd": "移到最後",
+    "orderNote": "建立順序不會決定事件的順序。",
+    "orderUp": "上移",
+    "orderDown": "下移",
+    "pickPng": "將圖片儲存為",
+    "pngSaved": "房間 {room} 已儲存到 {path}。",
+    "pngFailed": "無法儲存圖片：{reason}",
+    "flagMirror": "鏡像",
+    "flagFlip": "翻轉",
+    "flagRotate": "旋轉",
+    "placing": "在房間中點擊以放置 {name}。",
+    "placeNone": "請在資源管理員中選擇物件或精靈，然後在房間中點擊。",
+    "grid": "格線",
+    "snap": "對齊",
+    "views": "檢視",
+    "zoomOut": "縮小",
+    "zoomIn": "放大",
+    "fit": "符合",
+    "actual": "實際大小"
+  },
+  "textures": {
+    "title": "重新打包紋理頁",
+    "repacking": "正在重新打包紋理頁",
+    "confirm": "所有紋理群組的頁數將從 {before} 變為 {after}。此操作無法復原：儲存以保留，或還原到已儲存的檔案。要現在重新打包嗎？",
+    "done": "已重新打包：頁數從 {before} 變為 {after}。儲存以保留，或還原到已儲存的檔案。"
+  },
+  "panel": {
+    "explorer": "資源管理員",
+    "search": "搜尋",
+    "inspector": "檢查器",
+    "problems": "問題",
+    "output": "輸出",
+    "usages": "用法",
+    "history": "歷程記錄",
+    "git": "Git"
+  },
+  "colors": {
+    "Accent": "強調色",
+    "Syntax": {
+      "Keyword": "關鍵字",
+      "Function": "函式",
+      "Variable": "變數",
+      "Constant": "常數",
+      "Asset": "資源",
+      "String": "字串",
+      "Number": "數字",
+      "Comment": "註解",
+      "Operator": "運算子",
+      "Preprocessor": "前置處理器"
+    }
+  },
+  "empty": {
+    "problems": "沒有問題。",
+    "output": "尚無任何回報。"
+  }
+}
