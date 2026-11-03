@@ -278,7 +278,7 @@ internal static class ProjectDialogs
         var window = Shell("transfer.confirmTitle", 520);
         window.Title = title;
         int? answer = null;
-        var list = new ListBox { Name = "ChoiceList", ItemsSource = items, SelectedIndex = items.Count > 0 ? 0 : -1, MaxHeight = 280 };
+        var list = new ListBox { Name = "ChoiceList", ItemsSource = items, SelectedIndex = -1, MaxHeight = 280 };
         list.DoubleTapped += (_, _) =>
         {
             if (list.SelectedIndex < 0) return;

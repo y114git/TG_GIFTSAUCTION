@@ -29,7 +29,7 @@ public sealed partial class MainWindow
             return;
         }
 
-        if (await ProjectDialogs.AskChoiceAsync(this, Loc.Current["cmd.run.withRuntime"].TrimEnd('.'), Loc.Current["run.pickRuntime"], [.. runtimes.Select(r => r.Version)]) is { } at)
+        if (await ProjectDialogs.AskChoiceAsync(this, Loc.Current["cmd.run.withRuntime"].TrimEnd('.'), Loc.Current["run.pickRuntime"], [.. runtimes.Select(r => r.Version + "  " + r.Runner)]) is { } at)
             await RunGameAsync(runner: runtimes[at].Runner);
     }
 
