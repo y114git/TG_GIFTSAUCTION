@@ -174,6 +174,7 @@
       "disassemble": "代码条目反汇编...",
       "hexView": "数据文件十六进制视图...",
       "offsetMap": "写出区块偏移表",
+      "writeDebugData": "写出调试数据...",
       "repackTextures": "重新打包纹理页...",
       "exportPage": "保存纹理页...",
       "replacePage": "替换纹理页..."
@@ -971,7 +972,8 @@
     "ToolPinItemControlDockAsDocumentString": "停靠为标签文档",
     "ToolChromeControlDockString": "停靠",
     "ToolChromeControlAutoHideString": "自动隐藏"
-  },
+  },
+  "debug": { "pick": "每个代码条目的源文本内容", "decompiled": "反编译的 GML", "assembler": "汇编，在赋值、跳转和返回处标记", "fullAssembler": "汇编，每条指令都标记", "working": "正在写出调试数据...", "done": "已写出 {file}。", "failed": "未能写出调试数据：{reason}" },
   "hex": { "chunk": "转到区块",
     "offsetMapDone": "已写出 {file}。",
     "title": "十六进制视图：{file}",
