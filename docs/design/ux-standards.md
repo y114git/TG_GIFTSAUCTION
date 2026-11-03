@@ -53,7 +53,7 @@ Tokens come from the proposed set in [research/g3m-design.md](../research/g3m-de
 | `Bg.Surface` | `#222222` | no (G3M `elements`) | Controls, panels |
 | `Bg.Sunken` | `#1B1B1B` | yes | Code editor, hex view, dense lists |
 | `Bg.Raised` | `#2B3431` | yes (from G3MTool's button) | Pane headers, toolbars, tab strip |
-| `Bg.Overlay` | `#E6282828` | no (G3M tooltip background) | Tooltips, popups, flyouts |
+| `Bg.Overlay` | `#282828` | yes (G3M's tooltip background is 90% opaque; menus showed the text under them) | Tooltips, popups, flyouts |
 | `Border` | `#039D5B` | no (G3M `border`) | Interactive control outline |
 | `Border.Subtle` | `#3A4A43` | yes (from G3MTool's hover) | Splitters, grid lines, structural dividers |
 | `Hover` | `#5A6370` | no (G3M `#616B78`, darkened for contrast) | Hover fill |

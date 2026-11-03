@@ -5,7 +5,7 @@
   <SolidColorBrush x:Key="Bg.Surface" Color="#222222" />
   <SolidColorBrush x:Key="Bg.Sunken" Color="#1B1B1B" />
   <SolidColorBrush x:Key="Bg.Raised" Color="#2B3431" />
-  <SolidColorBrush x:Key="Bg.Overlay" Color="#E6282828" />
+  <SolidColorBrush x:Key="Bg.Overlay" Color="#282828" />
   <SolidColorBrush x:Key="Border" Color="#039D5B" />
   <SolidColorBrush x:Key="Border.Subtle" Color="#3A4A43" />
   <SolidColorBrush x:Key="Hover" Color="#5A6370" />
