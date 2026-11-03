@@ -44,6 +44,7 @@ public abstract class EditCommand
         ObjectEventCommand.Name => ObjectEventCommand.FromArgs(args),
         ResourceListCommand.Name => ResourceListCommand.FromArgs(args),
         ResourceMoveCommand.Name => ResourceMoveCommand.FromArgs(args),
+        VariableCountsCommand.Name => VariableCountsCommand.FromArgs(args),
         ReplaceAudioCommand.Name => ReplaceAudioCommand.FromArgs(args),
         ReplacePageCommand.Name => ReplacePageCommand.FromArgs(args),
         RoomOrderCommand.Name => RoomOrderCommand.FromArgs(args),
