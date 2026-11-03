@@ -438,7 +438,7 @@ public sealed class SettingsPage : UserControl
         var page = new StackPanel
         {
             MaxWidth = 640,
-            HorizontalAlignment = HorizontalAlignment.Left,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
             Margin = new Thickness(24),
             Spacing = 10,
             Children =
@@ -509,7 +509,7 @@ public sealed class SettingsPage : UserControl
         Filter(page, _search, Math.Max(0, _section));
         _building = false;
         // Navigation and page sit together in the middle of a wide window, not at its two edges.
-        var layout = new DockPanel { Margin = new Thickness(0, 24, 0, 0), MaxWidth = 900, HorizontalAlignment = HorizontalAlignment.Center };
+        var layout = new DockPanel { Margin = new Thickness(0, 24, 0, 0), MaxWidth = 900, HorizontalAlignment = HorizontalAlignment.Stretch };
         DockPanel.SetDock(nav, Avalonia.Controls.Dock.Left);
         layout.Children.Add(nav);
         layout.Children.Add(new ScrollViewer { Content = page });
