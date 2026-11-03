@@ -107,6 +107,7 @@ public sealed class ProjectWindowTests
                 // Cancel in the question leaves Direct mode.
                 window.Workspaces.Projects.Disable(window.Workspaces.Current, deleteProject: true);
                 window.Workspaces.Projects.Registry.RememberRoot(null);
+                window.Registry.SetContext(Core.Commands.AppCommands.ProjectOff, true); // the service call above skips the window's refresh
                 window.Registry.Execute("project.enable");
                 Dispatcher.UIThread.RunJobs();
                 Click(window.OwnedWindows.Single(), "Cancel");

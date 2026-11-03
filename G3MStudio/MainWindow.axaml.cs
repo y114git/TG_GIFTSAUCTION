@@ -265,6 +265,8 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
             : string.Join(" - ", new[] { active, (current.IsDirty ? "● " : "") + current.Name, Loc.Current["app.title"] }.Where(s => !string.IsNullOrEmpty(s)));
         ShowAssetId(current, Docking.ActiveTabId is { } open ? Docking.Tabs.Get(open)?.Key : null);
         ProjectButton.IsVisible = current is not null;
+        Registry?.SetContext(AppCommands.ProjectOn, current?.Project is not null);
+        Registry?.SetContext(AppCommands.ProjectOff, current is not null && current.Project is null);
         ProjectButton.Content = ProjectText();
         NotifyButton.IsVisible = Notifications.Unread > 0;
         NotifyButton.Content = Loc.Current.Format("notify.button", ("count", Notifications.Unread));

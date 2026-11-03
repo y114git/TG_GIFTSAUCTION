@@ -139,6 +139,8 @@ public sealed class CommandTests
         // After Show: the window sets these itself from the tabs it holds, and a fresh window has none.
         window.Registry.SetContext(AppCommands.SpriteTab, true);
         window.Registry.SetContext(AppCommands.RoomTab, true);
+        window.Registry.SetContext(AppCommands.ProjectOn, true);
+        window.Registry.SetContext(AppCommands.ProjectOff, true);
         return window;
     }
 

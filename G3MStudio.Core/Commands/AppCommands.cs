@@ -232,7 +232,7 @@ public static class AppCommands
     public const string WorkspaceOpen = "workspaceOpen";
 
     /// <summary>Set while the tab in front is a sprite or a room, which the commands of the Sprite and Room menus work on.</summary>
-    public const string SpriteTab = "spriteTab", RoomTab = "roomTab";
+    public const string SpriteTab = "spriteTab", RoomTab = "roomTab", ProjectOn = "projectOn", ProjectOff = "projectOff";
 
     /// <summary>The panels that can be shown again from View > Panels after they were closed. The key is the dock panel id.</summary>
     /// <summary>The "New" submenu of the File menu: one command per type that can be created from nothing.</summary>
@@ -313,12 +313,12 @@ public static class AppCommands
         Add("file.exit", "Ctrl+Q", shell.Exit);
         Add("edit.undo", "Ctrl+Z", shell.Undo, WorkspaceOpen);
         Add("edit.redo", "Ctrl+Y", shell.Redo, WorkspaceOpen);
-        Add("project.enable", null, shell.EnableProject, WorkspaceOpen);
-        Add("project.sync", null, shell.SyncProject, WorkspaceOpen);
-        Add("project.options", null, shell.ProjectOptions, WorkspaceOpen);
-        Add("project.resolve", null, shell.ResolveExternalChange, WorkspaceOpen);
-        Add("project.moveDataFile", null, shell.MoveDataFile, WorkspaceOpen);
-        Add("project.disable", null, shell.DisableProject, WorkspaceOpen);
+        Add("project.enable", null, shell.EnableProject, ProjectOff);
+        Add("project.sync", null, shell.SyncProject, ProjectOn);
+        Add("project.options", null, shell.ProjectOptions, ProjectOn);
+        Add("project.resolve", null, shell.ResolveExternalChange, ProjectOn);
+        Add("project.moveDataFile", null, shell.MoveDataFile, ProjectOn);
+        Add("project.disable", null, shell.DisableProject, ProjectOn);
         foreach (var panel in Panels) Add("view.panel." + panel.ToLowerInvariant(), null, () => shell.ShowPanel(panel));
         Add("edit.rename", "F2", shell.Rename, WorkspaceOpen);
         Add("edit.delete", null, shell.DeleteResource, WorkspaceOpen);
