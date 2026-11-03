@@ -153,6 +153,7 @@
     },
     "run": {
       "game": "執行遊戲",
+      "withRuntime": "用指定執行階段執行...",
       "stop": "停止遊戲"
     },
     "room": {
@@ -212,6 +213,7 @@
       "general": "遊戲",
       "sprites": "精靈",
       "tileSets": "圖塊集",
+      "backgrounds": "背景",
       "sounds": "音效",
       "paths": "路徑",
       "scripts": "指令碼",
@@ -441,6 +443,7 @@
     "run": "執行",
     "runRunner": "執行器（留空則使用資料檔案旁的遊戲執行檔案）",
     "runArguments": "額外參數",
+    "runtimeFolders": "執行階段資料夾（以分號分隔）",
     "runDebugOutput": "寫入遊戲記錄 (-debugoutput)",
     "profiles": "執行設定檔",
     "profileName": "設定檔名稱",
@@ -614,7 +617,9 @@
     "failed": "無法啟動遊戲：{reason}",
     "tempWarning": "遊戲從資料檔的暫存副本執行。遊戲所做的變更不會保留，已開啟的檔案也不會改變。",
     "roomWarning": "從房間 {room} 開始：遊戲會直接在該房間開啟，因此先前房間所做的設定（全域變數、存檔狀態、持續物件）都不存在，遊戲可能出錯或顯示不正常。不在房間順序中的房間無法這樣啟動。",
-    "stopped": "遊戲已停止。"
+    "stopped": "遊戲已停止。",
+    "noRuntime": "找不到 GameMaker 執行階段。請在設定中新增其資料夾。",
+    "pickRuntime": "用此執行階段執行一次遊戲："
   },
   "update": {
     "title": "更新",

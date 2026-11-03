@@ -487,8 +487,17 @@ public sealed class RoomView : Control
         if (e.Key == Key.Space) _space = false;
     }
 
+    /// <summary>A key pressed without Ctrl while a tile layer is chosen: the editor turns it into a tool or a flag change and returns true when it used it (UTMT-KEY-06).</summary>
+    public event Func<Key, bool>? TileKeyPressed;
+
     protected override void OnKeyDown(KeyEventArgs e)
     {
+        if (TileLayer is not null && !e.KeyModifiers.HasFlag(KeyModifiers.Control) && !e.KeyModifiers.HasFlag(KeyModifiers.Alt) && TileKeyPressed?.Invoke(e.Key) == true)
+        {
+            e.Handled = true;
+            return;
+        }
+
         var shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
         var ctrl = e.KeyModifiers.HasFlag(KeyModifiers.Control);
         IReadOnlyList<object> selected = [.. _selection];

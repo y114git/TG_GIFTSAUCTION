@@ -17,11 +17,13 @@ public partial class ExplorerView : UserControl
 
     private string _name = "";
     private bool _dirty;
+    private bool _legacy;
 
     public ExplorerView()
     {
         InitializeComponent();
-        Model = new ExplorerModel(key => Loc.Current["explorer.type." + key]);
+        // A GameMaker Studio 1 game has backgrounds, not tile sets (UTMT-TREE-10).
+        Model = new ExplorerModel(key => Loc.Current["explorer.type." + (key == "tileSets" && _legacy ? "backgrounds" : key)]);
         Model.Changed += ShowRows;
         FilterBox.PropertyChanged += (_, e) => { if (e.Property == TextBox.TextProperty) Model.SetFilter(FilterBox.Text ?? ""); };
         List.Tapped += (_, e) =>
@@ -114,6 +116,7 @@ public partial class ExplorerView : UserControl
     public void Load(string name, GameMakerData? data)
     {
         _name = name;
+        _legacy = data is not null && !data.IsGameMaker2();
         FilterBox.Text = "";
         Model.Load(data);
         ShowHeader();

@@ -56,6 +56,7 @@ public sealed class RoomPreview : DockPanel
                 View.Tool = (RoomTool)Math.Max(0, _tool.SelectedIndex);
                 RefreshPlaceTarget();
             };
+            View.TileKeyPressed += TileKey;
             View.PlaceRequested += at =>
             {
                 if (PlaceableSource() is { } key) Place(key, at);
@@ -252,6 +253,9 @@ public sealed class RoomPreview : DockPanel
     }
 
     /// <summary>Shows the tile set of the chosen layer as the palette and makes it the layer that painting changes; other layers leave painting off.</summary>
+    /// <summary>The mirror (1), flip (2) and quarter turn (4) flags put on painted tiles; 0 without a tile layer.</summary>
+    public int TileFlags => _palette?.Flags ?? 0;
+
     public void ChooseTileLayer(GameMakerRoom.Layer? layer)
     {
         View.TileLayer = layer?.TilesData?.Background is not null ? layer : null;
@@ -268,7 +272,25 @@ public sealed class RoomPreview : DockPanel
     {
         var box = new CheckBox { Content = Loc.Current[key] };
         box.IsCheckedChanged += (_, _) => palette.Flags = box.IsChecked == true ? palette.Flags | bit : palette.Flags & ~bit;
+        palette.FlagsChanged += () => box.IsChecked = (palette.Flags & bit) != 0;
         return box;
+    }
+
+    /// <summary>Keys of the tile editor: B brush, E erase, G fill, R rectangle, P pick; X, Y and Z turn the mirror, flip and quarter turn flags of the tiles painted on or off.</summary>
+    private bool TileKey(Avalonia.Input.Key key)
+    {
+        if (_palette is null) return false;
+        RoomTool? tool = key switch { Avalonia.Input.Key.B => RoomTool.Paint, Avalonia.Input.Key.E => RoomTool.Erase, Avalonia.Input.Key.G => RoomTool.Fill, Avalonia.Input.Key.R => RoomTool.Rectangle, Avalonia.Input.Key.P => RoomTool.Pick, _ => null };
+        if (tool is { } chosen)
+        {
+            _tool.SelectedIndex = (int)chosen;
+            return true;
+        }
+
+        var bit = key switch { Avalonia.Input.Key.X => 1, Avalonia.Input.Key.Y => 2, Avalonia.Input.Key.Z => 4, _ => 0 };
+        if (bit == 0) return false;
+        _palette.Flags ^= bit;
+        return true;
     }
 
     /// <summary>Turns a finished stroke into one edit: paint sets the chosen tile, erase empties the cells, fill replaces the connected area.</summary>

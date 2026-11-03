@@ -29,7 +29,19 @@ public sealed class TilePalette : ScrollViewer
     public int SelectedIndex { get; private set; }
 
     /// <summary>Mirror (bit 0), flip (bit 1) and quarter turn (bit 2) put on tiles painted from this palette.</summary>
-    public int Flags { get; set; }
+    public int Flags
+    {
+        get;
+        set
+        {
+            if (field == value) return;
+            field = value;
+            FlagsChanged?.Invoke();
+        }
+    }
+
+    /// <summary>The flags changed, by a check box, a key or Pick; the check boxes follow.</summary>
+    public event Action? FlagsChanged;
 
     /// <summary>The value to store in a tile map cell: the index with the flags in bits 28 to 30.</summary>
     public uint TileValue => (uint)SelectedIndex | (uint)(Flags & 7) << 28;

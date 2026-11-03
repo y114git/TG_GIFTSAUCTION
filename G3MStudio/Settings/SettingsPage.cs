@@ -361,6 +361,8 @@ public sealed class SettingsPage : UserControl
 
         var runner = new TextBox { Name = "RunRunner", Text = s.RunRunner, MinWidth = 360 };
         runner.TextChanged += (_, _) => { if (!_building) _store.Update(x => x with { RunRunner = (runner.Text ?? "").Trim() }); };
+        var runtimeFolders = new TextBox { Name = "RuntimeFolders", Text = s.RuntimeFolders, MinWidth = 360 };
+        runtimeFolders.TextChanged += (_, _) => { if (!_building) _store.Update(x => x with { RuntimeFolders = runtimeFolders.Text ?? "" }); };
         var runArguments = new TextBox { Name = "RunArguments", Text = s.RunArguments, MinWidth = 360 };
         runArguments.TextChanged += (_, _) => { if (!_building) _store.Update(x => x with { RunArguments = runArguments.Text ?? "" }); };
         var warnTemp = new CheckBox { Name = "WarnTempRun", Tag = Loc.Current["settings.warnTempRun"], Content = Loc.Current["settings.warnTempRun"], IsChecked = s.WarnTempRun };
@@ -410,7 +412,7 @@ public sealed class SettingsPage : UserControl
             x => x with { Decompiler = d.Decompiler },
             x => x with { BackupCount = d.BackupCount, AskOnClose = d.AskOnClose, RememberWindow = d.RememberWindow },
             x => x with { Project = d.Project },
-            x => x with { RunRunner = d.RunRunner, RunArguments = d.RunArguments, RunDebugOutput = d.RunDebugOutput, WarnTempRun = d.WarnTempRun, ActiveRunProfile = d.ActiveRunProfile },
+            x => x with { RuntimeFolders = d.RuntimeFolders, RunRunner = d.RunRunner, RunArguments = d.RunArguments, RunDebugOutput = d.RunDebugOutput, WarnTempRun = d.WarnTempRun, ActiveRunProfile = d.ActiveRunProfile },
             x => x with { Overrides = d.Overrides },
             x => x with { CrashReports = d.CrashReports },
             x => x with { Shortcuts = d.Shortcuts },
@@ -480,6 +482,7 @@ public sealed class SettingsPage : UserControl
                 Heading("settings.run"),
                 Row("settings.runRunner", runner),
                 Row("settings.runArguments", runArguments),
+                Row("settings.runtimeFolders", runtimeFolders),
                 debugOutput,
                 warnTemp,
                 Row("settings.profiles", profiles, deleteProfile),

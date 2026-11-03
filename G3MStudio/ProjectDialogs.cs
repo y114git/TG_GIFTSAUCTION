@@ -272,6 +272,34 @@ internal static class ProjectDialogs
         return answer;
     }
 
+    /// <summary>A list to pick one entry from, with Ok and Cancel; the index of the entry, or null when cancelled.</summary>
+    public static async Task<int?> AskChoiceAsync(Window owner, string title, string label, IReadOnlyList<string> items)
+    {
+        var window = Shell("transfer.confirmTitle", 520);
+        window.Title = title;
+        int? answer = null;
+        var list = new ListBox { Name = "ChoiceList", ItemsSource = items, SelectedIndex = items.Count > 0 ? 0 : -1, MaxHeight = 280 };
+        list.DoubleTapped += (_, _) =>
+        {
+            if (list.SelectedIndex < 0) return;
+            answer = list.SelectedIndex;
+            window.Close();
+        };
+        window.Content = new StackPanel
+        {
+            Margin = new Thickness(16),
+            Spacing = 12,
+            Children =
+            {
+                new TextBlock { Text = label, TextWrapping = TextWrapping.Wrap },
+                list,
+                Buttons(Btn("transfer.ok", "Ok", () => { if (list.SelectedIndex >= 0) answer = list.SelectedIndex; window.Close(); }), Btn("explorer.cancel", "Cancel", window.Close)),
+            },
+        };
+        await window.ShowDialog(owner);
+        return answer;
+    }
+
     public static async Task<bool> AskRebuildAsync(Window owner, string name)
     {
         var window = Shell("project.rebuild.title");

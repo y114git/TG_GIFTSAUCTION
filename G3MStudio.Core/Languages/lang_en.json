@@ -153,6 +153,7 @@
     },
     "run": {
       "game": "Run Game",
+      "withRuntime": "Run with Runtime...",
       "stop": "Stop Game"
     },
     "room": {
@@ -212,6 +213,7 @@
       "general": "Game",
       "sprites": "Sprites",
       "tileSets": "Tile Sets",
+      "backgrounds": "Backgrounds",
       "sounds": "Sounds",
       "paths": "Paths",
       "scripts": "Scripts",
@@ -441,6 +443,7 @@
     "run": "Run",
     "runRunner": "Runner (empty runs the game executable next to the data file)",
     "runArguments": "Extra arguments",
+    "runtimeFolders": "Runtime folders (separated by semicolons)",
     "runDebugOutput": "Write the game log (-debugoutput)",
     "profiles": "Run profile",
     "profileName": "Profile name",
@@ -614,7 +617,9 @@
     "failed": "Could not start the game: {reason}",
     "tempWarning": "The game runs from a temporary copy of your data file. Changes the game makes are not kept, and your data file is not changed.",
     "roomWarning": "Starting at room {room}: the game opens there directly, so anything an earlier room sets up (globals, saved state, persistent objects) is missing and the game may fail or look wrong. A room that is not in the room order cannot be started this way.",
-    "stopped": "Game stopped."
+    "stopped": "Game stopped.",
+    "noRuntime": "No GameMaker runtime found. Add its folder in Settings.",
+    "pickRuntime": "Run the game once with this runtime:"
   },
   "update": {
     "title": "Update",

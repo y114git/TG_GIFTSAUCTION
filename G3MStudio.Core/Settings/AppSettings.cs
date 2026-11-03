@@ -45,6 +45,9 @@ public sealed record AppSettings
     /// <summary>A runner to start instead of the game executable next to the data file (for example a GameMaker runtime's Runner.exe); empty means the game executable.</summary>
     public string RunRunner { get; init; } = "";
 
+    /// <summary>Folders with GameMaker runtimes besides the ones GameMaker uses, separated by semicolons (UTMT-SET-02).</summary>
+    public string RuntimeFolders { get; init; } = "";
+
     /// <summary>Extra arguments for the runner, split like a shell would (quotes group words).</summary>
     public string RunArguments { get; init; } = "";
 

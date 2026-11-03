@@ -153,6 +153,7 @@
     },
     "run": {
       "game": "게임 실행",
+      "withRuntime": "런타임을 골라 실행...",
       "stop": "게임 중지"
     },
     "room": {
@@ -212,6 +213,7 @@
       "general": "게임",
       "sprites": "스프라이트",
       "tileSets": "타일셋",
+      "backgrounds": "배경",
       "sounds": "사운드",
       "paths": "경로",
       "scripts": "스크립트",
@@ -441,6 +443,7 @@
     "run": "실행",
     "runRunner": "러너(비워 두면 데이터 파일 옆의 게임 실행 파일)",
     "runArguments": "추가 인수",
+    "runtimeFolders": "런타임 폴더 (세미콜론으로 구분)",
     "runDebugOutput": "게임 로그 쓰기 (-debugoutput)",
     "profiles": "실행 프로필",
     "profileName": "프로필 이름",
@@ -614,7 +617,9 @@
     "failed": "게임을 시작할 수 없습니다: {reason}",
     "tempWarning": "게임은 데이터 파일의 임시 사본으로 실행됩니다. 게임이 만든 변경은 저장되지 않으며 열린 파일은 바뀌지 않습니다.",
     "roomWarning": "룸 {room}에서 시작합니다. 게임이 그 룸에서 바로 열리므로 이전 룸이 준비하는 내용(전역 변수, 저장 상태, 지속 오브젝트)이 없어 게임이 실패하거나 이상하게 보일 수 있습니다. 룸 순서에 없는 룸은 이 방법으로 시작할 수 없습니다.",
-    "stopped": "게임이 중지되었습니다."
+    "stopped": "게임이 중지되었습니다.",
+    "noRuntime": "GameMaker 런타임을 찾지 못했습니다. 설정에서 폴더를 추가하세요.",
+    "pickRuntime": "이 런타임으로 게임을 한 번 실행합니다:"
   },
   "update": {
     "title": "업데이트",

@@ -16,6 +16,23 @@ public sealed partial class MainWindow
     /// <summary>Plays the room of the room tab in front: the game is started with that room first in the room order, so it opens there instead of at the real first room.</summary>
     public void PlayRoom() => _ = PlayRoomAsync();
 
+    /// <summary>Runs the game with a GameMaker runtime picked from the ones on this machine (UTMT-RUN-03), for this run only.</summary>
+    public void RunWithRuntime() => _ = RunWithRuntimeAsync();
+
+    public async Task RunWithRuntimeAsync()
+    {
+        var folders = RuntimeFinder.DefaultFolders().Concat(Workspaces.Settings.Current.RuntimeFolders.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+        var runtimes = RuntimeFinder.Find(folders);
+        if (runtimes.Count == 0)
+        {
+            Notify(NotificationLevel.Info, Loc.Current["run.noRuntime"]);
+            return;
+        }
+
+        if (await ProjectDialogs.AskChoiceAsync(this, Loc.Current["cmd.run.withRuntime"].TrimEnd('.'), Loc.Current["run.pickRuntime"], [.. runtimes.Select(r => r.Version)]) is { } at)
+            await RunGameAsync(runner: runtimes[at].Runner);
+    }
+
     public async Task PlayRoomAsync()
     {
         if (Workspaces.Current is null || Docking.ActiveTabId is not { } id || !_roomViews.ContainsKey(id)
@@ -66,7 +83,7 @@ public sealed partial class MainWindow
     /// <summary>Writes the model, saved or not, next to the data file as a temporary file and starts the game on it. The data file is not touched.</summary>
     private bool _warnedTempRun;
 
-    public async Task RunGameAsync(string? startRoom = null)
+    public async Task RunGameAsync(string? startRoom = null, string? runner = null)
     {
         if (Workspaces.Current is not { } workspace) return;
         if (_game is { IsRunning: true })
@@ -77,7 +94,7 @@ public sealed partial class MainWindow
 
         var name = workspace.Name;
         var settings = Workspaces.Settings.Current;
-        var runner = settings.RunRunner.Length > 0 ? settings.RunRunner : GameRun.FindRunner(workspace.Path, workspace.Data.GeneralInfo?.FileName?.Content);
+        runner ??= settings.RunRunner.Length > 0 ? settings.RunRunner : GameRun.FindRunner(workspace.Path, workspace.Data.GeneralInfo?.FileName?.Content);
         if (runner is null || !File.Exists(runner))
         {
             Notify(NotificationLevel.Error, Loc.Current.Format("run.noRunner", ("file", Path.GetFileName(workspace.Path))));

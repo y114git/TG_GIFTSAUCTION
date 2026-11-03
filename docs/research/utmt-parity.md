@@ -80,7 +80,7 @@ Count: 14.
 | UTMT-TREE-07 | Copy name | Copies the asset name, or the display title of a string. | UndertaleModTool/MainWindow.xaml.cs (CopyItemName) | P1 | implemented |
 | UTMT-TREE-08 | Reorder by drag | Dragging an asset onto another of the same type swaps their positions. Off by default. | UndertaleModTool/MainWindow.xaml.cs (TreeView_Drop) | P2 | implemented |
 | UTMT-TREE-09 | Drag asset as reference | Dragging from the tree into reference fields or the room canvas links or places the asset. | UndertaleModTool/MainWindow.xaml.cs (TreeView_MouseMove), UndertaleModTool/Controls/UndertaleObjectReference.xaml.cs | P0 | in progress |
-| UTMT-TREE-10 | Version-aware labels | Backgrounds node is labeled "Tile sets" for GMS2 games. | UndertaleModTool/MainWindow.xaml.cs | P2 | planned |
+| UTMT-TREE-10 | Version-aware labels | Backgrounds node is labeled "Tile sets" for GMS2 games. | UndertaleModTool/MainWindow.xaml.cs | P2 | implemented |
 | UTMT-TREE-11 | Null entries | Optional display of null list entries, which GM 2024.11+ games contain. | UndertaleModTool/Settings.cs (ShowNullEntriesInResourceTree) | P1 | planned |
 
 Count: 11.
@@ -118,7 +118,7 @@ Count: 6.
 | ID | Feature | Details | UTMT source location | Priority | Status |
 |---|---|---|---|---|---|
 | UTMT-SET-01 | Settings storage | JSON at `%AppData%\UndertaleModTool\settings.json`, loaded at window show. | UndertaleModTool/Settings.cs | P0 | verified |
-| UTMT-SET-02 | GameMaker paths | GMS 1.4 folder (default `%appdata%\GameMaker-Studio`) and GMS2 runtimes folder (default `%ProgramData%\GameMakerStudio2\Cache\runtimes`). | UndertaleModTool/Windows/SettingsWindow.xaml | P1 | planned |
+| UTMT-SET-02 | GameMaker paths | GMS 1.4 folder (default `%appdata%\GameMaker-Studio`) and GMS2 runtimes folder (default `%ProgramData%\GameMakerStudio2\Cache\runtimes`). | UndertaleModTool/Windows/SettingsWindow.xaml | P1 | done (runtime folders; the GMS 1.4 folder is not used) |
 | UTMT-SET-03 | Asset order swapping | Enables tree drag reorder. Default off. | UndertaleModTool/Windows/SettingsWindow.xaml | P2 | implemented |
 | UTMT-SET-04 | File association toggle | "Automatically associate GameMaker data files". Default on. | UndertaleModTool/Windows/SettingsWindow.xaml | P2 | verified |
 | UTMT-SET-05 | Debugger menu toggle | Shows "Run game under GMS debugger". Default off. | UndertaleModTool/Windows/SettingsWindow.xaml | P2 | planned |
@@ -480,7 +480,7 @@ Count: 5.
 | UTMT-KEY-03 | Tree shortcuts | Enter opens, Delete deletes, middle-click opens in new tab. | UndertaleModTool/MainWindow.xaml.cs | P0 | in progress |
 | UTMT-KEY-04 | Code editor shortcuts | Ctrl+K compile or assemble, Ctrl+F find, Ctrl+wheel and Ctrl+plus or minus zoom, Ctrl+click go to definition. | UndertaleModTool/Editors/UndertaleCodeEditor.xaml(.cs) | P0 | in progress |
 | UTMT-KEY-05 | Room editor shortcuts | Ctrl+C, Ctrl+V, Ctrl+Shift+V, Ctrl+Z, Delete, X and Y flip, minus and plus reorder, Ctrl and Shift grid modifiers, Alt paint. | UndertaleModTool/Editors/UndertaleRoomEditor/UndertaleRoomEditor.xaml(.cs) | P0 | in progress |
-| UTMT-KEY-06 | Tile editor shortcuts | X, Y or Z, Q, R, G, B, P, Ctrl+Z, Ctrl+Y, Ctrl+Shift+Z, Ctrl and Alt mouse modifiers. | UndertaleModTool/Editors/UndertaleRoomEditor/UndertaleTileEditor.xaml | P1 | planned |
+| UTMT-KEY-06 | Tile editor shortcuts | X, Y or Z, Q, R, G, B, P, Ctrl+Z, Ctrl+Y, Ctrl+Shift+Z, Ctrl and Alt mouse modifiers. | UndertaleModTool/Editors/UndertaleRoomEditor/UndertaleTileEditor.xaml | P1 | implemented |
 
 Count: 6.
 

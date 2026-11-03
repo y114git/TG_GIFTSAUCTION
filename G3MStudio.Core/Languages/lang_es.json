@@ -153,6 +153,7 @@
     },
     "run": {
       "game": "Ejecutar el juego",
+      "withRuntime": "Ejecutar con un runtime...",
       "stop": "Detener el juego"
     },
     "room": {
@@ -212,6 +213,7 @@
       "general": "Juego",
       "sprites": "Sprites",
       "tileSets": "Tilesets",
+      "backgrounds": "Fondos",
       "sounds": "Sonidos",
       "paths": "Rutas",
       "scripts": "Scripts",
@@ -339,7 +341,7 @@
     "failed": "No se pudo guardar el código de «{entry}»: {reason}",
     "notApplied": "el texto no compila",
     "showFailed": "No se pudo mostrar el código de «{entry}»: {reason}"
-  },
+  },
   "status": { "assetId": "ID {index}" },
   "notify": {
     "button": "Notificaciones ({count})"
@@ -398,7 +400,7 @@
     "files": "Archivos",
     "backups": "Copias de seguridad del archivo de datos (1 a 3)",
     "askOnClose": "Preguntar antes de cerrar con cambios sin guardar",
-    "rooms": "Salas",
+    "rooms": "Salas",
     "decompiler": "Descompilador",
     "roomGridOverride": "Usar una misma cuadrícula en todas las salas",
     "roomGridSize": "Ancho y alto de la cuadrícula",
@@ -441,6 +443,7 @@
     "run": "Ejecución",
     "runRunner": "Ejecutor (vacío usa el ejecutable del juego junto al archivo de datos)",
     "runArguments": "Argumentos adicionales",
+    "runtimeFolders": "Carpetas de runtimes (separadas por punto y coma)",
     "runDebugOutput": "Escribir el registro del juego (-debugoutput)",
     "profiles": "Perfil de ejecución",
     "profileName": "Nombre del perfil",
@@ -505,8 +508,8 @@
     "cancelled": "Búsqueda cancelada.",
     "badPattern": "Este patrón no es válido: {reason}",
     "timeout": "El patrón tarda demasiado en una línea. Hazlo más simple."
-  },
-  "disassembly": { "assemble": "Ensamblar", "assembled": "Ensamblado.", "assembleFailed": "No se pudo ensamblar: {reason}", "title": "Desensamblado de {entry}", "loading": "Leyendo las instrucciones...", "failed": "No se pudieron leer las instrucciones: {reason}" },
+  },
+  "disassembly": { "assemble": "Ensamblar", "assembled": "Ensamblado.", "assembleFailed": "No se pudo ensamblar: {reason}", "title": "Desensamblado de {entry}", "loading": "Leyendo las instrucciones...", "failed": "No se pudieron leer las instrucciones: {reason}" },
   "tileSet": {"findRooms": "Buscar salas que usan este tile"},
   "textureItem": {"export": "Exportar PNG", "saved": "Guardado en {path}", "failed": "No se pudo guardar: {reason}"},
   "entryScripts": {"globalInit": "Scripts al iniciar el juego", "gameEnd": "Scripts al terminar el juego", "add": "Añadir"},
@@ -614,7 +617,9 @@
     "failed": "No se pudo iniciar el juego: {reason}",
     "tempWarning": "El juego se ejecuta desde una copia temporal del archivo de datos. Los cambios del juego no se guardan y el archivo de datos no cambia.",
     "roomWarning": "Inicio en la sala {room}: el juego se abre directamente en ella, así que falta todo lo que preparan las salas anteriores (globales, estado guardado, objetos persistentes) y el juego puede fallar o verse mal. Una sala que no está en el orden de salas no puede iniciarse así.",
-    "stopped": "Juego detenido."
+    "stopped": "Juego detenido.",
+    "noRuntime": "No se encontró ningún runtime de GameMaker. Añade su carpeta en Configuración.",
+    "pickRuntime": "Ejecutar el juego una vez con este runtime:"
   },
   "update": {
     "title": "Actualización",
@@ -700,7 +705,7 @@
     "skip": "Omitir configuración",
     "later": "Puedes cambiar el idioma más tarde en Configuración > Apariencia y volver a abrir esta ventana desde Ayuda > Primeros pasos."
   },
-  "links": {
+  "links": {
     "downloadTitle": "Descargar un archivo",
     "downloadAsk": "¿Descargar el archivo de {address} desde {host}? Se guarda en una carpeta temporal y solo se abre si es un archivo de datos del juego.",
     "downloading": "Descargando desde {host}...",

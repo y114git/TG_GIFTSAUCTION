@@ -71,6 +71,8 @@ public interface IShell
 
     void StopGame();
 
+    void RunWithRuntime();
+
     void ReplaceFrame();
 
     /// <summary>Opens the painter on the clicked frame of the sprite in front.</summary>
@@ -249,7 +251,7 @@ public static class AppCommands
         ("menu.sprite", ["edit.paintFrame", "edit.replaceFrame", "edit.duplicateFrame", "edit.removeFrame", "-", "edit.recalculateMask", "edit.importMask", "edit.exportMask"]),
         ("menu.sound", ["edit.editAudio", "edit.replaceAudio", "edit.exportAudio"]),
         ("menu.room", ["room.play", "-", "room.creationCode", "room.creationOrder", "room.exportTiles", "room.importTiles", "room.savePng"]),
-        ("menu.run", ["run.game", "run.stop"]),
+        ("menu.run", ["run.game", "run.withRuntime", "run.stop"]),
         ("menu.mods", ["mods.createPatch", "mods.applyPatch", "mods.applyMod", "mods.applyPatchOpen", "mods.applyModOpen", "mods.mergePatches", "mods.validatePatch", "mods.compareFiles", "mods.exportMod"]),
         ("menu.tools", ["tools.plugins", "tools.strings", "tools.roomOrder", "tools.hexView", "tools.disassemble", "tools.runScript", "-", "tools.repackTextures", "tools.exportPage", "tools.replacePage"]),
         ("menu.window", ["tabs.close", "tabs.closeOthers", "tabs.closeAll", "tabs.reopen", "-", "tabs.next", "tabs.previous", "tabs.back", "tabs.forward", "-", "tabs.pin", "tabs.keepOpen", "tabs.splitRight", "-", "window.layout.studio", "window.layout.code", "window.layout.canvas", "window.layout.reset", "window.layout.saved"]),
@@ -275,6 +277,7 @@ public static class AppCommands
         Add("file.import", null, shell.ImportResources, WorkspaceOpen);
         Add("help.checkUpdates", null, shell.CheckForUpdates);
         Add("run.game", "F5", shell.RunGame, WorkspaceOpen);
+        Add("run.withRuntime", null, shell.RunWithRuntime, WorkspaceOpen);
         Add("run.stop", "Shift+F5", shell.StopGame);
         Add("edit.editAudio", null, shell.EditAudio, WorkspaceOpen);
         Add("edit.replaceAudio", null, shell.ReplaceAudio, WorkspaceOpen);

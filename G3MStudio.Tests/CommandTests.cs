@@ -50,6 +50,7 @@ internal sealed class FakeShell : IShell
     public void CheckForUpdates() { }
     public void RunGame() { }
     public void StopGame() { }
+    public void RunWithRuntime() { }
     public void ReplaceFrame() { }
     public void DuplicateFrame() { }
     public void RecalculateMask() { }

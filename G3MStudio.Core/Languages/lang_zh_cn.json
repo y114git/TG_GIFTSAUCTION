@@ -153,6 +153,7 @@
     },
     "run": {
       "game": "运行游戏",
+      "withRuntime": "用指定运行时运行...",
       "stop": "停止游戏"
     },
     "room": {
@@ -212,6 +213,7 @@
       "general": "游戏",
       "sprites": "精灵",
       "tileSets": "图块集",
+      "backgrounds": "背景",
       "sounds": "声音",
       "paths": "路径",
       "scripts": "脚本",
@@ -441,6 +443,7 @@
     "run": "运行",
     "runRunner": "运行器（留空则使用数据文件旁的游戏可执行文件）",
     "runArguments": "额外参数",
+    "runtimeFolders": "运行时文件夹（用分号分隔）",
     "runDebugOutput": "写入游戏日志 (-debugoutput)",
     "profiles": "运行配置",
     "profileName": "配置名称",
@@ -614,7 +617,9 @@
     "failed": "无法启动游戏：{reason}",
     "tempWarning": "游戏从数据文件的临时副本运行。游戏所做的更改不会保留，已打开的文件也不会改变。",
     "roomWarning": "从房间 {room} 开始：游戏会直接在该房间打开，因此之前房间所做的设置（全局变量、存档状态、持久对象）都不存在，游戏可能出错或显示不正常。不在房间顺序中的房间无法这样启动。",
-    "stopped": "游戏已停止。"
+    "stopped": "游戏已停止。",
+    "noRuntime": "没有找到 GameMaker 运行时。请在设置中添加其文件夹。",
+    "pickRuntime": "用此运行时运行一次游戏："
   },
   "update": {
     "title": "更新",
