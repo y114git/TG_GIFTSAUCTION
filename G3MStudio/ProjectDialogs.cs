@@ -278,7 +278,8 @@ internal static class ProjectDialogs
         var window = Shell("transfer.confirmTitle", 520);
         window.Title = title;
         int? answer = null;
-        var list = new ListBox { Name = "ChoiceList", ItemsSource = items, SelectedIndex = -1, MaxHeight = 280 };
+        var list = new ListBox { Name = "ChoiceList", ItemsSource = items, SelectedIndex = -1, MaxHeight = 280, ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<string>((text, _) => new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap }) };
+        ScrollViewer.SetHorizontalScrollBarVisibility(list, Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled);
         list.DoubleTapped += (_, _) =>
         {
             if (list.SelectedIndex < 0) return;
