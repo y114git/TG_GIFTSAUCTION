@@ -110,6 +110,8 @@ public sealed class StudioLinkTests
             Assert.Equal([".win"], FileAssociations.Registered(classes));
             using (var launch = Microsoft.Win32.Registry.CurrentUser.OpenSubKey($@"{classes}\{FileAssociations.ProgId}\shell\launch\command"))
                 Assert.Equal($"\"{exe}\" --run \"%1\"", launch?.GetValue(""));
+            using (var special = Microsoft.Win32.Registry.CurrentUser.OpenSubKey($@"{classes}\{FileAssociations.ProgId}\shell\special_launch\command"))
+                Assert.Equal($"\"{exe}\" --run-with-runtime \"%1\"", special?.GetValue(""));
             using (var other = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(classes + @"\.unx")) other.SetValue("", "SomeoneElse.File"); // another program's extension stays
             FileAssociations.Remove(classes);
             Assert.Empty(FileAssociations.Registered(classes));

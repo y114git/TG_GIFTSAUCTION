@@ -30,6 +30,10 @@ public static class FileAssociations
             launch.SetValue("", "Run game with G3MStudio");
             using var launchCommand = launch.CreateSubKey("command");
             launchCommand.SetValue("", $"\"{exePath}\" --run \"%1\"");
+            using var special = progId.CreateSubKey(@"shell\special_launch");
+            special.SetValue("", "Run game with G3MStudio, pick a runtime");
+            using var specialCommand = special.CreateSubKey("command");
+            specialCommand.SetValue("", $"\"{exePath}\" --run-with-runtime \"%1\"");
         }
 
         foreach (var extension in extensions.Where(Extensions.Contains))

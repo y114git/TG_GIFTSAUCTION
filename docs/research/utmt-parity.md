@@ -109,7 +109,7 @@ Count: 8.
 | UTMT-RUN-03 | Runtime picker | Lists the game exe, GMS 1.4 `Runner.exe` from the GMS1 path, and every GMS2 runtime in the runtimes cache (prefers `windows\x64\Runner.exe`). Columns Version and Path. | UndertaleModTool/Windows/RuntimePicker.xaml.cs | P1 | planned |
 | UTMT-RUN-04 | Run under GMS debugger | Shift+F5, hidden unless enabled in settings. Sets the debugger flag, saves, writes a stub `.gmx`, starts the runner and `GMDebug.exe` against the `.yydebug` file and the debugger port. | UndertaleModTool/MainWindow.xaml.cs (Command_RunDebug) | P2 | planned |
 | UTMT-RUN-05 | Debug data generation | Code path writes `.yydebug` with decompiled source or disassembly and breakpoint offsets. The mode dialog exists but the save path currently fixes the mode to "no debug". | UndertaleModTool/MainWindow.xaml.cs (SaveFile), UndertaleModTool/Windows/DebugDataDialog.xaml | P2 | planned |
-| UTMT-RUN-06 | Shell verbs | File association adds "Run game normally" (`launch`) and "Run extended options" (`special_launch`, runtime picker) to the Explorer context menu. | UndertaleModTool/FileAssociations.cs | P2 | partly (Windows association adds the Explorer entry Run game with G3MStudio, `--run`; the extended-options entry is not added, Run with Runtime covers it inside the app) |
+| UTMT-RUN-06 | Shell verbs | File association adds "Run game normally" (`launch`) and "Run extended options" (`special_launch`, runtime picker) to the Explorer context menu. | UndertaleModTool/FileAssociations.cs | P2 | done (Windows association adds the Explorer entries Run game with G3MStudio, `--run`, and the same with a runtime picker, `--run-with-runtime`) |
 
 Count: 6.
 
