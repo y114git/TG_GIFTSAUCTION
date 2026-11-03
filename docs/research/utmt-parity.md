@@ -94,8 +94,8 @@ Count: 11.
 | UTMT-TAB-03 | Close other and all tabs | Context menu "Close other tabs", "Close all tabs" (Ctrl+Shift+W). | UndertaleModTool/MainWindow.xaml.cs | P1 | verified |
 | UTMT-TAB-04 | Restore closed tab | Ctrl+Shift+T reopens from closed-tab history. | UndertaleModTool/MainWindow.xaml.cs (Command_RestoreClosedTab) | P1 | verified |
 | UTMT-TAB-05 | Switch tabs | Ctrl+Tab and Ctrl+Shift+Tab. | UndertaleModTool/MainWindow.xaml.cs | P0 | verified |
-| UTMT-TAB-06 | Reorder tabs by drag | Drag a tab onto another to move it. | UndertaleModTool/MainWindow.xaml.cs (TabItem_PreviewMouseMove, TabItem_Drop) | P1 | planned |
-| UTMT-TAB-07 | Tab overflow scrolling | Mouse wheel and left and right buttons scroll the strip. Selecting scrolls the tab into view. | UndertaleModTool/MainWindow.xaml.cs (ScrollTabs, ScrollToTab) | P1 | planned |
+| UTMT-TAB-06 | Reorder tabs by drag | Drag a tab onto another to move it. | UndertaleModTool/MainWindow.xaml.cs (TabItem_PreviewMouseMove, TabItem_Drop) | P1 | done (Dock.Avalonia; dragging scr_0 in front of Game Options in the real window moved the tab) |
+| UTMT-TAB-07 | Tab overflow scrolling | Mouse wheel and left and right buttons scroll the strip. Selecting scrolls the tab into view. | UndertaleModTool/MainWindow.xaml.cs (ScrollTabs, ScrollToTab) | P1 | done (Dock.Avalonia; with 10 tabs the strip shows a scroll arrow and scrolls the selected tab into view, seen in the real window) |
 | UTMT-TAB-08 | Per-tab state restore | Saves and restores view state when switching: code (caret, scroll, zoom, active sub-tab), room, font, general info, global init, sprite, tile set, texture group, texture page. | UndertaleModTool/Tab.cs (TabContentState subclasses) | P1 | verified |
 
 Count: 8.
