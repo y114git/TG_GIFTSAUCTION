@@ -171,6 +171,7 @@
       "roomOrder": "房间顺序...",
       "disassemble": "代码条目反汇编...",
       "hexView": "数据文件十六进制视图...",
+      "offsetMap": "写出区块偏移表",
       "repackTextures": "重新打包纹理页...",
       "exportPage": "保存纹理页...",
       "replacePage": "替换纹理页..."
@@ -964,6 +965,7 @@
     "ToolChromeControlAutoHideString": "自动隐藏"
   },
   "hex": { "chunk": "转到区块",
+    "offsetMapDone": "已写出 {file}。",
     "title": "十六进制视图：{file}",
     "goTo": "转到偏移量（123 或 0x7B）",
     "find": "查找（文本或十六进制字节）",

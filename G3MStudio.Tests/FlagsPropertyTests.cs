@@ -6,6 +6,15 @@ namespace G3MStudio.Tests;
 public sealed class FlagsPropertyTests
 {
     [Fact]
+    public void TheGameOptionsRowsIncludeTheShaderExtensionFlagAndVersion()
+    {
+        using var options = new GameMakerOptions();
+        var rows = PropertyModel.Describe(options);
+        Assert.Contains(rows, r => r.Path == nameof(GameMakerOptions.ShaderExtensionFlag) && !r.ReadOnly);
+        Assert.Contains(rows, r => r.Path == nameof(GameMakerOptions.ShaderExtensionVersion) && !r.ReadOnly);
+    }
+
+    [Fact]
     public void AFlagsFieldIsAFlagsRowWithOneChoicePerSingleFlagAndTheTextReadsBack()
     {
         using var sound = new GameMakerSound { Flags = GameMakerSound.AudioEntryFlags.Regular | GameMakerSound.AudioEntryFlags.IsEmbedded };

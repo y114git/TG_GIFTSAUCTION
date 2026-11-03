@@ -171,6 +171,7 @@
       "roomOrder": "Room Order...",
       "disassemble": "Disassembly of Code Entry...",
       "hexView": "Hex View of Data File...",
+      "offsetMap": "Write Chunk Offset Map",
       "repackTextures": "Repack Texture Pages...",
       "exportPage": "Save Texture Page...",
       "replacePage": "Replace Texture Page..."
@@ -964,6 +965,7 @@
     "ToolChromeControlAutoHideString": "Auto hide"
   },
   "hex": { "chunk": "Go to chunk",
+    "offsetMapDone": "Written {file}.",
     "title": "Hex view: {file}",
     "goTo": "Go to offset (123 or 0x7B)",
     "find": "Find (text or hex bytes)",

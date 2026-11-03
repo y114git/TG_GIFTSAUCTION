@@ -171,6 +171,7 @@
       "roomOrder": "ルームの順序...",
       "disassemble": "コードエントリの逆アセンブル...",
       "hexView": "データファイルの16進ビュー...",
+      "offsetMap": "チャンクのオフセット表を書き出す",
       "repackTextures": "テクスチャページを再パック...",
       "exportPage": "テクスチャページを保存...",
       "replacePage": "テクスチャページを置き換え..."
@@ -964,6 +965,7 @@
     "ToolChromeControlAutoHideString": "自動的に隠す"
   },
   "hex": { "chunk": "チャンクへ移動",
+    "offsetMapDone": "{file} を書き出しました。",
     "title": "16進ビュー: {file}",
     "goTo": "オフセットへ移動 (123 または 0x7B)",
     "find": "検索 (テキストまたは16進バイト)",

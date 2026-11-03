@@ -171,6 +171,7 @@
       "roomOrder": "Orden de salas...",
       "disassemble": "Desensamblado de la entrada de código...",
       "hexView": "Vista hexadecimal del archivo de datos...",
+      "offsetMap": "Escribir mapa de desplazamientos de fragmentos",
       "repackTextures": "Reempaquetar páginas de texturas...",
       "exportPage": "Guardar página de texturas...",
       "replacePage": "Reemplazar página de texturas..."
@@ -964,6 +965,7 @@
     "ToolChromeControlAutoHideString": "Ocultar automáticamente"
   },
   "hex": { "chunk": "Ir al fragmento",
+    "offsetMapDone": "Escrito {file}.",
     "title": "Vista hexadecimal: {file}",
     "goTo": "Ir al desplazamiento (123 o 0x7B)",
     "find": "Buscar (texto o bytes hex)",

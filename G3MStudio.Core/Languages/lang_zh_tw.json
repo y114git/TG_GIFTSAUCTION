@@ -171,6 +171,7 @@
       "roomOrder": "房間順序...",
       "disassemble": "程式碼項目反組譯...",
       "hexView": "資料檔案十六進位視圖...",
+      "offsetMap": "寫出區塊偏移表",
       "repackTextures": "重新打包紋理頁...",
       "exportPage": "儲存紋理頁...",
       "replacePage": "取代紋理頁..."
@@ -964,6 +965,7 @@
     "ToolChromeControlAutoHideString": "自動隱藏"
   },
   "hex": { "chunk": "跳至區塊",
+    "offsetMapDone": "已寫出 {file}。",
     "title": "十六進位視圖：{file}",
     "goTo": "跳到位移（123 或 0x7B）",
     "find": "尋找（文字或十六進位位元組）",

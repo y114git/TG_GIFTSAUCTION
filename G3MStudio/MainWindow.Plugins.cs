@@ -72,5 +72,22 @@ public sealed partial class MainWindow
 #pragma warning restore CA2000
     }
 
+    /// <summary>Writes the chunk offsets of the data file as it is on disk to <c>FILE.offsetmap.txt</c> next to it (UTMT-FILE-10).</summary>
+    public void WriteOffsetMap()
+    {
+        if (Workspaces.Current is not { } workspace || !File.Exists(workspace.Path)) return;
+        try
+        {
+            using var source = new Core.Workspace.HexSource(workspace.Path);
+            var target = workspace.Path + ".offsetmap.txt";
+            File.WriteAllText(target, source.OffsetMap());
+            Notify(Core.Notifications.NotificationLevel.Info, G3MStudio.Localization.Loc.Current.Format("hex.offsetMapDone", ("file", Path.GetFileName(target))));
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            Notify(Core.Notifications.NotificationLevel.Error, e.Message);
+        }
+    }
+
     public void ShowPlugins() => new PluginsWindow(Plugins, Confirm).Show(this);
 }

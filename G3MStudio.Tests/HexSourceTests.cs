@@ -22,6 +22,16 @@ public sealed class HexSourceTests
     }
 
     [Fact]
+    public void TheOffsetMapListsEveryChunkWithItsOffsetAndLength()
+    {
+        using var dir = new TempDir();
+        using var source = new HexSource(TestData.WriteSample(dir, objects: 1, withCode: true));
+        var lines = source.OffsetMap().Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(source.Chunks().Count, lines.Length);
+        Assert.StartsWith("0x00000008 GEN8 ", lines[0], StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task RowsOffsetsAndSearchReadTheFileOnDemand()
     {
         using var dir = new TempDir();

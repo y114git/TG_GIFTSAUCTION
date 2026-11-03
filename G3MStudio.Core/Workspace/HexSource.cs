@@ -129,5 +129,19 @@ public sealed class HexSource : IDisposable
         return found;
     }
 
+    /// <summary>One line per chunk: the offset of its header in hex, its name and the length of its data, in file order (UTMT-FILE-10; the chunk level, items inside a chunk are not listed).</summary>
+    public string OffsetMap()
+    {
+        var chunks = Chunks();
+        var text = new System.Text.StringBuilder();
+        for (var i = 0; i < chunks.Count; i++)
+        {
+            var next = i + 1 < chunks.Count ? chunks[i + 1].Offset : Math.Min(Length, 8L + BitConverter.ToUInt32(Read(4, 4)));
+            text.Append("0x").Append(chunks[i].Offset.ToString("X8", CultureInfo.InvariantCulture)).Append(' ').Append(chunks[i].Name).Append(' ').Append(next - chunks[i].Offset - 8).Append('\n');
+        }
+
+        return text.ToString();
+    }
+
     public void Dispose() => _stream.Dispose();
 }

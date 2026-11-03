@@ -59,7 +59,7 @@ Count: 15.
 | UTMT-FILE-07 | Debugger flag warnings | On load and on save, warns when the GMS debugger flag is set, because the normal runtime hangs. | UndertaleModTool/MainWindow.xaml.cs | P1 | implemented |
 | UTMT-FILE-08 | Unknown texture format warning | Warns when textures use unknown formats. They round-trip but do not display. | UndertaleModTool/MainWindow.xaml.cs | P1 | implemented |
 | UTMT-FILE-09 | Close and unsaved-changes prompt | Ctrl+Q closes. With "Warn about saving before closing", asks to save. Closes standalone windows and child instances. | UndertaleModTool/MainWindow.xaml.cs (DataWindow_Closing, CloseOtherWindows) | P0 | verified |
-| UTMT-FILE-10 | Generate offset map | File menu. Reads a chosen data file and writes `<file>.offsetmap.txt` listing hex offset and object for each serialized item. | UndertaleModTool/MainWindow.xaml.cs (MenuItem_OffsetMap_Click), UndertaleModLib/UndertaleIO.cs | P2 | planned |
+| UTMT-FILE-10 | Generate offset map | File menu. Reads a chosen data file and writes `<file>.offsetmap.txt` listing hex offset and object for each serialized item. | UndertaleModTool/MainWindow.xaml.cs (MenuItem_OffsetMap_Click), UndertaleModLib/UndertaleIO.cs | P2 | done (chunk level: Tools > Write Chunk Offset Map; items inside a chunk need the library) |
 | UTMT-FILE-11 | Audio group child instances | Opening an embedded audio entry stored in an external `audiogroupN.dat` starts a second UTMT process on that file, linked by a named pipe, and focuses the entry there. | UndertaleModTool/MainWindow.xaml.cs (OpenChildFile, ListenChildConnection), UndertaleModTool/Controls/AudioFileReference.xaml.cs | P1 | planned |
 | UTMT-FILE-12 | Command-line arguments | `UndertaleModTool <file>` opens a file. A second argument `launch` or `special_launch` runs the game and exits. `deleteTempFolder` cleans up after the updater. | UndertaleModTool/MainWindow.xaml.cs (Window_Loaded) | P1 | in progress |
 | UTMT-FILE-13 | Drag and drop onto window | Dropping a `.csx` asks to run it as a script. Dropping a data file or `.dat` asks to open it. | UndertaleModTool/MainWindow.xaml.cs (Window_Drop) | P1 | in progress |
@@ -273,7 +273,7 @@ Count: 5.
 | UTMT-SND-03 | Audio file reference control | Shows the embedded audio entry and its group. "..." opens it (in a child instance for external groups), "X" removes it, drag and drop to change. | UndertaleModTool/Controls/AudioFileReference.xaml(.cs) | P0 | planned |
 | UTMT-SND-04 | Embedded audio editor | Import and Export (WAV or OGG by header), Play, Stop. | UndertaleModTool/Editors/UndertaleEmbeddedAudioEditor.xaml.cs | P0 | verified |
 | UTMT-SND-05 | Audio group editor | Name and path (GM 2024.14+). | UndertaleModTool/Editors/UndertaleAudioGroupEditor.xaml | P1 | implemented |
-| UTMT-SND-06 | Audio group files | `audiogroupN.dat` files open as data files on their own. | UndertaleModTool/MainWindow.xaml.cs (DataFileFilter) | P0 | planned |
+| UTMT-SND-06 | Audio group files | `audiogroupN.dat` files open as data files on their own. | UndertaleModTool/MainWindow.xaml.cs (DataFileFilter) | P0 | done (Deltarune audiogroup1.dat opens as a workspace with its 86 embedded audio entries; test runs with G3MSTUDIO_CORPUS_DIR) |
 
 Count: 6.
 
@@ -372,7 +372,7 @@ Count: 16.
 | UTMT-GEN-03 | Active targets and function classifications | Bit fields shown as flags. | UndertaleModTool/Editors/UndertaleGeneralInfoEditor.xaml | P2 | in progress |
 | UTMT-GEN-04 | Room order | Editable room order list, double-click to add, "Sync with room list" rebuilds it from the room asset order. | UndertaleModTool/Editors/UndertaleGeneralInfoEditor.xaml.cs (SyncRoomList_Click) | P0 | verified |
 | UTMT-GEN-05 | Debugger checkbox guard | Toggling the debugger flag shows a confirmation. | UndertaleModTool/Editors/UndertaleGeneralInfoEditor.xaml.cs (DebuggerCheckBox_PreviewMouseLeftButtonDown) | P1 | implemented |
-| UTMT-GEN-06 | GMS2 extras | Shader extension flag and version. | UndertaleModTool/Editors/UndertaleGeneralInfoEditor.xaml | P2 | planned |
+| UTMT-GEN-06 | GMS2 extras | Shader extension flag and version. | UndertaleModTool/Editors/UndertaleGeneralInfoEditor.xaml | P2 | done (Game Options rows, test added) |
 | UTMT-GEN-07 | Options (OPTN) | Flags, scale, window color, color depth, resolution, frequency, vertex sync, priority, back, front and load images, load alpha, constants table (name, value). | UndertaleModTool/Editors/UndertaleGeneralInfoEditor.xaml | P1 | verified |
 | UTMT-GEN-08 | Language (LANG) | Read-only unknown value, language count and entry count. No editor for entries. | UndertaleModTool/Editors/UndertaleGeneralInfoEditor.xaml | P2 | implemented |
 
