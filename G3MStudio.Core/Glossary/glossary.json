@@ -1,0 +1,16 @@
+{
+  "terms": [
+    { "en": "command palette", "ru": "Палитра команд", "es": "Paleta de comandos", "ja": "コマンドパレット", "ko": "명령 팔레트", "zh_cn": "命令面板", "zh_tw": "命令選擇區", "avoid": { "ja": ["コマンド パレット"] } },
+    { "en": "settings", "ru": "Настройки", "es": "Configuración", "ja": "設定", "ko": "설정", "zh_cn": "设置", "zh_tw": "設定", "avoid": { "ru": ["Параметры"], "es": ["Ajustes"], "zh_tw": ["設置"] } },
+    { "en": "undo", "ru": "Отменить", "es": "Deshacer", "ja": "元に戻す", "ko": "실행 취소", "zh_cn": "撤销", "zh_tw": "復原", "avoid": { "zh_cn": ["撤消"] } },
+    { "en": "redo", "ru": "Повторить", "es": "Rehacer", "ja": "やり直し", "ko": "다시 실행", "zh_cn": "重做", "zh_tw": "重做", "avoid": { "ru": ["Вернуть", "Переделать"] } },
+    { "en": "save", "ru": "Сохранить", "es": "Guardar", "ja": "保存", "ko": "저장", "zh_cn": "保存", "zh_tw": "儲存" },
+    { "en": "save as", "ru": "Сохранить как", "es": "Guardar como", "ja": "名前を付けて保存", "ko": "다른 이름으로 저장", "zh_cn": "另存为", "zh_tw": "另存新檔" },
+    { "en": "view", "ru": "Вид", "es": "Vista", "ja": "ビュー", "ko": "뷰", "zh_cn": "视图", "zh_tw": "視圖" },
+    { "en": "resource", "ru": "Ресурс", "es": "Recurso", "ja": "リソース", "ko": "리소스", "zh_cn": "资源", "zh_tw": "資源" },
+    { "en": "file", "ru": "Файл", "es": "Archivo", "ja": "ファイル", "ko": "파일", "zh_cn": "文件", "zh_tw": "檔案" },
+    { "en": "open", "ru": "Открыть", "es": "Abrir", "ja": "開く", "ko": "열기", "zh_cn": "打开", "zh_tw": "開啟" },
+    { "en": "close", "ru": "Закрыть", "es": "Cerrar", "ja": "閉じる", "ko": "닫기", "zh_cn": "关闭", "zh_tw": "關閉" },
+    { "en": "language", "ru": "Язык", "es": "Idioma", "ja": "言語", "ko": "언어", "zh_cn": "语言", "zh_tw": "語言" }
+  ]
+}
