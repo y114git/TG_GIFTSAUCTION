@@ -197,7 +197,7 @@
     "unpin": "Desfijar",
     "clear": "Borrar abiertos recientemente"
   },
-  "explorer": {
+  "explorer": { "noValue": "Ninguno",
     "filter": "Filtrar recursos...",
     "count": "{count} recursos",
     "matches": "{matches} de {total}",

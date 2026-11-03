@@ -197,7 +197,7 @@
     "unpin": "고정 해제",
     "clear": "최근 연 항목 지우기"
   },
-  "explorer": {
+  "explorer": { "noValue": "없음",
     "filter": "리소스 필터...",
     "count": "리소스 {count}개",
     "matches": "{total}개 중 {matches}개",

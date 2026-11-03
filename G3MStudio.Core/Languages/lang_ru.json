@@ -197,7 +197,7 @@
     "unpin": "Открепить",
     "clear": "Очистить список недавних"
   },
-  "explorer": {
+  "explorer": { "noValue": "Нет",
     "filter": "Фильтр ресурсов...",
     "count": "Ресурсов: {count}",
     "matches": "{matches} из {total}",

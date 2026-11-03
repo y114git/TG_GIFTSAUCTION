@@ -197,7 +197,7 @@
     "unpin": "取消固定",
     "clear": "清除最近打开的项目"
   },
-  "explorer": {
+  "explorer": { "noValue": "无",
     "filter": "筛选资源...",
     "count": "{count} 个资源",
     "matches": "{total} 个中的 {matches} 个",

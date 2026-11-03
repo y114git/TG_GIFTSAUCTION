@@ -197,7 +197,7 @@
     "unpin": "取消固定",
     "clear": "清除最近開啟的項目"
   },
-  "explorer": {
+  "explorer": { "noValue": "無",
     "filter": "篩選資源...",
     "count": "{count} 個資源",
     "matches": "{total} 個中的 {matches} 個",

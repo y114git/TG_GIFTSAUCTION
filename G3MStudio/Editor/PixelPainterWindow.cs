@@ -44,7 +44,7 @@ public sealed class PixelPainterWindow : Window
             tools.Children.Add(button);
         }
 
-        var size = new NumericUpDown { Name = "PaintSize", Minimum = 1, Maximum = 32, Value = 1, Increment = 1, FormatString = "0", Width = 110 };
+        var size = new NumericUpDown { Name = "PaintSize", Minimum = 1, Maximum = 32, Value = 1, Increment = 1, FormatString = "0", Width = 110, HorizontalAlignment = HorizontalAlignment.Left };
         size.ValueChanged += (_, e) => Canvas.BrushSize = (int)(e.NewValue ?? 1);
         var grid = new CheckBox { Name = "PaintGrid", Content = Loc.Current["painter.grid"], IsChecked = true };
         grid.IsCheckedChanged += (_, _) => Canvas.ShowGrid = grid.IsChecked == true;

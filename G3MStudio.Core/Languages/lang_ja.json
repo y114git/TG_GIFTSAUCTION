@@ -197,7 +197,7 @@
     "unpin": "固定を解除",
     "clear": "最近開いた項目を消去"
   },
-  "explorer": {
+  "explorer": { "noValue": "なし",
     "filter": "リソースを絞り込み...",
     "count": "{count} 件のリソース",
     "matches": "{total} 件中 {matches} 件",

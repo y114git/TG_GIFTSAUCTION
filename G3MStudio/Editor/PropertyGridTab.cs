@@ -271,7 +271,7 @@ public sealed class PropertyGridTab : DockPanel
                 link.Click += (_, _) => OpenRequested?.Invoke(target);
                 return link;
             case PropertyKind.List or PropertyKind.Info:
-                return new TextBlock { Text = row.Value, Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center };
+                return new TextBlock { Text = row.Value.Length > 0 || row.Kind == PropertyKind.List ? row.Value : Loc.Current["explorer.noValue"], Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center };
             case PropertyKind.Bool:
                 var check = new CheckBox { Name = "Prop_" + row.Path, IsChecked = row.Value == "True", IsEnabled = !row.ReadOnly };
                 check.IsCheckedChanged += async (_, _) =>
