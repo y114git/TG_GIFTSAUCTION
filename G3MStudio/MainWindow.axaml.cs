@@ -693,9 +693,18 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
     /// <summary>Command line: the first argument that is not a flag is a data file to open.</summary>
     public void OpenStartupFile(IEnumerable<string> args)
     {
-        if (args.FirstOrDefault(a => !a.StartsWith("--", StringComparison.Ordinal)) is not { } path) return;
+        var given = args.ToList();
+        if (given.FirstOrDefault(a => !a.StartsWith("--", StringComparison.Ordinal)) is not { } path) return;
         if (path.StartsWith(Core.Links.StudioLink.Scheme, StringComparison.OrdinalIgnoreCase)) OpenLink(path);
+        else if (given.Contains("--run")) _ = OpenAndRunAsync(path);
         else _ = OpenAsync(path);
+    }
+
+    /// <summary>The Explorer verb "Run game with G3MStudio": opens the file, then runs the game once it is open.</summary>
+    private async Task OpenAndRunAsync(string path)
+    {
+        await OpenAsync(path);
+        if (Workspaces.Current is not null) await RunGameAsync();
     }
 
     /// <summary>Opens what a g3mstudio:// link names: a local data file, or one of the actions. A web address is not downloaded (it would need the confirmation and the cache of the mod import).</summary>

@@ -640,6 +640,8 @@
     "play": "Play",
     "info": "{kind} audio, {kb} KB, {seconds} s",
     "outside": "This sound keeps its audio outside the data file ({file}).",
+    "audioRef": "Plays audio entry {id} of the audio group {group}, stored in this data file.",
+    "audioRefGroup": "Plays audio entry {id} of the audio group {group}, stored in the file of that group (audiogroupN.dat), which opens on its own.",
     "noPlayer": "No program could play {path}. Open it yourself."
   },
   "strings": {

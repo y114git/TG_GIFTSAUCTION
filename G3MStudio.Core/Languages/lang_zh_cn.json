@@ -640,6 +640,8 @@
     "play": "播放",
     "info": "{kind} 音频，{kb} KB，{seconds} 秒",
     "outside": "此声音的音频存放在数据文件之外 ({file})。",
+    "audioRef": "播放音频组 {group} 的音频条目 {id}，存放在此数据文件中。",
+    "audioRefGroup": "播放音频组 {group} 的音频条目 {id}，存放在该组的文件（audiogroupN.dat）中，可单独打开。",
     "noPlayer": "没有程序可以播放 {path}。请自行打开。"
   },
   "strings": {

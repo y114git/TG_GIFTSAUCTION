@@ -640,6 +640,8 @@
     "play": "Reproducir",
     "info": "Audio {kind}, {kb} KB, {seconds} s",
     "outside": "Este sonido guarda su audio fuera del archivo de datos ({file}).",
+    "audioRef": "Reproduce la entrada de audio {id} del grupo de audio {group}, guardada en este archivo de datos.",
+    "audioRefGroup": "Reproduce la entrada de audio {id} del grupo de audio {group}, guardada en el archivo de ese grupo (audiogroupN.dat), que se abre por separado.",
     "noPlayer": "Ningún programa pudo reproducir {path}. Para Abrir el archivo, hazlo tú mismo."
   },
   "strings": {

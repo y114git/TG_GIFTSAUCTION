@@ -640,6 +640,8 @@
     "play": "播放",
     "info": "{kind} 音訊，{kb} KB，{seconds} 秒",
     "outside": "此音效的音訊存放在資料檔案之外 ({file})。",
+    "audioRef": "播放音訊群組 {group} 的音訊項目 {id}，存放在此資料檔案中。",
+    "audioRefGroup": "播放音訊群組 {group} 的音訊項目 {id}，存放在該群組的檔案（audiogroupN.dat）中，可單獨開啟。",
     "noPlayer": "沒有程式可以播放 {path}。請自行開啟。"
   },
   "strings": {

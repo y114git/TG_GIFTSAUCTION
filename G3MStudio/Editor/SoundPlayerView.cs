@@ -25,12 +25,16 @@ public sealed class SoundPlayerView : StackPanel
         Children.Add(play);
         if (WaveformView.Peaks(Bytes()) is { } peaks) Children.Add(new WaveformView(peaks));
         Children.Add(_status);
+        Children.Add(new TextBlock { Name = "SoundAudioRef", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap, Text = Reference });
         _status.Text = Bytes().Length > 0
             ? Loc.Current.Format("sounds.info", ("kind", Extension()), ("kb", Bytes().Length / 1024), ("seconds", Seconds() is { } length ? Math.Round(length, 1).ToString(System.Globalization.CultureInfo.InvariantCulture) : "?"))
             : Loc.Current.Format("sounds.outside", ("file", sound.File?.Content ?? ""));
     }
 
     public string Status => _status.Text ?? "";
+
+    /// <summary>Which audio entry the sound plays and from which audio group (UTMT-SND-03): the entry sits in this data file, or in the file of its group when the group is not the default one.</summary>
+    public string Reference => Loc.Current.Format(_sound.AudioFile is null && _sound.GroupID != 0 ? "sounds.audioRefGroup" : "sounds.audioRef", ("id", _sound.AudioID), ("group", _sound.AudioGroup?.Name?.Content ?? _sound.GroupID.ToString(System.Globalization.CultureInfo.InvariantCulture)));
 
     private byte[] Bytes() => _sound.AudioFile?.Data ?? [];
 

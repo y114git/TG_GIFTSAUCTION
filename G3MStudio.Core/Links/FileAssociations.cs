@@ -25,6 +25,11 @@ public static class FileAssociations
             progId.SetValue("", "GameMaker data file (G3MStudio)");
             using var command = progId.CreateSubKey(@"shell\open\command");
             command.SetValue("", $"\"{exePath}\" \"%1\"");
+            // The Explorer menu entry that opens the file and runs the game at once (UTMT-RUN-06); the label is fixed text in the registry.
+            using var launch = progId.CreateSubKey(@"shell\launch");
+            launch.SetValue("", "Run game with G3MStudio");
+            using var launchCommand = launch.CreateSubKey("command");
+            launchCommand.SetValue("", $"\"{exePath}\" --run \"%1\"");
         }
 
         foreach (var extension in extensions.Where(Extensions.Contains))

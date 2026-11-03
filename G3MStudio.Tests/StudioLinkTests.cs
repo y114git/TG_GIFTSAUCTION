@@ -108,6 +108,8 @@ public sealed class StudioLinkTests
         {
             FileAssociations.Register(exe, [".win", ".csx"], classes); // .csx is not a data extension and is ignored
             Assert.Equal([".win"], FileAssociations.Registered(classes));
+            using (var launch = Microsoft.Win32.Registry.CurrentUser.OpenSubKey($@"{classes}\{FileAssociations.ProgId}\shell\launch\command"))
+                Assert.Equal($"\"{exe}\" --run \"%1\"", launch?.GetValue(""));
             using (var other = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(classes + @"\.unx")) other.SetValue("", "SomeoneElse.File"); // another program's extension stays
             FileAssociations.Remove(classes);
             Assert.Empty(FileAssociations.Registered(classes));

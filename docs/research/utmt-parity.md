@@ -109,7 +109,7 @@ Count: 8.
 | UTMT-RUN-03 | Runtime picker | Lists the game exe, GMS 1.4 `Runner.exe` from the GMS1 path, and every GMS2 runtime in the runtimes cache (prefers `windows\x64\Runner.exe`). Columns Version and Path. | UndertaleModTool/Windows/RuntimePicker.xaml.cs | P1 | planned |
 | UTMT-RUN-04 | Run under GMS debugger | Shift+F5, hidden unless enabled in settings. Sets the debugger flag, saves, writes a stub `.gmx`, starts the runner and `GMDebug.exe` against the `.yydebug` file and the debugger port. | UndertaleModTool/MainWindow.xaml.cs (Command_RunDebug) | P2 | planned |
 | UTMT-RUN-05 | Debug data generation | Code path writes `.yydebug` with decompiled source or disassembly and breakpoint offsets. The mode dialog exists but the save path currently fixes the mode to "no debug". | UndertaleModTool/MainWindow.xaml.cs (SaveFile), UndertaleModTool/Windows/DebugDataDialog.xaml | P2 | planned |
-| UTMT-RUN-06 | Shell verbs | File association adds "Run game normally" (`launch`) and "Run extended options" (`special_launch`, runtime picker) to the Explorer context menu. | UndertaleModTool/FileAssociations.cs | P2 | planned |
+| UTMT-RUN-06 | Shell verbs | File association adds "Run game normally" (`launch`) and "Run extended options" (`special_launch`, runtime picker) to the Explorer context menu. | UndertaleModTool/FileAssociations.cs | P2 | partly (Windows association adds the Explorer entry Run game with G3MStudio, `--run`; the extended-options entry is not added, Run with Runtime covers it inside the app) |
 
 Count: 6.
 
@@ -270,7 +270,7 @@ Count: 5.
 |---|---|---|---|---|---|
 | UTMT-SND-01 | Sound properties | Name, flags, type, file, effects, volume, pitch, audio group, audio file reference, preload (old audio system). | UndertaleModTool/Editors/UndertaleSoundEditor.xaml | P0 | implemented |
 | UTMT-SND-02 | Sound playback | Play and Stop for WAV and OGG through NAudio, including entries in external audio groups. | UndertaleModTool/Editors/UndertaleSoundEditor.xaml.cs | P0 | verified |
-| UTMT-SND-03 | Audio file reference control | Shows the embedded audio entry and its group. "..." opens it (in a child instance for external groups), "X" removes it, drag and drop to change. | UndertaleModTool/Controls/AudioFileReference.xaml(.cs) | P0 | planned |
+| UTMT-SND-03 | Audio file reference control | Shows the embedded audio entry and its group. "..." opens it (in a child instance for external groups), "X" removes it, drag and drop to change. | UndertaleModTool/Controls/AudioFileReference.xaml(.cs) | P0 | partly (the sound tab names its audio entry and group; the child instance, remove and drag parts are not built: the audio group file opens as its own workspace instead, see SND-06) |
 | UTMT-SND-04 | Embedded audio editor | Import and Export (WAV or OGG by header), Play, Stop. | UndertaleModTool/Editors/UndertaleEmbeddedAudioEditor.xaml.cs | P0 | verified |
 | UTMT-SND-05 | Audio group editor | Name and path (GM 2024.14+). | UndertaleModTool/Editors/UndertaleAudioGroupEditor.xaml | P1 | implemented |
 | UTMT-SND-06 | Audio group files | `audiogroupN.dat` files open as data files on their own. | UndertaleModTool/MainWindow.xaml.cs (DataFileFilter) | P0 | done (Deltarune audiogroup1.dat opens as a workspace with its 86 embedded audio entries; test runs with G3MSTUDIO_CORPUS_DIR) |

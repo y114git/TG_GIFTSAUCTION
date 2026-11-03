@@ -640,6 +640,8 @@
     "play": "재생",
     "info": "{kind} 오디오, {kb}KB, {seconds}초",
     "outside": "이 사운드의 오디오는 데이터 파일 밖에 있습니다({file}).",
+    "audioRef": "오디오 그룹 {group}의 오디오 항목 {id}을(를) 재생합니다(이 데이터 파일에 있음).",
+    "audioRefGroup": "오디오 그룹 {group}의 오디오 항목 {id}을(를) 재생합니다(해당 그룹의 파일 audiogroupN.dat에 있으며 따로 열 수 있습니다).",
     "noPlayer": "{path}을(를) 재생할 프로그램이 없습니다. 직접 열어 주세요."
   },
   "strings": {

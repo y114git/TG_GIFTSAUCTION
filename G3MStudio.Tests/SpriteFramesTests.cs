@@ -235,6 +235,21 @@ public sealed class SpriteFramesTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public async Task ASoundNamesItsAudioEntryAndGroup()
+    {
+        using var data = TestData.Create(0);
+        using var inside = new GameMakerSound { Name = data.Strings.MakeString("snd_in", out _), AudioID = 3, AudioFile = new GameMakerEmbeddedAudio { Data = [1] } };
+        using var outside = new GameMakerSound { Name = data.Strings.MakeString("snd_out", out _), AudioID = 5, GroupID = 2 };
+        await HeadlessApp.Run(() =>
+        {
+            Assert.Contains("3", new SoundPlayerView(inside, _ => true).Reference, StringComparison.Ordinal);
+            var external = new SoundPlayerView(outside, _ => true).Reference;
+            Assert.Contains("5", external, StringComparison.Ordinal);
+            Assert.NotEqual(new SoundPlayerView(inside, _ => true).Reference, external);
+        });
+    }
+
+    [Fact]
     public async Task AWavWithoutAStoredLengthShowsItsLengthFromTheHeader()
     {
         using var data = TestData.Create(0);

@@ -640,6 +640,8 @@
     "play": "再生",
     "info": "{kind} オーディオ、{kb} KB、{seconds} 秒",
     "outside": "このサウンドの音声はデータファイルの外にあります ({file})。",
+    "audioRef": "オーディオグループ {group} のオーディオ {id} を再生します（このデータファイル内）。",
+    "audioRefGroup": "オーディオグループ {group} のオーディオ {id} を再生します（そのグループのファイル audiogroupN.dat 内。単独で開けます）。",
     "noPlayer": "{path} を再生できるプログラムがありません。自分で開いてください。"
   },
   "strings": {
