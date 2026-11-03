@@ -596,6 +596,23 @@ public sealed class RoomEditTests
     }
 
     [Fact]
+    public async Task TheElementListDrawsItsRows()
+    {
+        using var data = TestData.Create(1);
+        using var room = new GameMakerRoom { Name = data.Strings.MakeString("room_x") };
+        await HeadlessApp.Run(() =>
+        {
+            var list = new Editor.RoomElementList(room);
+            var window = new Avalonia.Controls.Window { Width = 400, Height = 200, Content = list };
+            window.Show();
+            Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+            // A ListBox subclass without the style key of ListBox has no template, so it would hold rows but draw none.
+            Assert.NotEmpty(Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(list).OfType<Avalonia.Controls.ScrollViewer>());
+            return Task.CompletedTask;
+        });
+    }
+
+    [Fact]
     public async Task RulersPickReadableStepsAndGuidesAreAddedAndRemoved()
     {
         Assert.Equal(1, Rooms.RoomRuler.NiceStep(0.7));

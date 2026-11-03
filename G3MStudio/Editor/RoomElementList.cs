@@ -9,6 +9,9 @@ namespace G3MStudio.Editor;
 /// <summary>The elements of one layer (or of the whole room) as a list: instances with their object and place, and asset-layer elements by kind and name. Picking a row selects it in the room.</summary>
 public sealed class RoomElementList : ListBox
 {
+    // Without this a subclass finds no control theme and draws nothing.
+    protected override Type StyleKeyOverride => typeof(ListBox);
+
     private static readonly string[] Kinds = [RoomElements.Sprite, RoomElements.Sequence, RoomElements.Particle, RoomElements.Text];
 
     private readonly GameMakerRoom _room;
