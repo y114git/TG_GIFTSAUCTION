@@ -215,6 +215,7 @@
       "sprites": "精灵",
       "tileSets": "图块集",
       "backgrounds": "背景",
+      "variableCounts": "变量区块头：{instance} 个实例变量，{global} 个全局变量，单个脚本最多 {locals} 个局部变量。",
       "sounds": "声音",
       "paths": "路径",
       "scripts": "脚本",

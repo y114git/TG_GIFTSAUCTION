@@ -215,6 +215,7 @@
       "sprites": "スプライト",
       "tileSets": "タイルセット",
       "backgrounds": "背景",
+      "variableCounts": "変数チャンクのヘッダー: インスタンス変数 {instance} 個、グローバル変数 {global} 個、1 スクリプトあたり最大 {locals} 個のローカル変数。",
       "sounds": "サウンド",
       "paths": "パス",
       "scripts": "スクリプト",

@@ -215,6 +215,7 @@
       "sprites": "精靈",
       "tileSets": "圖塊集",
       "backgrounds": "背景",
+      "variableCounts": "變數區塊標頭：{instance} 個實例變數，{global} 個全域變數，單一腳本最多 {locals} 個區域變數。",
       "sounds": "音效",
       "paths": "路徑",
       "scripts": "指令碼",

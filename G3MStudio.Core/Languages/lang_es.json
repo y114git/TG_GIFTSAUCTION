@@ -215,6 +215,7 @@
       "sprites": "Sprites",
       "tileSets": "Tilesets",
       "backgrounds": "Fondos",
+      "variableCounts": "Cabecera del fragmento de variables: {instance} variables de instancia, {global} variables globales, como máximo {locals} variables locales en un script.",
       "sounds": "Sonidos",
       "paths": "Rutas",
       "scripts": "Scripts",

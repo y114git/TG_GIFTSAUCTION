@@ -215,6 +215,7 @@
       "sprites": "스프라이트",
       "tileSets": "타일셋",
       "backgrounds": "배경",
+      "variableCounts": "변수 청크 헤더: 인스턴스 변수 {instance}개, 전역 변수 {global}개, 스크립트 하나당 최대 지역 변수 {locals}개.",
       "sounds": "사운드",
       "paths": "경로",
       "scripts": "스크립트",

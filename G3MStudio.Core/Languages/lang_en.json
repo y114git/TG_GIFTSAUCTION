@@ -215,6 +215,7 @@
       "sprites": "Sprites",
       "tileSets": "Tile Sets",
       "backgrounds": "Backgrounds",
+      "variableCounts": "Variables chunk header: {instance} instance variables, {global} global variables, at most {locals} local variables in one script.",
       "sounds": "Sounds",
       "paths": "Paths",
       "scripts": "Scripts",
