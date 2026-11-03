@@ -22,4 +22,22 @@ public sealed class ExplorerLabelTests
             return Task.CompletedTask;
         });
     }
+
+    [Fact]
+    public async Task TheVariablesChunkHeaderCountersAreShownInTheUsersLanguage()
+    {
+        await HeadlessApp.Run(() =>
+        {
+            Loc.Current.SetLanguage("en");
+            using var data = TestData.Create(1);
+            data.VarCount1 = 7;
+            data.VarCount2 = 9;
+            data.MaxLocalVarCount = 11;
+            var text = MainWindow.VariableCounts(data);
+            Assert.Contains("7 instance", text, StringComparison.Ordinal);
+            Assert.Contains("9 global", text, StringComparison.Ordinal);
+            Assert.Contains("11 local", text, StringComparison.Ordinal);
+            return Task.CompletedTask;
+        });
+    }
 }

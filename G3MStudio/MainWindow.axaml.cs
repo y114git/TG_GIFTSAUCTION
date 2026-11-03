@@ -89,6 +89,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
                 GameMakerRoom room => RememberRoom(tab.Id, new RoomPreview(room, _textures, workspace, ShowCreationOrder, ShowCreationCode), tab.Key),
                 GameMakerSound sound => new SoundPlayerView(sound, UrlOpener),
                 GameMakerGeneralInfo => new EntryScriptsView(workspace, OpenEntry),
+                GameMakerVariable => new TextBlock { Name = "VariableCounts", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap, Text = VariableCounts(workspace.Data) },
                 GameMakerGameObject obj => new StackPanel { Spacing = 8, Children = { new ObjectEventsView(obj, OpenEntry, workspace), new PhysicsVerticesView(obj, workspace) } },
                 GameMakerBackground background => TilePicker(background, workspace),
                 GameMakerFont font => FontTab(font, workspace),

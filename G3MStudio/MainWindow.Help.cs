@@ -47,6 +47,10 @@ public sealed partial class MainWindow
         _ = _usages.ShowAsync(name, UsageSearch.FindAsync(workspace, type, name));
     }
 
+    /// <summary>The counters in the header of the variables chunk, which every variable tab shows above its properties (UTMT-AST-10); read only.</summary>
+    public static string VariableCounts(G3MLib.DataFile.GameMakerData data) =>
+        Loc.Current.Format("explorer.type.variableCounts", ("instance", data.VarCount1), ("global", data.VarCount2), ("locals", data.MaxLocalVarCount));
+
     private TilePickerView TilePicker(GameMakerBackground background, Workspace workspace)
     {
         var view = new TilePickerView(background, _textures, workspace);

@@ -353,7 +353,7 @@ Count: 8.
 | UTMT-AST-07 | String editor | Edits string content. | UndertaleModTool/Editors/UndertaleStringEditor.xaml | P0 | verified |
 | UTMT-AST-08 | Shared string edits | Editing a string field used elsewhere asks: change only this value, change all occurrences, or abort. | UndertaleModTool/Windows/StringUpdateWindow.xaml, UndertaleModTool/Controls/UndertaleStringReference.xaml.cs | P0 | verified |
 | UTMT-AST-09 | Variable editor | Name, instance type, variable ID, name string ID. | UndertaleModTool/Editors/UndertaleVariableEditor.xaml | P1 | implemented |
-| UTMT-AST-10 | Variables chunk header | Instance and global variable counts and maximum local variable count. | UndertaleModTool/Editors/UndertaleVariableChunkEditor.xaml | P2 | planned |
+| UTMT-AST-10 | Variables chunk header | Instance and global variable counts and maximum local variable count. | UndertaleModTool/Editors/UndertaleVariableChunkEditor.xaml | P2 | partly (read only: every variable tab shows the three chunk counters; they are not editable) |
 | UTMT-AST-11 | Function editor | Name and name string ID. | UndertaleModTool/Editors/UndertaleFunctionEditor.xaml | P1 | implemented |
 | UTMT-AST-12 | Code locals editor | Name and local variable list (index, name), double-click to add. | UndertaleModTool/Editors/UndertaleCodeLocalsEditor.xaml | P2 | implemented |
 | UTMT-AST-13 | Global init scripts | List of code entries run at game start. Add and remove. | UndertaleModTool/Editors/UndertaleGlobalInitEditor.xaml | P1 | implemented |
