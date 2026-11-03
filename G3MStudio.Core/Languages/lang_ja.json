@@ -168,6 +168,8 @@
       "plugins": "プラグイン...",
       "strings": "文字列...",
       "runScript": "スクリプトを実行...",
+      "runScriptFromFolder": "Scripts フォルダーのスクリプトを実行...",
+      "runCommand": "C# コマンドを実行...",
       "roomOrder": "ルームの順序...",
       "disassemble": "コードエントリの逆アセンブル...",
       "hexView": "データファイルの16進ビュー...",
@@ -739,7 +741,7 @@
     "restart": "最初から再生",
     "add": "エミッターを追加"
   },
-  "scripts": { "pickFile": "スクリプトがファイルを求めています", "pickFolder": "スクリプトがフォルダーを求めています", "pickSave": "スクリプトが保存先を尋ねています",
+  "scripts": { "commandTitle": "C# コマンド", "commandLabel": "開いているデータファイルに対して実行する C# コード", "none": "{folder} にスクリプトがありません。.csx ファイルを置いてください。", "pickFile": "スクリプトがファイルを求めています", "pickFolder": "スクリプトがフォルダーを求めています", "pickSave": "スクリプトが保存先を尋ねています",
     "pick": "スクリプト (.csx) を選んでください",
     "title": "スクリプトの実行",
     "confirm": "{name} を実行しますか？\n\nスクリプトはデータファイルのあらゆる内容を変更でき、このコンピューター上の任意のファイルを読み書きできます。変更は元に戻せません。戻すには「保存済みに戻す」を使います。信頼できるスクリプトだけを実行してください。\n\nUndertaleModTool 形式の .csx スクリプトを実行しますが、そのツールの機能の一部しかありません: Data、FilePath、ScriptPath、ScriptMessage、ScriptWarning、ScriptError、ScriptQuestion（常に「はい」）。ダイアログ、デコンパイラ補助、UI が必要なスクリプトは、足りない関数名を示すコンパイルエラーで止まります。",

@@ -168,6 +168,8 @@
       "plugins": "Complementos...",
       "strings": "Cadenas...",
       "runScript": "Ejecutar script...",
+      "runScriptFromFolder": "Ejecutar script de la carpeta Scripts...",
+      "runCommand": "Ejecutar comando C#...",
       "roomOrder": "Orden de salas...",
       "disassemble": "Desensamblado de la entrada de código...",
       "hexView": "Vista hexadecimal del archivo de datos...",
@@ -739,7 +741,7 @@
     "restart": "Reiniciar",
     "add": "Añadir emisor"
   },
-  "scripts": { "pickFile": "El script pide un archivo", "pickFolder": "El script pide una carpeta", "pickSave": "El script pregunta dónde guardar",
+  "scripts": { "commandTitle": "Comando C#", "commandLabel": "Código C# para ejecutar sobre el archivo de datos actual", "none": "No hay scripts en {folder}. Pon allí archivos .csx.", "pickFile": "El script pide un archivo", "pickFolder": "El script pide una carpeta", "pickSave": "El script pregunta dónde guardar",
     "pick": "Elige un script (.csx)",
     "title": "Ejecutar script",
     "confirm": "¿Ejecutar {name}?\n\nUn script puede cambiar cualquier cosa del archivo de datos y leer y escribir cualquier archivo de este equipo. El cambio no se puede deshacer; Revertir al guardado es la vuelta atrás. Ejecuta solo scripts de confianza.\n\nSe ejecutan scripts .csx al estilo de UndertaleModTool, pero aquí solo existe parte de las funciones de esa herramienta: Data, FilePath, ScriptPath, ScriptMessage, ScriptWarning, ScriptError y ScriptQuestion (respondida con sí). Los scripts que necesitan diálogos, las ayudas del descompilador o la interfaz se detienen con un error de compilación que nombra la función que falta.",

@@ -201,6 +201,10 @@ public interface IShell
 
     void RunScript();
 
+    void RunScriptFromFolder();
+
+    void RunCommand();
+
     /// <summary>Go to Resource (Ctrl+P).</summary>
     void QuickOpen();
 
@@ -255,7 +259,7 @@ public static class AppCommands
         ("menu.room", ["room.play", "-", "room.creationCode", "room.creationOrder", "room.exportTiles", "room.importTiles", "room.savePng"]),
         ("menu.run", ["run.game", "run.withRuntime", "run.stop"]),
         ("menu.mods", ["mods.createPatch", "mods.applyPatch", "mods.applyMod", "mods.applyPatchOpen", "mods.applyModOpen", "mods.mergePatches", "mods.validatePatch", "mods.compareFiles", "mods.exportMod"]),
-        ("menu.tools", ["tools.plugins", "tools.strings", "tools.roomOrder", "tools.hexView", "tools.offsetMap", "tools.disassemble", "tools.runScript", "-", "tools.repackTextures", "tools.exportPage", "tools.replacePage"]),
+        ("menu.tools", ["tools.plugins", "tools.strings", "tools.roomOrder", "tools.hexView", "tools.offsetMap", "tools.disassemble", "tools.runScript", "tools.runScriptFromFolder", "tools.runCommand", "-", "tools.repackTextures", "tools.exportPage", "tools.replacePage"]),
         ("menu.window", ["tabs.close", "tabs.closeOthers", "tabs.closeAll", "tabs.reopen", "-", "tabs.next", "tabs.previous", "tabs.back", "tabs.forward", "-", "tabs.pin", "tabs.keepOpen", "tabs.splitRight", "-", "window.layout.studio", "window.layout.code", "window.layout.canvas", "window.layout.reset", "window.layout.saved"]),
         ("menu.help", ["help.gettingStarted", "help.tour", "help.documentation", "help.checkUpdates", "help.openDataFolder", "-", "help.about"]),
     ];
@@ -365,6 +369,8 @@ public static class AppCommands
         Add("window.layout.reset", null, shell.ResetLayout, WorkspaceOpen);
         Add("window.layout.saved", null, shell.ShowLayouts, WorkspaceOpen);
         Add("tools.runScript", null, shell.RunScript, WorkspaceOpen);
+        Add("tools.runScriptFromFolder", null, shell.RunScriptFromFolder, WorkspaceOpen);
+        Add("tools.runCommand", null, shell.RunCommand, WorkspaceOpen);
         Add("help.about", null, shell.ShowAbout);
         Add("help.openDataFolder", null, shell.OpenDataFolder);
         Add("help.documentation", "F1", shell.OpenDocumentation);

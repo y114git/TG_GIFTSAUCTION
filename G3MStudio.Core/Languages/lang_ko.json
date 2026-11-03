@@ -168,6 +168,8 @@
       "plugins": "플러그인...",
       "strings": "문자열...",
       "runScript": "스크립트 실행...",
+      "runScriptFromFolder": "Scripts 폴더의 스크립트 실행...",
+      "runCommand": "C# 명령 실행...",
       "roomOrder": "룸 순서...",
       "disassemble": "코드 항목 디스어셈블리...",
       "hexView": "데이터 파일 16진수 뷰...",
@@ -739,7 +741,7 @@
     "restart": "다시 시작",
     "add": "이미터 추가"
   },
-  "scripts": { "pickFile": "스크립트가 파일을 요청합니다", "pickFolder": "스크립트가 폴더를 요청합니다", "pickSave": "스크립트가 저장 위치를 묻습니다",
+  "scripts": { "commandTitle": "C# 명령", "commandLabel": "열린 데이터 파일에 실행할 C# 코드", "none": "{folder}에 스크립트가 없습니다. .csx 파일을 넣으세요.", "pickFile": "스크립트가 파일을 요청합니다", "pickFolder": "스크립트가 폴더를 요청합니다", "pickSave": "스크립트가 저장 위치를 묻습니다",
     "pick": "스크립트(.csx)를 고르세요",
     "title": "스크립트 실행",
     "confirm": "{name}을(를) 실행할까요?\n\n스크립트는 데이터 파일의 무엇이든 바꿀 수 있고 이 컴퓨터의 모든 파일을 읽고 쓸 수 있습니다. 변경은 되돌릴 수 없으며, 저장본으로 되돌리기로 복구합니다. 신뢰하는 스크립트만 실행하세요.\n\nUndertaleModTool 방식의 .csx 스크립트를 실행하지만, 그 도구의 기능 중 일부만 있습니다: Data, FilePath, ScriptPath, ScriptMessage, ScriptWarning, ScriptError, ScriptQuestion(항상 예). 대화상자, 디컴파일러 도우미, UI가 필요한 스크립트는 없는 함수 이름을 알려 주는 컴파일 오류로 멈춥니다.",

@@ -168,6 +168,8 @@
       "plugins": "Plugins...",
       "strings": "Strings...",
       "runScript": "Run Script...",
+      "runScriptFromFolder": "Run Script from Scripts Folder...",
+      "runCommand": "Run C# Command...",
       "roomOrder": "Room Order...",
       "disassemble": "Disassembly of Code Entry...",
       "hexView": "Hex View of Data File...",
@@ -739,7 +741,7 @@
     "restart": "Restart",
     "add": "Add emitter"
   },
-  "scripts": { "pickFile": "The script asks for a file", "pickFolder": "The script asks for a folder", "pickSave": "The script asks where to save",
+  "scripts": { "commandTitle": "C# command", "commandLabel": "C# code to run on the current data file", "none": "No scripts found in {folder}. Put .csx files there.", "pickFile": "The script asks for a file", "pickFolder": "The script asks for a folder", "pickSave": "The script asks where to save",
     "pick": "Choose a script (.csx)",
     "title": "Run script",
     "confirm": "Run {name}?\n\nA script can change anything in the data file and can read and write any file on this computer. The change cannot be undone; Revert to Saved is the way back. Only run scripts you trust.\n\nThis runs UndertaleModTool-style .csx scripts, but only part of that tool's functions exist here: Data, FilePath, ScriptPath, ScriptMessage, ScriptWarning, ScriptError and ScriptQuestion (answered yes). Scripts that need dialogs, the decompiler helpers or the UI stop with a compile error that names the missing function.",

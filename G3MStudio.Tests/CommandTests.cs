@@ -102,6 +102,10 @@ internal sealed class FakeShell : IShell
 
     public void ShowTour() { }
     public void RunScript() { }
+
+    public void RunScriptFromFolder() { }
+
+    public void RunCommand() { }
     public void QuickOpen() { }
     public void CloseTab() { }
     public void CloseAllTabs() { }
