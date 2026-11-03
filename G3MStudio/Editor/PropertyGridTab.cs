@@ -32,6 +32,8 @@ public sealed class PropertyGridTab : DockPanel
     public PropertyGridTab(Workspace workspace, string type, string name, Control? header = null, string subPath = "")
     {
         (_workspace, _type, _name, _prefix) = (workspace, type, name, subPath);
+        // The sprite strip and the room canvas bring their own inset; every other header gets the same one so nothing touches the tab edge.
+        if (header is not (null or SpriteFramesView or RoomPreview) && header.Margin == default) header.Margin = new Thickness(8, 8, 8, 0);
         if (header is SpriteFramesView sprite)
         {
             _sprite = sprite;

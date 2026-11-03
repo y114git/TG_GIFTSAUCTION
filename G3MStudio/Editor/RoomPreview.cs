@@ -61,7 +61,7 @@ public sealed class RoomPreview : DockPanel
             {
                 if (PlaceableSource() is { } key) Place(key, at);
             };
-            var bar = new WrapPanel { Children = { _tool, ViewButtons(), _placeHint } };
+            var bar = new WrapPanel { ItemSpacing = 6, LineSpacing = 4, Children = { _tool, ViewButtons(), _placeHint } };
             SetDock(bar, Avalonia.Controls.Dock.Top);
             Children.Add(bar);
             if (room.Layers is not null)
@@ -79,7 +79,7 @@ public sealed class RoomPreview : DockPanel
                         return button;
                     }
 
-                    ((StackPanel)SidePanel).Children.Insert(1, new WrapPanel { Children = { Command("RoomCreationCode", "room.creationCode", creationCode), Command("RoomCreationOrder", "room.creationOrder", creationOrder) } });
+                    ((StackPanel)SidePanel).Children.Insert(1, new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Children = { Command("RoomCreationCode", "room.creationCode", creationCode), Command("RoomCreationOrder", "room.creationOrder", creationOrder) } });
                 }
 
                 View.SelectionChanged += () => _inspector.Show([.. View.Selection.OfType<GameMakerRoom.GameObject>()]);

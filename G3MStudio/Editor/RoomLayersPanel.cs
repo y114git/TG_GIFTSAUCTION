@@ -47,7 +47,7 @@ public sealed class RoomLayersPanel : DockPanel
         _kind.SelectionChanged += (_, _) => _tileSet.IsVisible = Kinds[Math.Max(0, _kind.SelectedIndex)] == RoomLayerCommand.AddTiles;
         _tileSet.ItemsSource = workspace.Data.Backgrounds.Where(b => b.GMS2TileWidth > 0 && b.GMS2TileCount > 0).Select(b => b.Name.Content).OfType<string>().ToList();
         _tileSet.SelectedIndex = _tileSet.ItemCount > 0 ? 0 : -1;
-        var tools = new WrapPanel { Children = { _kind, _tileSet, add, delete, up, down, fit } };
+        var tools = new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Children = { _kind, _tileSet, add, delete, up, down, fit } };
         var properties = new StackPanel { Spacing = 2 };
         foreach (var (operation, label) in Props)
         {

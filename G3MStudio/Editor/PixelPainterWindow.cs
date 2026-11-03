@@ -116,6 +116,7 @@ public sealed class PixelPainterWindow : Window
         tools.Children.Add(resize);
         var top = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new Thickness(8), Children = { _undoButton, _redoButton, new Border { Width = 12 }, zoomOut, zoomText, zoomIn } };
         var bottom = new DockPanel { Margin = new Thickness(8), LastChildFill = false };
+        ok.Margin = new Thickness(8, 0, 0, 0);
         DockPanel.SetDock(ok, Avalonia.Controls.Dock.Right);
         DockPanel.SetDock(cancel, Avalonia.Controls.Dock.Right);
         bottom.Children.Add(ok);

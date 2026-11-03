@@ -34,6 +34,8 @@ public sealed class PluginsWindow : Window
 
         var tools = new WrapPanel
         {
+            ItemSpacing = 6,
+            LineSpacing = 6,
             Children =
             {
                 Tool("PluginNew", "plugins.new", NewPlugin),
