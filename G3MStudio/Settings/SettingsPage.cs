@@ -443,7 +443,7 @@ public sealed class SettingsPage : UserControl
             Spacing = 10,
             Children =
             {
-                new DockPanel { Children = { close, restore, new TextBlock { Text = Loc.Current["settings.title"], FontSize = 20 } } },
+                new DockPanel { Children = { close, restore, new TextBlock { Text = Loc.Current["settings.title"], FontSize = 20, Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center } } },
                 search,
                 Heading("settings.appearance"),
                 Row("settings.language", language),
