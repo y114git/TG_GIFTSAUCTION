@@ -28,7 +28,7 @@ Goal (owner): scrolling, navigating, expanding, switching tabs, opening files, f
 | Strings window, 45k strings | open 134 ms, typing 27 ms mean | open 60 ms, typing 14 ms | Ordinal comparison, kind texts and resource names reused. |
 | Code search progress | 12,000 UI jobs per search | about 190 | One report per 64 entries. |
 | Memory per open and close of a tab, same sprite, room or code entry | sprite +7.6 MB, room +7.0 MB, code +3.9 MB per round | 0 to 0.2 MB | The window kept the view of every closed tab in three lists; `PruneViews` drops them on each dock change. Origin markers of removed sprite frames are cleared too. |
-| Garbage collection pauses | one 20 to 45 ms collection per tab or edit (default youngest generation budget 12 MB, heap 300 to 700 MB) | most steps have none | `System.GC.Gen0MaxBudget` = 64 MB. Costs up to that much extra memory before the first collection. |
+| Garbage collection pauses | one 20 to 45 ms collection per tab or edit (default youngest generation budget 12 MB, heap 300 to 700 MB) | most steps have none | The closed-tab leak fix. A `Gen0MaxBudget` runtimeconfig entry was tried and dropped: the runtime reads that setting from the environment only. |
 | Tiered PGO | | 10 to 40% less on edits and typing in the harness | `TieredPGO` off in the program. |
 
 ## Opening a file

@@ -43,6 +43,14 @@ public sealed partial class MainWindow
 
     public void ExportAudio() => _ = ExportAudioAsync();
 
+    public void ExportAllAudio() => _ = ExportAllAudioAsync();
+
+    public async Task ExportAllAudioAsync()
+    {
+        if (Workspaces.Current is not { } workspace || await PickFolder(Loc.Current["transfer.pickExport"]) is not { } folder) return;
+        await RunOperationAsync(workspace.Name, (progress, token) => AudioExport.ExportAllAsync(workspace, folder, progress, token), folder, export: true);
+    }
+
     /// <summary>The sound of the Explorer selection or the tab in front, or null with a message.</summary>
     private (Workspace Workspace, string Name)? FrontSound()
     {

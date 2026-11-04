@@ -40,7 +40,7 @@ public sealed class SpriteFramesView : ScrollViewer
         VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled;
         MaxHeight = MaxSide + 96;
         // GameMaker's playback speed is frames per second, or frames per game frame at an assumed 30 game frames per second.
-        var fps = Math.Max(1, _sprite.GMS2PlaybackSpeed * (_sprite.GMS2PlaybackSpeedType == AnimSpeedType.FramesPerGameFrame ? 30 : 1));
+        var fps = G3MStudio.Core.Workspace.SpriteGif.FramesPerSecond(_sprite);
         _playback.Interval = TimeSpan.FromSeconds(1 / fps);
         _playback.Tick += (_, _) => Show((Current + 1) % Math.Max(1, _sprite.Textures.Count));
         _play.Content = Loc.Current["sprites.play"];

@@ -81,6 +81,9 @@ public sealed partial class SettingsPage
         var codeNumbers = new CheckBox { Name = "CodeLineNumbers", Tag = Loc.Current["settings.codeLineNumbers"], Content = Loc.Current["settings.codeLineNumbers"], IsChecked = s.CodeLineNumbers };
         codeNumbers.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { CodeLineNumbers = codeNumbers.IsChecked == true }); };
 
+        var codeComplete = new CheckBox { Name = "CodeAutoComplete", Tag = Loc.Current["settings.codeAutoComplete"], Content = Loc.Current["settings.codeAutoComplete"], IsChecked = s.CodeAutoComplete };
+        codeComplete.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { CodeAutoComplete = codeComplete.IsChecked == true }); };
+
         return
         [
             Heading("settings.editor"),
@@ -88,6 +91,7 @@ public sealed partial class SettingsPage
             Row("settings.codeFontSize", Number("CodeFontSize", 8, 32, 1, s.CodeFontSize, (x, n) => x with { CodeFontSize = n }), new TextBlock { Text = "px", VerticalAlignment = VerticalAlignment.Center }),
             codeWrap,
             codeNumbers,
+            codeComplete,
         ];
     }
 

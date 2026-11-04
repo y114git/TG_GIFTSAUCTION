@@ -98,7 +98,9 @@
       "removeFrame": "刪除精靈影格",
       "recalculateMask": "重新計算碰撞遮罩",
       "importMask": "匯入遮罩...",
-      "exportMask": "匯出遮罩..."
+      "exportMask": "匯出遮罩...",
+      "exportGif": "匯出為 GIF...",
+      "exportAllAudio": "匯出所有音訊..."
     },
     "view": {
       "commandPalette": "命令選擇區...",
@@ -469,6 +471,7 @@
     "codeFontSize": "文字大小",
     "codeWordWrap": "自動換行",
     "codeLineNumbers": "顯示行號",
+    "codeAutoComplete": "輸入時開啟補全清單",
     "themeExport": "匯出佈景主題...",
     "themeImport": "匯入佈景主題 (G3MStudio, G3M)...",
     "themeBad": "未能使用佈景主題檔案：{reason}",
@@ -623,6 +626,8 @@
     "noMask": "這個精靈沒有碰撞遮罩。",
     "pickMask": "選擇遮罩圖片",
     "pickMaskSave": "將遮罩儲存為",
+    "pickGifSave": "將精靈儲存為 GIF",
+    "gifExported": "精靈 {sprite} 已儲存為動畫 GIF：{path}。",
     "maskImported": "已匯入 {sprite} 的遮罩 {index}。",
     "maskExported": "已將 {sprite} 的遮罩 {index} 儲存到 {path}。",
     "badPicture": "{name} 不是可讀取的圖片：{reason}",

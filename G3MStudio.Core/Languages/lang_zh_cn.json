@@ -98,7 +98,9 @@
       "removeFrame": "删除精灵帧",
       "recalculateMask": "重新计算碰撞遮罩",
       "importMask": "导入遮罩...",
-      "exportMask": "导出遮罩..."
+      "exportMask": "导出遮罩...",
+      "exportGif": "导出为 GIF...",
+      "exportAllAudio": "导出所有音频..."
     },
     "view": {
       "commandPalette": "命令面板...",
@@ -469,6 +471,7 @@
     "codeFontSize": "文字大小",
     "codeWordWrap": "自动换行",
     "codeLineNumbers": "显示行号",
+    "codeAutoComplete": "输入时打开补全列表",
     "themeExport": "导出主题...",
     "themeImport": "导入主题 (G3MStudio, G3M)...",
     "themeBad": "未能使用主题文件：{reason}",
@@ -623,6 +626,8 @@
     "noMask": "这个精灵没有碰撞遮罩。",
     "pickMask": "选择遮罩图片",
     "pickMaskSave": "将遮罩保存为",
+    "pickGifSave": "将精灵保存为 GIF",
+    "gifExported": "精灵 {sprite} 已保存为动画 GIF：{path}。",
     "maskImported": "已导入 {sprite} 的遮罩 {index}。",
     "maskExported": "已将 {sprite} 的遮罩 {index} 保存到 {path}。",
     "badPicture": "{name} 不是可读取的图片：{reason}",

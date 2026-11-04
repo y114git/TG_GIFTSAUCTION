@@ -108,7 +108,7 @@ public sealed partial class SettingsPage : UserControl
         [
             x => x with { UiScale = d.UiScale, FontFamily = d.FontFamily, FontWeight = d.FontWeight, CompactDensity = d.CompactDensity, ReduceMotion = d.ReduceMotion, ShowNullEntries = d.ShowNullEntries, Sizes = d.Sizes },
             x => x with { Colors = d.Colors },
-            x => x with { CodeFontSize = d.CodeFontSize, CodeFontFamily = d.CodeFontFamily, CodeWordWrap = d.CodeWordWrap, CodeLineNumbers = d.CodeLineNumbers },
+            x => x with { CodeFontSize = d.CodeFontSize, CodeFontFamily = d.CodeFontFamily, CodeWordWrap = d.CodeWordWrap, CodeLineNumbers = d.CodeLineNumbers, CodeAutoComplete = d.CodeAutoComplete },
             x => x with { RoomGridOverride = d.RoomGridOverride, RoomGridWidth = d.RoomGridWidth, RoomGridHeight = d.RoomGridHeight },
             x => x with { Decompiler = d.Decompiler },
             x => x with { BackupCount = d.BackupCount, AskOnClose = d.AskOnClose, RememberWindow = d.RememberWindow },

@@ -61,6 +61,10 @@ internal sealed class FakeShell : IShell
     public void RecalculateMask() { }
     public void ImportMask() { }
     public void ExportMask() { }
+
+    public void ExportGif() { }
+
+    public void ExportAllAudio() { }
     public void RemoveFrame() { }
     public void MergePatches() { }
     public void CompareFiles() { }

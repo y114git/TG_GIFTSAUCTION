@@ -22,7 +22,7 @@ public sealed class GmlCompletion
         editor.TextArea.TextEntered += (_, e) =>
         {
             // One key sends one character; pasted or composed text may send several: the last one decides.
-            if (e.Text is { Length: > 0 } text && IsWordChar(text[^1]) && _window is null) Show(false);
+            if (e.Text is { Length: > 0 } text && IsWordChar(text[^1]) && _window is null && EditorOptions.AutoComplete) Show(false);
         };
         editor.TextArea.KeyDown += (_, e) =>
         {

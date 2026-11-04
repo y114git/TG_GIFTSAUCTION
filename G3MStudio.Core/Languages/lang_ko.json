@@ -98,7 +98,9 @@
       "removeFrame": "스프라이트 프레임 제거",
       "recalculateMask": "충돌 마스크 다시 계산",
       "importMask": "마스크 가져오기...",
-      "exportMask": "마스크 내보내기..."
+      "exportMask": "마스크 내보내기...",
+      "exportGif": "GIF로 내보내기...",
+      "exportAllAudio": "모든 오디오 내보내기..."
     },
     "view": {
       "commandPalette": "명령 팔레트...",
@@ -469,6 +471,7 @@
     "codeFontSize": "글자 크기",
     "codeWordWrap": "긴 줄 줄바꿈",
     "codeLineNumbers": "줄 번호 표시",
+    "codeAutoComplete": "입력하는 동안 자동 완성 목록 열기",
     "themeExport": "테마 내보내기...",
     "themeImport": "테마 가져오기 (G3MStudio, G3M)...",
     "themeBad": "테마 파일을 사용하지 못했습니다: {reason}",
@@ -623,6 +626,8 @@
     "noMask": "이 스프라이트에는 충돌 마스크가 없습니다.",
     "pickMask": "마스크 그림을 고르세요",
     "pickMaskSave": "마스크를 저장할 위치",
+    "pickGifSave": "스프라이트를 GIF로 저장",
+    "gifExported": "스프라이트 {sprite}을(를) 애니메이션 GIF로 {path}에 저장했습니다.",
     "maskImported": "{sprite}의 마스크 {index}을(를) 가져왔습니다.",
     "maskExported": "{sprite}의 마스크 {index}을(를) {path}에 저장했습니다.",
     "badPicture": "{name}은(는) 읽을 수 있는 그림이 아닙니다: {reason}",

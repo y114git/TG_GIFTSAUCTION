@@ -98,7 +98,9 @@
       "removeFrame": "スプライトのフレームを削除",
       "recalculateMask": "衝突マスクを再計算",
       "importMask": "マスクをインポート...",
-      "exportMask": "マスクをエクスポート..."
+      "exportMask": "マスクをエクスポート...",
+      "exportGif": "GIFとしてエクスポート...",
+      "exportAllAudio": "すべてのオーディオをエクスポート..."
     },
     "view": {
       "commandPalette": "コマンドパレット...",
@@ -469,6 +471,7 @@
     "codeFontSize": "文字サイズ",
     "codeWordWrap": "長い行を折り返す",
     "codeLineNumbers": "行番号を表示",
+    "codeAutoComplete": "入力中に補完リストを開く",
     "themeExport": "テーマをエクスポート...",
     "themeImport": "テーマをインポート (G3MStudio, G3M)...",
     "themeBad": "テーマファイルを使えませんでした: {reason}",
@@ -623,6 +626,8 @@
     "noMask": "このスプライトには衝突マスクがありません。",
     "pickMask": "マスク画像を選んでください",
     "pickMaskSave": "マスクの保存先",
+    "pickGifSave": "スプライトをGIFとして保存",
+    "gifExported": "スプライト {sprite} をアニメーションGIFとして {path} に保存しました。",
     "maskImported": "{sprite} のマスク {index} をインポートしました。",
     "maskExported": "{sprite} のマスク {index} を {path} に保存しました。",
     "badPicture": "{name} は読み取れる画像ではありません: {reason}",

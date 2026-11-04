@@ -119,6 +119,30 @@ public sealed partial class MainWindow
         }
     }
 
+    public void ExportGif() => _ = ExportGifAsync();
+
+    public async Task ExportGifAsync()
+    {
+        if (Workspaces.Current is not { } workspace || Docking.ActiveTabId is not { } id || !_frameViews.ContainsKey(id)
+            || Docking.Tabs.Get(id)?.Key is not { } key || ResourceTypes.SplitKey(key) is not var (_, sprite))
+        {
+            Notify(NotificationLevel.Info, Loc.Current["sprites.noSprite"]);
+            return;
+        }
+
+        if (await PickPatchFile(Loc.Current["sprites.pickGifSave"], true, ".gif") is not { } path) return;
+        try
+        {
+            var bytes = await Task.Run(() => { using (workspace.Lock.Read()) return SpriteGif.ToGif(workspace.Data, sprite); });
+            await File.WriteAllBytesAsync(path, bytes);
+            Notify(NotificationLevel.Info, Loc.Current.Format("sprites.gifExported", ("sprite", sprite), ("path", path)));
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or MagickException or InvalidOperationException)
+        {
+            Notify(NotificationLevel.Error, Loc.Current.Format("sprites.badPicture", ("name", Path.GetFileName(path)), ("reason", e.Message)));
+        }
+    }
+
     public void ImportMask() => _ = ImportMaskAsync();
 
     public async Task ImportMaskAsync()

@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 
 namespace G3MStudio.Explorer;
 
@@ -33,6 +34,8 @@ public sealed class ExplorerRowTip : StackPanel
         _picture.Source = null;
         // The tip popup is sized once, so reserve the picture area up front; it is hidden again if there is no picture.
         (_picture.Width, _picture.Height, _picture.IsVisible) = (MaxSide, MaxSide, load is not null);
+        // Already open (a row scrolled under the pointer): the attach event will not come again.
+        if (load is not null && this.IsAttachedToVisualTree()) _ = ShowAsync(++_version);
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)

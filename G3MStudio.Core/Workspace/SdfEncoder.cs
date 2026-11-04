@@ -15,17 +15,28 @@ public static class SdfEncoder
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(spread, 1);
         if (coverage.Length != width * height) throw new ArgumentException("The bitmap does not match its size.", nameof(coverage));
-        float[] toInside = [.. coverage.Select(c => c >= 128 ? 0 : Far)];
-        float[] toOutside = [.. coverage.Select(c => c >= 128 ? Far : 0)];
+        var toInside = new float[coverage.Length];
+        var toOutside = new float[coverage.Length];
+        var at = 0;
+        foreach (var value in coverage)
+        {
+            var inside = value >= 128;
+            toInside[at] = inside ? 0 : Far;
+            toOutside[at++] = inside ? Far : 0;
+        }
 
         Transform(toInside, width, height);
         Transform(toOutside, width, height);
-        // Positive inside: the distance to the nearest outside pixel, minus half a pixel because the edge lies between pixel centers; negative outside likewise.
-        return [.. coverage.Select((c, i) =>
+        var result = new byte[coverage.Length];
+        at = 0;
+        foreach (var value in coverage)
         {
-            var signed = c >= 128 ? MathF.Sqrt(toOutside[i]) - 0.5f : -(MathF.Sqrt(toInside[i]) - 0.5f);
-            return (byte)Math.Clamp((int)MathF.Round(128 + 128 * signed / spread), 0, 255);
-        })];
+            // Positive inside: the distance to the nearest outside pixel, minus half a pixel because the edge lies between pixel centers; negative outside likewise.
+            var signed = value >= 128 ? MathF.Sqrt(toOutside[at]) - 0.5f : -(MathF.Sqrt(toInside[at]) - 0.5f);
+            result[at++] = (byte)Math.Clamp((int)MathF.Round(128 + 128 * signed / spread), 0, 255);
+        }
+
+        return result;
     }
 
     // The squared Euclidean distance to the nearest zero, in two passes of the one dimensional lower envelope (Felzenszwalb and Huttenlocher).

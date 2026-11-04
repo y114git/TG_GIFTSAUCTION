@@ -98,7 +98,9 @@
       "removeFrame": "Удалить кадр спрайта",
       "recalculateMask": "Пересчитать маску столкновений",
       "importMask": "Импортировать маску...",
-      "exportMask": "Экспортировать маску..."
+      "exportMask": "Экспортировать маску...",
+      "exportGif": "Экспортировать в GIF...",
+      "exportAllAudio": "Экспортировать всё аудио..."
     },
     "view": {
       "commandPalette": "Палитра команд...",
@@ -469,6 +471,7 @@
     "codeFontSize": "Размер текста",
     "codeWordWrap": "Переносить длинные строки",
     "codeLineNumbers": "Показывать номера строк",
+    "codeAutoComplete": "Открывать список подсказок при вводе",
     "themeExport": "Экспортировать тему...",
     "themeImport": "Импортировать тему (G3MStudio, G3M)...",
     "themeBad": "Файл темы не использован: {reason}",
@@ -623,6 +626,8 @@
     "noMask": "У этого спрайта нет маски столкновений.",
     "pickMask": "Выберите картинку маски",
     "pickMaskSave": "Сохранить маску как",
+    "pickGifSave": "Сохранить спрайт как GIF",
+    "gifExported": "Спрайт {sprite} сохранён как анимированный GIF: {path}.",
     "maskImported": "Маска {index} спрайта {sprite} импортирована.",
     "maskExported": "Маска {index} спрайта {sprite} сохранена в {path}.",
     "badPicture": "Не удалось прочитать изображение {name}: {reason}",

@@ -98,7 +98,9 @@
       "removeFrame": "Quitar fotograma del sprite",
       "recalculateMask": "Recalcular máscara de colisión",
       "importMask": "Importar máscara...",
-      "exportMask": "Exportar máscara..."
+      "exportMask": "Exportar máscara...",
+      "exportGif": "Exportar como GIF...",
+      "exportAllAudio": "Exportar todo el audio..."
     },
     "view": {
       "commandPalette": "Paleta de comandos...",
@@ -469,6 +471,7 @@
     "codeFontSize": "Tamaño del texto",
     "codeWordWrap": "Ajustar líneas largas",
     "codeLineNumbers": "Mostrar números de línea",
+    "codeAutoComplete": "Abrir la lista de sugerencias al escribir",
     "themeExport": "Exportar tema...",
     "themeImport": "Importar tema (G3MStudio, G3M)...",
     "themeBad": "No se usó el archivo de tema: {reason}",
@@ -623,6 +626,8 @@
     "noMask": "Este sprite no tiene máscara de colisión.",
     "pickMask": "Elige una imagen de máscara",
     "pickMaskSave": "Guardar la máscara como",
+    "pickGifSave": "Guardar el sprite como GIF",
+    "gifExported": "El sprite {sprite} se guardó como GIF animado en {path}.",
     "maskImported": "Se importó la máscara {index} de {sprite}.",
     "maskExported": "La máscara {index} de {sprite} se guardó en {path}.",
     "badPicture": "{name} no es una imagen que se pueda leer: {reason}",

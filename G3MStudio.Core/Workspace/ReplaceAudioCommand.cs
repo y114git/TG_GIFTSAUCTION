@@ -103,9 +103,12 @@ public sealed class ReplaceAudioCommand(string sound, byte[] audio, bool changeK
     public override void Revert(GameMakerData data)
     {
         var target = data.Sounds.FirstOrDefault(s => s.Name.Content == sound) ?? throw new InvalidOperationException($"Sound '{sound}' does not exist.");
-        if (_before is null || _beforeKind.Type is not { } kindType || _beforeKind.File is not { } kindFile || target.AudioFile is not { } file) throw new InvalidOperationException("The audio was never replaced.");
+        if (_before is null || target.AudioFile is not { } file) throw new InvalidOperationException("The audio was never replaced.");
         file.Data = _before;
         target.AudioLength = _beforeLength;
-        (target.Type, target.File, target.Flags) = (kindType, kindFile, _beforeKind.Flags);
+        // A sound that had no type or file name keeps the new one: the model does not take null there.
+        if (_beforeKind.Type is { } kindType) target.Type = kindType;
+        if (_beforeKind.File is { } kindFile) target.File = kindFile;
+        target.Flags = _beforeKind.Flags;
     }
 }

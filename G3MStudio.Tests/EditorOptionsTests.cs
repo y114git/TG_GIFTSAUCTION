@@ -47,4 +47,25 @@ public sealed class EditorOptionsTests
             return Task.CompletedTask;
         });
     }
+
+    [Fact]
+    public async Task TheCompletionSwitchIsOnByDefaultIsReadFromSettingsAndFollowsAChange()
+    {
+        Assert.True(new G3MStudio.Core.Settings.AppSettings().CodeAutoComplete);
+        using var dir = new TempDir();
+        await HeadlessApp.Run(async () =>
+        {
+            var window = TabsWorkspaceTests.NewWindow(dir);
+            try
+            {
+                Assert.True(EditorOptions.AutoComplete);
+                window.Workspaces.Settings.Update(x => x with { CodeAutoComplete = false });
+                Assert.False(EditorOptions.AutoComplete);
+                await File.WriteAllTextAsync(dir.File("user/settings.json"), /*lang=json,strict*/ "{ \"codeAutoComplete\": true }", TestContext.Current.CancellationToken);
+                window.Workspaces.Settings.Reload(); // the file watcher may have read it already
+                Assert.True(window.Workspaces.Settings.Current.CodeAutoComplete);
+            }
+            finally { window.Close(); }
+        });
+    }
 }

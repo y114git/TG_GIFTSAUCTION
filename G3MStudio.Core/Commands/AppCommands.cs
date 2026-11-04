@@ -95,6 +95,9 @@ public interface IShell
     /// <summary>Saves the audio of the sound in front to a file.</summary>
     void ExportAudio();
 
+    /// <summary>Saves the audio of every sound to a folder, with progress and Cancel.</summary>
+    void ExportAllAudio();
+
     /// <summary>Saves the embedded texture page in front as a PNG.</summary>
     void ExportPage();
 
@@ -108,6 +111,9 @@ public interface IShell
     void ImportMask();
 
     void ExportMask();
+
+    /// <summary>Saves the sprite in front as an animated GIF.</summary>
+    void ExportGif();
 
     void RemoveFrame();
 
@@ -258,8 +264,8 @@ public static class AppCommands
         ("menu.edit", ["edit.undo", "edit.redo", "-", "edit.rename", "edit.duplicate", "edit.moveUp", "edit.moveDown", "edit.copyName", "edit.delete", "edit.selectAll", "-", "edit.find", "edit.findInCode", "edit.findUsages", "edit.findUses", "edit.findUnreferenced", "edit.findChildren"]),
         ("menu.view", ["view.commandPalette", "go.quickOpen", "-", .. Panels.Select(p => "view.panel." + p.ToLowerInvariant()), "-", "view.zoomIn", "view.zoomOut", "view.zoomReset", "view.fullscreen"]),
         ("menu.project", ["project.enable", "project.sync", "project.options", "project.resolve", "project.moveDataFile", "project.disable"]),
-        ("menu.sprite", ["edit.paintFrame", "edit.replaceFrame", "edit.duplicateFrame", "edit.removeFrame", "-", "edit.recalculateMask", "edit.importMask", "edit.exportMask"]),
-        ("menu.sound", ["edit.editAudio", "edit.replaceAudio", "edit.exportAudio"]),
+        ("menu.sprite", ["edit.paintFrame", "edit.replaceFrame", "edit.duplicateFrame", "edit.removeFrame", "-", "edit.recalculateMask", "edit.importMask", "edit.exportMask", "edit.exportGif"]),
+        ("menu.sound", ["edit.editAudio", "edit.replaceAudio", "edit.exportAudio", "edit.exportAllAudio"]),
         ("menu.room", ["room.play", "-", "room.creationCode", "room.creationOrder", "room.exportTiles", "room.importTiles", "room.savePng"]),
         ("menu.run", ["run.game", "run.withRuntime", "run.stop"]),
         ("menu.mods", ["mods.createPatch", "mods.applyPatch", "mods.applyMod", "mods.applyPatchOpen", "mods.applyModOpen", "mods.mergePatches", "mods.validatePatch", "mods.compareFiles", "mods.exportMod"]),
@@ -307,6 +313,8 @@ public static class AppCommands
         Add("edit.recalculateMask", null, shell.RecalculateMask, SpriteTab);
         Add("edit.importMask", null, shell.ImportMask, SpriteTab);
         Add("edit.exportMask", null, shell.ExportMask, SpriteTab);
+        Add("edit.exportGif", null, shell.ExportGif, SpriteTab);
+        Add("edit.exportAllAudio", null, shell.ExportAllAudio, WorkspaceOpen);
         Add("edit.removeFrame", null, shell.RemoveFrame, SpriteTab);
         Add("mods.createPatch", null, shell.CreatePatch, WorkspaceOpen);
         Add("mods.applyPatch", null, shell.ApplyPatch);

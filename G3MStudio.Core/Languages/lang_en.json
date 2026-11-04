@@ -98,7 +98,9 @@
       "removeFrame": "Remove Sprite Frame",
       "recalculateMask": "Recalculate Collision Mask",
       "importMask": "Import Mask...",
-      "exportMask": "Export Mask..."
+      "exportMask": "Export Mask...",
+      "exportGif": "Export as GIF...",
+      "exportAllAudio": "Export All Audio..."
     },
     "view": {
       "commandPalette": "Command Palette...",
@@ -469,6 +471,7 @@
     "codeFontSize": "Text size",
     "codeWordWrap": "Wrap long lines",
     "codeLineNumbers": "Show line numbers",
+    "codeAutoComplete": "Open the completion list while typing",
     "themeExport": "Export theme...",
     "themeImport": "Import theme (G3MStudio, G3M)...",
     "themeBad": "The theme file was not used: {reason}",
@@ -623,6 +626,8 @@
     "noMask": "This sprite has no collision mask.",
     "pickMask": "Choose a mask picture",
     "pickMaskSave": "Save the mask as",
+    "pickGifSave": "Save the sprite as a GIF",
+    "gifExported": "Sprite {sprite} was saved as an animated GIF to {path}.",
     "maskImported": "Mask {index} of {sprite} was imported.",
     "maskExported": "Mask {index} of {sprite} was saved to {path}.",
     "badPicture": "{name} is not a picture that can be read: {reason}",

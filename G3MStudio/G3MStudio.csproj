@@ -10,7 +10,6 @@
 
   <ItemGroup>
     <!-- The default budget of the youngest generation is about 12 MB; a tab or an edit allocates that much, and each collection then walked a heap of several hundred MB for 20 to 45 ms. -->
-    <RuntimeHostConfigurationOption Include="System.GC.Gen0MaxBudget" Value="67108864" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
