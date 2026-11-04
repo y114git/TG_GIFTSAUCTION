@@ -5,7 +5,7 @@ using G3MStudio.Core.Settings;
 namespace G3MStudio.Core.Workspace;
 
 /// <summary>Opens and closes the single workspace of a window and keeps the recent list.</summary>
-public sealed class WorkspaceService(UserData userData, RecentFiles recent)
+public sealed partial class WorkspaceService(UserData userData, RecentFiles recent)
 {
     public UserData UserData { get; } = userData;
 

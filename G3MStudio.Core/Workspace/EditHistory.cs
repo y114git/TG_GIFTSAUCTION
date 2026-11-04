@@ -13,6 +13,12 @@ public sealed partial class EditHistory(GameMakerData data)
     {
         ThrowIfFrozen();
         command.Apply(data);
+        Commit(command);
+    }
+
+    /// <summary>Records a command that was applied already (by <see cref="Workspace.EditInBackground"/>, which applies off the calling thread).</summary>
+    internal void Commit(EditCommand command)
+    {
         if (_saved > Position) _saved = -1;
         _items.RemoveRange(Position, _items.Count - Position);
         _items.Add(command);

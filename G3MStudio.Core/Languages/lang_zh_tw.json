@@ -82,6 +82,7 @@
       "rename": "重新命名...",
       "delete": "刪除資源...",
       "duplicate": "複製資源...",
+      "copyToOtherFile": "複製到其他資料檔案...",
       "moveUp": "上移",
       "moveDown": "下移",
       "selectAll": "全選",
@@ -475,7 +476,23 @@
     "themeExport": "匯出佈景主題...",
     "themeImport": "匯入佈景主題 (G3MStudio, G3M)...",
     "themeBad": "未能使用佈景主題檔案：{reason}",
-    "compact": "緊湊密度（畫面顯示更多）"
+    "compact": "緊湊密度（畫面顯示更多）",
+    "memoryLimit": "記憶體上限",
+    "memoryNone": "無上限",
+    "memoryCustom": "自訂",
+    "memoryNote": "無上限時會依需要使用記憶體，最多用到全部可用記憶體。記憶體不足時，Studio 會釋放快取並放慢速度，而不是當機。"
+  },
+  "memory": {
+    "status": "記憶體 {used}",
+    "statusLow": "記憶體 {used}，低記憶體模式",
+    "low": "記憶體不足，Studio 正在低記憶體模式下執行。",
+    "failed": "沒有足夠的記憶體來完成{name}。Studio 已釋放能釋放的內容。請關閉其他程式或分頁後再試。",
+    "limitRefused": "執行階段未能套用記憶體上限（{reason}）。Studio 仍會盡量維持在上限內。",
+    "opOpen": "開啟檔案",
+    "opSave": "儲存",
+    "opExport": "匯出",
+    "opImport": "匯入",
+    "opFont": "取代字型"
   },
   "git": {
     "noProject": "Git 會追蹤專案資料夾。請為此資料檔案啟用專案以使用 Git。",
@@ -1074,5 +1091,34 @@
     "deleteMany": "要刪除這 {count} 個資源嗎？\n{names}",
     "deleteManyUses": "所選內容之外有 {count} 處在使用它們；這些引用將被清除或移除：\n{places}",
     "duplicatedMany": "已複製 {count} 個資源。"
+  },
+  "copyTo": {
+    "title": "複製到其他資料檔案",
+    "header": "將 {count} 項從 {source} 複製到 {target}",
+    "deps": "同時複製相依項目",
+    "mode": "目標中已有同名項目時：",
+    "modeRename": "重新命名（加 _copy）",
+    "modeSkip": "略過（使用目標中的項目）",
+    "modeReplace": "取代目標中的項目",
+    "actionAdd": "新增",
+    "choiceRename": "重新命名",
+    "actionReplace": "取代",
+    "actionSkip": "略過",
+    "actionRefused": "無法複製",
+    "neededBy": "{names} 需要",
+    "ok": "複製",
+    "planning": "正在檢查要複製的內容...",
+    "nothing": "依此設定沒有可複製的內容。",
+    "pickTarget": "選擇要複製到的資料檔案",
+    "noSelection": "請先在檔案總管中選擇要複製的資源。",
+    "sameFile": "這是複製的來源檔案。要在同一資料檔案內複製，請使用「複製資源」。",
+    "working": "正在複製到 {target}",
+    "done": "已將 {count} 個資源複製到 {target}。一次復原即可全部還原。",
+    "saveTitle": "儲存目標檔案",
+    "saveAsk": "{target} 僅為這次複製而開啟。現在儲存嗎？選「否」將捨棄這次複製。",
+    "dropped": "已捨棄到 {target} 的複製。",
+    "failed": "複製失敗：{reason}",
+    "cancelled": "複製已取消，未做任何變更。",
+    "counts": "將複製：{copy}。略過：{skip}。無法複製：{refused}。"
   }
 }

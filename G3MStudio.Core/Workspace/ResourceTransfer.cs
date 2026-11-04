@@ -1,3 +1,4 @@
+using G3MLib.DataFile;
 using G3MLib.Modding.Internal;
 using G3MLib.Modding.Resources;
 
@@ -7,10 +8,13 @@ namespace G3MStudio.Core.Workspace;
 /// Export and import of resources to and from files, on the library's batch services: one result per item, progress per item, cancellation
 /// that removes what a run added. An Explorer type key (<c>sprites</c>) maps to the folders the library writes (<c>Sprites</c>).
 /// </summary>
+/// <summary>A data model with the path of its file, which sound export needs to find the audio group files.</summary>
+internal readonly record struct ExportSource(GameMakerData Data, string DataPath);
+
 public static class ResourceTransfer
 {
     // Folders of the library's resource layout that belong to an Explorer type. Data-only types (strings, variables) have none.
-    private static readonly Dictionary<string, string[]> Folders = new()
+    internal static readonly Dictionary<string, string[]> Folders = new()
     {
         ["sprites"] = ["Sprites"],
         ["tileSets"] = ["Backgrounds", "Tilesets"],
@@ -43,7 +47,7 @@ public static class ResourceTransfer
             if (!Folders.TryGetValue(typeKey, out var folders)) throw new ArgumentException($"'{typeKey}' cannot be exported as files.", nameof(typeKey));
             var results = new List<ItemResult>();
             using (workspace.Lock.Read())
-                foreach (var folder in folders) results.AddRange(ExportFolder(workspace, directory, folder, names, progress, cancellationToken));
+                foreach (var folder in folders) results.AddRange(ExportFolder(new ExportSource(workspace.Data, workspace.Path), directory, folder, names, progress, cancellationToken));
             return (IReadOnlyList<ItemResult>)results;
         }, cancellationToken);
 
@@ -62,15 +66,15 @@ public static class ResourceTransfer
         return results;
     }
 
-    private static IReadOnlyList<ItemResult> ExportFolder(Workspace workspace, string dir, string folder, ISet<string>? names, IProgress<BatchProgress>? progress, CancellationToken ct)
+    internal static IReadOnlyList<ItemResult> ExportFolder(ExportSource source, string dir, string folder, ISet<string>? names, IProgress<BatchProgress>? progress, CancellationToken ct)
     {
-        var data = workspace.Data;
+        var (data, dataPath) = source;
         return folder switch
         {
             "Sprites" => ResourceExportService.ExportSprites(data, dir, names, progress, ct),
             "Backgrounds" => ResourceExportService.ExportBackgrounds(data, dir, names, progress, ct),
             "Tilesets" => ResourceExportService.ExportTilesets(data, dir, names, progress, ct),
-            "Sounds" => ResourceExportService.ExportSounds(data, dir, workspace.Path, names, progress, ct),
+            "Sounds" => ResourceExportService.ExportSounds(data, dir, dataPath, names, progress, ct),
             "Paths" => ResourceExportService.ExportPaths(data, dir, names, progress, ct),
             "Scripts" => ResourceExportService.ExportScripts(data, dir, names, progress, ct),
             "Shaders" => ResourceExportService.ExportShaders(data, dir, names, progress, ct),

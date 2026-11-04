@@ -35,6 +35,12 @@ public sealed class TextureBitmaps(ModelLock? gate = null) : IDisposable
         if (_pages.Remove(texture, out var page)) DisposeDone(page);
     }
 
+    /// <summary>
+    /// Forgets the decoded pages so they can be collected and decoded again when asked for. They are not disposed here: an open view may still draw one,
+    /// and the bitmap frees its pixels when it is finalized.
+    /// </summary>
+    public void Trim() => _pages.Clear();
+
     public void Dispose()
     {
         foreach (var page in _pages.Values) DisposeDone(page);

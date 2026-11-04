@@ -61,6 +61,48 @@ public sealed class PerfRealFilesTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public async Task MemoryBeforeAndAfterTrimOnRealFiles()
+    {
+        Assert.SkipWhen(!Files.Any(), "G3MSTUDIO_PERF and G3MSTUDIO_PERF_FILES are not set");
+        static double Mb() => GC.GetTotalMemory(true) / 1048576.0;
+        foreach (var file in Files)
+        {
+            using var dir = new TempDir();
+            var userData = new UserData(dir.File("user"));
+            var service = new WorkspaceService(userData, RecentFiles.Load(userData));
+            var workspace = await service.OpenAsync(file, null, TestContext.Current.CancellationToken);
+            var open = Mb();
+            BuildIndex(workspace, TestContext.Current.CancellationToken);
+            var withIndex = Mb();
+            ReferenceCache.Of(workspace.Data).Invalidate();
+            var indexDropped = Mb();
+            BuildIndex(workspace, TestContext.Current.CancellationToken);
+            using (workspace.Lock.Read()) _ = workspace.DecompileContext();
+            var caches = Mb();
+            output.WriteLine($"  open {open:F0}, index {withIndex:F0}, index dropped {indexDropped:F0}");
+            var governor = new MemoryGovernor(new FakeHigh()) { LimitBytes = 1 };
+            governor.OnPressure(MemoryLevel.High, () =>
+            {
+                ReferenceCache.Of(workspace.Data).Invalidate();
+                workspace.ReleaseDecompileContext();
+            });
+            governor.Trim = () => { };
+            governor.Poll();
+            var trimmed = Mb();
+            output.WriteLine($"{Path.GetFileName(Path.GetDirectoryName(file))} ({new FileInfo(file).Length / 1048576} MB): managed heap after open {open:F0} MB, with reference index and decompile context {caches:F0} MB, after the release at High {trimmed:F0} MB");
+            service.Close();
+        }
+    }
+
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    private static void BuildIndex(Workspace workspace, CancellationToken token) => ReferenceCache.Of(workspace.Data).Get(workspace.Data, token);
+
+    private sealed class FakeHigh : IMemorySource
+    {
+        public MemorySample Read() => new(900, 0, 0); // 900 bytes against a limit of 1: High
+    }
+
+    [Fact]
     public async Task EditsOnRealFiles()
     {
         Assert.SkipWhen(!Files.Any(), "G3MSTUDIO_PERF and G3MSTUDIO_PERF_FILES are not set");

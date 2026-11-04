@@ -24,6 +24,8 @@ internal sealed class FakeShell : IShell
     public void NewResource(string type) { }
     public void DuplicateResource() { }
 
+    public void CopyToOtherFile() { }
+
     public void MoveResourceUp() { }
 
     public void MoveResourceDown() { }

@@ -56,6 +56,21 @@ public static class TestData
         return data;
     }
 
+    /// <summary>Adds a blank 128 by 128 texture page, which new sprites need as a template (a generated file has none).</summary>
+    public static void AddPage(GameMakerData data)
+    {
+        using var canvas = new ImageMagick.MagickImage(ImageMagick.MagickColors.Transparent, 128, 128);
+#pragma warning disable CA2000 // the data model owns what is added to it
+        data.EmbeddedTextures.Add(new GameMakerEmbeddedTexture
+        {
+            TextureData = new GameMakerEmbeddedTexture.TexData { Image = G3MLib.DataFile.Util.GMImage.FromMagickImage(canvas).ConvertToPng() },
+            TextureWidth = 128,
+            TextureHeight = 128,
+            Name = new GameMakerString("Texture 0"),
+        });
+#pragma warning restore CA2000
+    }
+
     public static string Write(string path, GameMakerData data)
     {
         using var stream = File.Create(path);

@@ -82,6 +82,7 @@
       "rename": "이름 바꾸기...",
       "delete": "리소스 삭제...",
       "duplicate": "리소스 복제...",
+      "copyToOtherFile": "다른 데이터 파일로 복사...",
       "moveUp": "위로 이동",
       "moveDown": "아래로 이동",
       "selectAll": "모두 선택",
@@ -475,7 +476,23 @@
     "themeExport": "테마 내보내기...",
     "themeImport": "테마 가져오기 (G3MStudio, G3M)...",
     "themeBad": "테마 파일을 사용하지 못했습니다: {reason}",
-    "compact": "조밀한 배치 (화면에 더 많이 표시)"
+    "compact": "조밀한 배치 (화면에 더 많이 표시)",
+    "memoryLimit": "메모리 한도",
+    "memoryNone": "한도 없음",
+    "memoryCustom": "직접 입력",
+    "memoryNote": "한도가 없으면 남은 RAM 전체까지 필요한 만큼 사용합니다. 메모리가 부족하면 Studio는 캐시를 비우고 느려지더라도 종료되지 않고 계속 작동합니다."
+  },
+  "memory": {
+    "status": "메모리 {used}",
+    "statusLow": "메모리 {used}, 저메모리 모드",
+    "low": "메모리가 부족합니다. Studio가 저메모리 모드로 작동 중입니다.",
+    "failed": "{name}에 필요한 메모리가 부족합니다. Studio가 가능한 만큼 비웠습니다. 다른 프로그램이나 탭을 닫고 다시 시도하세요.",
+    "limitRefused": "런타임이 메모리 한도를 적용하지 못했습니다 ({reason}). Studio는 가능한 범위에서 한도를 지킵니다.",
+    "opOpen": "파일 열기",
+    "opSave": "저장",
+    "opExport": "내보내기",
+    "opImport": "가져오기",
+    "opFont": "글꼴 바꾸기"
   },
   "git": {
     "noProject": "Git은 프로젝트 폴더를 추적합니다. Git을 사용하려면 이 데이터 파일의 프로젝트를 사용하도록 설정하세요.",
@@ -1074,5 +1091,34 @@
     "deleteMany": "리소스 {count}개를 삭제할까요?\n{names}",
     "deleteManyUses": "선택 밖의 {count}곳에서 사용 중입니다. 해당 사용은 지워지거나 제거됩니다:\n{places}",
     "duplicatedMany": "리소스 {count}개를 복사했습니다."
+  },
+  "copyTo": {
+    "title": "다른 데이터 파일로 복사",
+    "header": "{source}에서 {target}(으)로 {count}개 복사",
+    "deps": "종속 항목도 복사",
+    "mode": "대상에 같은 이름이 있을 때:",
+    "modeRename": "이름 바꾸기(_copy 추가)",
+    "modeSkip": "건너뛰기(대상의 항목 사용)",
+    "modeReplace": "대상의 항목 바꾸기",
+    "actionAdd": "추가",
+    "choiceRename": "이름 변경",
+    "actionReplace": "바꾸기",
+    "actionSkip": "건너뜀",
+    "actionRefused": "복사 불가",
+    "neededBy": "{names}에 필요",
+    "ok": "복사",
+    "planning": "복사할 내용을 확인하는 중...",
+    "nothing": "이 설정으로는 복사할 항목이 없습니다.",
+    "pickTarget": "복사할 대상 데이터 파일 선택",
+    "noSelection": "먼저 탐색기에서 복사할 리소스를 선택하세요.",
+    "sameFile": "복사 원본과 같은 파일입니다. 한 파일 안에서 복사하려면 복제를 사용하세요.",
+    "working": "{target}(으)로 복사 중",
+    "done": "리소스 {count}개를 {target}(으)로 복사했습니다. 실행 취소 한 번으로 모두 되돌립니다.",
+    "saveTitle": "대상 파일 저장",
+    "saveAsk": "{target}은(는) 이 복사를 위해서만 열었습니다. 지금 저장할까요? 아니요를 고르면 복사가 취소됩니다.",
+    "dropped": "{target}(으)로의 복사를 취소했습니다.",
+    "failed": "복사 실패: {reason}",
+    "cancelled": "복사를 취소했습니다. 변경된 것이 없습니다.",
+    "counts": "복사: {copy}. 건너뜀: {skip}. 복사 불가: {refused}."
   }
 }

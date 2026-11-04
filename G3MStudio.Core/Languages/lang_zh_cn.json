@@ -82,6 +82,7 @@
       "rename": "重命名...",
       "delete": "删除资源...",
       "duplicate": "复制资源...",
+      "copyToOtherFile": "复制到其他数据文件...",
       "moveUp": "上移",
       "moveDown": "下移",
       "selectAll": "全选",
@@ -475,7 +476,23 @@
     "themeExport": "导出主题...",
     "themeImport": "导入主题 (G3MStudio, G3M)...",
     "themeBad": "未能使用主题文件：{reason}",
-    "compact": "紧凑密度（屏幕显示更多）"
+    "compact": "紧凑密度（屏幕显示更多）",
+    "memoryLimit": "内存上限",
+    "memoryNone": "无上限",
+    "memoryCustom": "自定义",
+    "memoryNote": "无上限时按需使用内存，最多用到全部空闲内存。内存不足时，Studio 会释放缓存并放慢速度，而不是崩溃。"
+  },
+  "memory": {
+    "status": "内存 {used}",
+    "statusLow": "内存 {used}，低内存模式",
+    "low": "内存不足，Studio 正在低内存模式下运行。",
+    "failed": "没有足够的内存来完成{name}。Studio 已释放能释放的内容。请关闭其他程序或标签页后重试。",
+    "limitRefused": "运行时未能应用内存上限（{reason}）。Studio 仍会尽量保持在上限内。",
+    "opOpen": "打开文件",
+    "opSave": "保存",
+    "opExport": "导出",
+    "opImport": "导入",
+    "opFont": "替换字体"
   },
   "git": {
     "noProject": "Git 跟踪项目文件夹。请为此数据文件启用项目以使用 Git。",
@@ -1074,5 +1091,34 @@
     "deleteMany": "要删除这 {count} 个资源吗？\n{names}",
     "deleteManyUses": "所选内容之外有 {count} 处在使用它们；这些引用将被清除或移除：\n{places}",
     "duplicatedMany": "已复制 {count} 个资源。"
+  },
+  "copyTo": {
+    "title": "复制到其他数据文件",
+    "header": "将 {count} 项从 {source} 复制到 {target}",
+    "deps": "同时复制依赖项",
+    "mode": "目标中已有同名项时：",
+    "modeRename": "重命名（加 _copy）",
+    "modeSkip": "跳过（使用目标中的项）",
+    "modeReplace": "替换目标中的项",
+    "actionAdd": "添加",
+    "choiceRename": "重命名",
+    "actionReplace": "替换",
+    "actionSkip": "跳过",
+    "actionRefused": "无法复制",
+    "neededBy": "{names} 需要",
+    "ok": "复制",
+    "planning": "正在检查要复制的内容...",
+    "nothing": "按此设置没有可复制的内容。",
+    "pickTarget": "选择要复制到的数据文件",
+    "noSelection": "请先在资源管理器中选择要复制的资源。",
+    "sameFile": "这是复制的来源文件。要在同一数据文件内复制，请使用“复制资源”。",
+    "working": "正在复制到 {target}",
+    "done": "已将 {count} 个资源复制到 {target}。一次撤销即可全部还原。",
+    "saveTitle": "保存目标文件",
+    "saveAsk": "{target} 仅为这次复制而打开。现在保存吗？选“否”将丢弃这次复制。",
+    "dropped": "已丢弃到 {target} 的复制。",
+    "failed": "复制失败：{reason}",
+    "cancelled": "复制已取消，未做任何更改。",
+    "counts": "将复制：{copy}。跳过：{skip}。无法复制：{refused}。"
   }
 }

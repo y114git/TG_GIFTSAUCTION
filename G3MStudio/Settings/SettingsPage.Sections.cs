@@ -260,6 +260,38 @@ public sealed partial class SettingsPage
         ];
     }
 
+    private static readonly int[] MemoryPresets = [0, 1024, 2048, 4096, 8192, 16384];
+
+    private Control[] MemoryControls(AppSettings s)
+    {
+        var labels = MemoryPresets.Select(m => m == 0 ? Loc.Current["settings.memoryNone"] : m / 1024 + " GB").Append(Loc.Current["settings.memoryCustom"]).ToList();
+        var index = Array.IndexOf(MemoryPresets, s.MemoryLimitMb);
+        var preset = new ComboBox { Name = "MemoryLimit", ItemsSource = labels, SelectedIndex = index < 0 ? MemoryPresets.Length : index, MinWidth = 160 };
+        var custom = Number("MemoryLimitMb", 0, 1_048_576, 256, s.MemoryLimitMb, (x, n) => x with { MemoryLimitMb = n });
+        preset.SelectionChanged += (_, _) =>
+        {
+            if (_building || preset.SelectedIndex < 0 || preset.SelectedIndex >= MemoryPresets.Length) return;
+            var megabytes = MemoryPresets[preset.SelectedIndex];
+            _building = true;
+            custom.Value = megabytes;
+            _building = false;
+            _store.Update(x => x with { MemoryLimitMb = megabytes });
+        };
+        custom.ValueChanged += (_, e) =>
+        {
+            if (_building || e.NewValue is not { } n) return;
+            _building = true;
+            var at = Array.IndexOf(MemoryPresets, (int)n);
+            preset.SelectedIndex = at < 0 ? MemoryPresets.Length : at;
+            _building = false;
+        };
+        return
+        [
+            Row("settings.memoryLimit", preset, custom, new TextBlock { Text = "MB", VerticalAlignment = VerticalAlignment.Center }),
+            new TextBlock { Text = Loc.Current["settings.memoryNote"], Classes = { "muted" }, TextWrapping = TextWrapping.Wrap },
+        ];
+    }
+
     private Control[] AdvancedSection()
     {
         var openFile = new Button { Name = "OpenSettingsFile", Content = Loc.Current["settings.openFile"] };
@@ -272,6 +304,7 @@ public sealed partial class SettingsPage
         [
             Heading("settings.advanced"),
             new TextBlock { Text = Loc.Current["settings.advancedNote"], Classes = { "muted" }, TextWrapping = TextWrapping.Wrap },
+            .. MemoryControls(_store.Current),
             openFile,
         ];
     }

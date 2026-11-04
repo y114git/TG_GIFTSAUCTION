@@ -58,7 +58,7 @@ public sealed partial class MainWindow
     /// <summary>The picture for an Explorer tooltip: the cut of the texture page that holds the entry's page item, or null.</summary>
     private async Task<Avalonia.Media.IImage?> LoadThumbnailAsync(string key)
     {
-        if (Workspaces.Current is not { } workspace) return null;
+        if (Workspaces.Current is not { } workspace || Memory.IsLow) return null; // a tooltip picture is optional
         Avalonia.Media.Imaging.Bitmap? page = null;
         G3MLib.DataFile.Models.GameMakerTexturePageItem? item;
         using (workspace.Lock.Read()) item = ResourceThumbnails.ItemOf(ResourceTypes.Find(workspace.Data, key));

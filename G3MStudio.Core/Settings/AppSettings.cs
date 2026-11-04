@@ -42,6 +42,9 @@ public sealed record AppSettings
 
     public string Language { get; init; } = "en";
 
+    /// <summary>Memory budget in MB; 0 means no limit (as much as the system has free). The low-memory system runs either way.</summary>
+    public int MemoryLimitMb { get; init; }
+
     /// <summary>A runner to start instead of the game executable next to the data file (for example a GameMaker runtime's Runner.exe); empty means the game executable.</summary>
     public string RunRunner { get; init; } = "";
 
@@ -127,6 +130,7 @@ public sealed record AppSettings
             Overrides = (Overrides ?? new Dictionary<string, string>()).Where(p => !string.IsNullOrWhiteSpace(p.Key) && p.Value is not null).ToDictionary(),
             BackupCount = Math.Clamp(BackupCount, 1, 3),
             UiScale = Math.Clamp(UiScale, 50, 200),
+            MemoryLimitMb = MemoryLimitMb <= 0 ? 0 : Math.Clamp(MemoryLimitMb, 256, 1_048_576),
             CodeFontSize = Math.Clamp(CodeFontSize, 8, 32),
             Project = project with { AutoSaveSeconds = Math.Clamp(project.AutoSaveSeconds, 1, 3600), AutoSyncSeconds = Math.Clamp(project.AutoSyncSeconds, 1, 3600) },
         };

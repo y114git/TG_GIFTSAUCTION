@@ -57,6 +57,9 @@ public sealed class SearchPanel : UserControl
     /// <summary>Asked before a search runs; false stops it. The window uses it to apply the text typed in code editors first, as Save does.</summary>
     public Func<bool>? BeforeRun { get; set; }
 
+    /// <summary>True while the program runs in low-memory mode; the search then decompiles one entry at a time.</summary>
+    public Func<bool>? IsLowMemory { get; set; }
+
     /// <summary>Runs the search with the typed text and options; a search that is running is cancelled first.</summary>
     public async Task RunAsync()
     {
@@ -75,7 +78,7 @@ public sealed class SearchPanel : UserControl
             {
                 if (Current()) _status.Text = Loc.Current.Format("search.progress", ("done", p.Done), ("total", p.Total));
             });
-            var result = await CodeSearch.RunAsync(workspace, new CodeSearchOptions(_query.Text, _case.IsChecked == true, _regex.IsChecked == true), progress, source.Token);
+            var result = await CodeSearch.RunAsync(workspace, new CodeSearchOptions(_query.Text, _case.IsChecked == true, _regex.IsChecked == true, IsLowMemory?.Invoke() == true), progress, source.Token);
             if (!Current() || source.IsCancellationRequested) return;
             _results.ItemsSource = result.Hits;
             _status.Text = Loc.Current.Format("search.done", ("hits", result.Hits.Count), ("entries", result.Searched))

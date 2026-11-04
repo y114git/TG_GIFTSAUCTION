@@ -82,6 +82,7 @@
       "rename": "名前の変更...",
       "delete": "リソースを削除...",
       "duplicate": "リソースを複製...",
+      "copyToOtherFile": "別のデータファイルにコピー...",
       "moveUp": "上へ移動",
       "moveDown": "下へ移動",
       "selectAll": "すべて選択",
@@ -222,7 +223,7 @@
       "general": "ゲーム",
       "sprites": "スプライト",
       "tileSets": "タイルセット",
-      "backgrounds": "背景",
+      "backgrounds": "背景",
       "variableCounts": "変数チャンクのヘッダーのカウンター。誤った値はゲームを壊します。",
       "varInstance": "インスタンス変数",
       "varGlobal": "グローバル変数",
@@ -356,7 +357,7 @@
     "failed": "「{entry}」のコードを保存できませんでした: {reason}",
     "notApplied": "テキストがコンパイルできません",
     "showFailed": "「{entry}」のコードを表示できませんでした: {reason}"
-  },
+  },
   "status": { "assetId": "ID {index}" },
   "notify": {
     "button": "通知 ({count})"
@@ -415,7 +416,7 @@
     "files": "ファイル",
     "backups": "データファイルのバックアップ (1〜3)",
     "askOnClose": "未保存の変更があるときは閉じる前に確認する",
-    "rooms": "ルーム",
+    "rooms": "ルーム",
     "decompiler": "デコンパイラ",
     "roomGridOverride": "すべてのルームで同じグリッドを使う",
     "roomGridSize": "グリッドの幅と高さ",
@@ -475,7 +476,23 @@
     "themeExport": "テーマをエクスポート...",
     "themeImport": "テーマをインポート (G3MStudio, G3M)...",
     "themeBad": "テーマファイルを使えませんでした: {reason}",
-    "compact": "コンパクト表示（画面に多く表示）"
+    "compact": "コンパクト表示（画面に多く表示）",
+    "memoryLimit": "メモリ上限",
+    "memoryNone": "上限なし",
+    "memoryCustom": "指定",
+    "memoryNote": "上限なしでは、空きメモリの範囲で必要なだけ使います。メモリが少なくなると、Studio はキャッシュを解放し、落ちずに速度を落として動作します。"
+  },
+  "memory": {
+    "status": "メモリ {used}",
+    "statusLow": "メモリ {used}、低メモリモード",
+    "low": "メモリが少なくなっています。Studio は低メモリモードで動作中です。",
+    "failed": "{name}に必要なメモリが足りません。Studio は解放できる分を解放しました。他のプログラムやタブを閉じるなどして、もう一度お試しください。",
+    "limitRefused": "ランタイムがメモリ上限を適用できませんでした ({reason})。Studio は可能な範囲で上限内に収めます。",
+    "opOpen": "ファイルを開く処理",
+    "opSave": "保存",
+    "opExport": "エクスポート",
+    "opImport": "インポート",
+    "opFont": "フォントの置き換え"
   },
   "git": {
     "noProject": "Git はプロジェクトフォルダーを追跡します。Git を使うには、このデータファイルのプロジェクトを有効にしてください。",
@@ -527,8 +544,8 @@
     "cancelled": "検索をキャンセルしました。",
     "badPattern": "このパターンは無効です: {reason}",
     "timeout": "このパターンは 1 行の処理に時間がかかりすぎます。もっと単純にしてください。"
-  },
-  "disassembly": { "assemble": "アセンブル", "assembled": "アセンブルしました。", "assembleFailed": "アセンブルできませんでした: {reason}", "title": "{entry} の逆アセンブル", "loading": "命令を読み込み中...", "failed": "命令を読み込めませんでした: {reason}" },
+  },
+  "disassembly": { "assemble": "アセンブル", "assembled": "アセンブルしました。", "assembleFailed": "アセンブルできませんでした: {reason}", "title": "{entry} の逆アセンブル", "loading": "命令を読み込み中...", "failed": "命令を読み込めませんでした: {reason}" },
   "tileSet": {"findRooms": "このタイルを使う部屋を探す"},
   "textureItem": {"export": "PNGで書き出し", "saved": "{path} に保存しました", "failed": "保存できませんでした: {reason}"},
   "entryScripts": {"globalInit": "ゲーム開始時のスクリプト", "gameEnd": "ゲーム終了時のスクリプト", "add": "追加"},
@@ -738,7 +755,7 @@
     "skip": "セットアップをスキップ",
     "later": "言語は設定 > 外観であとから変更でき、このウィンドウはヘルプ > はじめにから再び開けます。"
   },
-  "links": {
+  "links": {
     "downloadTitle": "ファイルをダウンロード",
     "downloadAsk": "{host} の {address} からファイルをダウンロードしますか？一時フォルダに保存され、ゲームのデータファイルの場合のみ開きます。",
     "downloading": "{host} からダウンロード中...",
@@ -995,7 +1012,7 @@
     "ToolPinItemControlDockAsDocumentString": "タブ付きドキュメントとしてドック",
     "ToolChromeControlDockString": "ドック",
     "ToolChromeControlAutoHideString": "自動的に隠す"
-  },
+  },
   "debug": { "pick": "各コードエントリのソーステキストの内容", "decompiled": "逆コンパイルした GML", "assembler": "アセンブラ（代入・ジャンプ・戻りに印）", "fullAssembler": "アセンブラ（全命令に印）", "working": "デバッグデータを書き出しています...", "done": "{file} を書き出しました。", "failed": "デバッグデータを書き出せませんでした: {reason}" },
   "hex": { "chunk": "チャンクへ移動",
     "offsetMapDone": "{file} を書き出しました。",
@@ -1074,5 +1091,34 @@
     "deleteMany": "この {count} 件のリソースを削除しますか?\n{names}",
     "deleteManyUses": "選択外の {count} 箇所が使用しています。これらの使用はクリアまたは削除されます:\n{places}",
     "duplicatedMany": "{count} 件のリソースをコピーしました。"
+  },
+  "copyTo": {
+    "title": "別のデータファイルにコピー",
+    "header": "{source} から {target} へ {count} 件をコピー",
+    "deps": "依存するリソースもコピー",
+    "mode": "コピー先に同じ名前がある場合:",
+    "modeRename": "名前を変更（_copy を付ける）",
+    "modeSkip": "スキップ（コピー先のものを使う）",
+    "modeReplace": "コピー先のものを置き換える",
+    "actionAdd": "追加",
+    "choiceRename": "名前変更",
+    "actionReplace": "置き換え",
+    "actionSkip": "スキップ",
+    "actionRefused": "コピー不可",
+    "neededBy": "{names} が必要とする",
+    "ok": "コピー",
+    "planning": "コピーする内容を確認しています...",
+    "nothing": "この設定ではコピーするものがありません。",
+    "pickTarget": "コピー先のデータファイルを選択",
+    "noSelection": "先にエクスプローラーでコピーするリソースを選択してください。",
+    "sameFile": "コピー元と同じファイルです。同じファイル内でコピーするには「複製」を使ってください。",
+    "working": "{target} へコピー中",
+    "done": "{count} 件のリソースを {target} にコピーしました。元に戻すと一度にすべて取り消せます。",
+    "saveTitle": "コピー先ファイルを保存",
+    "saveAsk": "{target} はこのコピーのためだけに開きました。今すぐ保存しますか？ いいえの場合、コピーは破棄されます。",
+    "dropped": "{target} へのコピーを破棄しました。",
+    "failed": "コピーに失敗しました: {reason}",
+    "cancelled": "コピーをキャンセルしました。変更はありません。",
+    "counts": "コピー: {copy}。スキップ: {skip}。コピー不可: {refused}。"
   }
 }

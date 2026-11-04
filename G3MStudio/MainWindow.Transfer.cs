@@ -75,11 +75,16 @@ public sealed partial class MainWindow
         {
             try
             {
-                EditCommand command;
-                string type, name;
-                using (workspace.Lock.Read()) command = FileImport.Build(workspace.Data, path, out type, out name);
+                var (command, type, name) = MemoryLimit.RetryOnOutOfMemory(() =>
+                {
+                    using (workspace.Lock.Read()) return (FileImport.Build(workspace.Data, path, out var builtType, out var builtName), builtType, builtName);
+                }, Memory.Relieve);
                 workspace.Edit(command);
                 (last, added) = (ResourceTypes.KeyOf(type, name), added + 1);
+            }
+            catch (OutOfMemoryException)
+            {
+                NotifyOutOfMemory("memory.opImport");
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException or InvalidDataException or ImageMagick.MagickException or CodeCompileException)
             {
@@ -209,7 +214,9 @@ public sealed partial class MainWindow
         ShowProgress();
         try
         {
-            var results = await run(new Progress<BatchProgress>(p => { (_exportDone, _exportTotal) = (p.Done, p.Total); ShowProgress(); }), source.Token);
+            var progress = new Progress<BatchProgress>(p => { (_exportDone, _exportTotal) = (p.Done, p.Total); ShowProgress(); });
+            // An export only writes files, so it can run again after the caches were freed; an import changes the data and must not run twice.
+            var results = export ? await MemoryLimit.RetryOnOutOfMemoryAsync(() => run(progress, source.Token), Memory.Relieve) : await run(progress, source.Token);
             foreach (var problem in results.Where(r => r.Kind is ResultKind.Failed or ResultKind.Warning))
                 Notifications.Post(problem.Kind == ResultKind.Failed ? NotificationLevel.Error : NotificationLevel.Warning, $"{problem.Name}: {problem.Message}");
             var summary = Loc.Current.Format("transfer.summary", ("written", results.Count(r => r.Kind == ResultKind.Written)), ("skipped", results.Count(r => r.Kind == ResultKind.Skipped)),
@@ -220,6 +227,10 @@ public sealed partial class MainWindow
         catch (OperationCanceledException)
         {
             if (export) Notify(NotificationLevel.Info, Loc.Current["transfer.cancelledExport"]);
+        }
+        catch (OutOfMemoryException)
+        {
+            NotifyOutOfMemory(export ? "memory.opExport" : "memory.opImport");
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)
         {

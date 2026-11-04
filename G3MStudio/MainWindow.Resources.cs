@@ -182,6 +182,7 @@ public partial class MainWindow
             // Several selected: only the commands that work on all of them.
             menu.Items.Add(Item("file.exportSelection"));
             menu.Items.Add(Item("edit.duplicate"));
+            menu.Items.Add(Item("edit.copyToOtherFile"));
             menu.Items.Add(Item("edit.delete"));
         }
         else if (row.IsItem)
@@ -191,6 +192,7 @@ public partial class MainWindow
             menu.Items.Add(Item("edit.findUsages"));
             menu.Items.Add(Item("file.exportSelection"));
             if (ResourceDuplicate.Types.Contains(row.Key)) menu.Items.Add(Item("edit.duplicate"));
+            if (CopyPlanner.Supported.Contains(row.Key)) menu.Items.Add(Item("edit.copyToOtherFile"));
             if (ResourceMoveCommand.CanMove(Workspaces.Current.Data, row.Key, row.Text, -1)) menu.Items.Add(Item("edit.moveUp"));
             if (ResourceMoveCommand.CanMove(Workspaces.Current.Data, row.Key, row.Text, 1)) menu.Items.Add(Item("edit.moveDown"));
             if (ResourceListCommand.Deletable.Contains(row.Key)) menu.Items.Add(Item("edit.delete"));

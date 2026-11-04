@@ -66,7 +66,7 @@ public sealed partial class MainWindow
     {
         var workspace = Workspaces.Current ?? throw new InvalidOperationException("No workspace is open.");
         // The dialog opens first; the index is made in the background so Rename finds it ready.
-        _ = Task.Run(() => { using (workspace.Lock.Read()) ReferenceCache.Of(workspace.Data).Get(workspace.Data); });
+        if (!Memory.IsLow) _ = Task.Run(() => { using (workspace.Lock.Read()) ReferenceCache.Of(workspace.Data).Get(workspace.Data); });
         return newName =>
         {
             RenamePreview found;

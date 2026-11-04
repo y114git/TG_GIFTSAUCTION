@@ -164,6 +164,9 @@ public interface IShell
     /// <summary>Asks for a name and copies the selected object or script under it.</summary>
     void DuplicateResource();
 
+    /// <summary>Copies the selected resources, with what they use, into another data file as one undoable edit of that file.</summary>
+    void CopyToOtherFile();
+
     void MoveResourceUp();
 
     void MoveResourceDown();
@@ -261,7 +264,7 @@ public static class AppCommands
     public static readonly (string TitleKey, string[] Ids)[] Menus =
     [
         ("menu.file", ["file.newData", "file.open", .. ResourceNew, "file.save", "file.saveAs", "file.saveCopy", "file.revert", "-", "file.exportSelection", "file.exportAll", "file.import", "file.importFiles", "-", "settings.open", "-", "file.close", "file.exit"]),
-        ("menu.edit", ["edit.undo", "edit.redo", "-", "edit.rename", "edit.duplicate", "edit.moveUp", "edit.moveDown", "edit.copyName", "edit.delete", "edit.selectAll", "-", "edit.find", "edit.findInCode", "edit.findUsages", "edit.findUses", "edit.findUnreferenced", "edit.findChildren"]),
+        ("menu.edit", ["edit.undo", "edit.redo", "-", "edit.rename", "edit.duplicate", "edit.copyToOtherFile", "edit.moveUp", "edit.moveDown", "edit.copyName", "edit.delete", "edit.selectAll", "-", "edit.find", "edit.findInCode", "edit.findUsages", "edit.findUses", "edit.findUnreferenced", "edit.findChildren"]),
         ("menu.view", ["view.commandPalette", "go.quickOpen", "-", .. Panels.Select(p => "view.panel." + p.ToLowerInvariant()), "-", "view.zoomIn", "view.zoomOut", "view.zoomReset", "view.fullscreen"]),
         ("menu.project", ["project.enable", "project.sync", "project.options", "project.resolve", "project.moveDataFile", "project.disable"]),
         ("menu.sprite", ["edit.paintFrame", "edit.replaceFrame", "edit.duplicateFrame", "edit.removeFrame", "-", "edit.recalculateMask", "edit.importMask", "edit.exportMask", "edit.exportGif"]),
@@ -354,6 +357,7 @@ public static class AppCommands
         Add("edit.rename", "F2", shell.Rename, WorkspaceOpen);
         Add("edit.delete", null, shell.DeleteResource, WorkspaceOpen);
         Add("edit.duplicate", null, shell.DuplicateResource, WorkspaceOpen);
+        Add("edit.copyToOtherFile", null, shell.CopyToOtherFile, WorkspaceOpen);
         Add("edit.moveUp", null, shell.MoveResourceUp, WorkspaceOpen);
         Add("edit.moveDown", null, shell.MoveResourceDown, WorkspaceOpen);
         Add("edit.copyName", null, shell.CopyName, WorkspaceOpen);

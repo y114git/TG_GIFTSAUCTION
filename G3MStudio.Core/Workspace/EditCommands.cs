@@ -57,6 +57,7 @@ public abstract class EditCommand
         RoomOrderCommand.Name => RoomOrderCommand.FromArgs(args),
         CopyPropertiesCommand.Name => CopyPropertiesCommand.FromArgs(args),
         ClearReferencesCommand.Name => ClearReferencesCommand.FromArgs(args),
+        CopyResourcesCommand.Name => CopyResourcesCommand.FromArgs(args),
         FrameOwnPictureCommand.Name => FrameOwnPictureCommand.FromArgs(args),
         FontGlyphCommand.Name => FontGlyphCommand.FromArgs(args),
         FontKerningCommand.Name => FontKerningCommand.FromArgs(args),

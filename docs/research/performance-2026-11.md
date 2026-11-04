@@ -61,3 +61,20 @@ Milliseconds, first run of the process (the second run is within 10% except wher
 - Filter typing replaces the whole list, so each key costs 14 to 30 ms; narrowing the previous result instead of scanning all entries would save the scan (4 to 8 ms).
 - Opening a data file reads 0.5 to 1.2 s in G3MLib; a partial or lazy read would need library work.
 - A synthetic file of 100,000 objects and scripts did not finish in the test run and was stopped (not investigated); the 100k string case was measured with the real games (31k to 64k strings) and the Usages panel with 50,000 generated hits.
+
+## Low-memory mode (OI-333 to OI-336)
+
+Settings > Advanced has a memory limit (default: no limit). The limit is applied with `GCHeapHardLimit` and `GC.RefreshMemoryLimit()`. Per the .NET docs the call throws `InvalidOperationException` when the limit is invalid or lower than what the heap has already committed; Studio then shows the runtime's reason and still uses the number as its budget. The governor runs with or without a limit: the budget is the limit, or the free memory of the system.
+
+- Pressure is the larger of managed heap over the limit and working set over (working set + free system memory). High starts at 80% and ends below 72%; Critical starts at 92% and ends below 86%.
+- High drops caches that rebuild on demand and trims the collector; Critical also skips optional work and shows one notice. Edits, undo history, typed code and tab views stay.
+- Measured with `PerfRealFilesTests.MemoryBeforeAndAfterTrimOnRealFiles` (managed heap after a full collection, MB; the decompile context adds under 1 MB):
+
+| File | After open | With reference index | After release at High |
+| --- | ---: | ---: | ---: |
+| Undertale (60 MB) | 124 | 173 | 124 |
+| Pizza Tower (88 MB) | 148 | 197 | 148 |
+| Undertale Yellow (152 MB) | 234 | 294 | 235 |
+
+- The reference index is the one large cache (49 to 60 MB); it is rebuilt in 150 to 440 ms when a rename, usage search or the Strings window asks again. Texture page bitmaps are native memory and are not in this number.
+- Not measured: the effect of a hard limit on a full session, the texture page cache in a running window, and "No limit" set again after a limit in the same run.

@@ -57,7 +57,7 @@ public sealed partial class MainWindow
         ShowProgress();
         try
         {
-            await Workspaces.OpenAsync(path, new Progress<GameMakerProgress>(p => { _openingFraction = p.Fraction; ShowProgress(); }), source.Token);
+            await MemoryLimit.RetryOnOutOfMemoryAsync(() => Workspaces.OpenAsync(path, new Progress<GameMakerProgress>(p => { _openingFraction = p.Fraction; ShowProgress(); }), source.Token), Memory.Relieve);
             if (Workspaces.Current is { } opened)
             {
                 ApplyDecompiler(Workspaces.Settings.Current.Decompiler);
@@ -67,6 +67,10 @@ public sealed partial class MainWindow
         catch (OperationCanceledException)
         {
             // The user (or a newer open) cancelled; nothing to report.
+        }
+        catch (OutOfMemoryException)
+        {
+            NotifyOutOfMemory("memory.opOpen");
         }
         catch (Exception e)
         {
@@ -136,7 +140,7 @@ public sealed partial class MainWindow
         var name = fileName ?? Path.GetFileName(workspace.Path);
         try
         {
-            var result = await save();
+            var result = await MemoryLimit.RetryOnOutOfMemoryAsync(save, Memory.Relieve);
             if (result is null) return true;
             var (level, text) = result switch
             {
@@ -151,6 +155,12 @@ public sealed partial class MainWindow
         catch (OperationCanceledException)
         {
             // Cancelled from the progress overlay: the file on disk is untouched and the edits stay in memory and in the journal.
+            return false;
+        }
+        catch (OutOfMemoryException)
+        {
+            // The edits stay in memory and in the journal; the user can save again after freeing memory.
+            NotifyOutOfMemory("memory.opSave");
             return false;
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException or InvalidDataException or G3MLib.DataFile.GameMakerSerializationException)

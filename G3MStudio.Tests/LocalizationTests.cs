@@ -94,7 +94,7 @@ public sealed partial class LocalizationTests
         Assert.True(used.All(english.Contains), $"unknown keys: {string.Join(", ", used.Except(english))}");
     }
 
-    [GeneratedRegex("\"((?:app|debug|object|painter|pages|roomOrder|audio|dock|hex|disassembly|tilesets|entryScripts|textureItem|tileSet|warnings|status|menu|cmd|palette|start|explorer|editor|save|notify|prompt|history|rename|code|project|quick|settings|layouts|onboarding|links|tour|git|properties|about|search|usages|help|transfer|mods|sprites|run|update|sounds|rooms|textures|plugins|strings|fonts|paths|timelines|particles|scripts|sequences|inspector|panel|empty)\\.[A-Za-z.]+)\"")]
+    [GeneratedRegex("\"((?:app|debug|object|painter|pages|memory|roomOrder|audio|dock|hex|disassembly|tilesets|entryScripts|textureItem|tileSet|warnings|status|menu|cmd|palette|start|explorer|editor|save|notify|prompt|history|rename|code|project|quick|settings|layouts|onboarding|links|tour|git|properties|about|search|usages|help|transfer|mods|sprites|run|update|sounds|rooms|textures|plugins|strings|fonts|paths|timelines|particles|scripts|sequences|inspector|panel|empty|copyTo)\\.[A-Za-z.]+)\"")]
     private static partial Regex KeyLiteral();
 
     [GeneratedRegex(@"\{loc:Tr ([A-Za-z.]+)\}")]

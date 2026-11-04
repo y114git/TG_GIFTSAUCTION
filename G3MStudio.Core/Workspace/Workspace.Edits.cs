@@ -62,6 +62,33 @@ public sealed partial class Workspace
         return true;
     }
 
+    /// <summary>
+    /// Like <see cref="Edit"/> for a long edit: it applies on a pool thread under the write lock, and the history, the journal and the events follow
+    /// on the thread that called this. Refused while the workspace is saving or exporting, because a copy that waited in a queue could not be cancelled.
+    /// </summary>
+    public async Task EditInBackground(EditCommand command)
+    {
+        if (_hold || History.Frozen) throw new InvalidOperationException("The workspace is saving; try again when it is done.");
+        History.Frozen = true;
+        try
+        {
+            await Task.Run(() =>
+            {
+                using (Lock.Write())
+                {
+                    _decompileContext = null;
+                    command.Apply(Data);
+                }
+            }, CancellationToken.None);
+        }
+        finally
+        {
+            History.Frozen = false;
+        }
+
+        using (Lock.Write()) History.Commit(command);
+    }
+
     /// <summary>Counts decompiler setting changes, which are not edits but alter the text of every code entry.</summary>
     public int DecompilerRevision { get; private set; }
 
@@ -77,6 +104,12 @@ public sealed partial class Workspace
     public GlobalDecompileContext DecompileContext()
     {
         lock (_contextLock) return _decompileContext ??= new GlobalDecompileContext(Data);
+    }
+
+    /// <summary>Drops the shared decompile context to free memory; the next decompile builds it again.</summary>
+    public void ReleaseDecompileContext()
+    {
+        lock (_contextLock) _decompileContext = null;
     }
 
     public void Undo()

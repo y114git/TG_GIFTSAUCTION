@@ -82,6 +82,7 @@
       "rename": "Rename...",
       "delete": "Delete Resource...",
       "duplicate": "Duplicate Resource...",
+      "copyToOtherFile": "Copy to Other Data File...",
       "moveUp": "Move Up",
       "moveDown": "Move Down",
       "selectAll": "Select All",
@@ -475,7 +476,23 @@
     "themeExport": "Export theme...",
     "themeImport": "Import theme (G3MStudio, G3M)...",
     "themeBad": "The theme file was not used: {reason}",
-    "compact": "Compact density (more on screen)"
+    "compact": "Compact density (more on screen)",
+    "memoryLimit": "Memory limit",
+    "memoryNone": "No limit",
+    "memoryCustom": "Custom",
+    "memoryNote": "No limit uses as much memory as needed, up to all free RAM. When memory runs low, Studio frees caches and slows down instead of crashing."
+  },
+  "memory": {
+    "status": "Memory {used}",
+    "statusLow": "Memory {used}, low-memory mode",
+    "low": "Memory is low, Studio is running in low-memory mode.",
+    "failed": "Not enough memory for {name}. Studio freed what it could. Close other programs or tabs and try again.",
+    "limitRefused": "The runtime did not apply the memory limit ({reason}). Studio still keeps within it where it can.",
+    "opOpen": "opening the file",
+    "opSave": "saving",
+    "opExport": "the export",
+    "opImport": "the import",
+    "opFont": "the font change"
   },
   "git": {
     "noProject": "Git tracks the project folder. Enable the project for this data file to use Git.",
@@ -1074,5 +1091,34 @@
     "deleteMany": "Delete these resources ({count})?\n{names}",
     "deleteManyUses": "Places outside the selection that use them: {count}. Those uses are cleared or removed:\n{places}",
     "duplicatedMany": "Resources copied: {count}."
+  },
+  "copyTo": {
+    "title": "Copy to Other Data File",
+    "header": "Copy {count} from {source} to {target}",
+    "deps": "Copy dependencies too",
+    "mode": "When the name exists in the target:",
+    "modeRename": "Rename (add _copy)",
+    "modeSkip": "Skip (use the target's item)",
+    "modeReplace": "Replace the target's item",
+    "actionAdd": "Add",
+    "choiceRename": "Rename",
+    "actionReplace": "Replace",
+    "actionSkip": "Skip",
+    "actionRefused": "Refused",
+    "neededBy": "needed by {names}",
+    "ok": "Copy",
+    "planning": "Checking what to copy...",
+    "nothing": "Nothing to copy with these settings.",
+    "pickTarget": "Pick the data file to copy into",
+    "noSelection": "Select the resources to copy in the Explorer first.",
+    "sameFile": "That is the file you copy from. Use Duplicate to copy inside one data file.",
+    "working": "Copying to {target}",
+    "done": "{count} resources copied to {target}. One Undo takes them all out.",
+    "saveTitle": "Save the target file",
+    "saveAsk": "{target} was opened only for this copy. Save it now? If you say no, the copy is dropped.",
+    "dropped": "The copy to {target} was dropped.",
+    "failed": "The copy failed: {reason}",
+    "cancelled": "The copy was cancelled; nothing changed.",
+    "counts": "To copy: {copy}. Skipped: {skip}. Refused: {refused}."
   }
 }

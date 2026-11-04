@@ -50,7 +50,10 @@ public sealed partial class MainWindow
 
     public void ShowStrings()
     {
-        if (Workspaces.Current is { } workspace) new StringsWindow(workspace).Show(this);
+        if (Workspaces.Current is not { } workspace) return;
+        var window = _strings = new StringsWindow(workspace) { IsLowMemory = () => Memory.IsLow };
+        window.Closed += (_, _) => { if (_strings == window) _strings = null; };
+        window.Show(this);
     }
 
     public void ShowRoomOrder()

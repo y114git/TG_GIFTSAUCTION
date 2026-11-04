@@ -13,6 +13,7 @@
         <DockPanel>
           <Button DockPanel.Dock="Right" Name="ProjectButton" IsVisible="False" Padding="6,0" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
           <Button DockPanel.Dock="Right" Name="NotifyButton" IsVisible="False" Padding="6,0" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
+          <TextBlock DockPanel.Dock="Right" Name="MemoryText" Classes="muted" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
           <TextBlock DockPanel.Dock="Right" Name="AssetIdText" IsVisible="False" Classes="muted" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
           <TextBlock Name="StatusText" FontSize="{DynamicResource FontSize.Caption}" />
         </DockPanel>

@@ -23,6 +23,12 @@ public sealed class StringsWindow : Window
     private int _countVersion;
     private Row? _selected;
 
+    /// <summary>True while the program runs in low-memory mode; the kind column then uses the names and no index is built.</summary>
+    public Func<bool>? IsLowMemory { get; set; }
+
+    /// <summary>Frees the reference index; the next refresh builds it again unless memory is low.</summary>
+    public void DropIndex() => (_index, _indexVersion) = (null, -1);
+
     public StringsWindow(Workspace workspace)
     {
         _workspace = workspace;
@@ -166,7 +172,7 @@ public sealed class StringsWindow : Window
     private void EnsureIndex()
     {
         var version = _workspace.History.Version;
-        if (_building || _indexVersion == version) return;
+        if (_building || _indexVersion == version || IsLowMemory?.Invoke() == true) return;
         if (_index is not null)
         {
             _indexTimer.Stop();
@@ -180,7 +186,7 @@ public sealed class StringsWindow : Window
     private void BuildIndex()
     {
         var version = _workspace.History.Version;
-        if (_building || _indexVersion == version) return;
+        if (_building || _indexVersion == version || IsLowMemory?.Invoke() == true) return;
         _building = true;
         _ = Task.Run(() =>
         {

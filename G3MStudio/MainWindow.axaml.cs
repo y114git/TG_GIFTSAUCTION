@@ -103,6 +103,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
         };
         workspaces.CurrentChanged += ShowWorkspace;
         InitSettings();
+        InitMemory();
         UpdateTexts();
         Loc.Current.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(Loc.Current.Language)) UpdateTexts(); };
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
@@ -169,6 +170,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
         NotifyButton.IsVisible = Notifications.Unread > 0;
         NotifyButton.Content = Loc.Current.Format("notify.button", ("count", Notifications.Unread));
         if (Progress.IsVisible) ShowProgress();
+        ShowMemory();
     }
 
     private (Workspace?, string?, int) _assetId;

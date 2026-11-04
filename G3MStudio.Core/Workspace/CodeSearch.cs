@@ -8,7 +8,11 @@ namespace G3MStudio.Core.Workspace;
 /// <param name="Text">The line, trimmed.</param>
 public sealed record CodeHit(string Entry, int Line, string Text);
 
-public sealed record CodeSearchOptions(string Query, bool CaseSensitive = false, bool UseRegex = false);
+/// <param name="Query">The text or pattern to find.</param>
+/// <param name="CaseSensitive">Match upper and lower case apart.</param>
+/// <param name="UseRegex">The query is a regular expression.</param>
+/// <param name="Sequential">One entry at a time, for low-memory mode: parallel decompiling holds one text per core.</param>
+public sealed record CodeSearchOptions(string Query, bool CaseSensitive = false, bool UseRegex = false, bool Sequential = false);
 
 /// <param name="Hits">Matches, ordered by entry name and line.</param>
 /// <param name="Searched">Entries that were decompiled.</param>
@@ -32,7 +36,7 @@ public static class CodeSearch
         }, cancellationToken);
         var hits = new ConcurrentBag<CodeHit>();
         int done = 0, failed = 0;
-        await Parallel.ForEachAsync(entries, new ParallelOptions { CancellationToken = cancellationToken, MaxDegreeOfParallelism = Environment.ProcessorCount }, (entry, token) =>
+        await Parallel.ForEachAsync(entries, new ParallelOptions { CancellationToken = cancellationToken, MaxDegreeOfParallelism = options.Sequential ? 1 : Environment.ProcessorCount }, (entry, token) =>
         {
             try
             {
