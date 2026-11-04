@@ -56,6 +56,12 @@ public sealed partial class MainWindow
     {
         if (FrontSound() is not var (workspace, sound)) return;
         if (await PickPatchFile(Loc.Current["sounds.pickAudio"], false) is not { } path) return;
+        await ReplaceAudioFromAsync(workspace, sound, path);
+    }
+
+    /// <summary>Puts a WAV, OGG or MP3 file into a sound; one undoable step. Used by Replace Audio and by a file dropped on a sound tab.</summary>
+    private async Task ReplaceAudioFromAsync(Workspace workspace, string sound, string path)
+    {
         try
         {
             var file = await File.ReadAllBytesAsync(path);

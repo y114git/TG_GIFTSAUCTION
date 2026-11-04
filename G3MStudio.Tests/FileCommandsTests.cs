@@ -74,6 +74,109 @@ public sealed class FileCommandsTests
     }
 
     [Fact]
+    public async Task SaveAsOntoTheOpenFileKeepsTheEditsAndDoesNotFailOnTheJournal()
+    {
+        using var dir = new TempDir();
+        var path = TestData.WriteSample(dir, objects: 2);
+        await HeadlessApp.Run(async () =>
+        {
+            var window = TabsWorkspaceTests.NewWindow(dir);
+            try
+            {
+                await window.OpenAsync(path);
+                window.Workspaces.Current!.Edit(new RenameResourceCommand("objects", "obj_0", "obj_a"));
+
+                Assert.True(await window.SaveToAsync(path, move: true));
+                await Settle(() => window.Workspaces.Current?.Path == Path.GetFullPath(path) && !window.Workspaces.Current.IsDirty);
+                Assert.Equal("obj_a", window.Workspaces.Current!.Data.GameObjects[0].Name.Content);
+            }
+            finally { window.Close(); }
+        });
+    }
+
+    [Fact]
+    public async Task EditsMadeWhileACopyIsWrittenWaitUntilItIsDone()
+    {
+        using var dir = new TempDir();
+        var path = TestData.WriteSample(dir, objects: 2);
+        var userData = new UserData(dir.File("user"));
+        using var workspace = await new WorkspaceService(userData, RecentFiles.Load(userData)).OpenAsync(path, null, TestContext.Current.CancellationToken);
+        var during = true;
+        var pipeline = new SavePipeline(userData) { Hook = (step, _) => { if (step == SaveStep.Written) during = workspace.Edit(new RenameResourceCommand("objects", "obj_0", "obj_a")); } };
+
+        Assert.True((await workspace.SaveCopyAsync(pipeline, dir.File("copy.win"), null, TestContext.Current.CancellationToken)).Saved);
+
+        Assert.False(during);
+        Assert.Equal("obj_a", workspace.Data.GameObjects[0].Name.Content);
+        using var saved = await G3MLib.DataFile.GameMakerIO.ReadAsync(dir.File("copy.win"), cancellationToken: TestContext.Current.CancellationToken);
+        Assert.Equal("obj_0", saved.GameObjects[0].Name.Content);
+    }
+
+    [Fact]
+    public async Task ASaveDuringAnExportKeepsEditsWaitingUntilTheExportReleasesThem()
+    {
+        using var dir = new TempDir();
+        var path = TestData.WriteSample(dir, objects: 2);
+        var userData = new UserData(dir.File("user"));
+        using var workspace = await new WorkspaceService(userData, RecentFiles.Load(userData)).OpenAsync(path, null, TestContext.Current.CancellationToken);
+        workspace.HoldEdits();
+
+        Assert.True((await workspace.SaveAsync(new SavePipeline(userData), null, TestContext.Current.CancellationToken)).Saved);
+
+        Assert.False(workspace.Edit(new RenameResourceCommand("objects", "obj_0", "obj_a")));
+        Assert.Empty(workspace.History.Items);
+        workspace.ReleaseEdits();
+        Assert.Equal("obj_a", workspace.Data.GameObjects[0].Name.Content);
+    }
+
+    [Fact]
+    public async Task OpeningAnotherFileAsksAboutUnsavedEditsFirst()
+    {
+        using var dir = new TempDir();
+        var first = TestData.WriteSample(dir, "a.win", objects: 2);
+        var second = TestData.WriteSample(dir, "b.win", objects: 3);
+        await HeadlessApp.Run(async () =>
+        {
+            var window = TabsWorkspaceTests.NewWindow(dir);
+            try
+            {
+                await window.OpenAsync(first);
+                window.Workspaces.Current!.Edit(new RenameResourceCommand("objects", "obj_0", "obj_a"));
+                var asked = 0;
+                window.AskClose = _ => { asked++; return Task.FromResult(CloseChoice.Cancel); };
+
+                await window.OpenAsync(second);
+                Assert.Equal(1, asked);
+                Assert.Equal(Path.GetFullPath(first), window.Workspaces.Current!.Path);
+
+                window.AskClose = _ => Task.FromResult(CloseChoice.DoItLater);
+                await window.OpenAsync(second);
+                Assert.Equal(Path.GetFullPath(second), window.Workspaces.Current!.Path);
+            }
+            finally { window.Close(); }
+        });
+    }
+
+    [Fact]
+    public async Task ACancelledSaveLeavesTheFileAndTheEditsAlone()
+    {
+        using var dir = new TempDir();
+        var path = TestData.WriteSample(dir, objects: 2);
+        var userData = new UserData(dir.File("user"));
+        using var workspace = await new WorkspaceService(userData, RecentFiles.Load(userData)).OpenAsync(path, null, TestContext.Current.CancellationToken);
+        var before = await File.ReadAllBytesAsync(path, TestContext.Current.CancellationToken);
+        workspace.Edit(new RenameResourceCommand("objects", "obj_0", "obj_a"));
+        using var cancel = new CancellationTokenSource();
+        await cancel.CancelAsync();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => workspace.SaveAsync(new SavePipeline(userData), null, cancel.Token));
+
+        Assert.Equal(before, await File.ReadAllBytesAsync(path, TestContext.Current.CancellationToken));
+        Assert.True(workspace.IsDirty);
+        Assert.True(workspace.Edit(new RenameResourceCommand("objects", "obj_1", "obj_b")));
+    }
+
+    [Fact]
     public async Task AboutShowsTheVersionAndTheLibrary()
     {
         using var dir = new TempDir();

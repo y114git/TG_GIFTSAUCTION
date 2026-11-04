@@ -61,6 +61,7 @@
       "exportSelection": "导出所选资源...",
       "exportAll": "导出全部...",
       "import": "导入资源...",
+      "importFiles": "将文件导入为资源...",
       "new": {
         "objects": "新建对象...",
         "scripts": "新建脚本...",
@@ -87,6 +88,7 @@
       "find": "查找",
       "findInCode": "在代码中查找...",
       "findUsages": "查找用法",
+      "findUses": "查找其使用的内容",
       "replaceFrame": "替换精灵帧...",
       "paintFrame": "绘制帧...",
             "editAudio": "编辑音频...",
@@ -341,7 +343,9 @@
   "rename": {
     "title": "重命名",
     "label": "{name} 的新名称",
-    "ok": "重命名"
+    "ok": "重命名",
+    "preview": "将更改 {count} 个名称和字符串；使用此资源的位置：{uses}：",
+    "more": "……另有 {count} 项"
   },
   "code": {
     "apply": "应用",
@@ -534,7 +538,10 @@
     "searching": "正在查找 {name} 的用法...",
     "found": "{name} 在 {count} 处被使用。",
     "none": "{name} 未在任何地方使用。",
-    "failed": "无法搜索 {name}：{reason}"
+    "failed": "无法搜索 {name}：{reason}",
+    "usesSearching": "正在查找 {name} 使用的内容...",
+    "usesFound": "{name} 使用了 {count} 个资源。双击可打开。",
+    "usesNone": "{name} 没有使用任何资源。"
   },
   "help": {
     "noBrowser": "无法启动浏览器。请自行打开 {url}。"
@@ -556,7 +563,11 @@
     "failed": "操作失败：{reason}",
     "nothingToRevert": "没有未保存的更改。",
     "revertTitle": "还原到已保存",
-    "confirmRevert": "要放弃 {name} 的 {count} 项未保存更改并重新加载文件吗？"
+    "confirmRevert": "要放弃 {name} 的 {count} 项未保存更改并重新加载文件吗？",
+    "pickFiles": "选择图片、声音或 GML 文件",
+    "filesImported": "已从文件添加 {count} 个资源。",
+    "fileFailed": "无法导入“{name}”：{reason}",
+    "selectedCount": "已选的 {count} 个资源"
   },
   "mods": {
     "pickOriginal": "原始数据文件（补丁所应用的文件）",
@@ -630,7 +641,10 @@
     "roomWarning": "从房间 {room} 开始：游戏会直接在该房间打开，因此之前房间所做的设置（全局变量、存档状态、持久对象）都不存在，游戏可能出错或显示不正常。不在房间顺序中的房间无法这样启动。",
     "stopped": "游戏已停止。",
     "noRuntime": "没有找到 GameMaker 运行时。请在设置中添加其文件夹。",
-    "pickRuntime": "用此运行时运行一次游戏："
+    "pickRuntime": "用此运行时运行一次游戏：",
+    "gameExe": "游戏",
+    "colVersion": "版本",
+    "colPath": "路径"
   },
   "update": {
     "title": "更新",
@@ -1048,5 +1062,11 @@
   "empty": {
     "problems": "没有问题。",
     "output": "尚无任何报告。"
+  },
+  "explorer": {
+    "deleteManyTitle": "删除 {count} 个资源",
+    "deleteMany": "要删除这 {count} 个资源吗？\n{names}",
+    "deleteManyUses": "所选内容之外有 {count} 处在使用它们；这些引用将被清除或移除：\n{places}",
+    "duplicatedMany": "已复制 {count} 个资源。"
   }
 }

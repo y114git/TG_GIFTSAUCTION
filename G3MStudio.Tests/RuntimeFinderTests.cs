@@ -20,6 +20,17 @@ public sealed class RuntimeFinderTests
         Assert.All(found, r => Assert.True(File.Exists(r.Runner)));
     }
 
+    [Fact]
+    public void FindsTheRunnerOfGameMakerStudio1InItsInstallFolder()
+    {
+        using var dir = new TempDir();
+        Assert.Null(RuntimeFinder.Gms1(dir.File("none")));
+        Touch(dir.File("gms/Runner.exe"));
+        var found = RuntimeFinder.Gms1(dir.File("gms"));
+        Assert.Equal("1.4", found?.Version);
+        Assert.True(File.Exists(found?.Runner));
+    }
+
     private static void Touch(string path)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);

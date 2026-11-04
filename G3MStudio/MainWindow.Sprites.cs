@@ -166,12 +166,18 @@ public sealed partial class MainWindow
         }
 
         if (await PickPatchFile(Loc.Current["sprites.pickPicture"], false) is not { } path) return;
+        await ReplaceFrameFromAsync(workspace, sprite, view.SelectedFrame, path);
+    }
+
+    /// <summary>Puts a picture file on one frame of a sprite; one undoable step. Used by Replace Frame and by a picture dropped on a sprite tab.</summary>
+    private async Task ReplaceFrameFromAsync(Workspace workspace, string sprite, int frame, string path)
+    {
         try
         {
             var bytes = await File.ReadAllBytesAsync(path);
             using (ReplaceFrameCommand.ReadPicture(bytes)) { } // refuses what cannot be read before it reaches the history
-            workspace.Edit(new ReplaceFrameCommand(sprite, view.SelectedFrame, bytes));
-            Notify(NotificationLevel.Info, Loc.Current.Format("sprites.replaced", ("frame", view.SelectedFrame), ("sprite", sprite)));
+            workspace.Edit(new ReplaceFrameCommand(sprite, frame, bytes));
+            Notify(NotificationLevel.Info, Loc.Current.Format("sprites.replaced", ("frame", frame), ("sprite", sprite)));
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or MagickException or InvalidDataException)
         {

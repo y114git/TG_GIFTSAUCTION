@@ -47,6 +47,33 @@ public sealed partial class MainWindow
         _ = _usages.ShowAsync(name, UsageSearch.FindAsync(workspace, type, name));
     }
 
+    /// <summary>Lists the assets the resource in front uses; a double click on a row opens that asset.</summary>
+    public void FindUses()
+    {
+        var key = (Docking.ActiveTabId is { } id ? Docking.Tabs.Get(id)?.Key : null) ?? Explorer.SelectedKey;
+        if (Workspaces.Current is not { } workspace || key is null || ResourceTypes.SplitKey(key) is not var (type, name) || !ApplyCodeEditors()) return;
+        Docking.ShowPanel("Usages");
+        _ = _usages.ShowUsesAsync(name, UsesWithTypes(UsageSearch.FindUsesAsync(workspace, type, name)));
+    }
+
+    /// <summary>The picture for an Explorer tooltip: the cut of the texture page that holds the entry's page item, or null.</summary>
+    private async Task<Avalonia.Media.IImage?> LoadThumbnailAsync(string key)
+    {
+        if (Workspaces.Current is not { } workspace) return null;
+        Avalonia.Media.Imaging.Bitmap? page = null;
+        G3MLib.DataFile.Models.GameMakerTexturePageItem? item;
+        using (workspace.Lock.Read()) item = ResourceThumbnails.ItemOf(ResourceTypes.Find(workspace.Data, key));
+        if (item?.TexturePage is { } texture) page = await _textures.GetAsync(texture);
+        if (page is null || item is null) return null;
+        var area = new Avalonia.PixelRect(item.SourceX, item.SourceY, item.SourceWidth, item.SourceHeight).Intersect(new Avalonia.PixelRect(page.PixelSize));
+#pragma warning disable CA2000 // the page bitmap belongs to the shared cache; the crop only views it
+        return area.Width > 0 && area.Height > 0 ? new Avalonia.Media.Imaging.CroppedBitmap(page, area) : null;
+#pragma warning restore CA2000
+    }
+
+    private static async Task<IReadOnlyList<UsageHit>> UsesWithTypes(Task<IReadOnlyList<UsageHit>> search) =>
+        [.. (await search).Select(h => h with { Where = Loc.Current["explorer.type." + h.OwnerType] + "  " + h.Where })];
+
     private TilePickerView TilePicker(GameMakerBackground background, Workspace workspace)
     {
         var view = new TilePickerView(background, _textures, workspace);

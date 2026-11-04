@@ -51,6 +51,47 @@ public static class UsageSearch
         }, cancellationToken);
     }
 
+    /// <summary>True when the owner of a reference is the resource itself or one of its code entries (an object's event code, a script's code, a room's creation code).</summary>
+    public static bool OwnedBy(object owner, object resource, string type, string name)
+    {
+        if (ReferenceEquals(owner, resource)) return true;
+        if (owner is not GameMakerCode code) return false;
+        var entry = (code.ParentEntry ?? code).Name?.Content ?? "";
+        return type switch
+        {
+            "objects" => entry.StartsWith($"gml_Object_{name}_", StringComparison.Ordinal),
+            "scripts" => entry == "gml_Script_" + name,
+            "rooms" => entry.StartsWith($"gml_Room_{name}_", StringComparison.Ordinal) || entry.StartsWith($"gml_RoomCC_{name}_", StringComparison.Ordinal),
+            "timelines" => entry.StartsWith($"gml_Timeline_{name}_", StringComparison.Ordinal),
+            _ => false,
+        };
+    }
+
+    /// <summary>What the resource uses: the assets that its own properties and its code refer to, one hit per asset (OwnerType and OwnerName name the asset, so a double click opens it; Where is the first way it is used).</summary>
+    public static async Task<IReadOnlyList<UsageHit>> FindUsesAsync(Workspace workspace, string type, string name, CancellationToken cancellationToken = default)
+    {
+        return await Task.Run(() =>
+        {
+            using (workspace.Lock.Read())
+            {
+                var resource = ResourceTypes.Find(workspace.Data, ResourceTypes.KeyOf(type, name)) ?? throw new InvalidOperationException($"'{name}' was not found in {type}.");
+                var index = ReferenceIndex.Build(workspace.Data, cancellationToken);
+                var found = new List<UsageHit>();
+                foreach (var other in ResourceTypes.All.Where(t => AssetTypes.Contains(t.Key)))
+                {
+                    foreach (var item in other.Items(workspace.Data) ?? [])
+                    {
+                        if (ReferenceEquals(item, resource) || ResourceTypes.NameOf(item) is not { } itemName) continue;
+                        var use = index.FindUsages(item).FirstOrDefault(r => OwnedBy(r.Owner, resource, type, name));
+                        if (use.Owner is not null) found.Add(new UsageHit(other.Key, itemName, use.Member));
+                    }
+                }
+
+                return (IReadOnlyList<UsageHit>)[.. found.OrderBy(h => h.OwnerType, StringComparer.Ordinal).ThenBy(h => h.OwnerName, StringComparer.Ordinal)];
+            }
+        }, cancellationToken);
+    }
+
     /// <summary>The objects whose parent is the object <paramref name="name"/> (UTMT-SRCH-06).</summary>
     public static async Task<IReadOnlyList<UsageHit>> FindChildrenAsync(Workspace workspace, string name, CancellationToken cancellationToken = default)
     {

@@ -57,11 +57,15 @@ public interface IShell
     /// <summary>Lists where the selected resource (or the one in the tab in front) is used.</summary>
     void FindUsages();
 
+    void FindUses();
+
     void ExportSelection();
 
     void ExportAll();
 
     void ImportResources();
+
+    void ImportFiles();
 
     void RevertToSaved();
 
@@ -252,8 +256,8 @@ public static class AppCommands
     /// </summary>
     public static readonly (string TitleKey, string[] Ids)[] Menus =
     [
-        ("menu.file", ["file.newData", "file.open", .. ResourceNew, "file.save", "file.saveAs", "file.saveCopy", "file.revert", "-", "file.exportSelection", "file.exportAll", "file.import", "-", "settings.open", "-", "file.close", "file.exit"]),
-        ("menu.edit", ["edit.undo", "edit.redo", "-", "edit.rename", "edit.duplicate", "edit.moveUp", "edit.moveDown", "edit.copyName", "edit.delete", "edit.selectAll", "-", "edit.find", "edit.findInCode", "edit.findUsages", "edit.findUnreferenced", "edit.findChildren"]),
+        ("menu.file", ["file.newData", "file.open", .. ResourceNew, "file.save", "file.saveAs", "file.saveCopy", "file.revert", "-", "file.exportSelection", "file.exportAll", "file.import", "file.importFiles", "-", "settings.open", "-", "file.close", "file.exit"]),
+        ("menu.edit", ["edit.undo", "edit.redo", "-", "edit.rename", "edit.duplicate", "edit.moveUp", "edit.moveDown", "edit.copyName", "edit.delete", "edit.selectAll", "-", "edit.find", "edit.findInCode", "edit.findUsages", "edit.findUses", "edit.findUnreferenced", "edit.findChildren"]),
         ("menu.view", ["view.commandPalette", "go.quickOpen", "-", .. Panels.Select(p => "view.panel." + p.ToLowerInvariant()), "-", "view.zoomIn", "view.zoomOut", "view.zoomReset", "view.fullscreen"]),
         ("menu.project", ["project.enable", "project.sync", "project.options", "project.resolve", "project.moveDataFile", "project.disable"]),
         ("menu.sprite", ["edit.paintFrame", "edit.replaceFrame", "edit.duplicateFrame", "edit.removeFrame", "-", "edit.recalculateMask", "edit.importMask", "edit.exportMask"]),
@@ -283,6 +287,7 @@ public static class AppCommands
         Add("file.exportSelection", null, shell.ExportSelection, WorkspaceOpen);
         Add("file.exportAll", null, shell.ExportAll, WorkspaceOpen);
         Add("file.import", null, shell.ImportResources, WorkspaceOpen);
+        Add("file.importFiles", null, shell.ImportFiles, WorkspaceOpen);
         Add("help.checkUpdates", null, shell.CheckForUpdates);
         Add("run.game", "F5", shell.RunGame, WorkspaceOpen);
         Add("run.withRuntime", null, shell.RunWithRuntime, WorkspaceOpen);
@@ -341,6 +346,7 @@ public static class AppCommands
         Add("edit.find", "Ctrl+F", shell.Find, WorkspaceOpen);
         Add("edit.findInCode", "Ctrl+Shift+F", shell.ShowSearch, WorkspaceOpen);
         Add("edit.findUsages", "Shift+F12", shell.FindUsages, WorkspaceOpen);
+        Add("edit.findUses", null, shell.FindUses, WorkspaceOpen);
         Add("view.commandPalette", "Ctrl+Shift+P", shell.ShowPalette);
         Add("view.fullscreen", "F11", shell.ToggleFullscreen);
         Add("view.zoomIn", "Ctrl+OemPlus", () => shell.Zoom(1));

@@ -99,8 +99,8 @@ public sealed class PixelPainterWindow : Window
         };
         cancel.Click += (_, _) => Close(false);
 
-        var width = new NumericUpDown { Name = "PaintWidth", Minimum = 1, Maximum = 2048, Value = picture.Width, Increment = 1, FormatString = "0", Width = 110 };
-        var height = new NumericUpDown { Name = "PaintHeight", Minimum = 1, Maximum = 2048, Value = picture.Height, Increment = 1, FormatString = "0", Width = 110 };
+        var width = new NumericUpDown { Name = "PaintWidth", Minimum = 1, Maximum = 2048, Value = picture.Width, Increment = 1, FormatString = "0", Width = 150, HorizontalAlignment = HorizontalAlignment.Left };
+        var height = new NumericUpDown { Name = "PaintHeight", Minimum = 1, Maximum = 2048, Value = picture.Height, Increment = 1, FormatString = "0", Width = 150, HorizontalAlignment = HorizontalAlignment.Left };
         var resize = new Button { Name = "PaintResize", Content = Loc.Current["painter.resize"] };
         resize.Click += (_, _) =>
         {
@@ -112,7 +112,7 @@ public sealed class PixelPainterWindow : Window
             Canvas.Replace(next);
         };
         tools.Children.Add(new TextBlock { Text = Loc.Current["painter.canvasSize"], Margin = new Thickness(0, 8, 0, 0) });
-        tools.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { width, height } });
+        tools.Children.Add(new StackPanel { Orientation = Orientation.Vertical, Spacing = 4, Children = { width, height } });
         tools.Children.Add(resize);
         var top = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new Thickness(8), Children = { _undoButton, _redoButton, new Border { Width = 12 }, zoomOut, zoomText, zoomIn } };
         var bottom = new DockPanel { Margin = new Thickness(8), LastChildFill = false };

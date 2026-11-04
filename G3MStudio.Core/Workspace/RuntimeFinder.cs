@@ -15,6 +15,14 @@ public static class RuntimeFinder
         return data.Length == 0 ? [] : Editions.Select(n => Path.Combine(data, n, "Cache", "runtimes")).ToList();
     }
 
+    /// <summary>The runner of GameMaker Studio 1.4 (one Runner.exe in its install folder), or null when it is not installed.</summary>
+    public static RuntimeInfo? Gms1(string? installFolder = null)
+    {
+        installFolder ??= Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "GameMaker Studio");
+        var runner = Path.Combine(installFolder, "Runner.exe");
+        return File.Exists(runner) ? new RuntimeInfo("1.4", runner) : null;
+    }
+
     /// <summary>The runtimes under the folders, newest version first.</summary>
     public static IReadOnlyList<RuntimeInfo> Find(IEnumerable<string> folders)
     {

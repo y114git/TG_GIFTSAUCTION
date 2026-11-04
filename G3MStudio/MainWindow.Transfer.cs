@@ -57,9 +57,51 @@ public sealed partial class MainWindow
 
     public void RevertToSaved() => _ = RevertAsync();
 
+    public void ImportFiles() => _ = ImportFilesAsync();
+
+    public async Task ImportFilesAsync()
+    {
+        var files = await PickPatchFiles(Loc.Current["transfer.pickFiles"]);
+        ImportFilePaths(files);
+    }
+
+    /// <summary>Adds a sprite, sound or script for each picture, WAV or GML file; each is one undoable edit, and the last one opens.</summary>
+    public void ImportFilePaths(IEnumerable<string> paths)
+    {
+        if (Workspaces.Current is not { } workspace) return;
+        string? last = null;
+        var added = 0;
+        foreach (var path in paths.Where(p => FileImport.TypeOf(p) is not null))
+        {
+            try
+            {
+                EditCommand command;
+                string type, name;
+                using (workspace.Lock.Read()) command = FileImport.Build(workspace.Data, path, out type, out name);
+                workspace.Edit(command);
+                (last, added) = (ResourceTypes.KeyOf(type, name), added + 1);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException or InvalidDataException or ImageMagick.MagickException or CodeCompileException)
+            {
+                Notify(NotificationLevel.Error, Loc.Current.Format("transfer.fileFailed", ("name", Path.GetFileName(path)), ("reason", e.Message)));
+            }
+        }
+
+        if (last is null) return;
+        Notify(NotificationLevel.Info, Loc.Current.Format("transfer.filesImported", ("count", added)));
+        Explorer.Select(last);
+        Docking.OpenTab("resource", last, false);
+    }
+
     /// <summary>Exports the entry selected in the Explorer, or the one in the tab in front, to a folder.</summary>
     public async Task ExportSelectionAsync()
     {
+        if (Explorer.SelectedKeys.Count > 1 && Workspaces.Current is { } many)
+        {
+            await ExportManyAsync(many, BulkResources.Split(Explorer.SelectedKeys));
+            return;
+        }
+
         var key = Explorer.SelectedKey ?? (Docking.ActiveTabId is { } id ? Docking.Tabs.Get(id)?.Key : null);
         if (Workspaces.Current is not { } workspace || key is null || ResourceTypes.SplitKey(key) is not var (type, name)) return;
         if (!ResourceTransfer.Supports(type))
@@ -72,6 +114,31 @@ public sealed partial class MainWindow
         // Extensions and the general info are single entries; the others export the one named entry.
         ISet<string>? names = type is "extensions" or "general" ? null : new HashSet<string> { name };
         await RunOperationAsync(name, (progress, token) => ResourceTransfer.ExportAsync(workspace, folder, type, names, progress, token), folder, export: true);
+    }
+
+    /// <summary>Exports the selected entries of every type they belong to into one folder, as one batch with one progress bar.</summary>
+    private async Task ExportManyAsync(Workspace workspace, IReadOnlyList<(string Type, string Name)> items)
+    {
+        var groups = items.Where(i => ResourceTransfer.Supports(i.Type)).GroupBy(i => i.Type).ToList();
+        if (groups.Count == 0)
+        {
+            Notify(NotificationLevel.Info, Loc.Current.Format("transfer.unsupported", ("type", Loc.Current["explorer.type." + items[0].Type])));
+            return;
+        }
+
+        if (await PickFolder(Loc.Current["transfer.pickExport"]) is not { } folder) return;
+        await RunOperationAsync(Loc.Current.Format("transfer.selectedCount", ("count", items.Count)), async (progress, token) =>
+        {
+            var results = new List<ItemResult>();
+            foreach (var group in groups)
+            {
+                // Extensions and the general info are single entries; the others export the named entries.
+                ISet<string>? names = group.Key is "extensions" or "general" ? null : group.Select(i => i.Name).ToHashSet();
+                results.AddRange(await ResourceTransfer.ExportAsync(workspace, folder, group.Key, names, progress, token));
+            }
+
+            return results;
+        }, folder, export: true);
     }
 
     public async Task ExportAllAsync()

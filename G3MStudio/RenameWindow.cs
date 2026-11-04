@@ -14,7 +14,11 @@ public sealed class RenameWindow : Window
     private readonly TextBox _name = new() { Name = "NewName" };
     private readonly TextBlock _error = new() { Name = "Error", TextWrapping = Avalonia.Media.TextWrapping.Wrap };
 
-    public RenameWindow(string current, Func<string, string?> apply, string? title = null, string? label = null, string? okText = null)
+    private readonly TextBlock _preview = new() { Name = "Preview", TextWrapping = Avalonia.Media.TextWrapping.Wrap, FontSize = 12, Foreground = (Avalonia.Media.IBrush?)Avalonia.Application.Current?.FindResource("Text.Muted") };
+    private int _previewVersion;
+
+    // preview (optional) says what the typed name would change; it runs off the UI thread a moment after typing stops, and a null result clears the text.
+    public RenameWindow(string current, Func<string, string?> apply, string? title = null, string? label = null, string? okText = null, Func<string, string?>? preview = null)
     {
         Title = title ?? Loc.Current["rename.title"];
         Width = 400;
@@ -40,6 +44,10 @@ public sealed class RenameWindow : Window
             var name = _name.Text?.Trim() ?? "";
             ok.IsEnabled = name.Length > 0 && name != current;
             _error.Text = "";
+            _preview.Text = "";
+            if (preview is null || name.Length == 0 || name == current) return;
+            var version = ++_previewVersion;
+            _ = ShowPreviewAsync(preview, name, version);
         };
         ok.Click += (_, _) => Run();
         cancel.Click += (_, _) => Close(false);
@@ -63,9 +71,18 @@ public sealed class RenameWindow : Window
                 new TextBlock { Text = label ?? Loc.Current.Format("rename.label", ("name", current)) },
                 _name,
                 _error,
+                _preview,
                 new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right, Children = { ok, cancel } },
             },
         };
+    }
+
+    private async Task ShowPreviewAsync(Func<string, string?> preview, string name, int version)
+    {
+        await Task.Delay(250);
+        if (version != _previewVersion) return;
+        var text = await Task.Run(() => preview(name));
+        if (version == _previewVersion) _preview.Text = text ?? "";
     }
 
     /// <summary>True when the rename was applied.</summary>

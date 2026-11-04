@@ -1,4 +1,5 @@
 using G3MLib.DataFile;
+using G3MLib.DataFile.Models;
 
 namespace G3MStudio.Core.Workspace;
 
@@ -54,24 +55,27 @@ public static class SoundAudio
 /// <summary>
 /// Replaces the audio of an embedded sound with a WAV or OGG file of the same kind. The kind must match because the sound's flags (compressed or
 /// not) describe the old audio; the play length is read from the new file. Undo puts back the old audio. The audio is stored in the journal.
+/// With <c>changeKind</c> the sound may switch between WAV and OGG: its type, file name and compressed flag follow, as the library sets them for a new sound.
 /// </summary>
-public sealed class ReplaceAudioCommand(string sound, byte[] audio) : EditCommand
+public sealed class ReplaceAudioCommand(string sound, byte[] audio, bool changeKind = false) : EditCommand
 {
     public const string Name = "replaceAudio";
     public const int MaxBytes = 64 * 1024 * 1024;
 
     private byte[]? _before;
     private float _beforeLength;
+    private (GameMakerString? Type, GameMakerString? File, GameMakerSound.AudioEntryFlags Flags) _beforeKind;
 
     public override string Kind => Name;
 
     public override string Editor => "sounds";
 
-    public override IReadOnlyDictionary<string, string> Args { get; } = new Dictionary<string, string> { ["sound"] = sound, ["audio"] = Convert.ToBase64String(audio) };
+    public override IReadOnlyDictionary<string, string> Args { get; } = new Dictionary<string, string> { ["sound"] = sound, ["audio"] = Convert.ToBase64String(audio) }
+        .Concat(changeKind ? [new KeyValuePair<string, string>("changeKind", "1")] : []).ToDictionary();
 
     public override IReadOnlyList<ProjectTouch>? Touches => [new("Sounds", sound), new("EmbeddedAudio", null)];
 
-    public static ReplaceAudioCommand FromArgs(IReadOnlyDictionary<string, string> a) => new(a["sound"], Convert.FromBase64String(a["audio"]));
+    public static ReplaceAudioCommand FromArgs(IReadOnlyDictionary<string, string> a) => new(a["sound"], Convert.FromBase64String(a["audio"]), a.ContainsKey("changeKind"));
 
     public override void Apply(GameMakerData data)
     {
@@ -80,9 +84,18 @@ public sealed class ReplaceAudioCommand(string sound, byte[] audio) : EditComman
         if (audio.Length is 0 or > MaxBytes) throw new InvalidOperationException("The audio file is empty or larger than 64 MB.");
         var kind = SoundAudio.Format(audio);
         var current = SoundAudio.Format(file.Data);
-        if (kind is not ("wav" or "ogg") || kind != current) throw new InvalidOperationException($"'{sound}' holds {current.ToUpperInvariant()} audio: replace it with a {(current is "wav" or "ogg" ? current.ToUpperInvariant() : "WAV or OGG")} file.");
+        if (kind is not ("wav" or "ogg") || kind != current && !(changeKind && current is "wav" or "ogg")) throw new InvalidOperationException($"'{sound}' holds {current.ToUpperInvariant()} audio: replace it with a {(current is "wav" or "ogg" ? current.ToUpperInvariant() : "WAV or OGG")} file.");
         var seconds = SoundAudio.Seconds(audio); // read first: nothing changes when the header is odd
         (_before, _beforeLength) = (file.Data, target.AudioLength);
+        _beforeKind = (target.Type, target.File, target.Flags);
+        if (kind != current)
+        {
+            var stem = Path.GetFileNameWithoutExtension(target.File?.Content ?? sound);
+            target.Type = data.Strings.MakeString("." + kind);
+            target.File = data.Strings.MakeString(stem + "." + kind);
+            target.Flags = kind == "ogg" ? target.Flags | GameMakerSound.AudioEntryFlags.IsCompressed : target.Flags & ~GameMakerSound.AudioEntryFlags.IsCompressed;
+        }
+
         file.Data = audio;
         if (seconds is { } length) target.AudioLength = (float)length;
     }
@@ -93,5 +106,6 @@ public sealed class ReplaceAudioCommand(string sound, byte[] audio) : EditComman
         if (_before is null || target.AudioFile is not { } file) throw new InvalidOperationException("The audio was never replaced.");
         file.Data = _before;
         target.AudioLength = _beforeLength;
+        (target.Type, target.File, target.Flags) = (_beforeKind.Type!, _beforeKind.File!, _beforeKind.Flags);
     }
 }

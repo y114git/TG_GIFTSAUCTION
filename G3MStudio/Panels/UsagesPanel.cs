@@ -55,18 +55,23 @@ public sealed class UsagesPanel : UserControl
         }
     }
 
+    /// <summary>Shows what <paramref name="name"/> uses.</summary>
+    public Task ShowUsesAsync(string name, Task<IReadOnlyList<UsageHit>> search) => ShowAsync(name, search, "usages.usesSearching", "usages.usesFound", "usages.usesNone");
+
     /// <summary>Shows the usages of <paramref name="name"/>; a search that fails shows why.</summary>
-    public async Task ShowAsync(string name, Task<IReadOnlyList<UsageHit>> search)
+    public Task ShowAsync(string name, Task<IReadOnlyList<UsageHit>> search) => ShowAsync(name, search, "usages.searching", "usages.found", "usages.none");
+
+    private async Task ShowAsync(string name, Task<IReadOnlyList<UsageHit>> search, string searching, string found, string none)
     {
         var generation = ++_generation;
         _list.ItemsSource = null;
-        _status.Text = Loc.Current.Format("usages.searching", ("name", name));
+        _status.Text = Loc.Current.Format(searching, ("name", name));
         try
         {
             var hits = await search;
             if (generation != _generation) return;
             _list.ItemsSource = hits;
-            _status.Text = Loc.Current.Format(hits.Count == 0 ? "usages.none" : "usages.found", ("name", name), ("count", hits.Count));
+            _status.Text = Loc.Current.Format(hits.Count == 0 ? none : found, ("name", name), ("count", hits.Count));
         }
         catch (Exception e) when (e is InvalidOperationException or OperationCanceledException && generation == _generation)
         {

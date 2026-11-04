@@ -272,13 +272,13 @@ internal static class ProjectDialogs
         return answer;
     }
 
-    /// <summary>A list to pick one entry from, with Ok and Cancel; the index of the entry, or null when cancelled.</summary>
-    public static async Task<int?> AskChoiceAsync(Window owner, string title, string label, IReadOnlyList<string> items)
+    /// <summary>A list to pick one entry from, with Ok and Cancel; the index of the entry, or null when cancelled. With <paramref name="columns"/> each item is cells split by a tab, shown under those headings.</summary>
+    public static async Task<int?> AskChoiceAsync(Window owner, string title, string label, IReadOnlyList<string> items, IReadOnlyList<string>? columns = null)
     {
         var window = Shell("transfer.confirmTitle", 520);
         window.Title = title;
         int? answer = null;
-        var list = new ListBox { Name = "ChoiceList", ItemsSource = items, SelectedIndex = -1, MaxHeight = 280, ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<string>((text, _) => new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap }) };
+        var list = new ListBox { Name = "ChoiceList", ItemsSource = items, SelectedIndex = -1, MaxHeight = 280, ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<string>((text, _) => columns is null ? new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap } : ChoiceRow(text.Split('\t'), false)) };
         ScrollViewer.SetHorizontalScrollBarVisibility(list, Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled);
         list.DoubleTapped += (_, _) =>
         {
@@ -286,7 +286,7 @@ internal static class ProjectDialogs
             answer = list.SelectedIndex;
             window.Close();
         };
-        window.Content = new StackPanel
+        var body = new StackPanel
         {
             Margin = new Thickness(16),
             Spacing = 12,
@@ -297,8 +297,24 @@ internal static class ProjectDialogs
                 Buttons(Btn("transfer.ok", "Ok", () => { if (list.SelectedIndex >= 0) answer = list.SelectedIndex; window.Close(); }), Btn("explorer.cancel", "Cancel", window.Close)),
             },
         };
+        if (columns is not null) body.Children.Insert(1, ChoiceRow([.. columns], true));
+        window.Content = body;
         await window.ShowDialog(owner);
         return answer;
+    }
+
+    private static Grid ChoiceRow(string[] cells, bool header)
+    {
+        var row = new Grid { ColumnDefinitions = new ColumnDefinitions("150,*"), Margin = header ? new Thickness(8, 0, 0, 0) : default };
+        for (var i = 0; i < Math.Min(cells.Length, 2); i++)
+        {
+            var cell = new TextBlock { Text = cells[i], TextWrapping = TextWrapping.Wrap };
+            Grid.SetColumn(cell, i);
+            if (header) cell.Foreground = (IBrush?)Application.Current?.FindResource("Text.Muted");
+            row.Children.Add(cell);
+        }
+
+        return row;
     }
 
     public static async Task<bool> AskRebuildAsync(Window owner, string name)

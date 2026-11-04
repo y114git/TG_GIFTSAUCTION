@@ -141,4 +141,11 @@ public sealed class PropertyGridTests
             finally { window.Close(); }
         });
     }
+
+    [Theory]
+    [InlineData("MarginLeft", "Margin Left")]
+    [InlineData("SVersion", "Special Version")]
+    [InlineData("SSpriteType", "Special Sprite Type")]
+    [InlineData("SDFSpread", "SDFSpread")]
+    public void LabelsAreReadable(string name, string label) => Assert.Equal(label, PropertyGridTab.Spaced(name));
 }

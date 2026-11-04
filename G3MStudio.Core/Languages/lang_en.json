@@ -61,6 +61,7 @@
       "exportSelection": "Export Selected Resource...",
       "exportAll": "Export Everything...",
       "import": "Import Resources...",
+      "importFiles": "Import Files as Resources...",
       "new": {
         "objects": "New Object...",
         "scripts": "New Script...",
@@ -87,6 +88,7 @@
       "find": "Find",
       "findInCode": "Find in Code...",
       "findUsages": "Find Usages",
+      "findUses": "Find What It Uses",
       "replaceFrame": "Replace Sprite Frame...",
       "paintFrame": "Paint Frame...",
             "editAudio": "Edit Audio...",
@@ -341,7 +343,9 @@
   "rename": {
     "title": "Rename",
     "label": "New name for {name}",
-    "ok": "Rename"
+    "ok": "Rename",
+    "preview": "Changes {count} names and strings; {uses} places use this resource:",
+    "more": "... and {count} more"
   },
   "code": {
     "apply": "Apply",
@@ -534,7 +538,10 @@
     "searching": "Looking for uses of {name}...",
     "found": "{name} is used in {count} places.",
     "none": "{name} is not used anywhere.",
-    "failed": "Could not search for {name}: {reason}"
+    "failed": "Could not search for {name}: {reason}",
+    "usesSearching": "Looking for what {name} uses...",
+    "usesFound": "{name} uses {count} assets. Double click one to open it.",
+    "usesNone": "{name} does not use any asset."
   },
   "help": {
     "noBrowser": "No browser could be started. Open {url} yourself."
@@ -556,7 +563,11 @@
     "failed": "The operation failed: {reason}",
     "nothingToRevert": "There are no unsaved changes.",
     "revertTitle": "Revert to Saved",
-    "confirmRevert": "Drop {count} unsaved changes of {name} and load the file again?"
+    "confirmRevert": "Drop {count} unsaved changes of {name} and load the file again?",
+    "pickFiles": "Pick pictures, sounds or GML files",
+    "filesImported": "Added {count} resources from files.",
+    "fileFailed": "Could not import '{name}': {reason}",
+    "selectedCount": "{count} selected resources"
   },
   "mods": {
     "pickOriginal": "Original data file (the one the patch applies to)",
@@ -630,7 +641,10 @@
     "roomWarning": "Starting at room {room}: the game opens there directly, so anything an earlier room sets up (globals, saved state, persistent objects) is missing and the game may fail or look wrong. A room that is not in the room order cannot be started this way.",
     "stopped": "Game stopped.",
     "noRuntime": "No GameMaker runtime found. Add its folder in Settings.",
-    "pickRuntime": "Run the game once with this runtime:"
+    "pickRuntime": "Run the game once with this runtime:",
+    "gameExe": "Game",
+    "colVersion": "Version",
+    "colPath": "Path"
   },
   "update": {
     "title": "Update",
@@ -1048,5 +1062,11 @@
   "empty": {
     "problems": "No problems.",
     "output": "Nothing has been reported yet."
+  },
+  "explorer": {
+    "deleteManyTitle": "Delete {count} resources",
+    "deleteMany": "Delete these {count} resources?\n{names}",
+    "deleteManyUses": "{count} places outside the selection use them; those uses are cleared or removed:\n{places}",
+    "duplicatedMany": "Copied {count} resources."
   }
 }

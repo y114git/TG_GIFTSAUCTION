@@ -2,8 +2,11 @@ using System.Text.Json;
 
 namespace G3MStudio.Core.Workspace;
 
-/// <summary>One journal line. Op is "do" (Kind and Args set), "undo" or "redo".</summary>
-public sealed record JournalRecord(string Op, string? Kind = null, Dictionary<string, string>? Args = null);
+/// <summary>
+/// One journal line. Op is "do" (Kind and Args set), "undo" or "redo". On disk a large argument is moved out of Args into Blobs
+/// (argument name to the hash of its side file); a record read back always has its values in Args and no Blobs.
+/// </summary>
+public sealed record JournalRecord(string Op, string? Kind = null, Dictionary<string, string>? Args = null, Dictionary<string, string>? Blobs = null);
 
 /// <summary>
 /// Append-only edit journal in the user data folder (F-WS-4): a header line naming the data file state the edits start from,
@@ -12,6 +15,9 @@ public sealed record JournalRecord(string Op, string? Kind = null, Dictionary<st
 /// </summary>
 public sealed class Journal : IDisposable
 {
+    /// <summary>Argument values longer than this (a picture, an audio file) go to a side file, so a line stays short and a large edit is stored once.</summary>
+    internal const int BlobThreshold = 64 * 1024;
+
     private readonly string _file;
     private FileStream _stream;
 
@@ -38,9 +44,56 @@ public sealed class Journal : IDisposable
         return (journal, recovered ?? []);
     }
 
+    private static string BlobFolder(string file) => file + ".blobs";
+
+    /// <summary>The record with its large argument values moved to side files named by their hash; the same value is stored once.</summary>
+    private JournalRecord Externalize(JournalRecord record)
+    {
+        if (record.Args is null || !record.Args.Values.Any(v => v.Length > BlobThreshold)) return record;
+        var args = new Dictionary<string, string>(record.Args);
+        var blobs = new Dictionary<string, string>();
+        foreach (var (key, value) in record.Args.Where(a => a.Value.Length > BlobThreshold))
+        {
+            var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(value)));
+            var target = Path.Combine(BlobFolder(_file), hash);
+            if (!File.Exists(target))
+            {
+                Directory.CreateDirectory(BlobFolder(_file));
+                File.WriteAllText(target + ".new", value);
+                File.Move(target + ".new", target, overwrite: true);
+            }
+
+            args.Remove(key);
+            blobs[key] = hash;
+        }
+
+        return record with { Args = args, Blobs = blobs };
+    }
+
+    /// <summary>A hash as written by <see cref="Externalize"/>: 64 upper case hex digits, so it can never name anything outside the blob folder.</summary>
+    private static bool IsHash(string text) => text.Length == 64 && text.All(c => c is >= '0' and <= '9' or >= 'A' and <= 'F');
+
+    /// <summary>The record with its side files read back into Args; false when one is missing or not a valid reference (a damaged journal).</summary>
+    private static bool TryInternalize(string file, JournalRecord record, out JournalRecord result)
+    {
+        result = record;
+        if (record.Blobs is null) return true;
+        var args = new Dictionary<string, string>(record.Args ?? []);
+        foreach (var (key, hash) in record.Blobs)
+        {
+            if (!IsHash(hash)) return false;
+            var blob = Path.Combine(BlobFolder(file), hash);
+            if (!File.Exists(blob)) return false;
+            args[key] = File.ReadAllText(blob);
+        }
+
+        result = record with { Args = args, Blobs = null };
+        return true;
+    }
+
     public void Append(JournalRecord record)
     {
-        WriteLine(_stream, record);
+        WriteLine(_stream, Externalize(record));
         _stream.Flush(true);
     }
 
@@ -49,9 +102,19 @@ public sealed class Journal : IDisposable
     {
         _stream.Dispose();
         var temp = _file + ".new";
-        using (var stream = Create(temp, identity, records, FileMode.Create)) stream.Flush(true);
+        var kept = records.Select(Externalize).ToList();
+        using (var stream = Create(temp, identity, kept, FileMode.Create)) stream.Flush(true);
         File.Move(temp, _file, overwrite: true);
+        DropUnusedBlobs(kept);
         _stream = Create(_file, identity, []);
+    }
+
+    private void DropUnusedBlobs(List<JournalRecord> kept)
+    {
+        if (!Directory.Exists(BlobFolder(_file))) return;
+        var used = kept.Where(r => r.Blobs is not null).SelectMany(r => r.Blobs!.Values).ToHashSet();
+        foreach (var blob in Directory.EnumerateFiles(BlobFolder(_file)))
+            if (!used.Contains(Path.GetFileName(blob))) File.Delete(blob);
     }
 
     public void Dispose() => _stream.Dispose();
@@ -91,7 +154,12 @@ public sealed class Journal : IDisposable
         var records = new List<JournalRecord>();
         while (reader.ReadLine() is { } line)
         {
-            try { records.Add(JsonSerializer.Deserialize<JournalRecord>(line) ?? throw new JsonException()); }
+            try
+            {
+                // A record whose side file is gone is as good as a torn line: replay stops before it.
+                if (!TryInternalize(file, JsonSerializer.Deserialize<JournalRecord>(line) ?? throw new JsonException(), out var record)) break;
+                records.Add(record);
+            }
             catch (JsonException) { break; }
         }
 

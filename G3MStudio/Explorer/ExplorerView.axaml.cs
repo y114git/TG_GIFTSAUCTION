@@ -29,8 +29,18 @@ public partial class ExplorerView : UserControl
         List.Tapped += (_, e) =>
         {
             if ((e.Source as Control)?.DataContext is not ExplorerRow row) return;
+            // Ctrl and Shift clicks only change the selection; they must not open a tab.
+            if (e.KeyModifiers is KeyModifiers.Control or KeyModifiers.Shift) return;
             if (row.IsItem) RequestOpen(row, true);
             else if (row.IsHeader) Model.Toggle(row.Key);
+        };
+        List.SelectionMode = SelectionMode.Multiple;
+        // The tooltip is made per row when the row appears; its picture is fetched only when the tip opens.
+        List.ContainerPrepared += (_, e) =>
+        {
+            if (e.Container.DataContext is not ExplorerRow row) return;
+            var key = row.IsItem ? ResourceTypes.KeyOf(row.Key, row.Text) : null;
+            ToolTip.SetTip(e.Container, new ExplorerRowTip(row.Text, key is null ? null : () => Thumbnail?.Invoke(key) ?? Task.FromResult<Avalonia.Media.IImage?>(null)));
         };
         List.SelectionChanged += (_, _) => SelectionChanged?.Invoke();
         // A drag starts after the pointer has moved a few pixels with the button down on an entry.
@@ -50,7 +60,7 @@ public partial class ExplorerView : UserControl
         List.AddHandler(PointerPressedEvent, (_, e) =>
         {
             if (!e.GetCurrentPoint(List).Properties.IsRightButtonPressed || e.Source is not Control { DataContext: ExplorerRow row } source) return;
-            if (row.IsItem) List.SelectedItem = row;
+            if (row.IsItem && !List.SelectedItems!.Contains(row)) List.SelectedItem = row;
             MenuRequested?.Invoke(row, source);
             e.Handled = true;
         }, Avalonia.Interactivity.RoutingStrategies.Tunnel);
@@ -78,10 +88,16 @@ public partial class ExplorerView : UserControl
     /// <summary>A right click on a row (already selected): the row and the control to open the menu at.</summary>
     public event Action<ExplorerRow, Control>? MenuRequested;
 
+    /// <summary>Loads the picture for the tooltip of the entry with this tab key; null when the entry has none.</summary>
+    public Func<string, Task<Avalonia.Media.IImage?>>? Thumbnail { get; set; }
+
     public void RequestOpen(ExplorerRow row, bool preview) => OpenRequested?.Invoke(row, preview);
 
     /// <summary>Tab key of the selected entry, or null.</summary>
     public string? SelectedKey => List.SelectedItem is ExplorerRow { IsItem: true } row ? ResourceTypes.KeyOf(row.Key, row.Text) : null;
+
+    /// <summary>Tab keys of every selected entry (Ctrl and Shift clicks select several), in list order; headings are left out.</summary>
+    public IReadOnlyList<string> SelectedKeys => [.. List.SelectedItems?.OfType<ExplorerRow>().Where(r => r.IsItem).Select(r => ResourceTypes.KeyOf(r.Key, r.Text)) ?? []];
 
     /// <summary>Selects the entry with the given tab key, opening its type first.</summary>
     public void Select(string? key)

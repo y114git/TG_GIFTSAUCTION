@@ -23,7 +23,7 @@
           <DataTemplate x:DataType="ws:ExplorerRow">
             <Grid Height="{DynamicResource Row.Height}" ColumnDefinitions="Auto,*,Auto" Margin="{Binding Depth, Converter={x:Static local:ExplorerView.Indent}}">
               <TextBlock Grid.Column="0" Width="16" Text="{Binding Chevron}" Classes="muted" VerticalAlignment="Center" />
-              <TextBlock Grid.Column="1" Text="{Binding Text}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Text}" />
+              <TextBlock Grid.Column="1" Text="{Binding Text}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
               <TextBlock Grid.Column="2" Text="{Binding Count}" Classes="muted" VerticalAlignment="Center" IsVisible="{Binding IsHeader}" />
             </Grid>
           </DataTemplate>

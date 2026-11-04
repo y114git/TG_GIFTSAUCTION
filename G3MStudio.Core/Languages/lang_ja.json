@@ -61,6 +61,7 @@
       "exportSelection": "選択したリソースをエクスポート...",
       "exportAll": "すべてエクスポート...",
       "import": "リソースをインポート...",
+      "importFiles": "ファイルをリソースとしてインポート...",
       "new": {
         "objects": "新しいオブジェクト...",
         "scripts": "新しいスクリプト...",
@@ -87,6 +88,7 @@
       "find": "検索",
       "findInCode": "コード内を検索...",
       "findUsages": "使用箇所を検索",
+      "findUses": "使用しているものを検索",
       "replaceFrame": "スプライトのフレームを置換...",
       "paintFrame": "フレームを描画...",
             "editAudio": "オーディオを編集...",
@@ -341,7 +343,9 @@
   "rename": {
     "title": "名前の変更",
     "label": "{name} の新しい名前",
-    "ok": "名前を変更"
+    "ok": "名前を変更",
+    "preview": "{count} 件の名前と文字列が変わります。このリソースの使用箇所: {uses}:",
+    "more": "... ほか {count} 件"
   },
   "code": {
     "apply": "適用",
@@ -534,7 +538,10 @@
     "searching": "{name} の使用箇所を検索中...",
     "found": "{name} は {count} か所で使われています。",
     "none": "{name} はどこでも使われていません。",
-    "failed": "{name} を検索できませんでした: {reason}"
+    "failed": "{name} を検索できませんでした: {reason}",
+    "usesSearching": "{name} が使用しているものを検索中...",
+    "usesFound": "{name} は {count} 件のアセットを使用しています。ダブルクリックで開きます。",
+    "usesNone": "{name} はアセットを使用していません。"
   },
   "help": {
     "noBrowser": "ブラウザーを起動できませんでした。{url} を自分で開いてください。"
@@ -556,7 +563,11 @@
     "failed": "操作に失敗しました: {reason}",
     "nothingToRevert": "未保存の変更はありません。",
     "revertTitle": "保存済みの状態に戻す",
-    "confirmRevert": "{name} の未保存の変更 {count} 件を破棄して、ファイルを読み込み直しますか?"
+    "confirmRevert": "{name} の未保存の変更 {count} 件を破棄して、ファイルを読み込み直しますか?",
+    "pickFiles": "画像、サウンド、GML ファイルを選択",
+    "filesImported": "ファイルから {count} 件のリソースを追加しました。",
+    "fileFailed": "「{name}」をインポートできません: {reason}",
+    "selectedCount": "選択した {count} 件のリソース"
   },
   "mods": {
     "pickOriginal": "元のデータファイル (パッチの適用先)",
@@ -630,7 +641,10 @@
     "roomWarning": "ルーム {room} から開始します。ゲームはそのルームで直接始まるため、前のルームが設定する内容（グローバル変数、セーブ状態、永続オブジェクト）が欠け、ゲームが失敗したり表示が崩れたりすることがあります。ルーム順に含まれないルームはこの方法では開始できません。",
     "stopped": "ゲームを停止しました。",
     "noRuntime": "GameMakerのランタイムが見つかりません。設定でフォルダーを追加してください。",
-    "pickRuntime": "このランタイムで一度だけゲームを実行します:"
+    "pickRuntime": "このランタイムで一度だけゲームを実行します:",
+    "gameExe": "ゲーム",
+    "colVersion": "バージョン",
+    "colPath": "パス"
   },
   "update": {
     "title": "アップデート",
@@ -1048,5 +1062,11 @@
   "empty": {
     "problems": "問題はありません。",
     "output": "まだ報告はありません。"
+  },
+  "explorer": {
+    "deleteManyTitle": "{count} 件のリソースを削除",
+    "deleteMany": "この {count} 件のリソースを削除しますか?\n{names}",
+    "deleteManyUses": "選択外の {count} 箇所が使用しています。これらの使用はクリアまたは削除されます:\n{places}",
+    "duplicatedMany": "{count} 件のリソースをコピーしました。"
   }
 }

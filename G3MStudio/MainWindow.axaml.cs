@@ -148,12 +148,13 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
         InitializeComponent();
         Workspaces = workspaces;
         _views = new ViewStateStore(workspaces.UserData);
-        _inspector = new Panels.InspectorPanel(() => Registry?.Execute("edit.findUsages"));
+        _inspector = new Panels.InspectorPanel(() => Registry?.Execute("edit.findUsages"), () => Registry?.Execute("edit.findUses"));
         Explorer = new ExplorerView { Name = "Explorer" };
         Docking = new StudioDock(PanelContent, CreateEditor);
         Docking.Attach(DockHost);
         Docking.Changed += SaveView;
         Explorer.MenuRequested += ShowExplorerMenu;
+        Explorer.Thumbnail = LoadThumbnailAsync;
         Explorer.OpenRequested += (row, preview) => Docking.OpenTab(row.Key == "code" ? "code" : "resource", ResourceTypes.KeyOf(row.Key, row.Text), preview);
         Explorer.SelectionChanged += SaveView;
         Explorer.SelectionChanged += ShowInInspector;
@@ -237,6 +238,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
         var active = Docking.ActiveTabId;
         Registry?.SetContext(AppCommands.SpriteTab, active is not null && _frameViews.ContainsKey(active));
         Registry?.SetContext(AppCommands.RoomTab, active is not null && _roomViews.ContainsKey(active));
+        if (active is not null && Docking.Tabs.Get(active)?.Key is { } activeKey && activeKey != Explorer.SelectedKey) Explorer.Select(activeKey);
         ShowInInspector();
     }
 
@@ -502,7 +504,22 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
         if (Workspaces.Current is null) return;
         var key = Explorer.SelectedKey ?? (Docking.ActiveTabId is { } id ? Docking.Tabs.Get(id)?.Key : null);
         if (key is null || ResourceTypes.SplitKey(key) is not var (type, name) || type == "general") return;
-        _ = new RenameWindow(name, newName => ApplyRename(type, name, newName)).AskAsync(this);
+        _ = new RenameWindow(name, newName => ApplyRename(type, name, newName), preview: RenamePreviewText(type, name)).AskAsync(this);
+    }
+
+    /// <summary>The preview line of the rename dialog: the refusal, or how many names change and the first few of them.</summary>
+    private Func<string, string?> RenamePreviewText(string type, string name)
+    {
+        var workspace = Workspaces.Current!;
+        var index = new Lazy<G3MLib.DataFile.References.ReferenceIndex>(() => G3MLib.DataFile.References.ReferenceIndex.Build(workspace.Data));
+        return newName =>
+        {
+            RenamePreview found;
+            using (workspace.Lock.Read()) found = RenamePreview.Of(workspace.Data, type, name, newName, index.Value);
+            if (found.Refusal is not null) return found.Refusal;
+            var more = found.Changes.Count > 6 ? Environment.NewLine + Loc.Current.Format("rename.more", ("count", found.Changes.Count - 6)) : "";
+            return Loc.Current.Format("rename.preview", ("count", found.Changes.Count), ("uses", found.Uses)) + Environment.NewLine + string.Join(Environment.NewLine, found.Changes.Take(6)) + more;
+        };
     }
 
     private string? ApplyRename(string type, string name, string newName)
@@ -603,14 +620,36 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
         if (files is [{ } file, ..] && file.TryGetLocalPath() is { } path) await OpenAsync(path);
     }
 
-    /// <summary>The first file of a drop or of the command line opens; the others are ignored.</summary>
+    private string? FrontTabKey() => Docking.ActiveTabId is { } id ? Docking.Tabs.Get(id)?.Key : null;
+
+    /// <summary>Pictures, sounds and GML files dropped on an open file become resources; otherwise the first file opens and the others are ignored.</summary>
     public void OpenDropped(IEnumerable<string> paths)
     {
-        if (paths.FirstOrDefault() is { } path) _ = OpenAsync(path);
+        var list = paths.ToList();
+        if (Workspaces.Current is { } open && list is [var one] && FrontTabKey() is { } front && ResourceTypes.SplitKey(front) is var (frontType, frontName))
+        {
+            // One picture on a sprite tab goes onto the selected frame, one sound file on a sound tab replaces its audio; anywhere else a file makes a new resource.
+            if (frontType == "sprites" && FileImport.TypeOf(one) == "sprites" && Docking.ActiveTabId is { } sid && _frameViews.TryGetValue(sid, out var frames))
+            {
+                _ = ReplaceFrameFromAsync(open, frontName, frames.SelectedFrame, one);
+                return;
+            }
+
+            if (frontType == "sounds" && FileImport.TypeOf(one) == "sounds")
+            {
+                _ = ReplaceAudioFromAsync(open, frontName, one);
+                return;
+            }
+        }
+
+        if (Workspaces.Current is not null && list.Any(p => FileImport.TypeOf(p) is not null)) ImportFilePaths(list);
+        else if (list.FirstOrDefault() is { } path) _ = OpenAsync(path);
     }
 
-    public async Task OpenAsync(string path)
+    public async Task OpenAsync(string path, bool askAboutUnsaved = true)
     {
+        // Opening another file closes the current one: unsaved edits get the same question as on close.
+        if (askAboutUnsaved && Workspaces.Current is { IsDirty: true } current && current.Path != Path.GetFullPath(path) && !await ConfirmCloseAsync()) return;
         var previous = _opening;
         var source = _opening = new CancellationTokenSource(); // takes over first, so a request that comes in meanwhile cancels this one
         if (previous is not null) await previous.CancelAsync();
@@ -666,7 +705,29 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
         if (Workspaces.Current is not { } workspace) return true;
         // Save commits the text typed in code editors first (design/shell.md 14.2 item 1); one that does not compile stops it.
         if (!ApplyCodeEditors()) return false;
-        return await SaveOrSyncAsync(workspace, async () => workspace.Project is { } link ? await link.SaveAsync(Pipeline) : await workspace.SaveAsync(Pipeline));
+        // Writing and checking a large file takes seconds: the progress overlay with its Cancel button shows unless an export already owns it.
+        using var source = new CancellationTokenSource();
+        var overlay = _exporting is null;
+        if (overlay)
+        {
+            _exporting = source;
+            (_exportName, _exportDone, _exportTotal) = (workspace.Name, 0, 0);
+            ShowProgress();
+        }
+
+        try
+        {
+            return await SaveOrSyncAsync(workspace, async () => workspace.Project is { } link ? await link.SaveAsync(Pipeline, null, source.Token) : await workspace.SaveAsync(Pipeline, null, source.Token));
+        }
+        finally
+        {
+            if (overlay)
+            {
+                _exporting = null;
+                _exportName = null;
+                Progress.IsVisible = false;
+            }
+        }
     }
 
     /// <summary>Runs a save or a sync and tells the user how it went. In Project mode Save may only write the project (null result).</summary>
@@ -687,7 +748,12 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
             Notify(level, text);
             return result.Saved;
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException)
+        catch (OperationCanceledException)
+        {
+            // Cancelled from the progress overlay: the file on disk is untouched and the edits stay in memory and in the journal.
+            return false;
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException or InvalidDataException or G3MLib.DataFile.GameMakerSerializationException)
         {
             Notify(NotificationLevel.Error, Loc.Current.Format("save.failed", ("name", name), ("reason", e.Message)));
             return false;

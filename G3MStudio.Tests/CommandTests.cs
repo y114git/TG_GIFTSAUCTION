@@ -43,9 +43,11 @@ internal sealed class FakeShell : IShell
     public void Find() { }
     public void ShowSearch() { }
     public void FindUsages() { }
+    public void FindUses() { }
     public void ExportSelection() { }
     public void ExportAll() { }
     public void ImportResources() { }
+    public void ImportFiles() { }
     public void RevertToSaved() { }
     public void CheckForUpdates() { }
     public void RunGame() { }

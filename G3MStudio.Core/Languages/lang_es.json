@@ -61,6 +61,7 @@
       "exportSelection": "Exportar el recurso seleccionado...",
       "exportAll": "Exportar todo...",
       "import": "Importar recursos...",
+      "importFiles": "Importar archivos como recursos...",
       "new": {
         "objects": "Nuevo objeto...",
         "scripts": "Nuevo script...",
@@ -87,6 +88,7 @@
       "find": "Buscar",
       "findInCode": "Buscar en el código...",
       "findUsages": "Buscar usos",
+      "findUses": "Buscar lo que usa",
       "replaceFrame": "Reemplazar fotograma del sprite...",
       "paintFrame": "Pintar fotograma...",
             "editAudio": "Editar audio...",
@@ -341,7 +343,9 @@
   "rename": {
     "title": "Renombrar",
     "label": "Nuevo nombre para {name}",
-    "ok": "Renombrar"
+    "ok": "Renombrar",
+    "preview": "Cambia {count} nombres y cadenas; {uses} lugares usan este recurso:",
+    "more": "... y {count} más"
   },
   "code": {
     "apply": "Aplicar",
@@ -534,7 +538,10 @@
     "searching": "Buscando usos de {name}...",
     "found": "{name} se usa en {count} lugares.",
     "none": "{name} no se usa en ningún sitio.",
-    "failed": "No se pudo buscar {name}: {reason}"
+    "failed": "No se pudo buscar {name}: {reason}",
+    "usesSearching": "Buscando lo que usa {name}...",
+    "usesFound": "{name} usa {count} recursos. Haga doble clic en uno para abrirlo.",
+    "usesNone": "{name} no usa ningún recurso."
   },
   "help": {
     "noBrowser": "No se pudo iniciar ningún navegador. Abre {url} tú mismo."
@@ -556,7 +563,11 @@
     "failed": "La operación falló: {reason}",
     "nothingToRevert": "No hay cambios sin guardar.",
     "revertTitle": "Volver a lo guardado",
-    "confirmRevert": "¿Descartar {count} cambios sin guardar de {name} y cargar el archivo de nuevo?"
+    "confirmRevert": "¿Descartar {count} cambios sin guardar de {name} y cargar el archivo de nuevo?",
+    "pickFiles": "Elija imágenes, sonidos o archivos GML",
+    "filesImported": "Se añadieron {count} recursos desde archivos.",
+    "fileFailed": "No se pudo importar «{name}»: {reason}",
+    "selectedCount": "{count} recursos seleccionados"
   },
   "mods": {
     "pickOriginal": "Archivo de datos original (al que se aplica el parche)",
@@ -630,7 +641,10 @@
     "roomWarning": "Inicio en la sala {room}: el juego se abre directamente en ella, así que falta todo lo que preparan las salas anteriores (globales, estado guardado, objetos persistentes) y el juego puede fallar o verse mal. Una sala que no está en el orden de salas no puede iniciarse así.",
     "stopped": "Juego detenido.",
     "noRuntime": "No se encontró ningún runtime de GameMaker. Añade su carpeta en Configuración.",
-    "pickRuntime": "Ejecutar el juego una vez con este runtime:"
+    "pickRuntime": "Ejecutar el juego una vez con este runtime:",
+    "gameExe": "Juego",
+    "colVersion": "Versión",
+    "colPath": "Ruta"
   },
   "update": {
     "title": "Actualización",
@@ -1048,5 +1062,11 @@
   "empty": {
     "problems": "No hay problemas.",
     "output": "Aún no se ha informado de nada."
+  },
+  "explorer": {
+    "deleteManyTitle": "Eliminar {count} recursos",
+    "deleteMany": "¿Eliminar estos {count} recursos?\n{names}",
+    "deleteManyUses": "{count} lugares fuera de la selección los usan; esos usos se borran o se quitan:\n{places}",
+    "duplicatedMany": "Se copiaron {count} recursos."
   }
 }

@@ -61,6 +61,7 @@
       "exportSelection": "匯出所選資源...",
       "exportAll": "匯出全部...",
       "import": "匯入資源...",
+      "importFiles": "將檔案匯入為資源...",
       "new": {
         "objects": "新增物件...",
         "scripts": "新增腳本...",
@@ -87,6 +88,7 @@
       "find": "尋找",
       "findInCode": "在程式碼中尋找...",
       "findUsages": "尋找用法",
+      "findUses": "尋找其使用的內容",
       "replaceFrame": "取代精靈影格...",
       "paintFrame": "繪製影格...",
             "editAudio": "編輯音訊...",
@@ -341,7 +343,9 @@
   "rename": {
     "title": "重新命名",
     "label": "{name} 的新名稱",
-    "ok": "重新命名"
+    "ok": "重新命名",
+    "preview": "將變更 {count} 個名稱和字串；使用此資源的位置：{uses}：",
+    "more": "……另有 {count} 項"
   },
   "code": {
     "apply": "套用",
@@ -534,7 +538,10 @@
     "searching": "正在尋找 {name} 的用法...",
     "found": "{name} 在 {count} 處被使用。",
     "none": "{name} 未在任何地方使用。",
-    "failed": "無法搜尋 {name}：{reason}"
+    "failed": "無法搜尋 {name}：{reason}",
+    "usesSearching": "正在尋找 {name} 使用的內容...",
+    "usesFound": "{name} 使用了 {count} 個資源。按兩下可開啟。",
+    "usesNone": "{name} 沒有使用任何資源。"
   },
   "help": {
     "noBrowser": "無法啟動瀏覽器。請自行開啟 {url}。"
@@ -556,7 +563,11 @@
     "failed": "操作失敗：{reason}",
     "nothingToRevert": "沒有未儲存的變更。",
     "revertTitle": "還原到已儲存",
-    "confirmRevert": "要捨棄 {name} 的 {count} 項未儲存變更並重新載入檔案嗎？"
+    "confirmRevert": "要捨棄 {name} 的 {count} 項未儲存變更並重新載入檔案嗎？",
+    "pickFiles": "選擇圖片、聲音或 GML 檔案",
+    "filesImported": "已從檔案新增 {count} 個資源。",
+    "fileFailed": "無法匯入「{name}」：{reason}",
+    "selectedCount": "已選的 {count} 個資源"
   },
   "mods": {
     "pickOriginal": "原始資料檔案（修補所套用的檔案）",
@@ -630,7 +641,10 @@
     "roomWarning": "從房間 {room} 開始：遊戲會直接在該房間開啟，因此先前房間所做的設定（全域變數、存檔狀態、持續物件）都不存在，遊戲可能出錯或顯示不正常。不在房間順序中的房間無法這樣啟動。",
     "stopped": "遊戲已停止。",
     "noRuntime": "找不到 GameMaker 執行階段。請在設定中新增其資料夾。",
-    "pickRuntime": "用此執行階段執行一次遊戲："
+    "pickRuntime": "用此執行階段執行一次遊戲：",
+    "gameExe": "遊戲",
+    "colVersion": "版本",
+    "colPath": "路徑"
   },
   "update": {
     "title": "更新",
@@ -1048,5 +1062,11 @@
   "empty": {
     "problems": "沒有問題。",
     "output": "尚無任何回報。"
+  },
+  "explorer": {
+    "deleteManyTitle": "刪除 {count} 個資源",
+    "deleteMany": "要刪除這 {count} 個資源嗎？\n{names}",
+    "deleteManyUses": "所選內容之外有 {count} 處在使用它們；這些引用將被清除或移除：\n{places}",
+    "duplicatedMany": "已複製 {count} 個資源。"
   }
 }

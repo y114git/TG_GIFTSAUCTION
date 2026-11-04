@@ -218,8 +218,8 @@ public sealed class PropertyGridTab : DockPanel
 
     private readonly Dictionary<string, PropertyKind> _headings = [];
 
-    /// <summary>The field name as words: MarginLeft shows as "Margin Left". The path, filter and edits keep the field name.</summary>
-    private static string Spaced(string name) => string.Concat(name.Select((c, i) => i > 0 && char.IsUpper(c) && (char.IsLower(name[i - 1]) || char.IsDigit(name[i - 1])) ? " " + c : c.ToString()));
+    /// <summary>The field name as words: MarginLeft shows as "Margin Left", and the sprite fields SVersion and SSpriteType as "Special Version" and "Special Sprite Type". The path, filter and edits keep the field name.</summary>
+    public static string Spaced(string name) => name is ['S', >= 'A' and <= 'Z', >= 'a' and <= 'z', ..] ? "Special " + Spaced(name[1..]) : string.Concat(name.Select((c, i) => i > 0 && char.IsUpper(c) && (char.IsLower(name[i - 1]) || char.IsDigit(name[i - 1])) ? " " + c : c.ToString()));
 
     /// <summary>Opens or closes the group or list with this path (what a click on its heading does).</summary>
     public void Toggle(string path)
@@ -344,7 +344,7 @@ public sealed class PropertyGridTab : DockPanel
                 var boxes = new WrapPanel { Name = "Prop_" + row.Path, IsEnabled = !row.ReadOnly };
                 foreach (var flag in row.Choices ?? [])
                 {
-                    var one = new CheckBox { Content = flag, IsChecked = set.Contains(flag), Margin = new Thickness(0, 0, 12, 0), Name = "Flag_" + row.Path + "_" + flag };
+                    var one = new CheckBox { Content = Spaced(flag), IsChecked = set.Contains(flag), Margin = new Thickness(0, 0, 12, 0), Name = "Flag_" + row.Path + "_" + flag };
                     one.IsCheckedChanged += (_, _) =>
                     {
                         if (one.IsChecked == true) set.Add(flag); else set.Remove(flag);

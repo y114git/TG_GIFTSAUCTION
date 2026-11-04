@@ -39,6 +39,12 @@ public partial class MainWindow
     public void DuplicateResource()
     {
         if (Workspaces.Current is not { } workspace) return;
+        if (Explorer.SelectedKeys.Count > 1)
+        {
+            DuplicateMany(workspace, BulkResources.Split(Explorer.SelectedKeys));
+            return;
+        }
+
         var key = Explorer.SelectedKey ?? (Docking.ActiveTabId is { } id ? Docking.Tabs.Get(id)?.Key : null);
         if (key is null || ResourceTypes.SplitKey(key) is not var (type, name) || !ResourceDuplicate.Types.Contains(type)) return;
         _ = new RenameWindow("", copy => CopyResource(workspace, type, name, copy), Loc.Current.Format("explorer.duplicateTitle", ("name", name)), Loc.Current["explorer.duplicateLabel"], Loc.Current["explorer.newOk"]).AskAsync(this);
@@ -78,9 +84,64 @@ public partial class MainWindow
         workspace.Edit(new ResourceMoveCommand(type, name, by));
     }
 
+    /// <summary>Deletes every selected resource as one undo step, after one question that lists what uses them.</summary>
+    private async Task DeleteManyAsync(Workspace workspace, IReadOnlyList<(string Type, string Name)> items)
+    {
+        var chosen = items.ToHashSet();
+        var used = new List<(string Type, string Name, bool Used)>();
+        var places = new List<string>();
+        // shortcut: one reference index per resource (about 160 ms each on a large game); share one index when selections of hundreds matter.
+        foreach (var (type, name) in items)
+        {
+            var outside = (await UsageSearch.FindAsync(workspace, type, name)).Where(h => h.OwnerType is null || !chosen.Contains((h.OwnerType, h.OwnerName))).ToList();
+            used.Add((type, name, outside.Count > 0));
+            places.AddRange(outside.Select(h => $"  {name} < {h.OwnerType} {h.OwnerName}: {h.Where}"));
+        }
+
+        var list = string.Join(Environment.NewLine, items.Take(8).Select(i => "  " + i.Name)) + (items.Count > 8 ? Environment.NewLine + $"  ... +{items.Count - 8}" : "");
+        var uses = places.Count == 0 ? "" : Environment.NewLine + Loc.Current.Format("explorer.deleteManyUses", ("count", places.Count), ("places", string.Join(Environment.NewLine, places.Take(8)) + (places.Count > 8 ? Environment.NewLine + $"  ... +{places.Count - 8}" : "")));
+        if (!await Confirm(Loc.Current.Format("explorer.deleteManyTitle", ("count", items.Count)), Loc.Current.Format("explorer.deleteMany", ("count", items.Count), ("names", list)) + uses)) return;
+        try
+        {
+            workspace.Edit(BulkResources.Delete(used));
+        }
+        catch (InvalidOperationException e)
+        {
+            Notify(NotificationLevel.Error, e.Message);
+            return;
+        }
+
+        foreach (var tab in Docking.Tabs.Tabs.Where(t => ResourceTypes.SplitKey(t.Key ?? "") is var (type, name) && chosen.Contains((type, name))).ToList()) Docking.CloseTab(tab.Id);
+    }
+
+    /// <summary>Copies every selected object or script as one undo step; the copies are named name_copy.</summary>
+    private void DuplicateMany(Workspace workspace, IReadOnlyList<(string Type, string Name)> items)
+    {
+        try
+        {
+            EditCommand command;
+            IReadOnlyList<string> keys;
+            using (workspace.Lock.Read()) command = BulkResources.Duplicate(workspace.Data, items, out keys);
+            if (keys.Count == 0) return;
+            workspace.Edit(command);
+            Notify(NotificationLevel.Info, Loc.Current.Format("explorer.duplicatedMany", ("count", keys.Count)));
+            Explorer.Select(keys[^1]);
+        }
+        catch (Exception e) when (e is InvalidOperationException or CodeCompileException)
+        {
+            Notify(NotificationLevel.Error, e.Message);
+        }
+    }
+
     public void DeleteResource()
     {
         if (Workspaces.Current is not { } workspace) return;
+        if (Explorer.SelectedKeys.Count > 1)
+        {
+            _ = DeleteManyAsync(workspace, [.. BulkResources.Split(Explorer.SelectedKeys).Where(i => ResourceListCommand.Deletable.Contains(i.Type))]);
+            return;
+        }
+
         var key = Explorer.SelectedKey ?? (Docking.ActiveTabId is { } id ? Docking.Tabs.Get(id)?.Key : null);
         if (key is null || ResourceTypes.SplitKey(key) is not var (type, name) || !ResourceListCommand.Deletable.Contains(type)) return;
         _ = DeleteAsync(workspace, key, type, name);
@@ -116,7 +177,14 @@ public partial class MainWindow
         if (Workspaces.Current is null) return;
         var menu = new ContextMenu();
         MenuItem Item(string id) => new() { Header = Loc.Current[AppCommands.TitleKey(id)], InputGesture = Shortcuts.Parse(Registry.Get(id).Shortcut), Command = new RegistryCommand(Registry, Registry.Get(id)) };
-        if (row.IsItem)
+        if (row.IsItem && Explorer.SelectedKeys.Count > 1)
+        {
+            // Several selected: only the commands that work on all of them.
+            menu.Items.Add(Item("file.exportSelection"));
+            menu.Items.Add(Item("edit.duplicate"));
+            menu.Items.Add(Item("edit.delete"));
+        }
+        else if (row.IsItem)
         {
             if (row.Key != "general") menu.Items.Add(Item("edit.rename"));
             menu.Items.Add(Item("edit.copyName"));

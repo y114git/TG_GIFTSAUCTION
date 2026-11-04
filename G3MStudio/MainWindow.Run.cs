@@ -22,15 +22,20 @@ public sealed partial class MainWindow
     public async Task RunWithRuntimeAsync()
     {
         var folders = RuntimeFinder.DefaultFolders().Concat(Workspaces.Settings.Current.RuntimeFolders.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
-        var runtimes = RuntimeFinder.Find(folders);
-        if (runtimes.Count == 0)
+        var rows = RuntimeFinder.Find(folders).ToList();
+        if (RuntimeFinder.Gms1() is { } gms1) rows.Add(gms1);
+        var settings = Workspaces.Settings.Current;
+        // The first row is the game's own executable, the one a plain Run uses.
+        if (Workspaces.Current is { } workspace && (settings.RunRunner.Length > 0 ? settings.RunRunner : GameRun.FindRunner(workspace.Path, workspace.Data.GeneralInfo?.FileName?.Content)) is { } own)
+            rows.Insert(0, new RuntimeInfo(Loc.Current["run.gameExe"], own));
+        if (rows.Count == 0)
         {
             Notify(NotificationLevel.Info, Loc.Current["run.noRuntime"]);
             return;
         }
 
-        if (await ProjectDialogs.AskChoiceAsync(this, Loc.Current["cmd.run.withRuntime"].TrimEnd('.'), Loc.Current["run.pickRuntime"], [.. runtimes.Select(r => r.Version + "  " + r.Runner)]) is { } at)
-            await RunGameAsync(runner: runtimes[at].Runner);
+        if (await ProjectDialogs.AskChoiceAsync(this, Loc.Current["cmd.run.withRuntime"].TrimEnd('.'), Loc.Current["run.pickRuntime"], [.. rows.Select(r => r.Version + "\t" + r.Runner)], [Loc.Current["run.colVersion"], Loc.Current["run.colPath"]]) is { } at)
+            await RunGameAsync(runner: rows[at].Runner);
     }
 
     public async Task PlayRoomAsync()

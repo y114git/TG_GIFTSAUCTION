@@ -38,13 +38,16 @@ public sealed partial class MainWindow
         }
 
         if (!ApplyCodeEditors()) return false;
-        var saved = await SaveOrSyncAsync(workspace, async () => await Pipeline.SaveAsync(workspace.Data, target), Path.GetFileName(target));
+        var saved = await SaveOrSyncAsync(workspace, async () => await workspace.SaveCopyAsync(Pipeline, target), Path.GetFileName(target));
         if (!saved || !move) return saved;
         var old = workspace.Path;
-        await OpenAsync(target);
+        // The saved copy holds the edits, so the old workspace has nothing left to ask about.
+        await OpenAsync(target, askAboutUnsaved: false);
         // Only when the new file is open do the edits of the old one stop waiting for recovery: they live in the new file now.
         if (Workspaces.Current is not { } current || current.Path != Path.GetFullPath(target)) return false;
-        File.Delete(Journal.FileFor(Workspaces.UserData, old));
+        // The same file again shares the journal of the workspace that just opened it.
+        var oldJournal = Journal.FileFor(Workspaces.UserData, old);
+        if (oldJournal != Journal.FileFor(Workspaces.UserData, current.Path)) File.Delete(oldJournal);
         return true;
     }
 }

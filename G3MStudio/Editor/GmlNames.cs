@@ -6,28 +6,36 @@ namespace G3MStudio.Editor;
 /// <summary>Tells the colorizer what a GML name stands for, from GameMaker's built-in names and the resources of the open data file.</summary>
 public static class GmlNames
 {
-    private static readonly Lazy<Dictionary<string, string>> Builtin = new(() =>
+    /// <summary>The built-in names the compiler accepts for the GameMaker version of the data, plus the functions the data already calls (UTMT-CODE-15).</summary>
+    public static Dictionary<string, string> BuiltinFor(G3MLib.DataFile.GameMakerData data)
     {
-        var list = new BuiltinList();
+        var list = new BuiltinList(data);
         var names = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var name in list.InstanceVars.Keys.Concat(list.GlobalVars.Keys).Concat(list.GlobalArrayVars.Keys)) names[name] = "Variable";
         foreach (var name in list.Constants.Keys) names[name] = "Constant";
         foreach (var name in list.Functions.Keys) names[name] = "Function";
         return names;
-    });
+    }
 
     /// <summary>The names of one data file read in one pass: what each is (for the colors), where it leads (for Go to Definition) and the list to complete from.</summary>
-    private sealed record Table(int Version, Dictionary<string, string> Own, Dictionary<string, string> Definitions, List<KeyValuePair<string, string>> All);
+    private sealed record Table(int Version, Dictionary<string, string> Own, Dictionary<string, string> Definitions, List<KeyValuePair<string, string>> All, Dictionary<string, string> Builtin, string GameVersion);
 
     // One table per workspace, rebuilt when the edit history has moved (any edit, undo or bulk change), so every code tab shares one walk of the file.
     private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Workspace, Table> Tables = [];
 
     private static Table TableOf(Workspace workspace)
     {
-        if (Tables.TryGetValue(workspace, out var known) && known.Version == workspace.History.Version) return known;
+        Tables.TryGetValue(workspace, out var known);
+        if (known is not null && known.Version == workspace.History.Version) return known;
         var (own, definitions) = (new Dictionary<string, string>(StringComparer.Ordinal), new Dictionary<string, string>(StringComparer.Ordinal));
+        string version;
+        Dictionary<string, string> builtin;
         using (workspace.Lock.Read())
         {
+            var info = workspace.Data.GeneralInfo;
+            version = $"{info?.Major}.{info?.Minor}.{info?.Release}.{info?.Build}";
+            // shortcut: functions the data starts calling after the first read are not added until the game version changes or the file is reopened.
+            builtin = known is not null && known.GameVersion == version ? known.Builtin : BuiltinFor(workspace.Data);
             foreach (var type in ResourceTypes.All.Where(t => !t.IsData))
             {
                 foreach (var item in type.Items(workspace.Data) ?? [])
@@ -39,14 +47,14 @@ public static class GmlNames
             }
         }
 
-        var table = new Table(workspace.History.Version, own, definitions, [.. Builtin.Value.Where(b => !own.ContainsKey(b.Key)).Concat(own)]);
+        var table = new Table(workspace.History.Version, own, definitions, [.. builtin.Where(b => !own.ContainsKey(b.Key)).Concat(own)], builtin, version);
         Tables.AddOrUpdate(workspace, table);
         return table;
     }
 
     /// <summary>A lookup for the names of one data file: scripts are functions, every other resource is an asset, then the built-in names. It follows renames and new resources.</summary>
     public static Func<string, string?> For(Workspace workspace) =>
-        name => TableOf(workspace).Own.TryGetValue(name, out var found) ? found : Builtin.Value.GetValueOrDefault(name);
+        name => TableOf(workspace).Own.TryGetValue(name, out var found) ? found : TableOf(workspace).Builtin.GetValueOrDefault(name);
 
     /// <summary>Every name the editor can complete: the resources of the file, then the built-in names (a resource wins when both have the name).</summary>
     public static Func<IReadOnlyList<KeyValuePair<string, string>>> Completions(Workspace workspace) => () => TableOf(workspace).All;

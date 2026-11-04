@@ -62,8 +62,16 @@ public sealed class WorkspaceService(UserData userData, RecentFiles recent)
         // Closed first: the same file reopened would find its own journal still held.
         Close();
         var workspace = new Workspace(full, await identity, data, warnings);
-        workspace.StartJournal(UserData);
-        Projects.Attach(workspace);
+        try
+        {
+            workspace.StartJournal(UserData);
+            Projects.Attach(workspace);
+        }
+        catch
+        {
+            workspace.Dispose();
+            throw;
+        }
         Current = workspace;
         ApplyRunProfile(workspace);
         Recent.Add(full, workspace.Name, workspace.Version, DateTimeOffset.Now);

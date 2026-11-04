@@ -14,17 +14,20 @@ public sealed class InspectorPanel : ScrollViewer
     private readonly TextBlock _type = new() { Name = "InspectorType", Classes = { "muted" } };
     private readonly TextBlock _uses = new() { Name = "InspectorUses", TextWrapping = Avalonia.Media.TextWrapping.Wrap };
     private readonly Button _find = new() { Name = "InspectorFindUsages", Content = Loc.Current["cmd.edit.findUsages"], IsVisible = false };
+    private readonly Button _findUses = new() { Name = "InspectorFindUses", Content = Loc.Current["cmd.edit.findUses"], IsVisible = false };
     private int _version;
 
-    public InspectorPanel(Action findUsages)
+    public InspectorPanel(Action findUsages, Action? findUses = null)
     {
         Name = "InspectorPanel";
         _find.Click += (_, _) => findUsages();
+        _findUses.Click += (_, _) => findUses?.Invoke();
         _stack.Children.Add(_context);
         _stack.Children.Add(_title);
         _stack.Children.Add(_type);
         _stack.Children.Add(_uses);
         _stack.Children.Add(_find);
+        _stack.Children.Add(_findUses);
         Content = _stack;
         _ = ShowAsync(null, null);
     }
@@ -47,7 +50,7 @@ public sealed class InspectorPanel : ScrollViewer
         _title.Text = name;
         _type.Text = Loc.Current["explorer.type." + type];
         _uses.Text = "";
-        _find.IsVisible = true;
+        _find.IsVisible = _findUses.IsVisible = true;
         try
         {
             var count = await UsageSearch.CountAsync(workspace, resource);
