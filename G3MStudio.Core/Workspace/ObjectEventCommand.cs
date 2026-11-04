@@ -37,7 +37,6 @@ public sealed class ObjectEventCommand : EditCommand
     public static ObjectEventCommand FromArgs(IReadOnlyDictionary<string, string> a) =>
         new(a["object"], a["operation"], uint.Parse(a["type"], CultureInfo.InvariantCulture), uint.Parse(a["subtype"], CultureInfo.InvariantCulture));
 
-    /// <summary>The name GameMaker gives the code of an event.</summary>
     public static string CodeName(string gameObject, uint type, uint subtype) => $"gml_Object_{gameObject}_{(EventType)type}_{subtype}";
 
     public override void Apply(GameMakerData data)

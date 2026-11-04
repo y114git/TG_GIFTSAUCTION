@@ -32,6 +32,6 @@ public sealed class GeneralChunksTests
         using var data = GameMakerData.CreateNew2026LTS();
         var tags = ResourceTypes.Find(data, ResourceTypes.KeyOf("general", ResourceTypes.TagsName))!;
         var row = PropertyModel.Describe(tags).Single(r => r.Name == "AssetTags");
-        Assert.Equal("0 items", row.Value);
+        Assert.Equal(("0", 0), (row.Value, row.Count));
     }
 }

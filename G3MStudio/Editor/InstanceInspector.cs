@@ -86,7 +86,7 @@ public sealed class InstanceInspector : StackPanel
     /// <summary>Sets one field on every selected instance; values that are already right are skipped.</summary>
     public void Set(string field, string value)
     {
-        var commands = _selection.Select(i => new RoomInstanceCommand(_room, RoomInstanceCommand.Set, i.InstanceID, objectName: field, value: value)).ToList();
+        var commands = _selection.Select(i => new RoomInstanceCommand(_room, RoomInstanceCommand.Set, i.InstanceID, objectName: field) { Value = value }).ToList();
         if (commands.Count > 0) _workspace.Edit(commands.Count == 1 ? commands[0] : new GroupCommand(commands));
     }
 }

@@ -92,7 +92,6 @@ public sealed class HexSource : IDisposable
         return -1;
     }
 
-    /// <summary>A decimal number or 0x followed by hex digits.</summary>
     public static bool TryParseOffset(string? text, out long offset)
     {
         offset = 0;

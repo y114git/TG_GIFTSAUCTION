@@ -295,7 +295,7 @@ public sealed class DockingTests
             Assert.True(later.Tabs.Get(b)!.Preview);
             Assert.True(later.Tabs.Get(c)!.Pinned);
             Assert.False(later.DocumentOf(c)!.CanClose);
-            Assert.Equal("later sprites:spr_a", ((TextBlock)later.Documents().Single(d => d.Title == "spr_a").Content!).Text);
+            Assert.Equal("later sprites:spr_a", ((TextBlock)((ContentControl)later.Documents().Single(d => d.Title == "spr_a").Content!).Content!).Text);
             Assert.Contains("BottomDock[History,Git,Problems,Output,Explorer,Usages]", Whole(later), StringComparison.Ordinal);
             Assert.DoesNotContain("Search", Whole(later), StringComparison.Ordinal);
             Assert.Single(later.Layout.Windows!);

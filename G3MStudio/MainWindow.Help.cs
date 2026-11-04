@@ -14,7 +14,6 @@ namespace G3MStudio;
 /// <summary>Help menu and the Edit commands that go to the text editor having the focus.</summary>
 public sealed partial class MainWindow
 {
-    /// <summary>The documentation lives in the G3MWiki repository.</summary>
     public const string DocumentationUrl = "https://github.com/y114git/G3MWiki";
 
     public void ShowAbout() => _ = new AboutWindow().ShowDialog(this);
@@ -67,8 +66,9 @@ public sealed partial class MainWindow
         if (page is null || item is null) return null;
         var area = new Avalonia.PixelRect(item.SourceX, item.SourceY, item.SourceWidth, item.SourceHeight).Intersect(new Avalonia.PixelRect(page.PixelSize));
 #pragma warning disable CA2000 // the page bitmap belongs to the shared cache; the crop only views it
-        return area.Width > 0 && area.Height > 0 ? new Avalonia.Media.Imaging.CroppedBitmap(page, area) : null;
+        Avalonia.Media.Imaging.CroppedBitmap? crop = area.Width > 0 && area.Height > 0 ? new Avalonia.Media.Imaging.CroppedBitmap(page, area) : null;
 #pragma warning restore CA2000
+        return crop;
     }
 
     private static async Task<IReadOnlyList<UsageHit>> UsesWithTypes(Task<IReadOnlyList<UsageHit>> search) =>

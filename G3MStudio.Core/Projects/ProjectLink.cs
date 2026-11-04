@@ -170,6 +170,7 @@ public sealed partial class ProjectLink
     /// <summary>The project as it is now becomes the base of the next three-way merge, and one snapshot is taken.</summary>
     private void RecordSync(string label)
     {
+        // A pool thread runs this, so blocking cannot deadlock.
         Snapshots.Create(G3MProjectService.OpenAsync(ProjectFile).GetAwaiter().GetResult(), label, DateTimeOffset.Now);
         SaveBase();
     }
@@ -178,7 +179,7 @@ public sealed partial class ProjectLink
 
     private void SaveBase()
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(BaseFile)!);
+        Directory.CreateDirectory(Path.GetDirectoryName(BaseFile) ?? ".");
         File.Copy(ProjectFile, BaseFile, true);
     }
 

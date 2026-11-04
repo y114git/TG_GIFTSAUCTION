@@ -24,45 +24,51 @@ public sealed class RoomInstanceCommand : EditCommand
     private readonly string _object;
     private readonly int _x;
     private readonly int _y;
-    private readonly float _scaleX;
-    private readonly float _scaleY;
     private (int X, int Y, float ScaleX, float ScaleY) _before;
     private string _oldValue = "";
-    private readonly Dictionary<string, string> _args;
     private (int X, int Y) _oldPosition;
     private GameMakerRoom.GameObject? _instance;
     private readonly List<(IList<GameMakerRoom.GameObject> List, int Index)> _slots = [];
     private uint _oldLastObj;
 
     // id: the instance to move or delete; for an add, 0 picks the next free id.
-    public RoomInstanceCommand(string room, string operation, uint id, int x = 0, int y = 0, string objectName = "", float scaleX = 1, float scaleY = 1, string value = "")
+    public RoomInstanceCommand(string room, string operation, uint id, int x = 0, int y = 0, string objectName = "")
     {
-        (_room, _operation, _x, _y, _object, _scaleX, _scaleY) = (room, operation, x, y, objectName, scaleX, scaleY);
-        _args = new Dictionary<string, string>
-        {
-            ["room"] = room,
-            ["operation"] = operation,
-            ["id"] = id.ToString(CultureInfo.InvariantCulture),
-            ["x"] = x.ToString(CultureInfo.InvariantCulture),
-            ["y"] = y.ToString(CultureInfo.InvariantCulture),
-            ["object"] = objectName,
-            ["sx"] = scaleX.ToString("R", CultureInfo.InvariantCulture),
-            ["sy"] = scaleY.ToString("R", CultureInfo.InvariantCulture),
-            ["value"] = value,
-        };
+        (_room, _operation, Id, _x, _y, _object) = (room, operation, id, x, y, objectName);
     }
+
+    public float ScaleX { get; init; } = 1;
+
+    public float ScaleY { get; init; } = 1;
+
+    public string Value { get; init; } = "";
 
     public override string Kind => Name;
 
     public override string Editor => "rooms";
 
-    public override IReadOnlyDictionary<string, string> Args => _args;
+    public override IReadOnlyDictionary<string, string> Args => new Dictionary<string, string>
+    {
+        ["room"] = _room,
+        ["operation"] = _operation,
+        ["id"] = Id.ToString(CultureInfo.InvariantCulture),
+        ["x"] = _x.ToString(CultureInfo.InvariantCulture),
+        ["y"] = _y.ToString(CultureInfo.InvariantCulture),
+        ["object"] = _object,
+        ["sx"] = ScaleX.ToString("R", CultureInfo.InvariantCulture),
+        ["sy"] = ScaleY.ToString("R", CultureInfo.InvariantCulture),
+        ["value"] = Value,
+    };
 
     public override IReadOnlyList<ProjectTouch>? Touches => _operation == Add ? [new("Rooms", _room), new("GeneralInfo", null)] : [new("Rooms", _room)];
 
     public static RoomInstanceCommand FromArgs(IReadOnlyDictionary<string, string> a) => new(a["room"], a["operation"], uint.Parse(a["id"], CultureInfo.InvariantCulture),
-        int.Parse(a["x"], CultureInfo.InvariantCulture), int.Parse(a["y"], CultureInfo.InvariantCulture), a["object"],
-        float.Parse(a.GetValueOrDefault("sx", "1"), CultureInfo.InvariantCulture), float.Parse(a.GetValueOrDefault("sy", "1"), CultureInfo.InvariantCulture), a.GetValueOrDefault("value", ""));
+        int.Parse(a["x"], CultureInfo.InvariantCulture), int.Parse(a["y"], CultureInfo.InvariantCulture), a["object"])
+    {
+        ScaleX = float.Parse(a.GetValueOrDefault("sx", "1"), CultureInfo.InvariantCulture),
+        ScaleY = float.Parse(a.GetValueOrDefault("sy", "1"), CultureInfo.InvariantCulture),
+        Value = a.GetValueOrDefault("value", ""),
+    };
 
     /// <summary>Every instance list of a room: one per instance layer, or the flat list of the older layout.</summary>
     public static IEnumerable<IList<GameMakerRoom.GameObject>> Lists(GameMakerRoom room)
@@ -74,7 +80,7 @@ public sealed class RoomInstanceCommand : EditCommand
 
     private GameMakerRoom FindRoom(GameMakerData data) => data.Rooms.FirstOrDefault(r => r.Name.Content == _room) ?? throw new InvalidOperationException($"Room '{_room}' does not exist.");
 
-    private uint Id => uint.Parse(_args["id"], CultureInfo.InvariantCulture);
+    private uint Id { get; set; }
 
     // The room keeps one master list of all its instances; a layer lists the same objects again and the writer stores only their ids.
     // An instance missing from the master list reads back as nonexistent, so every change goes to the master list and to the layer.
@@ -88,9 +94,9 @@ public sealed class RoomInstanceCommand : EditCommand
             var layer = (room.Layers ?? []).Select(l => l.InstancesData?.Instances).FirstOrDefault(l => l is not null);
             _oldLastObj = data.GeneralInfo.LastObj;
             var id = Id != 0 ? Id : Math.Max(_oldLastObj, data.Rooms.SelectMany(Lists).SelectMany(l => l).Select(i => i.InstanceID).DefaultIfEmpty().Max()) + 1;
-            _args["id"] = id.ToString(CultureInfo.InvariantCulture);
+            Id = id;
             data.GeneralInfo.LastObj = Math.Max(_oldLastObj, id);
-            _instance = new GameMakerRoom.GameObject { ObjectDefinition = definition, X = _x, Y = _y, InstanceID = id, ScaleX = _scaleX, ScaleY = _scaleY };
+            _instance = new GameMakerRoom.GameObject { ObjectDefinition = definition, X = _x, Y = _y, InstanceID = id, ScaleX = ScaleX, ScaleY = ScaleY };
             foreach (var list in new IList<GameMakerRoom.GameObject>?[] { room.GameObjects, layer }.OfType<IList<GameMakerRoom.GameObject>>())
             {
                 _slots.Add((list, list.Count));
@@ -109,7 +115,7 @@ public sealed class RoomInstanceCommand : EditCommand
         else if (_operation == Set)
         {
             // For Set the object name slot holds the field name and the value argument the new value.
-            var value = _args["value"];
+            var value = Value;
             _oldValue = ReadField(_instance, _object);
             WriteField(_instance, _object, value, data);
         }

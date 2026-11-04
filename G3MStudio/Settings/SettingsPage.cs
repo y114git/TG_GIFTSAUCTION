@@ -1,12 +1,9 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
-using Avalonia.Media;
-using Avalonia.Platform.Storage;
 using G3MStudio.Core.Commands;
 using G3MStudio.Core.Projects;
 using G3MStudio.Core.Settings;
-using G3MStudio.Core.Workspace;
 using G3MStudio.Fonts;
 using G3MStudio.Localization;
 
@@ -16,7 +13,7 @@ namespace G3MStudio.Settings;
 /// The Settings page (design/settings.md): a page in the window, not a dialog. Every control writes its setting at once; the window applies it.
 /// The controls are named so tests can find them.
 /// </summary>
-public sealed class SettingsPage : UserControl
+public sealed partial class SettingsPage : UserControl
 {
     private static readonly string[] Weights = ["", "Normal", "Medium", "SemiBold", "Bold"];
 
@@ -43,43 +40,6 @@ public sealed class SettingsPage : UserControl
 
         AttachedToVisualTree += (_, _) => Loc.Current.PropertyChanged += Rebuild;
         DetachedFromVisualTree += (_, _) => Loc.Current.PropertyChanged -= Rebuild;
-    }
-
-    // One row per decompiler setting of the library (UTMT-GMLS-01 to GMLS-08): a check box for a switch, a box for a text value. A value equal to the default is not stored, so the file only holds what the user changed.
-    private List<Control> DecompilerRows(AppSettings s)
-    {
-        var rows = new List<Control>();
-        foreach (var field in DecompilerOptions.Fields)
-        {
-            var name = field.Name;
-            var label = DecompilerOptions.Label(name);
-            var current = s.Decompiler.TryGetValue(name, out var saved) && DecompilerOptions.Valid(field, saved) ? saved : DecompilerOptions.DefaultOf(field);
-            void Store(string value)
-            {
-                current = value;
-                _store.Update(x => x with { Decompiler = DecompilerOptions.DefaultOf(field) == value ? x.Decompiler.Where(p => p.Key != name).ToDictionary(p => p.Key, p => p.Value) : new Dictionary<string, string>(x.Decompiler) { [name] = value } });
-            }
-
-            if (DecompilerOptions.IsText(field))
-            {
-                var box = new TextBox { Name = "Decompiler_" + name, Text = current, MinWidth = 220, Tag = label };
-                box.LostFocus += (_, _) =>
-                {
-                    if (_building || box.Text == current) return;
-                    if (DecompilerOptions.Valid(field, box.Text ?? "")) Store(box.Text ?? "");
-                    else box.Text = current;
-                };
-                rows.Add(new StackPanel { Spacing = 4, Tag = label, Children = { new TextBlock { Text = label }, box } });
-            }
-            else
-            {
-                var check = new CheckBox { Name = "Decompiler_" + name, Content = label, Tag = label, IsChecked = current == "true" };
-                check.IsCheckedChanged += (_, _) => { if (!_building) Store(check.IsChecked == true ? "true" : "false"); };
-                rows.Add(check);
-            }
-        }
-
-        return rows;
     }
 
     private static TextBlock Heading(string key) => new() { Text = Loc.Current[key], FontSize = 16, Margin = new Thickness(0, 12, 0, 0), Classes = { "accent" } };
@@ -109,7 +69,7 @@ public sealed class SettingsPage : UserControl
         {
             var (heading, items) = sections[index];
             // Without a search only the chosen section shows; a search looks in all of them.
-            var headingHit = text.Length == 0 ? index == selected : heading.Text!.Contains(text, StringComparison.CurrentCultureIgnoreCase);
+            var headingHit = text.Length == 0 ? index == selected : (heading.Text ?? "").Contains(text, StringComparison.CurrentCultureIgnoreCase);
             var any = headingHit;
             foreach (var item in items)
             {
@@ -121,285 +81,23 @@ public sealed class SettingsPage : UserControl
         }
     }
 
-    /// <summary>The accent and the code colors: a swatch, a #RRGGBB box and a reset button per color. A change is stored and shown at once.</summary>
-    private StackPanel Colors()
+    private ComboBox Triggers(string name, Trigger value, Func<AppSettings, Trigger, AppSettings> set)
     {
-        static string HexOf(string token) =>
-            Application.Current is { } app && app.TryGetResource(token, app.ActualThemeVariant, out var found) && found is SolidColorBrush { Color: var c } ? $"#{c.R:X2}{c.G:X2}{c.B:X2}" : "#000000";
-
-        var block = new StackPanel { Spacing = 8 };
-        var labels = new List<string>();
-        foreach (var (group, keys) in ThemeColors.Groups)
-        {
-            block.Children.Add(new TextBlock { Text = Loc.Current[group], Classes = { "muted" }, Margin = new Thickness(0, 8, 0, 0) });
-            foreach (var key in keys)
-            {
-                var label = Loc.Current["colors." + key];
-                labels.Add(label);
-                var swatch = new Border { Name = "ColorSwatch_" + key, Width = 24, Height = 24, CornerRadius = new CornerRadius(4) };
-                var box = new TextBox { Name = "Color_" + key, Width = 110, MaxLength = 7 };
-                var reset = new Button { Name = "ColorReset_" + key, Content = Loc.Current["settings.reset"] };
-                void Show()
-                {
-                    var changed = _store.Current.Colors.TryGetValue(key, out var custom);
-                    // The theme token holds the color in use: the user's, or the default once the override is taken away.
-                    var hex = custom ?? HexOf(ThemeColors.Tokens(key).First());
-                    box.Text = hex;
-                    swatch.Background = new SolidColorBrush(Color.Parse(hex));
-                    reset.IsEnabled = changed;
-                }
-
-                void Commit()
-                {
-                    var text = box.Text?.Trim() ?? "";
-                    if (ThemeColors.IsValid(text)) _store.Update(x => x with { Colors = new Dictionary<string, string>(x.Colors) { [key] = text.ToUpperInvariant() } });
-                    Show(); // a value that is not #RRGGBB goes back to the color in use
-                }
-
-                box.LostFocus += (_, _) => Commit();
-                box.KeyDown += (_, e) =>
-                {
-                    if (e.Key == Avalonia.Input.Key.Enter) Commit();
-                };
-                reset.Click += (_, _) =>
-                {
-                    _store.Update(x => x with { Colors = x.Colors.Where(p => p.Key != key).ToDictionary() });
-                    Show();
-                };
-                Show();
-                block.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { new TextBlock { Text = label, Width = 200, VerticalAlignment = VerticalAlignment.Center }, swatch, box, reset } });
-            }
-        }
-
-        var export = new Button { Name = "ThemeExport", Content = Loc.Current["settings.themeExport"] };
-        export.Click += async (_, _) =>
-        {
-            if (TopLevel.GetTopLevel(this) is not { } top) return;
-            var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions { Title = Loc.Current["settings.themeExport"], DefaultExtension = "json", SuggestedFileName = "g3mstudio-theme.json" });
-            if (file?.TryGetLocalPath() is { } path) await File.WriteAllTextAsync(path, ThemeFile.Write(_store.Current.Colors));
-        };
-        var import = new Button { Name = "ThemeImport", Content = Loc.Current["settings.themeImport"] };
-        import.Click += async (_, _) =>
-        {
-            if (TopLevel.GetTopLevel(this) is not { } top) return;
-            var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = Loc.Current["settings.themeImport"], AllowMultiple = false });
-            if (files is not [{ } picked, ..] || picked.TryGetLocalPath() is not { } path) return;
-            try
-            {
-                var colors = ThemeFile.ReadFile(path);
-                _store.Update(x => x with { Colors = colors });
-                Content = Build(); // the boxes show the imported colors
-            }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException)
-            {
-                _themeMessage = Loc.Current.Format("settings.themeBad", ("reason", e.Message));
-                Content = Build();
-            }
-        };
-        block.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { export, import } });
-        block.Children.Add(new TextBlock { Name = "ThemeNote", Text = _themeMessage, Classes = { "muted" }, TextWrapping = TextWrapping.Wrap });
-        block.Tag = string.Join(' ', labels);
-        return block;
-    }
-
-    /// <summary>Fonts of the user's own: add a font file, remove one (Q56).</summary>
-    private StackPanel FontFiles()
-    {
-        var note = new TextBlock { Name = "FontNote", Text = _fontMessage, Classes = { "muted" }, TextWrapping = TextWrapping.Wrap };
-        var add = new Button { Name = "AddFont", Content = Loc.Current["settings.addFont"] };
-        add.Click += async (_, _) =>
-        {
-            if (TopLevel.GetTopLevel(this) is not { } top) return;
-            var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { AllowMultiple = true, FileTypeFilter = [new FilePickerFileType(Loc.Current["settings.fontFiles"]) { Patterns = UserFonts.FilePatterns }] });
-            foreach (var path in files.Select(f => f.TryGetLocalPath()).OfType<string>()) AddFont(path);
-        };
-        var list = new StackPanel { Spacing = 2 };
-        foreach (var family in _userFonts.Families.Order(StringComparer.CurrentCultureIgnoreCase))
-        {
-            var remove = new Button { Name = "RemoveFont_" + family, Content = Loc.Current["settings.removeFont"] };
-            remove.Click += (_, _) => RemoveFont(family);
-            DockPanel.SetDock(remove, Avalonia.Controls.Dock.Right);
-            list.Children.Add(new DockPanel { Children = { remove, new TextBlock { Text = family, VerticalAlignment = VerticalAlignment.Center } } });
-        }
-
-        return new StackPanel { Spacing = 4, Tag = Loc.Current["settings.addFont"], Children = { add, note, list } };
-    }
-
-    /// <summary>Adds one font file and picks its first family; a file that is no font leaves a note.</summary>
-    public void AddFont(string path)
-    {
-        var added = _userFonts.Add(path);
-        _fontMessage = added.Count == 0 ? Loc.Current.Format("settings.notAFont", ("file", Path.GetFileName(path))) : "";
-        if (added.Count > 0) _store.Update(x => x with { FontFamily = added[0] });
-        Content = Build();
-    }
-
-    private void RemoveFont(string family)
-    {
-        _userFonts.Remove(family);
-        if (_store.Current.FontFamily == family) _store.Update(x => x with { FontFamily = "" });
-        Content = Build();
-    }
-
-    private DockPanel Build()
-    {
-        var s = _store.Current;
-        _building = true;
         var triggers = Enum.GetValues<Trigger>();
-        var triggerNames = triggers.Select(t => Loc.Current["project.trigger." + t]).ToList();
-        ComboBox Triggers(string name, Trigger value, Func<AppSettings, Trigger, AppSettings> set)
-        {
-            var box = new ComboBox { Name = name, ItemsSource = triggerNames, SelectedIndex = Array.IndexOf(triggers, value), MinWidth = 240 };
-            box.SelectionChanged += (_, _) => { if (!_building && box.SelectedIndex >= 0) _store.Update(x => set(x, triggers[box.SelectedIndex])); };
-            return box;
-        }
+        var box = new ComboBox { Name = name, ItemsSource = triggers.Select(t => Loc.Current["project.trigger." + t]).ToList(), SelectedIndex = Array.IndexOf(triggers, value), MinWidth = 240 };
+        box.SelectionChanged += (_, _) => { if (!_building && box.SelectedIndex >= 0) _store.Update(x => set(x, triggers[box.SelectedIndex])); };
+        return box;
+    }
 
-        NumericUpDown Number(string name, int min, int max, int step, int value, Func<AppSettings, int, AppSettings> set)
-        {
-            var box = new NumericUpDown { Name = name, Minimum = min, Maximum = max, Increment = step, Value = value, FormatString = "0", Width = 120 };
-            box.ValueChanged += (_, e) => { if (!_building && e.NewValue is { } n) _store.Update(x => set(x, (int)n)); };
-            return box;
-        }
+    private NumericUpDown Number(string name, int min, int max, int step, int value, Func<AppSettings, int, AppSettings> set)
+    {
+        var box = new NumericUpDown { Name = name, Minimum = min, Maximum = max, Increment = step, Value = value, FormatString = "0", Width = 120 };
+        box.ValueChanged += (_, e) => { if (!_building && e.NewValue is { } n) _store.Update(x => set(x, (int)n)); };
+        return box;
+    }
 
-        var languages = Loc.Current.Languages.OrderBy(l => l.Key, StringComparer.Ordinal).ToList();
-        var language = new ComboBox { Name = "Language", ItemsSource = languages.Select(l => l.Value).ToList(), SelectedIndex = languages.FindIndex(l => l.Key == s.Language), MinWidth = 240 };
-        language.SelectionChanged += (_, _) => { if (!_building && language.SelectedIndex >= 0) _store.Update(x => x with { Language = languages[language.SelectedIndex].Key }); };
-
-        var fonts = new List<string> { "" };
-        fonts.AddRange(FontManager.Current.SystemFonts.Select(f => f.Name).Concat(_userFonts.Families).Distinct().Order(StringComparer.CurrentCultureIgnoreCase));
-        var family = new ComboBox { Name = "FontFamily", ItemsSource = fonts.Select(f => f.Length == 0 ? Loc.Current["settings.default"] : f).ToList(), SelectedIndex = Math.Max(0, fonts.IndexOf(s.FontFamily)), MinWidth = 240 };
-        family.SelectionChanged += (_, _) => { if (!_building && family.SelectedIndex >= 0) _store.Update(x => x with { FontFamily = fonts[family.SelectedIndex] }); };
-
-        var openFile = new Button { Name = "OpenSettingsFile", Content = Loc.Current["settings.openFile"] };
-        openFile.Click += async (_, _) =>
-        {
-            if (TopLevel.GetTopLevel(this) is { } top && await top.StorageProvider.TryGetFileFromPathAsync(_store.FilePath) is { } file) await top.Launcher.LaunchFileAsync(file);
-        };
-
-        var codeFamily = new ComboBox { Name = "CodeFontFamily", ItemsSource = fonts.Select(f => f.Length == 0 ? Loc.Current["settings.default"] : f).ToList(), SelectedIndex = Math.Max(0, fonts.IndexOf(s.CodeFontFamily)), MinWidth = 240 };
-        codeFamily.SelectionChanged += (_, _) => { if (!_building && codeFamily.SelectedIndex >= 0) _store.Update(x => x with { CodeFontFamily = fonts[codeFamily.SelectedIndex] }); };
-
-        var weight = new ComboBox { Name = "FontWeight", ItemsSource = Weights.Select(w => w.Length == 0 ? Loc.Current["settings.default"] : w).ToList(), SelectedIndex = Math.Max(0, Array.IndexOf(Weights, s.FontWeight)), MinWidth = 240 };
-        weight.SelectionChanged += (_, _) => { if (!_building && weight.SelectedIndex >= 0) _store.Update(x => x with { FontWeight = Weights[weight.SelectedIndex] }); };
-
-        var ask = new CheckBox { Name = "AskOnClose", Tag = Loc.Current["settings.askOnClose"], Content = Loc.Current["settings.askOnClose"], IsChecked = s.AskOnClose };
-        ask.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { AskOnClose = ask.IsChecked == true }); };
-
-        var rememberWindow = new CheckBox { Name = "RememberWindow", Tag = Loc.Current["settings.rememberWindow"], Content = Loc.Current["settings.rememberWindow"], IsChecked = s.RememberWindow };
-        rememberWindow.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { RememberWindow = rememberWindow.IsChecked == true }); };
-
-        var showNulls = new CheckBox { Name = "ShowNullEntries", Tag = Loc.Current["settings.showNullEntries"], Content = Loc.Current["settings.showNullEntries"], IsChecked = s.ShowNullEntries };
-        showNulls.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { ShowNullEntries = showNulls.IsChecked == true }); };
-
-        var gridOverride = new CheckBox { Name = "RoomGridOverride", Tag = Loc.Current["settings.roomGridOverride"], Content = Loc.Current["settings.roomGridOverride"], IsChecked = s.RoomGridOverride };
-        gridOverride.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { RoomGridOverride = gridOverride.IsChecked == true }); };
-
-        var decompiler = new StackPanel { Name = "DecompilerSettings", Spacing = 6 };
-        foreach (var row in DecompilerRows(s)) decompiler.Children.Add(row);
-
-        var codeWrap = new CheckBox { Name = "CodeWordWrap", Tag = Loc.Current["settings.codeWordWrap"], Content = Loc.Current["settings.codeWordWrap"], IsChecked = s.CodeWordWrap };
-        codeWrap.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { CodeWordWrap = codeWrap.IsChecked == true }); };
-        var codeNumbers = new CheckBox { Name = "CodeLineNumbers", Tag = Loc.Current["settings.codeLineNumbers"], Content = Loc.Current["settings.codeLineNumbers"], IsChecked = s.CodeLineNumbers };
-        codeNumbers.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { CodeLineNumbers = codeNumbers.IsChecked == true }); };
-
-        var reduce = new CheckBox { Name = "ReduceMotion", Tag = Loc.Current["settings.reduceMotion"], Content = Loc.Current["settings.reduceMotion"], IsChecked = s.ReduceMotion };
-        reduce.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { ReduceMotion = reduce.IsChecked == true }); };
-        var crash = new CheckBox { Name = "CrashReports", Tag = Loc.Current["settings.crashReports"], Content = Loc.Current["settings.crashReports"], IsChecked = s.CrashReports };
-        crash.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { CrashReports = crash.IsChecked == true }); };
-        var compact = new CheckBox { Name = "CompactDensity", Tag = Loc.Current["settings.compact"], Content = Loc.Current["settings.compact"], IsChecked = s.CompactDensity };
-        compact.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { CompactDensity = compact.IsChecked == true }); };
-
-        var linkState = new TextBlock { Name = "LinkMessage", Classes = { "muted" }, TextWrapping = TextWrapping.Wrap };
-        var registerLinks = new Button { Name = "RegisterLinks", Content = Loc.Current["settings.registerLinks"], IsEnabled = G3MStudio.Core.Links.LinkRegistration.Supported };
-        registerLinks.Click += (_, _) =>
-        {
-            try
-            {
-                G3MStudio.Core.Links.LinkRegistration.Register(Environment.ProcessPath ?? "");
-                linkState.Text = Loc.Current["settings.linksDone"];
-            }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException or PlatformNotSupportedException)
-            {
-                linkState.Text = Loc.Current["settings.linksFailed"] + ": " + e.Message;
-            }
-        };
-        var assocState = new TextBlock { Name = "AssociationMessage", Classes = { "muted" }, TextWrapping = TextWrapping.Wrap };
-        string AssocText() => G3MStudio.Core.Links.FileAssociations.Registered() is { Count: > 0 } now ? Loc.Current.Format("settings.assocNow", ("types", string.Join(" ", now))) : Loc.Current["settings.assocNone"];
-        assocState.Text = G3MStudio.Core.Links.FileAssociations.Supported ? AssocText() : Loc.Current["settings.assocWindows"];
-        var useStudio = new Button { Name = "AssociateFiles", Content = Loc.Current["settings.assocUse"], IsEnabled = G3MStudio.Core.Links.FileAssociations.Supported };
-        var dropStudio = new Button { Name = "DissociateFiles", Content = Loc.Current["settings.assocStop"], IsEnabled = G3MStudio.Core.Links.FileAssociations.Supported };
-        useStudio.Click += (_, _) =>
-        {
-            try
-            {
-                G3MStudio.Core.Links.FileAssociations.Register(Environment.ProcessPath ?? "", G3MStudio.Core.Links.FileAssociations.Extensions);
-                assocState.Text = AssocText();
-            }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException or PlatformNotSupportedException or System.Security.SecurityException)
-            {
-                assocState.Text = Loc.Current["settings.linksFailed"] + ": " + e.Message;
-            }
-        };
-        dropStudio.Click += (_, _) =>
-        {
-            try
-            {
-                G3MStudio.Core.Links.FileAssociations.Remove();
-                assocState.Text = AssocText();
-            }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Security.SecurityException)
-            {
-                assocState.Text = Loc.Current["settings.linksFailed"] + ": " + e.Message;
-            }
-        };
-        var location = new TextBox { Name = "Location", Text = _registry.RememberedRoot ?? "", MinWidth = 360 };
-        location.TextChanged += (_, _) => { if (!_building && !string.IsNullOrWhiteSpace(location.Text)) _registry.RememberRoot(location.Text.Trim()); };
-        var browse = new Button { Content = Loc.Current["project.location.browse"] };
-        browse.Click += async (_, _) =>
-        {
-            if (TopLevel.GetTopLevel(this) is not { } top) return;
-            var folders = await top.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions());
-            if (folders is [{ } folder, ..] && folder.TryGetLocalPath() is { } picked) location.Text = picked;
-        };
-
-        var runner = new TextBox { Name = "RunRunner", Text = s.RunRunner, MinWidth = 360 };
-        runner.TextChanged += (_, _) => { if (!_building) _store.Update(x => x with { RunRunner = (runner.Text ?? "").Trim() }); };
-        var runtimeFolders = new TextBox { Name = "RuntimeFolders", Text = s.RuntimeFolders, MinWidth = 360 };
-        runtimeFolders.TextChanged += (_, _) => { if (!_building) _store.Update(x => x with { RuntimeFolders = runtimeFolders.Text ?? "" }); };
-        var runArguments = new TextBox { Name = "RunArguments", Text = s.RunArguments, MinWidth = 360 };
-        runArguments.TextChanged += (_, _) => { if (!_building) _store.Update(x => x with { RunArguments = runArguments.Text ?? "" }); };
-        var warnTemp = new CheckBox { Name = "WarnTempRun", Tag = Loc.Current["settings.warnTempRun"], Content = Loc.Current["settings.warnTempRun"], IsChecked = s.WarnTempRun };
-        warnTemp.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { WarnTempRun = warnTemp.IsChecked == true }); };
-        var debugOutput = new CheckBox { Name = "RunDebugOutput", Tag = Loc.Current["settings.runDebugOutput"], Content = Loc.Current["settings.runDebugOutput"], IsChecked = s.RunDebugOutput };
-        debugOutput.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { RunDebugOutput = debugOutput.IsChecked == true }); };
-
-        var profiles = new ComboBox { Name = "RunProfiles", MinWidth = 200, ItemsSource = s.RunProfiles.Select(p => p.Name).ToList(), SelectedItem = s.RunProfiles.Any(p => p.Name == s.ActiveRunProfile) ? s.ActiveRunProfile : null };
-        profiles.SelectionChanged += (_, _) =>
-        {
-            if (_building || profiles.SelectedItem is not string pick || _store.Current.RunProfiles.FirstOrDefault(p => p.Name == pick) is not { } profile) return;
-            _store.Update(x => x with { ActiveRunProfile = pick, RunRunner = profile.Runner, RunArguments = profile.Arguments, RunDebugOutput = profile.DebugOutput });
-            runner.Text = profile.Runner;
-            runArguments.Text = profile.Arguments;
-            debugOutput.IsChecked = profile.DebugOutput;
-        };
-        var profileName = new TextBox { Name = "RunProfileName", MinWidth = 160, PlaceholderText = Loc.Current["settings.profileName"] };
-        var saveProfile = new Button { Name = "SaveRunProfile", Content = Loc.Current["settings.profileSave"] };
-        saveProfile.Click += (_, _) =>
-        {
-            if (profileName.Text?.Trim() is not { Length: > 0 } name) return;
-            var now = _store.Current;
-            var saved = new RunProfile(name, now.RunRunner, now.RunArguments, now.RunDebugOutput);
-            _store.Update(x => x with { RunProfiles = [.. x.RunProfiles.Where(p => p.Name != name), saved], ActiveRunProfile = name });
-            Content = Build();
-        };
-        var deleteProfile = new Button { Name = "DeleteRunProfile", Content = Loc.Current["settings.profileDelete"] };
-        deleteProfile.Click += (_, _) =>
-        {
-            if (profiles.SelectedItem is not string pick) return;
-            _store.Update(x => x with { RunProfiles = [.. x.RunProfiles.Where(p => p.Name != pick)], ActiveRunProfile = "" });
-            Content = Build();
-        };
-
+    private DockPanel Header()
+    {
         var close = new Button { Name = "SettingsClose", Content = Loc.Current["settings.close"], HorizontalAlignment = HorizontalAlignment.Right };
         close.Click += (_, _) => _close();
         DockPanel.SetDock(close, Avalonia.Controls.Dock.Right);
@@ -429,79 +127,21 @@ public sealed class SettingsPage : UserControl
         };
         DockPanel.SetDock(restore, Avalonia.Controls.Dock.Right);
 
-        var search = new TextBox { Name = "SettingsSearch", Text = _search, PlaceholderText = Loc.Current["settings.search"] };
-        var sizePanel = new StackPanel { Spacing = 10, Tag = Loc.Current["settings.sizes"] };
-        sizePanel.Children.Add(new TextBlock { Text = Loc.Current["settings.sizes"], Classes = { "muted" }, Margin = new Thickness(0, 8, 0, 0) });
-        foreach (var (sizeKey, min, max, _) in ThemeSizes.All)
-        {
-            var key = sizeKey;
-            sizePanel.Children.Add(Row("settings.size." + key, Number("Size_" + key, min, max, 1, ThemeSizes.Value(s.Sizes, key), (x, n) => x with { Sizes = new Dictionary<string, int>(x.Sizes) { [key] = n } }), new TextBlock { Text = key == "Space.Scale" ? "%" : "px", VerticalAlignment = VerticalAlignment.Center }));
-        }
+        return new DockPanel { Children = { close, restore, new TextBlock { Text = Loc.Current["settings.title"], FontSize = 20, Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center } } };
+    }
 
-        var page = new StackPanel
-        {
-            MaxWidth = 640,
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            Margin = new Thickness(24),
-            Spacing = 10,
-            Children =
-            {
-                new DockPanel { Children = { close, restore, new TextBlock { Text = Loc.Current["settings.title"], FontSize = 20, Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center } } },
-                search,
-                Heading("settings.appearance"),
-                Row("settings.language", language),
-                Row("settings.scale", Number("UiScale", 50, 200, 10, s.UiScale, (x, n) => x with { UiScale = n }), new TextBlock { Text = "%", VerticalAlignment = VerticalAlignment.Center }),
-                Row("settings.fontFamily", family),
-                Row("settings.fontWeight", weight),
-                sizePanel,
-                compact,
-                reduce,
-                showNulls,
-                FontFiles(),
-                Heading("settings.colors"),
-                Colors(),
-                Heading("settings.editor"),
-                Row("settings.codeFontFamily", codeFamily),
-                Row("settings.codeFontSize", Number("CodeFontSize", 8, 32, 1, s.CodeFontSize, (x, n) => x with { CodeFontSize = n }), new TextBlock { Text = "px", VerticalAlignment = VerticalAlignment.Center }),
-                codeWrap,
-                codeNumbers,
-                Heading("settings.rooms"),
-                gridOverride,
-                Row("settings.roomGridSize", Number("RoomGridWidth", 1, 1024, 1, s.RoomGridWidth, (x, n) => x with { RoomGridWidth = n }), Number("RoomGridHeight", 1, 1024, 1, s.RoomGridHeight, (x, n) => x with { RoomGridHeight = n })),
-                Heading("settings.decompiler"),
-                decompiler,
-                Heading("settings.files"),
-                Row("settings.backups", Number("Backups", 1, 3, 1, s.BackupCount, (x, n) => x with { BackupCount = n })),
-                ask,
-                rememberWindow,
-                new StackPanel { Spacing = 4, Tag = Loc.Current["settings.registerLinks"], Children = { registerLinks, linkState } },
-                new StackPanel { Spacing = 4, Tag = Loc.Current["settings.assocUse"], Children = { new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { useStudio, dropStudio } }, assocState } },
-                Row("settings.location", location, browse),
-                Heading("settings.projects"),
-                Row("settings.autosave", Triggers("AutoSave", s.Project.AutoSave, (x, t) => x with { Project = x.Project with { AutoSave = t } }),
-                    Number("AutoSaveSeconds", 1, 3600, 1, s.Project.AutoSaveSeconds, (x, n) => x with { Project = x.Project with { AutoSaveSeconds = n } }), new TextBlock { Text = Loc.Current["project.settings.seconds"], VerticalAlignment = VerticalAlignment.Center }),
-                Row("settings.autosync", Triggers("AutoSync", s.Project.AutoSync, (x, t) => x with { Project = x.Project with { AutoSync = t } }),
-                    Number("AutoSyncSeconds", 1, 3600, 1, s.Project.AutoSyncSeconds, (x, n) => x with { Project = x.Project with { AutoSyncSeconds = n } }), new TextBlock { Text = Loc.Current["project.settings.seconds"], VerticalAlignment = VerticalAlignment.Center }),
-                new TextBlock { Text = Loc.Current["settings.projectsNote"], Classes = { "muted" }, TextWrapping = TextWrapping.Wrap },
-                Heading("settings.run"),
-                Row("settings.runRunner", runner),
-                Row("settings.runArguments", runArguments),
-                Row("settings.runtimeFolders", runtimeFolders),
-                debugOutput,
-                warnTemp,
-                Row("settings.profiles", profiles, deleteProfile),
-                new TextBlock { Text = Loc.Current["settings.profilesNote"], Classes = { "muted" }, TextWrapping = TextWrapping.Wrap },
-                Row("settings.profileName", profileName, saveProfile),
-                Heading("settings.advanced"),
-                new TextBlock { Text = Loc.Current["settings.advancedNote"], Classes = { "muted" }, TextWrapping = TextWrapping.Wrap },
-                openFile,
-                Heading("settings.privacy"),
-                crash,
-                new TextBlock { Text = Loc.Current["settings.crashNote"], Classes = { "muted" }, TextWrapping = TextWrapping.Wrap },
-                Heading("settings.shortcuts"),
-                new ShortcutsEditor(_commands, _store),
-            },
-        };
+    private DockPanel Build()
+    {
+        _building = true;
+        var s = _store.Current;
+        var search = new TextBox { Name = "SettingsSearch", Text = _search, PlaceholderText = Loc.Current["settings.search"] };
+        var page = new StackPanel { MaxWidth = 640, HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(24), Spacing = 10, Children = { Header(), search } };
+        Control[] sections =
+        [
+            .. AppearanceSection(s), .. ColorsSection(), .. EditorSection(s), .. RoomsSection(s), .. DecompilerSection(s), .. FilesSection(s),
+            .. ProjectsSection(s), .. RunSection(s), .. AdvancedSection(), .. PrivacySection(s), .. ShortcutsSection(),
+        ];
+        page.Children.AddRange(sections);
         // The categories are the headings of the page, listed on the left.
         var nav = new ListBox { Name = "SettingsNav", Width = 200, BorderThickness = new Thickness(0), Margin = new Thickness(16, 0, 0, 0), Background = Avalonia.Media.Brushes.Transparent, ItemsSource = page.Children.OfType<TextBlock>().Where(t => t.Classes.Contains("accent")).Select(t => t.Text).ToList(), SelectedIndex = Math.Max(0, _section) };
         nav.SelectionChanged += (_, _) =>

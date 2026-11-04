@@ -59,18 +59,18 @@ public sealed class ReplaceFrameCommand(string sprite, int frame, byte[] picture
     public override void Apply(GameMakerData data)
     {
         var item = Item(data);
-        var data2 = item.TexturePage.TextureData;
-        _before ??= data2.Image;
+        var pixels = item.TexturePage.TextureData;
+        _before ??= pixels.Image;
         _size = (item.TargetWidth, item.TargetHeight);
         if (_after is null)
         {
             using var image = ReadPicture(picture);
             item.ReplaceTexture(image);
-            _after = data2.Image;
+            _after = pixels.Image;
         }
         else
         {
-            data2.Image = _after;
+            pixels.Image = _after;
         }
     }
 

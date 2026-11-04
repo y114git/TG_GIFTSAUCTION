@@ -49,7 +49,7 @@ public sealed class RoomTilesCommand : EditCommand
         foreach (var (x, y, _) in _cells)
             if (y < 0 || y >= rows.Length || x < 0 || x >= rows[y].Length) throw new InvalidOperationException($"Cell {x},{y} is outside the tile layer.");
         _old = [.. _cells.Select(c => rows[c.Y][c.X])];
-        for (var i = 0; i < _cells.Count; i++) rows[_cells[i].Y][_cells[i].X] = _cells[i].Value;
+        foreach (var (x, y, value) in _cells) rows[y][x] = value;
         changed();
     }
 

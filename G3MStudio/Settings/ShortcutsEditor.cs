@@ -79,7 +79,7 @@ public sealed class ShortcutsEditor : UserControl
     {
         (_capturing, Capturing) = (null, false);
         var others = _registry.All.Where(c => c.Id != id && shortcut is not null && c.Shortcut == shortcut).Select(c => Loc.Current["cmd." + c.Id]).ToList();
-        _note.Text = others.Count > 0 ? Loc.Current.Format("settings.shortcutShared", ("shortcut", shortcut!), ("commands", string.Join(", ", others))) : "";
+        _note.Text = others.Count > 0 ? Loc.Current.Format("settings.shortcutShared", ("shortcut", shortcut ?? ""), ("commands", string.Join(", ", others))) : "";
         var isDefault = shortcut == _registry.DefaultShortcut(id);
         _store.Update(s => s with { Shortcuts = isDefault ? s.Shortcuts.Where(p => p.Key != id).ToDictionary() : new Dictionary<string, string>(s.Shortcuts) { [id] = shortcut ?? "" } });
         Fill();

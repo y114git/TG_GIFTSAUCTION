@@ -8,7 +8,6 @@ public static class RuntimeFinder
 {
     private static readonly string[] Editions = ["GameMakerStudio2", "GameMakerStudio2-LTS", "GameMakerStudio2-Beta"];
 
-    /// <summary>The folders GameMaker keeps its runtimes in on this machine.</summary>
     public static IReadOnlyList<string> DefaultFolders()
     {
         var data = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);

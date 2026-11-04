@@ -8,7 +8,7 @@
     "welcome": "Abre un archivo de datos del juego para empezar.",
     "ready": "Listo",
     "openFailed": "No se pudo abrir «{name}»: {reason}",
-    "recovered": "Se recuperaron {count} ediciones sin guardar"
+    "recovered": "Ediciones sin guardar recuperadas: {count}"
   },
   "menu": {
     "plugins": "Complementos",
@@ -214,7 +214,7 @@
     "newOk": "Crear",
     "deleteTitle": "Eliminar {name}",
     "deleteBody": "¿Eliminar {name}? Deshacer lo recupera hasta que se guarde el archivo.",
-    "deleteUsed": "{name} se usa en {count} lugares:\n{places}\n\nEsos usos se ponen en ninguno o se quitan de sus listas. Un uso en código no se puede limpiar y detiene la eliminación. El juego puede comportarse distinto o dejar de funcionar. Deshacer lo recupera todo hasta que se guarde.",
+    "deleteUsed": "Lugares donde se usa {name}: {count}\n{places}\n\nEsos usos se ponen en ninguno o se quitan de sus listas. Un uso en código no se puede limpiar y detiene la eliminación. El juego puede comportarse distinto o dejar de funcionar. Deshacer lo recupera todo hasta que se guarde.",
     "deleteUsedTitle": "¿Eliminar {name} de todos modos?",
     "type": {
       "general": "Juego",
@@ -258,7 +258,7 @@
       "synced": "Sincronizado",
       "syncing": "Sincronizando...",
       "exporting": "Exportando proyecto...",
-      "notSynced": "{count} cambios sin sincronizar con el archivo de datos",
+      "notSynced": "Cambios sin sincronizar con el archivo de datos: {count}",
       "changed": "Archivo de datos modificado desde fuera",
       "enable": "Activar proyecto"
     },
@@ -275,7 +275,7 @@
     },
     "exporting": "Exportando {name}... {done} de {total} recursos",
     "cancelled": "Exportación del proyecto cancelada. No se conservó nada.",
-    "warnings": "Se creó el proyecto, pero se informó de {count} problemas. El primero: {first}",
+    "warnings": "Se creó el proyecto, pero se informó de problemas: {count}. El primero: {first}",
     "created": "Proyecto creado para {name}.",
     "createFailed": "No se pudo crear el proyecto: {reason}",
     "already": "Este archivo de datos ya tiene un proyecto.",
@@ -344,7 +344,7 @@
     "title": "Renombrar",
     "label": "Nuevo nombre para {name}",
     "ok": "Renombrar",
-    "preview": "Cambia {count} nombres y cadenas; {uses} lugares usan este recurso:",
+    "preview": "Nombres y cadenas a cambiar: {count}; lugares que usan este recurso: {uses}. Cambios:",
     "more": "... y {count} más"
   },
   "code": {
@@ -361,8 +361,8 @@
   },
   "prompt": {
     "title": "Cambios sin guardar",
-    "direct": "{name} tiene {count} cambios sin guardar. ¿Guardarlos o mantenerlos en el diario para después?",
-    "project": "{name} tiene {count} cambios que no están en el archivo de datos. ¿Sincronizarlos o mantenerlos en el diario para después?",
+    "direct": "{name} tiene cambios sin guardar: {count}. ¿Guardarlos o mantenerlos en el diario para después?",
+    "project": "{name} tiene cambios que no están en el archivo de datos: {count}. ¿Sincronizarlos o mantenerlos en el diario para después?",
     "save": "Guardar",
     "sync": "Sincronizar cambios",
     "later": "Hacerlo más tarde"
@@ -486,7 +486,7 @@
     "refresh": "Actualizar",
     "clean": "Sin cambios.",
     "failed": "Git: {reason}",
-    "lfs": "Se encontraron {count} archivos grandes de audio o imagen, por ejemplo {first}. Git LFS mantiene el repositorio pequeño.",
+    "lfs": "Archivos grandes de audio o imagen encontrados: {count}, por ejemplo {first}. Git LFS mantiene el repositorio pequeño.",
     "newBranchName": "Nombre de la nueva rama",
     "newBranch": "Nueva rama",
     "fetch": "Fetch",
@@ -506,7 +506,8 @@
     },
     "filter": "Filtrar propiedades",
     "refused": "{path}: {reason}",
-    "missing": "No se encontró {name} en este archivo de datos."
+    "missing": "No se encontró {name} en este archivo de datos.",
+    "items": "Elementos: {count}"
   },
   "about": {
     "title": "Acerca de G3MStudio",
@@ -518,8 +519,8 @@
     "regex": "Expresión regular",
     "run": "Buscar",
     "progress": "Buscando... {done} de {total} entradas",
-    "done": "{hits} coincidencias en {entries} entradas.",
-    "failed": "No se pudieron leer {count} entradas y se omitieron.",
+    "done": "Coincidencias: {hits}. Entradas revisadas: {entries}.",
+    "failed": "Entradas que no se pudieron leer y se omitieron: {count}.",
     "cancelled": "Búsqueda cancelada.",
     "badPattern": "Este patrón no es válido: {reason}",
     "timeout": "El patrón tarda demasiado en una línea. Hazlo más simple."
@@ -528,19 +529,19 @@
   "tileSet": {"findRooms": "Buscar salas que usan este tile"},
   "textureItem": {"export": "Exportar PNG", "saved": "Guardado en {path}", "failed": "No se pudo guardar: {reason}"},
   "entryScripts": {"globalInit": "Scripts al iniciar el juego", "gameEnd": "Scripts al terminar el juego", "add": "Añadir"},
-  "tilesets": { "info": "Teselas de {width} x {height}, {columns} columnas, {count} teselas. Borde {borderX}, {borderY}. Separación {separationX}, {separationY}." },
-  "warnings": { "debuggerAskTitle": "Depurador", "debuggerAsk": "¿Activar la marca del depurador? El ejecutor normal puede bloquearse con ella.", "yyc": "Este juego se compiló con el YoYo Compiler: su código está en el ejecutable, así que no hay código que mostrar ni buscar.", "debugger": "El indicador del depurador de GameMaker está activado en este archivo. El ejecutor normal puede bloquearse.", "unknownTextures": "{count} texturas usan un formato que no se puede mostrar. Se conservan tal cual al guardar.", "mayLoseData": "El lector no pudo interpretar {count} partes de este archivo de datos. Al guardar se pueden perder." },
+  "tilesets": { "info": "Tamaño de tesela: {width} x {height}. Columnas: {columns}. Teselas: {count}. Borde {borderX}, {borderY}. Separación {separationX}, {separationY}." },
+  "warnings": { "debuggerAskTitle": "Depurador", "debuggerAsk": "¿Activar la marca del depurador? El ejecutor normal puede bloquearse con ella.", "yyc": "Este juego se compiló con el YoYo Compiler: su código está en el ejecutable, así que no hay código que mostrar ni buscar.", "debugger": "El indicador del depurador de GameMaker está activado en este archivo. El ejecutor normal puede bloquearse.", "unknownTextures": "Texturas con un formato que no se puede mostrar: {count}. Se conservan tal cual al guardar.", "mayLoseData": "Partes de este archivo de datos que el lector no pudo interpretar: {count}. Al guardar se pueden perder." },
   "usages": {
     "unrefSearching": "Buscando recursos que nada usa...",
-    "unrefFound": "{count} recursos no se usan en ningún sitio.",
+    "unrefFound": "Recursos que no se usan en ningún sitio: {count}.",
     "unrefNone": "Ningún recurso está sin usar.",
     "unrefFailed": "No se pudieron buscar recursos sin uso: {reason}",
     "searching": "Buscando usos de {name}...",
-    "found": "{name} se usa en {count} lugares.",
+    "found": "Lugares donde se usa {name}: {count}.",
     "none": "{name} no se usa en ningún sitio.",
     "failed": "No se pudo buscar {name}: {reason}",
     "usesSearching": "Buscando lo que usa {name}...",
-    "usesFound": "{name} usa {count} recursos. Haga doble clic en uno para abrirlo.",
+    "usesFound": "Recursos que usa {name}: {count}. Haga doble clic en uno para abrirlo.",
     "usesNone": "{name} no usa ningún recurso."
   },
   "help": {
@@ -563,11 +564,11 @@
     "failed": "La operación falló: {reason}",
     "nothingToRevert": "No hay cambios sin guardar.",
     "revertTitle": "Volver a lo guardado",
-    "confirmRevert": "¿Descartar {count} cambios sin guardar de {name} y cargar el archivo de nuevo?",
+    "confirmRevert": "¿Descartar los cambios sin guardar de {name} ({count}) y cargar el archivo de nuevo?",
     "pickFiles": "Elija imágenes, sonidos o archivos GML",
-    "filesImported": "Se añadieron {count} recursos desde archivos.",
+    "filesImported": "Recursos añadidos desde archivos: {count}.",
     "fileFailed": "No se pudo importar «{name}»: {reason}",
-    "selectedCount": "{count} recursos seleccionados"
+    "selectedCount": "Recursos seleccionados: {count}"
   },
   "mods": {
     "pickOriginal": "Archivo de datos original (al que se aplica el parche)",
@@ -581,13 +582,13 @@
     "modNoMatch": "{name} no tiene un parche para {file}.",
     "modUnsupported": "{name} solo tiene parches que Studio no puede aplicar (xdelta o scripts). Usa G3MTool o Herramientas > Ejecutar script para {file}.",
     "modTitle": "Aplicar un mod",
-    "modAsk": "¿Aplicar {name} {version} ({count} parches) a {file}? El resultado se guarda como archivo nuevo; {file} no cambia.",
-    "modSkipped": "{count} operaciones más necesitan xdelta o un script y se omiten.",
+    "modAsk": "¿Aplicar {name} {version} (parches: {count}) a {file}? El resultado se guarda como archivo nuevo; {file} no cambia.",
+    "modSkipped": "Operaciones omitidas por necesitar xdelta o un script: {count}.",
     "applyingMod": "Aplicando el mod",
     "applyingOpen": "Aplicando al archivo abierto",
     "openTitle": "¿Aplicar un parche al archivo de datos abierto?",
     "openAsk": "¿Aplicar {name} al archivo de datos abierto? Cambia los datos en memoria y no se puede deshacer; Volver a lo guardado es la vuelta atrás.",
-    "openModAsk": "¿Aplicar {name} {version} ({count} parches) al archivo de datos abierto? Cambia los datos en memoria y no se puede deshacer; Volver a lo guardado es la vuelta atrás.",
+    "openModAsk": "¿Aplicar {name} {version} (parches: {count}) al archivo de datos abierto? Cambia los datos en memoria y no se puede deshacer; Volver a lo guardado es la vuelta atrás.",
     "appliedOpen": "{name} se aplicó al archivo abierto. Guarda para conservarlo.",
     "openPartly": "El archivo abierto puede haber cambiado en parte. Usa Volver a lo guardado.",
     "modApplied": "Se aplicó {name}. Guardado en {path}.",
@@ -608,7 +609,7 @@
     "merged": "Parche combinado guardado en {path}: {merged} cambios combinados automáticamente, {conflicts} conflictos.",
     "pickReport": "Guardar el informe como",
     "comparing": "Comparando archivos de datos",
-    "compared": "Informe guardado en {path}: {count} diferencias.",
+    "compared": "Informe guardado en {path}. Diferencias: {count}.",
     "pickModOut": "Guardar el mod como",
     "packaging": "Empaquetando el mod",
     "packaged": "Mod guardado en {path}. Edita su mod_config.json para indicar autores y el id del juego."
@@ -676,7 +677,7 @@
     "kindFunction": "función",
     "kindOther": "otro",
     "kindUnused": "sin usar",
-    "uses": "Se usa en {count} lugares; cambiar el texto los cambia todos. Para cambiar solo un uso, edita esa propiedad en su pestaña.",
+    "uses": "Lugares donde se usa: {count}. Cambiar el texto los cambia todos. Para cambiar solo un uso, edita esa propiedad en su pestaña.",
     "title": "Cadenas",
     "filter": "Filtrar cadenas...",
     "regex": "Regex",
@@ -689,7 +690,7 @@
     "kernShift": "Desplazamiento",
     "kernSet": "Fijar par",
     "glyphFilter": "Filtrar por carácter, U+código o número...",
-    "glyphCount": "{count} glifos",
+    "glyphCount": "Glifos: {count}",
     "glyphNew": "U+código, carácter o rango (A-Z)",
     "glyphAdd": "Añadir glifo",
     "replace": "Reemplazar desde archivo de fuente...",
@@ -775,7 +776,7 @@
   },
   "inspector": {
     "none": "Selecciona un recurso en el Explorador.",
-    "uses": "Se usa en {count} lugares"
+    "uses": "Lugares donde se usa: {count}"
   },
   "plugins": {
     "check": "Buscar actualización",
@@ -851,7 +852,7 @@
     "pickCsv": "Elige un CSV de teselas",
     "pickCsvSave": "Guardar las teselas como",
     "tilesExported": "Las teselas de {layer} en {room} se guardaron en {path}.",
-    "tilesImported": "Se cambiaron {count} teselas de {layer}.",
+    "tilesImported": "Teselas cambiadas en {layer}: {count}.",
     "tilesBad": "No se usó el CSV de teselas: {reason}",
     "snapped": "ajustado",
     "lock": "Bloq.",
@@ -1064,9 +1065,9 @@
     "output": "Aún no se ha informado de nada."
   },
   "explorer": {
-    "deleteManyTitle": "Eliminar {count} recursos",
-    "deleteMany": "¿Eliminar estos {count} recursos?\n{names}",
-    "deleteManyUses": "{count} lugares fuera de la selección los usan; esos usos se borran o se quitan:\n{places}",
-    "duplicatedMany": "Se copiaron {count} recursos."
+    "deleteManyTitle": "Eliminar recursos: {count}",
+    "deleteMany": "¿Eliminar estos recursos ({count})?\n{names}",
+    "deleteManyUses": "Lugares fuera de la selección que los usan: {count}. Esos usos se borran o se quitan:\n{places}",
+    "duplicatedMany": "Recursos copiados: {count}."
   }
 }

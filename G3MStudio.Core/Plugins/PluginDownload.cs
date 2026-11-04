@@ -37,7 +37,6 @@ public static partial class PluginDownload
         }
     }
 
-    /// <summary>The commit id the default branch of the repository points to now.</summary>
     public static async Task<string> LatestRevisionAsync(HttpClient http, string address, CancellationToken cancellationToken = default)
     {
         var (owner, repo) = ParseGitHub(address) ?? throw new InvalidDataException("Use an address like https://github.com/owner/repository.");

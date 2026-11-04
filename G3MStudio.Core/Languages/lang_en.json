@@ -8,7 +8,7 @@
     "welcome": "Open a game data file to start.",
     "ready": "Ready",
     "openFailed": "Could not open '{name}': {reason}",
-    "recovered": "Recovered {count} unsaved edits"
+    "recovered": "Unsaved edits recovered: {count}"
   },
   "menu": {
     "plugins": "Plugins",
@@ -214,7 +214,7 @@
     "newOk": "Create",
     "deleteTitle": "Delete {name}",
     "deleteBody": "Delete {name}? Undo brings it back until the file is saved.",
-    "deleteUsed": "{name} is used in {count} places:\n{places}\n\nThese uses are set to none or taken out of their lists. A use in code cannot be cleared and stops the delete. The game can behave differently or stop working. Undo brings everything back until you save.",
+    "deleteUsed": "Places that use {name}: {count}\n{places}\n\nThese uses are set to none or taken out of their lists. A use in code cannot be cleared and stops the delete. The game can behave differently or stop working. Undo brings everything back until you save.",
     "deleteUsedTitle": "Delete {name} anyway?",
     "type": {
       "general": "Game",
@@ -258,7 +258,7 @@
       "synced": "Synced",
       "syncing": "Syncing...",
       "exporting": "Exporting project...",
-      "notSynced": "{count} changes not synced to data file",
+      "notSynced": "Changes not synced to data file: {count}",
       "changed": "Data file changed outside",
       "enable": "Enable project"
     },
@@ -275,7 +275,7 @@
     },
     "exporting": "Exporting {name}... {done} of {total} resources",
     "cancelled": "Project export cancelled. Nothing was kept.",
-    "warnings": "The project was created, but {count} problems were reported. First: {first}",
+    "warnings": "The project was created, but problems were reported: {count}. First: {first}",
     "created": "Project created for {name}.",
     "createFailed": "Could not create the project: {reason}",
     "already": "This data file already has a project.",
@@ -344,7 +344,7 @@
     "title": "Rename",
     "label": "New name for {name}",
     "ok": "Rename",
-    "preview": "Changes {count} names and strings; {uses} places use this resource:",
+    "preview": "Names and strings to change: {count}; places that use this resource: {uses}. Changes:",
     "more": "... and {count} more"
   },
   "code": {
@@ -361,8 +361,8 @@
   },
   "prompt": {
     "title": "Unsaved changes",
-    "direct": "{name} has {count} unsaved changes. Save them, or keep them in the journal for later?",
-    "project": "{name} has {count} changes that are not in the data file. Sync them, or keep them in the journal for later?",
+    "direct": "{name} has unsaved changes: {count}. Save them, or keep them in the journal for later?",
+    "project": "{name} has changes that are not in the data file: {count}. Sync them, or keep them in the journal for later?",
     "save": "Save",
     "sync": "Sync changes",
     "later": "Do it later"
@@ -486,7 +486,7 @@
     "refresh": "Refresh",
     "clean": "No changes.",
     "failed": "Git: {reason}",
-    "lfs": "{count} large audio or image files found, for example {first}. Git LFS keeps the repository small.",
+    "lfs": "Large audio or image files found: {count}, for example {first}. Git LFS keeps the repository small.",
     "newBranchName": "New branch name",
     "newBranch": "New Branch",
     "fetch": "Fetch",
@@ -506,7 +506,8 @@
     },
     "filter": "Filter properties",
     "refused": "{path}: {reason}",
-    "missing": "{name} was not found in this data file."
+    "missing": "{name} was not found in this data file.",
+    "items": "Items: {count}"
   },
   "about": {
     "title": "About G3MStudio",
@@ -518,8 +519,8 @@
     "regex": "Regular expression",
     "run": "Search",
     "progress": "Searching... {done} of {total} entries",
-    "done": "{hits} matches in {entries} entries.",
-    "failed": "{count} entries could not be read and were skipped.",
+    "done": "Matches: {hits}. Entries searched: {entries}.",
+    "failed": "Entries that could not be read and were skipped: {count}.",
     "cancelled": "Search cancelled.",
     "badPattern": "This pattern is not valid: {reason}",
     "timeout": "The pattern takes too long on a line. Make it simpler."
@@ -528,19 +529,19 @@
   "tileSet": {"findRooms": "Find rooms using this tile"},
   "textureItem": {"export": "Export PNG", "saved": "Saved to {path}", "failed": "Could not save: {reason}"},
   "entryScripts": {"globalInit": "Scripts run when the game starts", "gameEnd": "Scripts run when the game ends", "add": "Add"},
-  "tilesets": { "info": "Tiles {width} x {height}, {columns} columns, {count} tiles. Border {borderX}, {borderY}. Separation {separationX}, {separationY}." },
-  "warnings": { "debuggerAskTitle": "Debugger", "debuggerAsk": "Turn the debugger flag on? The normal runner can hang on a game with it.", "yyc": "This game was built with the YoYo Compiler: its code is in the executable, so there is no code to show or search.", "debugger": "The GameMaker debugger flag is on in this file. The normal runner can hang on it.", "unknownTextures": "{count} textures use a format that cannot be shown. They are kept as they are when you save.", "mayLoseData": "The reader could not model {count} parts of this data file. Saving may lose them." },
+  "tilesets": { "info": "Tile size: {width} x {height}. Columns: {columns}. Tiles: {count}. Border {borderX}, {borderY}. Separation {separationX}, {separationY}." },
+  "warnings": { "debuggerAskTitle": "Debugger", "debuggerAsk": "Turn the debugger flag on? The normal runner can hang on a game with it.", "yyc": "This game was built with the YoYo Compiler: its code is in the executable, so there is no code to show or search.", "debugger": "The GameMaker debugger flag is on in this file. The normal runner can hang on it.", "unknownTextures": "Textures in a format that cannot be shown: {count}. They are kept as they are when you save.", "mayLoseData": "Parts of this data file the reader could not model: {count}. Saving may lose them." },
   "usages": {
     "unrefSearching": "Looking for assets nothing uses...",
-    "unrefFound": "{count} assets are not used anywhere.",
+    "unrefFound": "Assets that are not used anywhere: {count}.",
     "unrefNone": "No asset is unused.",
     "unrefFailed": "Could not search for unused assets: {reason}",
     "searching": "Looking for uses of {name}...",
-    "found": "{name} is used in {count} places.",
+    "found": "Places that use {name}: {count}.",
     "none": "{name} is not used anywhere.",
     "failed": "Could not search for {name}: {reason}",
     "usesSearching": "Looking for what {name} uses...",
-    "usesFound": "{name} uses {count} assets. Double click one to open it.",
+    "usesFound": "Assets used by {name}: {count}. Double click one to open it.",
     "usesNone": "{name} does not use any asset."
   },
   "help": {
@@ -563,11 +564,11 @@
     "failed": "The operation failed: {reason}",
     "nothingToRevert": "There are no unsaved changes.",
     "revertTitle": "Revert to Saved",
-    "confirmRevert": "Drop {count} unsaved changes of {name} and load the file again?",
+    "confirmRevert": "Drop unsaved changes of {name} ({count}) and load the file again?",
     "pickFiles": "Pick pictures, sounds or GML files",
-    "filesImported": "Added {count} resources from files.",
+    "filesImported": "Resources added from files: {count}.",
     "fileFailed": "Could not import '{name}': {reason}",
-    "selectedCount": "{count} selected resources"
+    "selectedCount": "Selected resources: {count}"
   },
   "mods": {
     "pickOriginal": "Original data file (the one the patch applies to)",
@@ -581,13 +582,13 @@
     "modNoMatch": "{name} has no patch for {file}.",
     "modUnsupported": "{name} only has patches Studio cannot apply (xdelta or script payloads). Use G3MTool or Tools > Run Script for {file}.",
     "modTitle": "Apply a mod",
-    "modAsk": "Apply {name} {version} ({count} patches) to {file}? The result is saved as a new file; {file} is not changed.",
-    "modSkipped": "{count} more operations need xdelta or a script and are skipped.",
+    "modAsk": "Apply {name} {version} (patches: {count}) to {file}? The result is saved as a new file; {file} is not changed.",
+    "modSkipped": "Operations that need xdelta or a script and are skipped: {count}.",
     "applyingMod": "Applying the mod",
     "applyingOpen": "Applying to the current file",
     "openTitle": "Apply a patch to the current data file?",
     "openAsk": "Apply {name} to the current data file? It changes the data in memory and cannot be undone; Revert to Saved is the way back.",
-    "openModAsk": "Apply {name} {version} ({count} patches) to the current data file? It changes the data in memory and cannot be undone; Revert to Saved is the way back.",
+    "openModAsk": "Apply {name} {version} (patches: {count}) to the current data file? It changes the data in memory and cannot be undone; Revert to Saved is the way back.",
     "appliedOpen": "{name} was applied to the current file. Save to keep it.",
     "openPartly": "The current file may be partly changed. Use Revert to Saved.",
     "modApplied": "{name} was applied. Saved to {path}.",
@@ -608,7 +609,7 @@
     "merged": "Merged patch saved to {path}: {merged} changes merged automatically, {conflicts} conflicts.",
     "pickReport": "Save the report as",
     "comparing": "Comparing data files",
-    "compared": "Report saved to {path}: {count} differences.",
+    "compared": "Report saved to {path}. Differences: {count}.",
     "pickModOut": "Save the mod as",
     "packaging": "Packaging mod",
     "packaged": "Mod saved to {path}. Edit its mod_config.json to set authors and the game id."
@@ -676,7 +677,7 @@
     "kindFunction": "function",
     "kindOther": "other",
     "kindUnused": "unused",
-    "uses": "Used in {count} places; changing the text changes all of them. To change one use only, edit that property in its own tab.",
+    "uses": "Places that use it: {count}. Changing the text changes all of them. To change one use only, edit that property in its own tab.",
     "title": "Strings",
     "filter": "Filter strings...",
     "regex": "Regex",
@@ -689,7 +690,7 @@
     "kernShift": "Shift",
     "kernSet": "Set pair",
     "glyphFilter": "Filter by character, U+code or number...",
-    "glyphCount": "{count} glyphs",
+    "glyphCount": "Glyphs: {count}",
     "glyphNew": "U+code, character or range (A-Z)",
     "glyphAdd": "Add glyph",
     "replace": "Replace from font file...",
@@ -775,7 +776,7 @@
   },
   "inspector": {
     "none": "Select a resource in the Explorer.",
-    "uses": "Used in {count} places"
+    "uses": "Places that use it: {count}"
   },
   "plugins": {
     "check": "Check for update",
@@ -851,7 +852,7 @@
     "pickCsv": "Choose a tile CSV",
     "pickCsvSave": "Save the tiles as",
     "tilesExported": "Tiles of {layer} in {room} were saved to {path}.",
-    "tilesImported": "{count} tiles of {layer} were changed.",
+    "tilesImported": "Tiles changed in {layer}: {count}.",
     "tilesBad": "The tile CSV was not used: {reason}",
     "snapped": "snapped",
     "lock": "Lock",
@@ -1064,9 +1065,9 @@
     "output": "Nothing has been reported yet."
   },
   "explorer": {
-    "deleteManyTitle": "Delete {count} resources",
-    "deleteMany": "Delete these {count} resources?\n{names}",
-    "deleteManyUses": "{count} places outside the selection use them; those uses are cleared or removed:\n{places}",
-    "duplicatedMany": "Copied {count} resources."
+    "deleteManyTitle": "Delete resources: {count}",
+    "deleteMany": "Delete these resources ({count})?\n{names}",
+    "deleteManyUses": "Places outside the selection that use them: {count}. Those uses are cleared or removed:\n{places}",
+    "duplicatedMany": "Resources copied: {count}."
   }
 }

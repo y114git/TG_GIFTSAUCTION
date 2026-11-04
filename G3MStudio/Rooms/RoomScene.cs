@@ -59,7 +59,6 @@ public sealed class RoomScene : IDisposable
 
     public static RoomScene Build(GameMakerRoom room) => Build(room, ToBitmap, ownsPages: true);
 
-    /// <summary>A first pass over the room that decodes nothing and only collects the texture pages its items draw from.</summary>
     private static HashSet<GameMakerEmbeddedTexture> PagesUsedBy(GameMakerRoom room)
     {
         var used = new HashSet<GameMakerEmbeddedTexture>();
@@ -72,7 +71,6 @@ public sealed class RoomScene : IDisposable
         var pages = new Dictionary<GameMakerEmbeddedTexture, Bitmap?>();
         var items = new List<RoomItem>();
         var skipped = 0;
-
         var markers = new List<RoomMarker>();
 
         void Add(GameMakerTexturePageItem? tpag, Rect source, Rect dest, object? element = null, int flags = 0)
@@ -117,19 +115,9 @@ public sealed class RoomScene : IDisposable
                 {
                     AddAssets(assets);
                 }
-                else if (layer.TilesData is { Background: { Texture: { } tpag } bg, TileData: { } rows })
+                else if (layer.TilesData is { Background.Texture: { } tpag })
                 {
-                    int tw = (int)bg.GMS2TileWidth, th = (int)bg.GMS2TileHeight, bx = (int)bg.GMS2OutputBorderX, by = (int)bg.GMS2OutputBorderY, columns = Math.Max(1, (int)bg.GMS2TileColumns);
-                    for (var y = 0; y < rows.Length; y++)
-                    {
-                        for (var x = 0; x < rows[y].Length; x++)
-                        {
-                            var index = (int)(rows[y][x] & TileIndexMask);
-                            if (index == 0) continue;
-                            var source = new Rect(index % columns * (tw + 2 * bx) + bx, index / columns * (th + 2 * by) + by, tw, th);
-                            Add(tpag, source, new Rect(layer.XOffset + x * tw, layer.YOffset + y * th, tw, th), null, (int)((rows[y][x] >> 28) & 7));
-                        }
-                    }
+                    foreach (var (source, dest, flags) in TileRects(layer)) Add(tpag, source, dest, null, flags);
                 }
             }
         }
@@ -165,6 +153,22 @@ public sealed class RoomScene : IDisposable
         }
 
         return new RoomScene { Width = room.Width, Height = room.Height, Items = items, Skipped = skipped, OwnsPages = ownsPages, Markers = markers, FillColor = room.Layers?.Count > 0 || !room.DrawBackgroundColor ? null : room.BackgroundColor };
+    }
+
+    private static IEnumerable<(Rect Source, Rect Dest, int Flags)> TileRects(Layer layer)
+    {
+        if (layer.TilesData is not { Background: { } bg, TileData: { } rows }) yield break;
+        int tw = (int)bg.GMS2TileWidth, th = (int)bg.GMS2TileHeight, bx = (int)bg.GMS2OutputBorderX, by = (int)bg.GMS2OutputBorderY, columns = Math.Max(1, (int)bg.GMS2TileColumns);
+        for (var y = 0; y < rows.Length; y++)
+        {
+            for (var x = 0; x < rows[y].Length; x++)
+            {
+                var index = (int)(rows[y][x] & TileIndexMask);
+                if (index == 0) continue;
+                var source = new Rect(index % columns * (tw + 2 * bx) + bx, index / columns * (th + 2 * by) + by, tw, th);
+                yield return (source, new Rect(layer.XOffset + x * tw, layer.YOffset + y * th, tw, th), (int)((rows[y][x] >> 28) & 7));
+            }
+        }
     }
 
     internal static WriteableBitmap? ToBitmap(GameMakerEmbeddedTexture texture) => ToBitmap(DecodePage(texture));

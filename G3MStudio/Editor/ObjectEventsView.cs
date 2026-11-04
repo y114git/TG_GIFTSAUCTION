@@ -56,6 +56,9 @@ public sealed class ObjectEventsView : StackPanel
                 foreach (var action in evt.Actions) text.Append(';');
             }
 
+        // The links name the code entries, which can be renamed without the object changing.
+        foreach (var (_, code) in Collect()) text.Append('|').Append(code);
+
         return text.ToString();
     }
 
@@ -75,8 +78,7 @@ public sealed class ObjectEventsView : StackPanel
                 var row = new DockPanel();
                 if (_workspace is not null)
                 {
-                    var remove = new Button { Content = Loc.Current["object.removeEvent"], Name = $"RemoveEvent_{kind}_{subtype}", VerticalAlignment = VerticalAlignment.Center };
-                    remove.Click += (_, _) => Run(new ObjectEventCommand(_object.Name.Content ?? "", ObjectEventCommand.Remove, kind, subtype));
+                    var remove = RemoveButton(kind, subtype);
                     DockPanel.SetDock(remove, Avalonia.Controls.Dock.Right);
                     row.Children.Add(remove);
                 }
@@ -104,6 +106,13 @@ public sealed class ObjectEventsView : StackPanel
         }
     }
 
+    private Button RemoveButton(uint kind, uint subtype)
+    {
+        var remove = new Button { Content = Loc.Current["object.removeEvent"], Name = $"RemoveEvent_{kind}_{subtype}", VerticalAlignment = VerticalAlignment.Center };
+        remove.Click += (_, _) => Run(new ObjectEventCommand(_object.Name.Content ?? "", ObjectEventCommand.Remove, kind, subtype));
+        return remove;
+    }
+
     private Button Link(string text, string code)
     {
         var button = new Button { Content = text, HorizontalContentAlignment = HorizontalAlignment.Left, Classes = { "link" } };
@@ -116,7 +125,8 @@ public sealed class ObjectEventsView : StackPanel
     {
         try
         {
-            _workspace!.Edit(command);
+            if (_workspace is null) return false;
+            _workspace.Edit(command);
             _message.Text = "";
             return true;
         }

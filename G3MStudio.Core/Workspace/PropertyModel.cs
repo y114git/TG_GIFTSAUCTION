@@ -9,13 +9,19 @@ namespace G3MStudio.Core.Workspace;
 public enum PropertyKind { Text, Bool, Whole, Real, Enum, GmString, Group, List, Info, Flags, Color }
 
 /// <summary>One line of the property editor. <see cref="Path"/> addresses it from the resource (<c>Frames[2].Width</c>); a read-only row has no setter or is an information line.</summary>
-public sealed record PropertyRow(string Path, string Name, PropertyKind Kind, string Value, int Depth, bool ReadOnly, IReadOnlyList<string>? Choices = null)
+public sealed record PropertyRow(string Path, string Name, PropertyKind Kind, string Value, int Depth, bool ReadOnly)
 {
+    /// <summary>On a choice or flags row: the names to pick from.</summary>
+    public IReadOnlyList<string>? Choices { get; init; }
+
     /// <summary>Explorer key of the entry a reference row points at (<c>sprites:spr_player</c>), so the editor can open it.</summary>
     public string? Target { get; init; }
 
     /// <summary>On a list of strings: the list can take a new entry (the add row of UTMT-CTRL-06).</summary>
     public bool Addable { get; init; }
+
+    /// <summary>On a list or collection: its entry count. The value text is the bare number, the grid adds the localized label.</summary>
+    public int? Count { get; init; }
 
     /// <summary>On an entry of a list of strings: it can be removed.</summary>
     public bool Removable { get; init; }
@@ -59,12 +65,12 @@ public static class PropertyModel
             var type = property.PropertyType;
             if (NamedValues(owner, property) is { } names)
             {
-                rows.Add(new PropertyRow(path, property.Name, PropertyKind.Enum, Show(names, value), depth, !settable, names));
+                rows.Add(new PropertyRow(path, property.Name, PropertyKind.Enum, Show(names, value), depth, !settable) { Choices = names });
             }
             else if (KindOf(type) is { } kind)
             {
                 if (kind == PropertyKind.Whole && type == typeof(uint) && IsColorName(property.Name)) kind = PropertyKind.Color;
-                rows.Add(new PropertyRow(path, property.Name, kind, Format(value), depth, !settable, kind == PropertyKind.Enum ? Enum.GetNames(Nullable.GetUnderlyingType(type) ?? type) : kind == PropertyKind.Flags ? FlagNames(Nullable.GetUnderlyingType(type) ?? type) : null));
+                rows.Add(new PropertyRow(path, property.Name, kind, Format(value), depth, !settable) { Choices = kind == PropertyKind.Enum ? Enum.GetNames(Nullable.GetUnderlyingType(type) ?? type) : kind == PropertyKind.Flags ? FlagNames(Nullable.GetUnderlyingType(type) ?? type) : null });
             }
             else if (value is null)
             {
@@ -87,7 +93,7 @@ public static class PropertyModel
             {
                 // A list of strings is edited in place: each entry is a text box and the list takes new entries.
                 var strings = value is IList<GameMakerString>;
-                rows.Add(new PropertyRow(path, property.Name, PropertyKind.List, $"{list.Count} items", depth, true) { Addable = strings });
+                rows.Add(new PropertyRow(path, property.Name, PropertyKind.List, list.Count.ToString(System.Globalization.CultureInfo.InvariantCulture), depth, true) { Addable = strings, Count = list.Count });
                 if (depth < MaxDepth)
                     for (var i = 0; i < Math.Min(list.Count, MaxListItems); i++)
                     {
@@ -97,7 +103,7 @@ public static class PropertyModel
             }
             else if (value is IEnumerable and not string)
             {
-                rows.Add(new PropertyRow(path, property.Name, PropertyKind.Info, value is ICollection collection ? $"{collection.Count} items" : type.Name, depth, true));
+                rows.Add(new PropertyRow(path, property.Name, PropertyKind.Info, value is ICollection collection ? collection.Count.ToString(System.Globalization.CultureInfo.InvariantCulture) : type.Name, depth, true) { Count = (value as ICollection)?.Count });
             }
             else if (type.IsClass && !typeof(Delegate).IsAssignableFrom(type) && !typeof(Stream).IsAssignableFrom(type))
             {
@@ -129,7 +135,7 @@ public static class PropertyModel
     public static uint WithRgb(uint color, byte r, byte g, byte b) => (color & 0xFF000000u) | r | ((uint)g << 8) | ((uint)b << 16);
 
     /// <summary>The names of the single flags of a flags enum (one bit each); combinations and zero are left out.</summary>
-    public static string[] FlagNames(Type type) => [.. Enum.GetValues(type).Cast<object>().Where(v => Convert.ToUInt64(v, System.Globalization.CultureInfo.InvariantCulture) is var bits && bits != 0 && (bits & (bits - 1)) == 0).Select(v => v.ToString()!)];
+    public static string[] FlagNames(Type type) => [.. Enum.GetValues(type).Cast<object>().Where(v => Convert.ToUInt64(v, System.Globalization.CultureInfo.InvariantCulture) is var bits && bits != 0 && (bits & (bits - 1)) == 0).Select(v => v.ToString() ?? "")];
 
     /// <summary>The text of a set of flags for <paramref name="names"/> (the form Enum.Parse reads); "0" when none is set.</summary>
     public static string FlagsText(IEnumerable<string> names) => string.Join(", ", names) is { Length: > 0 } text ? text : "0";

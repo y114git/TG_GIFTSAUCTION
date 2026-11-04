@@ -191,6 +191,7 @@ public sealed class StringsWindow : Window
             {
                 _building = false;
                 if (!task.IsCompletedSuccessfully) return;
+                // The task has completed successfully here, so Result does not block.
                 (_index, _indexVersion) = (task.Result, version);
                 Refresh();
             });

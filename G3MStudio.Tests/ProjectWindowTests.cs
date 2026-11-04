@@ -57,7 +57,7 @@ public sealed class ProjectWindowTests
                 Assert.Equal("Synced", StateText(window));
 
                 workspace.Edit(new EditCodeCommand("gml_Script_probe", "return 2;"));
-                Assert.Equal("1 changes not synced to data file", StateText(window));
+                Assert.Equal("Changes not synced to data file: 1", StateText(window));
                 Assert.True(window.Registry.Execute("project.sync"));
                 await Settle(() => StateText(window) == "Synced");
                 Assert.Contains(window.Notifications.History, n => n.Text.StartsWith("Saved", StringComparison.Ordinal));

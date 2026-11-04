@@ -506,7 +506,8 @@
     },
     "filter": "筛选属性",
     "refused": "{path}：{reason}",
-    "missing": "在此数据文件中找不到 {name}。"
+    "missing": "在此数据文件中找不到 {name}。",
+    "items": "项数: {count}"
   },
   "about": {
     "title": "关于 G3MStudio",

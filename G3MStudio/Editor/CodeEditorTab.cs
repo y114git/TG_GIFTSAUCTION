@@ -29,7 +29,7 @@ public sealed class CodeEditorTab : DockPanel
     private readonly FoldingManager _folding;
     private string _applied = "";
     private bool _loading, _applying;
-    private int _loadId, _loadedVersion = -1;
+    private int _loadId, _loadedVersion = -1, _loadedRevision = -1;
 
     public CodeEditorTab(Workspace workspace, string entry)
     {
@@ -39,44 +39,7 @@ public sealed class CodeEditorTab : DockPanel
         Editor.Name = "Code";
         _colorizer.Classifier = GmlNames.For(workspace);
         _ = new GmlCompletion(Editor, GmlNames.Completions(workspace));
-        var definitions = GmlNames.Definitions(workspace);
-        void GoTo(int offset)
-        {
-            if (GmlNames.WordAt(Editor.Text, offset) is { } word && definitions(word) is { } key) GoToRequested?.Invoke(key);
-        }
-
-        Editor.TextArea.KeyDown += (_, e) =>
-        {
-            if (e.Key != Avalonia.Input.Key.F12 || e.KeyModifiers != Avalonia.Input.KeyModifiers.None) return;
-            GoTo(Editor.CaretOffset);
-            e.Handled = true;
-        };
-        // Ctrl+click goes to the name under the pointer; the tunnel keeps the editor from moving its caret first.
-        Editor.TextArea.AddHandler(Avalonia.Input.InputElement.PointerPressedEvent, (_, e) =>
-        {
-            if (e.KeyModifiers != Avalonia.Input.KeyModifiers.Control || !e.GetCurrentPoint(Editor.TextArea).Properties.IsLeftButtonPressed) return;
-            if (Editor.GetPositionFromPoint(e.GetPosition(Editor)) is not { } position) return;
-            GoTo(Editor.Document.GetOffset(position.Location));
-            e.Handled = true;
-        }, Avalonia.Interactivity.RoutingStrategies.Tunnel);
-        // A right click on a number lists the assets with that index; a choice goes to the asset (UTMT-CODE-09).
-        Editor.TextArea.AddHandler(Avalonia.Input.InputElement.PointerPressedEvent, (_, e) =>
-        {
-            if (!e.GetCurrentPoint(Editor.TextArea).Properties.IsRightButtonPressed || Editor.GetPositionFromPoint(e.GetPosition(Editor)) is not { } position) return;
-            if (NumberAssets.NumberAt(Editor.Text, Editor.Document.GetOffset(position.Location)) is not { } number) return;
-            var assets = NumberAssets.Find(workspace.Data, number);
-            if (assets.Count == 0) return;
-            var menu = new ContextMenu();
-            foreach (var (type, name) in assets)
-            {
-                var item = new MenuItem { Header = Loc.Current["explorer.type." + type] + ": " + name };
-                item.Click += (_, _) => GoToRequested?.Invoke(ResourceTypes.KeyOf(type, name));
-                menu.Items.Add(item);
-            }
-
-            menu.Open(Editor.TextArea);
-            e.Handled = true;
-        }, Avalonia.Interactivity.RoutingStrategies.Tunnel);
+        InstallGoTo(workspace);
         _search = SearchPanel.Install(Editor);
         _search.IsReplaceMode = true;
         _folding = FoldingManager.Install(Editor.TextArea);
@@ -120,9 +83,51 @@ public sealed class CodeEditorTab : DockPanel
         {
             workspace.History.Changed += OnHistoryChanged;
             // A tab shown again keeps its text, caret and scroll unless an edit reached the model while it was hidden.
-            if (Ready.IsCompleted && !HasPending && _loadedVersion != workspace.History.Version) Ready = LoadAsync();
+            if (Ready.IsCompleted && !HasPending && (_loadedVersion != workspace.History.Version || _loadedRevision != workspace.DecompilerRevision)) Ready = LoadAsync();
         };
         Ready = LoadAsync();
+    }
+
+    private void InstallGoTo(Workspace workspace)
+    {
+        var definitions = GmlNames.Definitions(workspace);
+        void GoTo(int offset)
+        {
+            if (GmlNames.WordAt(Editor.Text, offset) is { } word && definitions(word) is { } key) GoToRequested?.Invoke(key);
+        }
+
+        Editor.TextArea.KeyDown += (_, e) =>
+        {
+            if (e.Key != Avalonia.Input.Key.F12 || e.KeyModifiers != Avalonia.Input.KeyModifiers.None) return;
+            GoTo(Editor.CaretOffset);
+            e.Handled = true;
+        };
+        // Ctrl+click goes to the name under the pointer; the tunnel keeps the editor from moving its caret first.
+        Editor.TextArea.AddHandler(Avalonia.Input.InputElement.PointerPressedEvent, (_, e) =>
+        {
+            if (e.KeyModifiers != Avalonia.Input.KeyModifiers.Control || !e.GetCurrentPoint(Editor.TextArea).Properties.IsLeftButtonPressed) return;
+            if (Editor.GetPositionFromPoint(e.GetPosition(Editor)) is not { } position) return;
+            GoTo(Editor.Document.GetOffset(position.Location));
+            e.Handled = true;
+        }, Avalonia.Interactivity.RoutingStrategies.Tunnel);
+        // A right click on a number lists the assets with that index; a choice goes to the asset (UTMT-CODE-09).
+        Editor.TextArea.AddHandler(Avalonia.Input.InputElement.PointerPressedEvent, (_, e) =>
+        {
+            if (!e.GetCurrentPoint(Editor.TextArea).Properties.IsRightButtonPressed || Editor.GetPositionFromPoint(e.GetPosition(Editor)) is not { } position) return;
+            if (NumberAssets.NumberAt(Editor.Text, Editor.Document.GetOffset(position.Location)) is not { } number) return;
+            var assets = NumberAssets.Find(workspace.Data, number);
+            if (assets.Count == 0) return;
+            var menu = new ContextMenu();
+            foreach (var (type, name) in assets)
+            {
+                var item = new MenuItem { Header = Loc.Current["explorer.type." + type] + ": " + name };
+                item.Click += (_, _) => GoToRequested?.Invoke(ResourceTypes.KeyOf(type, name));
+                menu.Items.Add(item);
+            }
+
+            menu.Open(Editor.TextArea);
+            e.Handled = true;
+        }, Avalonia.Interactivity.RoutingStrategies.Tunnel);
     }
 
     public string Entry { get; }
@@ -204,6 +209,7 @@ public sealed class CodeEditorTab : DockPanel
     {
         var id = ++_loadId;
         var version = _workspace.History.Version;
+        var revision = _workspace.DecompilerRevision;
         _loading = true;
         Editor.IsReadOnly = true;
         Show(Loc.Current["code.decompiling"], false);
@@ -214,7 +220,7 @@ public sealed class CodeEditorTab : DockPanel
                 using (_workspace.Lock.Read()) return CodeText.Decompile(_workspace.Data, Entry, _workspace.DecompileContext());
             });
             if (id != _loadId) return;
-            _loadedVersion = version;
+            (_loadedVersion, _loadedRevision) = (version, revision);
             // The same text again (an edit elsewhere) is left alone, so the caret, scroll and selection stay and nothing is tokenized twice.
             if (Editor.Text != text)
             {

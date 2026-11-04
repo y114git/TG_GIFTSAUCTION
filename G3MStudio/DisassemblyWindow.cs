@@ -48,7 +48,6 @@ public sealed class DisassemblyWindow : Window
         _ = Load(workspace, entry);
     }
 
-    /// <summary>The result of the last Assemble.</summary>
     public TextBlock Message { get; } = new() { Name = "AssembleMessage", VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
 
     private string _last = string.Empty;

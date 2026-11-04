@@ -423,16 +423,16 @@ public sealed class RoomEditTests
 
         foreach (var (field, value) in new[] { ("x", "123"), ("scalex", "2.5"), ("rotation", "90"), ("imageindex", "3"), ("object", other.Name.Content ?? string.Empty) })
         {
-            var set = new RoomInstanceCommand(name, RoomInstanceCommand.Set, instance.InstanceID, objectName: field, value: value);
+            var set = new RoomInstanceCommand(name, RoomInstanceCommand.Set, instance.InstanceID, objectName: field) { Value = value };
             set.Apply(data);
             set.Revert(data);
         }
 
         Assert.Equal(before, (instance.X, instance.ScaleX, instance.Rotation, instance.ImageIndex, instance.ObjectDefinition));
-        var swap = new RoomInstanceCommand(name, RoomInstanceCommand.Set, instance.InstanceID, objectName: "object", value: other.Name.Content ?? string.Empty);
+        var swap = new RoomInstanceCommand(name, RoomInstanceCommand.Set, instance.InstanceID, objectName: "object") { Value = other.Name.Content ?? string.Empty };
         swap.Apply(data);
         Assert.Same(other, instance.ObjectDefinition);
-        Assert.Throws<InvalidDataException>(() => new RoomInstanceCommand(name, RoomInstanceCommand.Set, instance.InstanceID, objectName: "bogus", value: "1").Apply(data));
+        Assert.Throws<InvalidDataException>(() => new RoomInstanceCommand(name, RoomInstanceCommand.Set, instance.InstanceID, objectName: "bogus") { Value = "1" }.Apply(data));
     }
 
     [Fact]

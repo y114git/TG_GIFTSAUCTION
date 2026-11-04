@@ -56,7 +56,8 @@ public sealed partial class MainWindow
             || await PickPatchFile(Loc.Current["mods.pickModOut"], true) is not { } output) return;
         await RunPatchAsync("mods.packaging", async token =>
         {
-            var patch = Path.Combine(Directory.CreateTempSubdirectory("g3mstudio-mod-").FullName, "mod.g3mpatch");
+            var folder = Directory.CreateTempSubdirectory("g3mstudio-mod-").FullName;
+            var patch = Path.Combine(folder, "mod.g3mpatch");
             try
             {
                 var result = await PatchService.CreatePatchAsync(original, workspace.Path, patch, cancellationToken: token);
@@ -67,7 +68,7 @@ public sealed partial class MainWindow
             }
             finally
             {
-                Directory.Delete(Path.GetDirectoryName(patch)!, true);
+                Directory.Delete(folder, true);
             }
         });
     }
@@ -140,6 +141,7 @@ public sealed partial class MainWindow
         await RunPatchAsync("mods.applyingOpen", async token =>
         {
             PatchApplyResult? result = null;
+            // ApplyBulkAsync runs the action on a pool thread, where blocking cannot deadlock.
             await workspace.ApplyBulkAsync(() => result = PatchService.ApplyPatchAsync(workspace.Data, patch, new PatchApplyOptions { DataFilePath = workspace.Path }, null, token).GetAwaiter().GetResult());
             return result is { Success: true } ? (true, Loc.Current.Format("mods.appliedOpen", ("name", name))) : (false, (result?.Error ?? Loc.Current["mods.unknownError"]) + " " + Loc.Current["mods.openPartly"]);
         });
@@ -188,6 +190,7 @@ public sealed partial class MainWindow
                     foreach (var (patch, index) in usable.Select((p, i) => (p, i)))
                     {
                         var payload = ModImport.Extract(zipPath, patch, Directory.CreateDirectory(Path.Combine(work, index.ToString(System.Globalization.CultureInfo.InvariantCulture))).FullName);
+                        // Runs on the pool thread of ApplyBulkAsync, where blocking cannot deadlock.
                         var result = PatchService.ApplyPatchAsync(workspace.Data, payload, new PatchApplyOptions { DataFilePath = workspace.Path }, null, token).GetAwaiter().GetResult();
                         if (result.Success) continue;
                         error = result.Error;

@@ -72,7 +72,7 @@ public sealed class CodeSearchTests(ITestOutputHelper output)
                 window.GetVisualDescendants().OfType<TextBox>().Single(t => t.Name == "SearchQuery").Text = "return";
                 await panel.RunAsync();
                 Assert.Contains(panel.Hits, h => h.Entry == "gml_Script_probe");
-                Assert.Contains("matches", panel.Status, StringComparison.Ordinal);
+                Assert.Contains("Matches:", panel.Status, StringComparison.Ordinal);
             }
             finally { window.Close(); }
         });

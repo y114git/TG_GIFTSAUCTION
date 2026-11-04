@@ -130,7 +130,6 @@ public sealed record AppSettings
     }
 }
 
-/// <summary>A saved set of run options.</summary>
 public sealed record RunProfile(string Name, string Runner, string Arguments, bool DebugOutput);
 
 /// <summary>Reads and writes <c>settings.json</c> in the user data folder; every change is saved at once and announced.</summary>

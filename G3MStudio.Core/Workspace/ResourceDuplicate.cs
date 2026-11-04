@@ -57,7 +57,6 @@ public sealed class CopyPropertiesCommand(string type, string source, string tar
 /// <summary>Builds the one undoable edit that copies an object (properties and events with their code) or a script (its code) under a new name.</summary>
 public static class ResourceDuplicate
 {
-    /// <summary>The types that can be duplicated.</summary>
     public static readonly string[] Types = ["objects", "scripts"];
 
     public static EditCommand Build(GameMakerData data, string type, string source, string copy)

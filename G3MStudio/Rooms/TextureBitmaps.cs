@@ -32,13 +32,18 @@ public sealed class TextureBitmaps(ModelLock? gate = null) : IDisposable
     /// <summary>Drops the decoded page so the next ask decodes it again, after its picture changed.</summary>
     public void Forget(GameMakerEmbeddedTexture texture)
     {
-        if (_pages.Remove(texture, out var page) && page.IsCompletedSuccessfully) page.Result?.Dispose();
+        if (_pages.Remove(texture, out var page)) DisposeDone(page);
     }
 
     public void Dispose()
     {
-        foreach (var page in _pages.Values)
-            if (page.IsCompletedSuccessfully) page.Result?.Dispose();
+        foreach (var page in _pages.Values) DisposeDone(page);
         _pages.Clear();
+    }
+
+    private static void DisposeDone(Task<Bitmap?> page)
+    {
+        // The task has completed here, so Result does not block.
+        if (page.IsCompletedSuccessfully) page.Result?.Dispose();
     }
 }

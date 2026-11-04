@@ -112,7 +112,7 @@ public sealed class Journal : IDisposable
     private void DropUnusedBlobs(List<JournalRecord> kept)
     {
         if (!Directory.Exists(BlobFolder(_file))) return;
-        var used = kept.Where(r => r.Blobs is not null).SelectMany(r => r.Blobs!.Values).ToHashSet();
+        var used = kept.SelectMany(r => r.Blobs?.Values ?? Enumerable.Empty<string>()).ToHashSet();
         foreach (var blob in Directory.EnumerateFiles(BlobFolder(_file)))
             if (!used.Contains(Path.GetFileName(blob))) File.Delete(blob);
     }

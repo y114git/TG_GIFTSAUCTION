@@ -247,6 +247,7 @@ public sealed class SetPropertyCommand(string type, string name, string path, st
     public const string Name = "property";
 
     private object? _before;
+    private bool _addedStrings;
     private IReadOnlyList<ProjectTouch>? _touches;
 
     public override string Kind => Name;
@@ -257,15 +258,17 @@ public sealed class SetPropertyCommand(string type, string name, string path, st
 
     public override IReadOnlyList<ProjectTouch>? Touches => _touches;
 
-    public override bool ChangesNames => path.Contains("Name", StringComparison.Ordinal);
+    public override bool ChangesNames => _addedStrings || type == "strings" || path.Contains("Name", StringComparison.Ordinal); // a string entry is listed under its text
 
     public override void Apply(GameMakerData data)
     {
         var root = PropertyModel.FindRoot(data, type, name) ?? throw new InvalidOperationException($"'{name}' was not found in {type}.");
         _before = PropertyModel.ReadRaw(root, path);
+        var strings = data.Strings.Count;
         try
         {
             PropertyModel.Set(data, root, path, text);
+            _addedStrings = data.Strings.Count != strings;
         }
         catch (Exception e) when (e is FormatException or OverflowException or ArgumentException or InvalidCastException)
         {

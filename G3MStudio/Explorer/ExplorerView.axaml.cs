@@ -63,7 +63,7 @@ public partial class ExplorerView : UserControl
         List.AddHandler(PointerPressedEvent, (_, e) =>
         {
             if (!e.GetCurrentPoint(List).Properties.IsRightButtonPressed || e.Source is not Control { DataContext: ExplorerRow row } source) return;
-            if (row.IsItem && !List.SelectedItems!.Contains(row)) List.SelectedItem = row;
+            if (row.IsItem && List.SelectedItems?.Contains(row) != true) List.SelectedItem = row;
             MenuRequested?.Invoke(row, source);
             e.Handled = true;
         }, Avalonia.Interactivity.RoutingStrategies.Tunnel);

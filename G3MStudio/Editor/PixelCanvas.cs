@@ -64,10 +64,8 @@ public sealed class PixelCanvas : Control, IDisposable
 
     public bool CanRedo => _redo.Count > 0;
 
-    /// <summary>The picture or its undo state changed.</summary>
     public event Action? Changed;
 
-    /// <summary>The picker took a color from the picture.</summary>
     public event Action<Rgba>? Picked;
 
     private void Measure()

@@ -24,6 +24,6 @@ public sealed class PageHitTests
     public void TheTileSetLineGivesSizeColumnsBorderAndSeparation()
     {
         using var set = new GameMakerBackground { GMS2TileWidth = 16, GMS2TileHeight = 24, GMS2TileColumns = 8, GMS2TileCount = 64, GMS2OutputBorderX = 1, GMS2OutputBorderY = 2, GMS2TileSeparationX = 3, GMS2TileSeparationY = 4 };
-        Assert.Equal("Tiles 16 x 24, 8 columns, 64 tiles. Border 1, 2. Separation 3, 4.", TileSetInfoView.Describe(set));
+        Assert.Equal("Tile size: 16 x 24. Columns: 8. Tiles: 64. Border 1, 2. Separation 3, 4.", TileSetInfoView.Describe(set));
     }
 }

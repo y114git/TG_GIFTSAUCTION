@@ -72,7 +72,7 @@ public sealed class Localizer : INotifyPropertyChanged
         const string prefix = "G3MStudio.Core.Languages.lang_";
         return new Localizer(assembly.GetManifestResourceNames()
             .Where(n => n.StartsWith(prefix, StringComparison.Ordinal) && n.EndsWith(".json", StringComparison.Ordinal))
-            .Select(n => (n[prefix.Length..^".json".Length], assembly.GetManifestResourceStream(n)!)));
+            .Select(n => (n[prefix.Length..^".json".Length], assembly.GetManifestResourceStream(n) ?? throw new InvalidOperationException($"Resource {n} is missing."))));
     }
 
     public static Dictionary<string, string> Flatten(Stream json)

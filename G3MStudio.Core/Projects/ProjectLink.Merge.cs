@@ -38,7 +38,7 @@ public sealed class MergePlan
         {
             G3MProjectResource? o = ours.Find(path), t = theirs.Find(path), b = baseProject?.Find(path);
             if (Same(o, t)) continue;
-            var info = o ?? t ?? b!;
+            var info = o ?? t ?? b ?? throw new InvalidOperationException("The path has no resource in any side.");
             plan.Info[path] = (info.Type, info.Name);
             if (baseProject is not null && Same(t, b))
             {

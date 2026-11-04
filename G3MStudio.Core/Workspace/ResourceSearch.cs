@@ -18,7 +18,7 @@ public static class ResourceSearch
     {
         var (typeKey, needle) = ExplorerModel.SplitPrefix(query.Trim());
         if (needle.Length == 0 && typeKey.Length == 0)
-            return [.. recent.Where(k => ResourceTypes.Find(data, k) is not null).Select(k => ResourceTypes.SplitKey(k)!.Value).Select(k => new QuickOpenItem(k.Type, k.Name)).Take(limit)];
+            return [.. recent.Where(k => ResourceTypes.Find(data, k) is not null).Select(ResourceTypes.SplitKey).OfType<(string Type, string Name)>().Select(k => new QuickOpenItem(k.Type, k.Name)).Take(limit)];
 
         var order = new Dictionary<string, int>();
         for (var i = 0; i < recent.Count; i++) order.TryAdd(recent[i], i);

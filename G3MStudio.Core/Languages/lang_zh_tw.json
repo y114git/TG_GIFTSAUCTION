@@ -506,7 +506,8 @@
     },
     "filter": "篩選屬性",
     "refused": "{path}：{reason}",
-    "missing": "在此資料檔案中找不到 {name}。"
+    "missing": "在此資料檔案中找不到 {name}。",
+    "items": "項目數: {count}"
   },
   "about": {
     "title": "關於 G3MStudio",

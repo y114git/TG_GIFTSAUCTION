@@ -17,7 +17,7 @@ public static class DecompilerOptions
     public static bool IsText(PropertyInfo field) => field.PropertyType == typeof(string);
 
     /// <summary>The value the library starts with, as text.</summary>
-    public static string DefaultOf(PropertyInfo field) => Show(field.GetValue(new DecompileSettings())!);
+    public static string DefaultOf(PropertyInfo field) => Show(field.GetValue(new DecompileSettings()) ?? "");
 
     public static string Show(object value) => value switch
     {

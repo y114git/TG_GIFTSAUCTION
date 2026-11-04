@@ -140,7 +140,7 @@ public partial class MainWindow
     /// <summary>The spacing size scales the padding Fluent gives buttons, boxes, combo boxes and menu items; without the size the theme's own padding is back.</summary>
     private static void ScalePadding(IResourceDictionary resources, IReadOnlyDictionary<string, int> sizes)
     {
-        var app = Application.Current!;
+        if (Application.Current is not { } app) return;
         foreach (var key in PaddingKeys)
         {
             // The theme's value is read once, before any override of it exists.
@@ -220,7 +220,9 @@ public sealed partial class MainWindow
     /// <summary>Puts the decompiler settings into the open data file; a code tab shows them the next time its text is made.</summary>
     private void ApplyDecompiler(IReadOnlyDictionary<string, string> saved)
     {
-        if (Workspaces.Current is { Data.ToolInfo.DecompilerSettings: DecompileSettings target }) DecompilerOptions.Apply(target, saved);
+        if (Workspaces.Current is not { Data.ToolInfo.DecompilerSettings: DecompileSettings target } workspace) return;
+        DecompilerOptions.Apply(target, saved);
+        workspace.DecompilerChanged();
     }
 
     private void ZoomCode(int size) => Workspaces.Settings.Update(x => x with { CodeFontSize = size });

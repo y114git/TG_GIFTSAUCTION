@@ -199,10 +199,8 @@ public interface IShell
     /// <summary>The Code preset (true) or the default Studio layout (false).</summary>
     void UseLayoutPreset(string preset);
 
-    /// <summary>The welcome window with the language choice.</summary>
     void ShowOnboarding();
 
-    /// <summary>The short tour of the window.</summary>
     void ShowTour();
 
     void RunScript();
@@ -276,6 +274,14 @@ public static class AppCommands
     public static CommandRegistry Create(IShell shell)
     {
         var registry = new CommandRegistry();
+        AddFileAndRun(registry, shell);
+        AddEditAndMods(registry, shell);
+        AddViewAndTools(registry, shell);
+        return registry;
+    }
+
+    private static void AddFileAndRun(CommandRegistry registry, IShell shell)
+    {
         void Add(string id, string? shortcut, Action run, string? when = null) => registry.Add(new Command(id, shortcut, run, when));
 
         Add("file.newData", "Ctrl+N", shell.NewDataFile);
@@ -315,6 +321,12 @@ public static class AppCommands
         Add("room.importTiles", null, shell.ImportTiles, RoomTab);
         Add("room.play", "Ctrl+F5", shell.PlayRoom, RoomTab);
         Add("room.savePng", null, shell.SaveRoomPng, RoomTab);
+    }
+
+    private static void AddEditAndMods(CommandRegistry registry, IShell shell)
+    {
+        void Add(string id, string? shortcut, Action run, string? when = null) => registry.Add(new Command(id, shortcut, run, when));
+
         Add("mods.exportMod", null, shell.ExportMod, WorkspaceOpen);
         Add("mods.validatePatch", null, shell.ValidatePatch);
         Add("mods.applyMod", null, shell.ApplyMod);
@@ -347,6 +359,12 @@ public static class AppCommands
         Add("edit.findInCode", "Ctrl+Shift+F", shell.ShowSearch, WorkspaceOpen);
         Add("edit.findUsages", "Shift+F12", shell.FindUsages, WorkspaceOpen);
         Add("edit.findUses", null, shell.FindUses, WorkspaceOpen);
+    }
+
+    private static void AddViewAndTools(CommandRegistry registry, IShell shell)
+    {
+        void Add(string id, string? shortcut, Action run, string? when = null) => registry.Add(new Command(id, shortcut, run, when));
+
         Add("view.commandPalette", "Ctrl+Shift+P", shell.ShowPalette);
         Add("view.fullscreen", "F11", shell.ToggleFullscreen);
         Add("view.zoomIn", "Ctrl+OemPlus", () => shell.Zoom(1));
@@ -383,6 +401,5 @@ public static class AppCommands
         Add("help.about", null, shell.ShowAbout);
         Add("help.openDataFolder", null, shell.OpenDataFolder);
         Add("help.documentation", "F1", shell.OpenDocumentation);
-        return registry;
     }
 }

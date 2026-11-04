@@ -36,12 +36,16 @@ public static class CrashReporting
                 options.SetBeforeSend(Scrub);
             });
         }
-        catch (Exception)
+        catch (Exception e)
         {
             // Reporting must never be the reason the app fails.
+            InitFailure = e;
             _session = null;
         }
     }
+
+    /// <summary>Why reporting could not start, kept so a missing report can be explained.</summary>
+    public static Exception? InitFailure { get; private set; }
 
     private static SentryEvent? Scrub(SentryEvent e, SentryHint hint)
     {

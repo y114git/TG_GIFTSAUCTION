@@ -45,8 +45,8 @@ public sealed class RenameWindow : Window
             ok.IsEnabled = name.Length > 0 && name != current;
             _error.Text = "";
             _preview.Text = "";
+            var version = ++_previewVersion; // also for an unchanged name, so a preview still running for the last text cannot show up late
             if (preview is null || name.Length == 0 || name == current) return;
-            var version = ++_previewVersion;
             _ = ShowPreviewAsync(preview, name, version);
         };
         ok.Click += (_, _) => Run();

@@ -80,7 +80,7 @@ public sealed class SnapshotStore(string root)
         foreach (var file in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
         {
             var to = Path.Combine(target, Path.GetRelativePath(source, file));
-            Directory.CreateDirectory(Path.GetDirectoryName(to)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(to) ?? ".");
             File.Copy(file, to, true);
         }
     }

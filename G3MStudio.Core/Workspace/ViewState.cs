@@ -61,13 +61,16 @@ public sealed class EditorTabs
     /// <summary>A resource was renamed: tabs of the old key follow it.</summary>
     public void Rekey(string oldKey, string newKey)
     {
-        for (var i = 0; i < _tabs.Count; i++)
-            if (_tabs[i].Key == oldKey) _tabs[i] = _tabs[i] with { Key = newKey };
-        for (var i = 0; i < _closed.Count; i++)
-            if (_closed[i].Key == oldKey) _closed[i] = (_closed[i].Kind, newKey);
-        foreach (var visits in _visits.Values)
-            for (var i = 0; i < visits.Items.Count; i++)
-                if (visits.Items[i].Key == oldKey) visits.Items[i] = (visits.Items[i].Kind, newKey);
+        Rewrite(_tabs, t => t.Key == oldKey ? t with { Key = newKey } : t);
+        Rewrite(_closed, c => c.Key == oldKey ? (c.Kind, newKey) : c);
+        foreach (var visits in _visits.Values) Rewrite(visits.Items, v => v.Key == oldKey ? (v.Kind, newKey) : v);
+    }
+
+    private static void Rewrite<T>(List<T> list, Func<T, T> map)
+    {
+        var mapped = list.ConvertAll(item => map(item));
+        list.Clear();
+        list.AddRange(mapped);
     }
 
     /// <summary>Closes a tab; its resource goes on the list Reopen Closed Tab takes from.</summary>

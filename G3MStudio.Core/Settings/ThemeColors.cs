@@ -134,10 +134,6 @@ public static class ThemeFile
             using var reader = new StreamReader(entry.Open());
             return Read(reader.ReadToEnd());
         }
-        catch (InvalidDataException)
-        {
-            throw;
-        }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
             throw new InvalidDataException("The theme file could not be read: " + e.Message, e);
@@ -155,14 +151,14 @@ public static class ThemeFile
             if (document.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object && document.RootElement.TryGetProperty("config_version", out _))
             {
                 var g3m = new Dictionary<string, string>();
-                if (document.RootElement.TryGetProperty("custom_border_color", out var border) && border.ValueKind == System.Text.Json.JsonValueKind.String && ThemeColors.IsValid(border.GetString())) g3m[ThemeColors.Accent] = border.GetString()!.ToUpperInvariant();
+                if (document.RootElement.TryGetProperty("custom_border_color", out var border) && border.ValueKind == System.Text.Json.JsonValueKind.String && border.GetString() is { } hex && ThemeColors.IsValid(hex)) g3m[ThemeColors.Accent] = hex.ToUpperInvariant();
                 return g3m;
             }
 
             if (document.RootElement.ValueKind != System.Text.Json.JsonValueKind.Object || !document.RootElement.TryGetProperty("colors", out var colors) || colors.ValueKind != System.Text.Json.JsonValueKind.Object) throw new InvalidDataException("The file has no \"colors\" object.");
             var result = new Dictionary<string, string>();
             foreach (var property in colors.EnumerateObject())
-                if (ThemeColors.Editable.Contains(property.Name) && property.Value.ValueKind == System.Text.Json.JsonValueKind.String && ThemeColors.IsValid(property.Value.GetString())) result[property.Name] = property.Value.GetString()!.ToUpperInvariant();
+                if (ThemeColors.Editable.Contains(property.Name) && property.Value.ValueKind == System.Text.Json.JsonValueKind.String && property.Value.GetString() is { } hex && ThemeColors.IsValid(hex)) result[property.Name] = hex.ToUpperInvariant();
             return result;
         }
         catch (System.Text.Json.JsonException e)

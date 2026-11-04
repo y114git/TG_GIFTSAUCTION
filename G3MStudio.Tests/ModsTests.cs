@@ -170,7 +170,7 @@ public sealed class ModsTests
                 window.FilePicker = (_, _) => Task.FromResult<string?>(answers.Dequeue());
                 await window.CompareFilesAsync();
                 Assert.True(File.Exists(report), string.Join("; ", window.Notifications.Active.Select(n => n.Text)));
-                Assert.Contains(window.Notifications.Active, n => n.Text.Contains("differences", StringComparison.Ordinal));
+                Assert.Contains(window.Notifications.Active, n => n.Text.Contains("Differences:", StringComparison.Ordinal));
             }
             finally { window.Close(); }
         });

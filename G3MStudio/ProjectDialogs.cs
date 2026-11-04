@@ -229,8 +229,6 @@ internal static class ProjectDialogs
         return answer;
     }
 
-    /// <summary>A data file that is gone or does not read has a project: offer to build it again from the project.</summary>
-    /// <summary>A plain question with Ok and Cancel.</summary>
     public static async Task<bool> AskConfirmAsync(Window owner, string title, string message)
     {
         var window = Shell("transfer.confirmTitle");
@@ -317,6 +315,7 @@ internal static class ProjectDialogs
         return row;
     }
 
+    /// <summary>A data file that is gone or does not read has a project: offer to build it again from the project.</summary>
     public static async Task<bool> AskRebuildAsync(Window owner, string name)
     {
         var window = Shell("project.rebuild.title");

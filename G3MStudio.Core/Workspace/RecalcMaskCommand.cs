@@ -72,7 +72,7 @@ public sealed class RecalcMaskCommand(string sprite, int tolerance = 0) : EditCo
     public override void Revert(GameMakerData data)
     {
         var target = data.Sprites.FirstOrDefault(s => s.Name.Content == sprite) ?? throw new InvalidOperationException($"Sprite '{sprite}' does not exist.");
-        for (var i = 0; i < _old.Length && i < target.CollisionMasks.Count; i++)
-            if (_old[i] is { } bytes) target.CollisionMasks[i].Data = bytes;
+        foreach (var (bytes, mask) in _old.Zip(target.CollisionMasks))
+            if (bytes is not null) mask.Data = bytes;
     }
 }

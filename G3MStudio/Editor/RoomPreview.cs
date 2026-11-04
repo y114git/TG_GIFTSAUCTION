@@ -108,18 +108,29 @@ public sealed class RoomPreview : DockPanel
                 _elements.Show(null);
             }
 
-            View.Moved += (elements, dx, dy) => Edit(elements.Select(e => ChangeOf(e, RoomInstanceCommand.Move, RoomElementCommand.Move, dx, dy)).OfType<EditCommand>());
-            View.DeleteRequested += elements => Edit(elements.Select(e => ChangeOf(e, RoomInstanceCommand.Delete, RoomElementCommand.Delete, 0, 0)).OfType<EditCommand>());
-            View.FlipRequested += (elements, horizontal) => Edit(elements.OfType<GameMakerRoom.GameObject>().Select(i => new RoomInstanceCommand(RoomName, horizontal ? RoomInstanceCommand.FlipX : RoomInstanceCommand.FlipY, i.InstanceID)));
-            View.ResourceDropped += Place;
-            View.CopyRequested += Copy;
-            View.PasteRequested += Paste;
-            View.CopiesPainted += PaintCopies;
-            View.TilesPainted += Paint;
-            workspace.History.Changed += OnHistoryChanged;
-            DetachedFromVisualTree += (_, _) => workspace.History.Changed -= OnHistoryChanged;
+            WireEdits(workspace);
         }
 
+        AddCanvas();
+        Ready = BuildAsync();
+    }
+
+    private void WireEdits(Workspace workspace)
+    {
+        View.Moved += (elements, dx, dy) => Edit(elements.Select(e => ChangeOf(e, RoomInstanceCommand.Move, RoomElementCommand.Move, dx, dy)).OfType<EditCommand>());
+        View.DeleteRequested += elements => Edit(elements.Select(e => ChangeOf(e, RoomInstanceCommand.Delete, RoomElementCommand.Delete, 0, 0)).OfType<EditCommand>());
+        View.FlipRequested += (elements, horizontal) => Edit(elements.OfType<GameMakerRoom.GameObject>().Select(i => new RoomInstanceCommand(RoomName, horizontal ? RoomInstanceCommand.FlipX : RoomInstanceCommand.FlipY, i.InstanceID)));
+        View.ResourceDropped += Place;
+        View.CopyRequested += Copy;
+        View.PasteRequested += Paste;
+        View.CopiesPainted += PaintCopies;
+        View.TilesPainted += Paint;
+        workspace.History.Changed += OnHistoryChanged;
+        DetachedFromVisualTree += (_, _) => workspace.History.Changed -= OnHistoryChanged;
+    }
+
+    private void AddCanvas()
+    {
         var hint = new TextBlock { Name = "RoomHint", Classes = { "muted" } };
         SetDock(hint, Avalonia.Controls.Dock.Bottom);
         Children.Add(hint);
@@ -136,7 +147,6 @@ public sealed class RoomPreview : DockPanel
         canvas.Children.Add(left);
         canvas.Children.Add(View);
         Children.Add(canvas);
-        Ready = BuildAsync();
     }
 
     public RoomView View { get; } = new();
@@ -234,14 +244,14 @@ public sealed class RoomPreview : DockPanel
     {
         if (_clipboard.Count == 0) return;
         var (ax, ay) = (_clipboard[0].X, _clipboard[0].Y);
-        Edit(_clipboard.Select(c => new RoomInstanceCommand(RoomName, RoomInstanceCommand.Add, 0, (int)at.X + c.X - ax, (int)at.Y + c.Y - ay, c.Object, c.ScaleX, c.ScaleY)));
+        Edit(_clipboard.Select(c => new RoomInstanceCommand(RoomName, RoomInstanceCommand.Add, 0, (int)at.X + c.X - ax, (int)at.Y + c.Y - ay, c.Object) { ScaleX = c.ScaleX, ScaleY = c.ScaleY }));
     }
 
     /// <summary>One copy of the instance at each place, as one undo step.</summary>
     public void PaintCopies(GameMakerRoom.GameObject source, IReadOnlyList<Point> places)
     {
         if (source.ObjectDefinition?.Name.Content is not { } name) return;
-        Edit(places.Select(p => new RoomInstanceCommand(RoomName, RoomInstanceCommand.Add, 0, (int)p.X, (int)p.Y, name, source.ScaleX, source.ScaleY)));
+        Edit(places.Select(p => new RoomInstanceCommand(RoomName, RoomInstanceCommand.Add, 0, (int)p.X, (int)p.Y, name) { ScaleX = source.ScaleX, ScaleY = source.ScaleY }));
     }
 
     /// <summary>Remembers the instances (object, position, scale) for a later paste.</summary>

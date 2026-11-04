@@ -33,7 +33,6 @@ public static class SpriteTemplate
         var page = new GameMakerEmbeddedTexture
         {
             TextureData = new GameMakerEmbeddedTexture.TexData { Image = GMImage.FromMagickImage(canvas).ConvertToFormat(template.TextureData.Image.Format) },
-            TextureInfo = group!,
             IndexInGroup = group?.TexturePages.Count ?? 0,
             TextureWidth = side,
             TextureHeight = side,
@@ -41,6 +40,7 @@ public static class SpriteTemplate
             GeneratedMips = template.GeneratedMips,
             Name = new GameMakerString($"Texture {data.EmbeddedTextures.Count}"),
         };
+        if (group is not null) page.TextureInfo = group;
         data.EmbeddedTextures.Add(page);
         group?.TexturePages.Add(new(page));
         var item = new GameMakerTexturePageItem { TexturePage = page, SourceX = 0, SourceY = 0, SourceWidth = w, SourceHeight = h, TargetX = 0, TargetY = 0, TargetWidth = w, TargetHeight = h, BoundingWidth = w, BoundingHeight = h };
@@ -86,7 +86,7 @@ public static class SpriteTemplate
         };
         sprite.Textures.Add(new GameMakerSprite.TextureEntry { Texture = item });
         sprite.V2Sequence = NewSequence(sprite, data);
-        sprite.V3NineSlice = sprite.SVersion >= 3 ? new GameMakerSprite.NineSlice() : null!;
+        if (sprite.SVersion >= 3) sprite.V3NineSlice = new GameMakerSprite.NineSlice();
         data.Sprites.Add(sprite);
         return sprite;
     }

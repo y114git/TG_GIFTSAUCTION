@@ -13,7 +13,11 @@ public sealed partial class MainWindow
         var settings = Workspaces.Settings;
         var languages = Loc.Current.Languages.OrderBy(l => l.Key, StringComparer.Ordinal).ToList();
         var detected = Localizer.Detect(CultureInfo.CurrentUICulture, languages.Select(l => l.Key));
-        new OnboardingWindow(languages, settings.Current.Language, detected, key => settings.Update(x => x with { Language = key }), hex => settings.Update(x => x with { Colors = new Dictionary<string, string>(x.Colors) { [ThemeColors.Accent] = hex } }), settings.Current.CrashReports, on => settings.Update(x => x with { CrashReports = on }), () => settings.Update(x => x with { OnboardingDone = true })).Show(this);
+        new OnboardingWindow(languages, settings.Current.Language, detected, settings.Current.CrashReports, new OnboardingActions(
+            key => settings.Update(x => x with { Language = key }),
+            hex => settings.Update(x => x with { Colors = new Dictionary<string, string>(x.Colors) { [ThemeColors.Accent] = hex } }),
+            on => settings.Update(x => x with { CrashReports = on }),
+            () => settings.Update(x => x with { OnboardingDone = true }))).Show(this);
     }
 
     public void ShowTour() => new TourWindow(Docking.ShowPanel).Show(this);

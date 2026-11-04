@@ -506,7 +506,8 @@
     },
     "filter": "プロパティを絞り込み",
     "refused": "{path}: {reason}",
-    "missing": "{name} はこのデータファイルに見つかりませんでした。"
+    "missing": "{name} はこのデータファイルに見つかりませんでした。",
+    "items": "項目数: {count}"
   },
   "about": {
     "title": "G3MStudio について",

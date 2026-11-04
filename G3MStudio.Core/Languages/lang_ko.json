@@ -506,7 +506,8 @@
     },
     "filter": "속성 필터",
     "refused": "{path}: {reason}",
-    "missing": "이 데이터 파일에서 {name}을(를) 찾을 수 없습니다."
+    "missing": "이 데이터 파일에서 {name}을(를) 찾을 수 없습니다.",
+    "items": "항목 수: {count}"
   },
   "about": {
     "title": "G3MStudio 정보",

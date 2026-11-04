@@ -40,7 +40,7 @@ public sealed class ReplacePageCommand(string page, byte[] picture) : EditComman
     public override void Apply(GameMakerData data)
     {
         var texture = Find(data, page);
-        var current = texture.TextureData?.Image ?? throw new InvalidOperationException($"Texture page '{page}' has no picture to replace.");
+        if (texture.TextureData is not { } pixels || pixels.Image is not { } current) throw new InvalidOperationException($"Texture page '{page}' has no picture to replace.");
         if (_after is null)
         {
             using var image = ReplaceFrameCommand.ReadPicture(picture);
@@ -50,12 +50,13 @@ public sealed class ReplacePageCommand(string page, byte[] picture) : EditComman
         }
 
         _before = current;
-        texture.TextureData!.Image = _after;
+        pixels.Image = _after;
     }
 
     public override void Revert(GameMakerData data)
     {
         var texture = Find(data, page);
-        texture.TextureData!.Image = _before ?? throw new InvalidOperationException("The page was never replaced.");
+        if (texture.TextureData is not { } pixels) throw new InvalidOperationException($"Texture page '{page}' has no picture.");
+        pixels.Image = _before ?? throw new InvalidOperationException("The page was never replaced.");
     }
 }

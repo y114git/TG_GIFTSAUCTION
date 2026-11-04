@@ -142,7 +142,7 @@ public sealed class ShellWorkspaceTests(ITestOutputHelper output)
                 Assert.Null(window.Workspaces.Current);
                 await window.OpenAsync(path);
                 Assert.Contains(Rows(window), r => r.Text == "obj_first");
-                Assert.Contains(window.Notifications.Active, n => n.Text == "Recovered 1 unsaved edits"); // a game without code entries also gets the YYC warning
+                Assert.Contains(window.Notifications.Active, n => n.Text == "Unsaved edits recovered: 1"); // a game without code entries also gets the YYC warning
             }
             finally
             {

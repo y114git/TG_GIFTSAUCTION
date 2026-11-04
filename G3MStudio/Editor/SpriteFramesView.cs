@@ -95,8 +95,8 @@ public sealed class SpriteFramesView : ScrollViewer
     {
         foreach (var marker in _markers) marker.InvalidateVisual(); // an origin edit moves the crosshair
         if (_shown.Length == _sprite.Textures.Count && Enumerable.Range(0, _shown.Length).All(i => ReferenceEquals(_shown[i], PageImage(_sprite, i)))) return;
-        for (var i = 0; i < _sprite.Textures.Count; i++)
-            if (_sprite.Textures[i].Texture?.TexturePage is { } page) _textures.Forget(page);
+        foreach (var entry in _sprite.Textures)
+            if (entry.Texture?.TexturePage is { } page) _textures.Forget(page);
         Ready = RefillAsync();
     }
 

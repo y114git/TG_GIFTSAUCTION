@@ -107,7 +107,7 @@ public sealed partial class MainWindow
         }
 
         if (!ApplyCodeEditors()) return;
-        var temp = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(workspace.Path))!, RunTempName);
+        var temp = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(workspace.Path)) ?? ".", RunTempName);
         Notify(NotificationLevel.Info, Loc.Current.Format("run.starting", ("name", name)));
         if (settings.WarnTempRun && !_warnedTempRun)
         {

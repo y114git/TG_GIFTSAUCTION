@@ -9,7 +9,6 @@ public sealed record Notification(long Id, NotificationLevel Level, string Text,
     public bool Sticky => Level == NotificationLevel.Error;
 }
 
-/// <summary>The toasts that are showing and a short history of everything posted.</summary>
 public sealed class NotificationCenter
 {
     public const int MaxHistory = 100;

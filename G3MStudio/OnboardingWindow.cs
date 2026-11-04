@@ -4,6 +4,9 @@ using G3MStudio.Localization;
 
 namespace G3MStudio;
 
+/// <summary>What the welcome window changes in the settings.</summary>
+public sealed record OnboardingActions(Action<string> Pick, Action<string> Accent, Action<bool> Crash, Action Finish);
+
 /// <summary>
 /// The welcome window of the first launch (design/onboarding.md steps 0 and 1, joined): a list of the languages, each in its own language, with the one
 /// that matches the operating system tagged. Picking one switches the whole window at once; Get Started keeps it and Skip Setup keeps what is chosen now.
@@ -15,7 +18,7 @@ public sealed class OnboardingWindow : Window
     /// <summary>The accent colors offered on the welcome window: the G3M green first, then a few that stay readable on the dark surfaces.</summary>
     public static readonly string[] Accents = ["#039D5B", "#2F81F7", "#8957E5", "#E5534B", "#D29922", "#F778BA"];
 
-    public OnboardingWindow(IReadOnlyList<KeyValuePair<string, string>> languages, string selected, string detected, Action<string> pick, Action<string> accent, bool crashReports, Action<bool> crash, Action finish)
+    public OnboardingWindow(IReadOnlyList<KeyValuePair<string, string>> languages, string selected, string detected, bool crashReports, OnboardingActions actions)
     {
         this.Tr(TitleProperty, "onboarding.title");
         Width = 520;
@@ -26,21 +29,21 @@ public sealed class OnboardingWindow : Window
         _languages.SelectedIndex = Math.Max(0, languages.ToList().FindIndex(l => l.Key == selected));
         _languages.SelectionChanged += (_, _) =>
         {
-            if (_languages.SelectedIndex >= 0) pick(languages[_languages.SelectedIndex].Key);
+            if (_languages.SelectedIndex >= 0) actions.Pick(languages[_languages.SelectedIndex].Key);
         };
         var start = new Button { Name = "OnboardingStart", Classes = { "primary" } }.Tr(ContentControl.ContentProperty, "onboarding.start");
         var skip = new Button { Name = "OnboardingSkip" }.Tr(ContentControl.ContentProperty, "onboarding.skip");
         start.Click += (_, _) => Close(true);
         skip.Click += (_, _) => Close(false);
-        Closed += (_, _) => finish();
+        Closed += (_, _) => actions.Finish();
         var report = new CheckBox { Name = "OnboardingCrash", IsChecked = crashReports }.Tr(ContentControl.ContentProperty, "onboarding.crash");
-        report.IsCheckedChanged += (_, _) => crash(report.IsChecked == true);
+        report.IsCheckedChanged += (_, _) => actions.Crash(report.IsChecked == true);
         var swatches = new StackPanel { Name = "OnboardingAccents", Orientation = Orientation.Horizontal, Spacing = 8 };
         foreach (var hex in Accents)
         {
             var swatch = new Button { Name = "Accent_" + hex[1..], Width = 28, Height = 28, Padding = new Avalonia.Thickness(0), Background = Avalonia.Media.SolidColorBrush.Parse(hex) };
             Avalonia.Controls.ToolTip.SetTip(swatch, hex);
-            swatch.Click += (_, _) => accent(hex);
+            swatch.Click += (_, _) => actions.Accent(hex);
             swatches.Children.Add(swatch);
         }
 

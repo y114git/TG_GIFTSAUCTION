@@ -31,38 +31,11 @@ public sealed class PixelPainterWindow : Window
         Closed += (_, _) => Canvas.Dispose();
 
         var tools = new StackPanel { Spacing = 4, Margin = new Thickness(8) };
-        var buttons = new List<ToggleButton>();
-        foreach (var tool in Enum.GetValues<PaintTool>())
-        {
-            var button = new ToggleButton { Name = "Tool_" + tool, Content = Loc.Current["painter.tool." + tool], IsChecked = tool == PaintTool.Pencil, HorizontalAlignment = HorizontalAlignment.Stretch };
-            button.Click += (_, _) =>
-            {
-                Canvas.Tool = tool;
-                foreach (var other in buttons) other.IsChecked = other == button;
-            };
-            buttons.Add(button);
-            tools.Children.Add(button);
-        }
+        AddToolButtons(tools);
 
-        var size = new NumericUpDown { Name = "PaintSize", Minimum = 1, Maximum = 32, Value = 1, Increment = 1, FormatString = "0", Width = 110, HorizontalAlignment = HorizontalAlignment.Left };
-        size.ValueChanged += (_, e) => Canvas.BrushSize = (int)(e.NewValue ?? 1);
-        var grid = new CheckBox { Name = "PaintGrid", Content = Loc.Current["painter.grid"], IsChecked = true };
-        grid.IsCheckedChanged += (_, _) => Canvas.ShowGrid = grid.IsChecked == true;
-        tools.Children.Add(new TextBlock { Text = Loc.Current["painter.size"], Margin = new Thickness(0, 8, 0, 0) });
-        tools.Children.Add(size);
-        tools.Children.Add(grid);
+        AddBrushControls(tools);
 
-        var swatches = new WrapPanel { MaxWidth = 150 };
-        foreach (var hex in Palette)
-        {
-            var chip = new Button { Width = 24, Height = 24, Padding = new Thickness(0), Margin = new Thickness(1), Background = new SolidColorBrush(Avalonia.Media.Color.Parse(hex)) };
-            chip.Click += (_, _) => SetColor(Rgba.Parse(hex)!.Value);
-            swatches.Children.Add(chip);
-        }
-
-        tools.Children.Add(new TextBlock { Text = Loc.Current["painter.color"], Margin = new Thickness(0, 8, 0, 0) });
-        tools.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { _swatch, _hex } });
-        tools.Children.Add(swatches);
+        AddPalette(tools);
 
         _hex.TextChanged += (_, _) =>
         {
@@ -99,21 +72,7 @@ public sealed class PixelPainterWindow : Window
         };
         cancel.Click += (_, _) => Close(false);
 
-        var width = new NumericUpDown { Name = "PaintWidth", Minimum = 1, Maximum = 2048, Value = picture.Width, Increment = 1, FormatString = "0", Width = 150, HorizontalAlignment = HorizontalAlignment.Left };
-        var height = new NumericUpDown { Name = "PaintHeight", Minimum = 1, Maximum = 2048, Value = picture.Height, Increment = 1, FormatString = "0", Width = 150, HorizontalAlignment = HorizontalAlignment.Left };
-        var resize = new Button { Name = "PaintResize", Content = Loc.Current["painter.resize"] };
-        resize.Click += (_, _) =>
-        {
-            var (w, h) = ((int)(width.Value ?? picture.Width), (int)(height.Value ?? picture.Height));
-            if ((w, h) == (Canvas.Picture.Width, Canvas.Picture.Height)) return;
-            var next = new PixelBuffer(w, h);
-            for (var y = 0; y < Math.Min(h, Canvas.Picture.Height); y++)
-                for (var x = 0; x < Math.Min(w, Canvas.Picture.Width); x++) next.Set(x, y, Canvas.Picture.Get(x, y));
-            Canvas.Replace(next);
-        };
-        tools.Children.Add(new TextBlock { Text = Loc.Current["painter.canvasSize"], Margin = new Thickness(0, 8, 0, 0) });
-        tools.Children.Add(new StackPanel { Orientation = Orientation.Vertical, Spacing = 4, Children = { width, height } });
-        tools.Children.Add(resize);
+        AddCanvasSize(tools, picture);
         var top = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new Thickness(8), Children = { _undoButton, _redoButton, new Border { Width = 12 }, zoomOut, zoomText, zoomIn } };
         var bottom = new DockPanel { Margin = new Thickness(8), LastChildFill = false };
         ok.Margin = new Thickness(8, 0, 0, 0);
@@ -135,6 +94,68 @@ public sealed class PixelPainterWindow : Window
         KeyDown += OnKey;
         ApplyColor(new Rgba(255, 255, 255, 255));
         RefreshButtons();
+    }
+
+    private void AddToolButtons(StackPanel tools)
+    {
+        var buttons = new List<ToggleButton>();
+        foreach (var tool in Enum.GetValues<PaintTool>())
+        {
+            var button = new ToggleButton { Name = "Tool_" + tool, Content = Loc.Current["painter.tool." + tool], IsChecked = tool == PaintTool.Pencil, HorizontalAlignment = HorizontalAlignment.Stretch };
+            button.Click += (_, _) =>
+            {
+                Canvas.Tool = tool;
+                foreach (var other in buttons) other.IsChecked = other == button;
+            };
+            buttons.Add(button);
+            tools.Children.Add(button);
+        }
+    }
+
+    private void AddBrushControls(StackPanel tools)
+    {
+        var size = new NumericUpDown { Name = "PaintSize", Minimum = 1, Maximum = 32, Value = 1, Increment = 1, FormatString = "0", Width = 110, HorizontalAlignment = HorizontalAlignment.Left };
+        size.ValueChanged += (_, e) => Canvas.BrushSize = (int)(e.NewValue ?? 1);
+        var grid = new CheckBox { Name = "PaintGrid", Content = Loc.Current["painter.grid"], IsChecked = true };
+        grid.IsCheckedChanged += (_, _) => Canvas.ShowGrid = grid.IsChecked == true;
+        tools.Children.Add(new TextBlock { Text = Loc.Current["painter.size"], Margin = new Thickness(0, 8, 0, 0) });
+        tools.Children.Add(size);
+        tools.Children.Add(grid);
+    }
+
+    private void AddPalette(StackPanel tools)
+    {
+        var swatches = new WrapPanel { MaxWidth = 150 };
+        foreach (var hex in Palette)
+        {
+            if (Rgba.Parse(hex) is not { } color) continue;
+            var chip = new Button { Width = 24, Height = 24, Padding = new Thickness(0), Margin = new Thickness(1), Background = new SolidColorBrush(Avalonia.Media.Color.Parse(hex)) };
+            chip.Click += (_, _) => SetColor(color);
+            swatches.Children.Add(chip);
+        }
+
+        tools.Children.Add(new TextBlock { Text = Loc.Current["painter.color"], Margin = new Thickness(0, 8, 0, 0) });
+        tools.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { _swatch, _hex } });
+        tools.Children.Add(swatches);
+    }
+
+    private void AddCanvasSize(StackPanel tools, PixelBuffer picture)
+    {
+        var width = new NumericUpDown { Name = "PaintWidth", Minimum = 1, Maximum = 2048, Value = picture.Width, Increment = 1, FormatString = "0", Width = 150, HorizontalAlignment = HorizontalAlignment.Left };
+        var height = new NumericUpDown { Name = "PaintHeight", Minimum = 1, Maximum = 2048, Value = picture.Height, Increment = 1, FormatString = "0", Width = 150, HorizontalAlignment = HorizontalAlignment.Left };
+        var resize = new Button { Name = "PaintResize", Content = Loc.Current["painter.resize"] };
+        resize.Click += (_, _) =>
+        {
+            var (w, h) = ((int)(width.Value ?? picture.Width), (int)(height.Value ?? picture.Height));
+            if ((w, h) == (Canvas.Picture.Width, Canvas.Picture.Height)) return;
+            var next = new PixelBuffer(w, h);
+            for (var y = 0; y < Math.Min(h, Canvas.Picture.Height); y++)
+                for (var x = 0; x < Math.Min(w, Canvas.Picture.Width); x++) next.Set(x, y, Canvas.Picture.Get(x, y));
+            Canvas.Replace(next);
+        };
+        tools.Children.Add(new TextBlock { Text = Loc.Current["painter.canvasSize"], Margin = new Thickness(0, 8, 0, 0) });
+        tools.Children.Add(new StackPanel { Orientation = Orientation.Vertical, Spacing = 4, Children = { width, height } });
+        tools.Children.Add(resize);
     }
 
     public PixelCanvas Canvas { get; }

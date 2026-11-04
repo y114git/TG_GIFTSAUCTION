@@ -69,7 +69,6 @@ public sealed class StudioDock
 
     public static IReadOnlyList<string> Panels => AppCommands.Panels;
 
-    /// <summary>The title of a panel in the current language.</summary>
     private static string PanelTitle(string id) => Loc.Current["panel." + id.ToLowerInvariant()];
 
     /// <summary>Puts the panel titles in the current language again (after a language change).</summary>
@@ -191,7 +190,7 @@ public sealed class StudioDock
     public void CycleTab(int direction)
     {
         if (Group() is not { VisibleDockables: { Count: > 1 } items } group) return;
-        var at = items.ToList().IndexOf(group.ActiveDockable!);
+        var at = items.ToList().FindIndex(d => d == group.ActiveDockable);
         if (items[(Math.Max(at, 0) + direction + items.Count) % items.Count] is Document next) Activate(next);
     }
 
@@ -201,7 +200,7 @@ public sealed class StudioDock
         if (ActiveTabId is not { } id || Tabs.Step(id, direction, exists) is not { } tab || DocumentOf(id) is not { } doc) return false;
         retargeting?.Invoke(id);
         doc.Title = Title(tab);
-        doc.Content = _editor(tab) ?? new TextBlock { Text = Title(tab) };
+        Show(doc, tab);
         Changed?.Invoke();
         return true;
     }
@@ -227,12 +226,18 @@ public sealed class StudioDock
         Factory.SetActiveDockable(panel);
     }
 
-    /// <summary>A resource was renamed: its tabs follow it.</summary>
-    public void Rekey(string oldKey, string newKey)
+    /// <summary>A resource was renamed: its tabs follow it and show the editor again, because the old one is bound to the old name.</summary>
+    public void Rekey(string oldKey, string newKey, Action<string>? retargeting = null)
     {
         Tabs.Rekey(oldKey, newKey);
-        foreach (var tab in Tabs.Tabs.Where(t => t.Key == newKey))
-            if (DocumentOf(tab.Id) is { } doc) doc.Title = Title(tab);
+        foreach (var tab in Tabs.Tabs.Where(t => t.Key == newKey).ToList())
+        {
+            if (DocumentOf(tab.Id) is not { } doc) continue;
+            retargeting?.Invoke(tab.Id);
+            doc.Title = Title(tab);
+            Show(doc, tab);
+        }
+
         Changed?.Invoke();
     }
 
@@ -291,10 +296,19 @@ public sealed class StudioDock
     private void AddDocument(TabInfo tab, IDocumentDock? group)
     {
         if (group is null) return;
-        var doc = new Document { Id = tab.Id, Title = Title(tab), Content = _editor(tab) ?? new TextBlock { Text = Title(tab) } };
+        var doc = new Document { Id = tab.Id, Title = Title(tab) };
+        Show(doc, tab);
         Mark(doc, tab);
         Factory.AddDockable(group, doc);
         Activate(doc);
+    }
+
+    /// <summary>The tab keeps one host control for its whole life and the editor is swapped inside it: the dock does not show a new Content once it has shown one.</summary>
+    private void Show(Document doc, TabInfo tab)
+    {
+        var editor = _editor(tab) ?? new TextBlock { Text = Title(tab) };
+        if (doc.Content is ContentControl host) host.Content = editor;
+        else doc.Content = new ContentControl { Content = editor, HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Stretch, VerticalContentAlignment = Avalonia.Layout.VerticalAlignment.Stretch };
     }
 
     // Pinned tabs have no close button; preview tabs are italic.
@@ -317,7 +331,7 @@ public sealed class StudioDock
     {
         static IEnumerable<IDockable> Walk(IDockable d) =>
             d is IDock dock ? (dock.VisibleDockables ?? []).SelectMany(Walk).Prepend(d) : [d];
-        return Walk(root).Concat((root.Windows ?? []).Where(w => w.Layout is not null).SelectMany(w => Walk(w.Layout!)));
+        return Walk(root).Concat((root.Windows ?? []).Select(w => w.Layout).OfType<IDockable>().SelectMany(Walk));
     }
 
     private void Use(IRootDock layout)
@@ -354,7 +368,8 @@ public sealed class StudioDock
                     tool.Content = _panel(tool.Id) ?? new TextBlock { Text = tool.Title };
                     break;
                 case Document { Id: { } id } document when Tabs.Get(id) is { } tab:
-                    document.Content = _editor(tab) ?? new TextBlock { Text = document.Title };
+                    document.Content = null;
+                    Show(document, tab);
                     Mark(document, tab);
                     break;
                 case DocumentDock group: group.EmptyContent = _panel("EmptyEditors"); break;

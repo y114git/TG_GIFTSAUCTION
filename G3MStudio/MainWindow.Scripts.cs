@@ -83,6 +83,7 @@ public sealed partial class MainWindow
     // The script runs on a pool thread and holds the write lock, so a prompt is shown on the UI thread and the script waits for the answer. The answer never touches the data.
     private ScriptHost NewScriptHost(string name)
     {
+        // Runs on the script thread, never on the UI thread, so waiting for the UI thread cannot deadlock.
         static T OnUi<T>(Func<Task<T>> work) => Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(work).GetAwaiter().GetResult();
         return new ScriptHost
         {

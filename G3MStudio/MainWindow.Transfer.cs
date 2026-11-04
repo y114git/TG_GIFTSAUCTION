@@ -22,8 +22,8 @@ public sealed partial class MainWindow
     {
         var host = new Uri(address).Host;
         if (!await Confirm(Loc.Current["links.downloadTitle"], Loc.Current.Format("links.downloadAsk", ("host", host), ("address", address)))) return;
-        using var own = http is null ? new HttpClient { Timeout = TimeSpan.FromMinutes(10) } : null;
-        var client = http ?? own!;
+        var client = http ?? new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
+        using var own = http is null ? client : null;
         try
         {
             var folder = Directory.CreateTempSubdirectory("g3mstudio-link-").FullName;
