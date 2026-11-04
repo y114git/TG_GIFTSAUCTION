@@ -25,4 +25,13 @@ public sealed class GeneralChunksTests
 
         Assert.Contains(ResourceTypes.GeneralInfoName, seen);
     }
+
+    [Fact]
+    public void ADictionaryRowShowsItsCountNotItsTypeName()
+    {
+        using var data = GameMakerData.CreateNew2026LTS();
+        var tags = ResourceTypes.Find(data, ResourceTypes.KeyOf("general", ResourceTypes.TagsName))!;
+        var row = PropertyModel.Describe(tags).Single(r => r.Name == "AssetTags");
+        Assert.Equal("0 items", row.Value);
+    }
 }

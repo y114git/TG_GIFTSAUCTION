@@ -43,6 +43,52 @@ public sealed class PropertyTests
     }
 
     [Fact]
+    public void AListOfStringsTakesNewEntriesAndEditsAndRemovesThemWithUndo()
+    {
+        using var data = TestData.Create(0);
+        var history = new EditHistory(data);
+        var flags = ResourceTypes.FeatureFlagsName;
+        var root = PropertyModel.FindRoot(data, "general", flags)!;
+        var list = PropertyModel.Describe(root).Single(r => r.Kind == PropertyKind.List);
+        Assert.True(list.Addable);
+
+        history.Execute(new ListEntryCommand("general", flags, list.Path, ListEntryCommand.Add, -1));
+        var entry = PropertyModel.Describe(root).Single(r => r.Removable);
+        history.Execute(new SetPropertyCommand("general", flags, entry.Path, "fast_path"));
+        Assert.Equal("fast_path", PropertyModel.Describe(root).Single(r => r.Removable).Value);
+
+        var remove = new ListEntryCommand("general", flags, list.Path, ListEntryCommand.Remove, 0);
+        history.Execute(remove);
+        Assert.DoesNotContain(PropertyModel.Describe(root), r => r.Removable);
+        history.Undo();
+        Assert.Equal("fast_path", PropertyModel.Describe(root).Single(r => r.Removable).Value);
+        history.Undo();
+        history.Undo();
+        Assert.Empty(data.FeatureFlags.List);
+        Assert.Equal(remove.Args, EditCommand.Create(remove.Kind, remove.Args).Args);
+    }
+
+    [Fact]
+    public void NullEntriesAreListedOnlyWhenAskedAndAreNotCounted()
+    {
+        using var data = TestData.Create(2);
+        data.GameObjects.Insert(1, null!);
+        var model = new ExplorerModel(key => key);
+        model.Load(data);
+        Assert.DoesNotContain(model.Rows, r => r.Kind == ExplorerRowKind.Null);
+
+        model.ShowNulls = true;
+        var objects = model.Rows.Where(r => r.Key == "objects" && r.Kind != ExplorerRowKind.Type).ToList();
+        Assert.Equal([ExplorerRowKind.Item, ExplorerRowKind.Null, ExplorerRowKind.Item], objects.Select(r => r.Kind));
+        Assert.Equal("[1] null", objects[1].Text);
+        Assert.Equal(2, model.Rows.Single(r => r.Kind == ExplorerRowKind.Type && r.Key == "objects").Count);
+        Assert.False(objects[1].IsHeader);
+
+        model.SetFilter("obj");
+        Assert.DoesNotContain(model.Rows, r => r.Kind == ExplorerRowKind.Null);
+    }
+
+    [Fact]
     public void TheGameGroupHoldsTheGeneralInfoAndTheOptionsAndBothAreEditable()
     {
         using var data = TestData.Create(1);

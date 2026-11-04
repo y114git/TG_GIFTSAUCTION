@@ -23,14 +23,14 @@ public partial class ExplorerView : UserControl
     {
         InitializeComponent();
         // A GameMaker Studio 1 game has backgrounds, not tile sets (UTMT-TREE-10).
-        Model = new ExplorerModel(key => Loc.Current["explorer.type." + (key == "tileSets" && _legacy ? "backgrounds" : key)]);
+        Model = new ExplorerModel(key => key == "null" ? Loc.Current["explorer.nullEntry"] : Loc.Current["explorer.type." + (key == "tileSets" && _legacy ? "backgrounds" : key)]);
         Model.Changed += ShowRows;
         FilterBox.PropertyChanged += (_, e) => { if (e.Property == TextBox.TextProperty) Model.SetFilter(FilterBox.Text ?? ""); };
         List.Tapped += (_, e) =>
         {
             if ((e.Source as Control)?.DataContext is not ExplorerRow row) return;
             if (row.IsItem) RequestOpen(row, true);
-            else Model.Toggle(row.Key);
+            else if (row.IsHeader) Model.Toggle(row.Key);
         };
         List.SelectionChanged += (_, _) => SelectionChanged?.Invoke();
         // A drag starts after the pointer has moved a few pixels with the button down on an entry.
@@ -87,7 +87,7 @@ public partial class ExplorerView : UserControl
     public void Select(string? key)
     {
         if (key is null || ResourceTypes.SplitKey(key) is not var (type, name)) return;
-        if (Model.Rows.Any(r => r is { IsItem: false, Expanded: false } && r.Key == type)) Model.Toggle(type);
+        if (Model.Rows.Any(r => r is { IsHeader: true, Expanded: false } && r.Key == type)) Model.Toggle(type);
         var index = Model.Rows.ToList().FindIndex(r => r.IsItem && r.Key == type && r.Text == name);
         if (index < 0) return;
         List.SelectedIndex = index;
@@ -127,7 +127,7 @@ public partial class ExplorerView : UserControl
     {
         _dirty = dirty;
         ShowHeader();
-        Model.Reload();
+        Model.Refresh();
     }
 
     private void ShowHeader() => Header.Text = (_dirty ? "● " : "") + _name;
@@ -156,7 +156,7 @@ public partial class ExplorerView : UserControl
             return;
         }
 
-        if (List.SelectedItem is not ExplorerRow { IsItem: false } row) return;
+        if (List.SelectedItem is not ExplorerRow { IsHeader: true } row) return;
         var toggle = e.Key is Key.Enter or Key.Space || e.Key == Key.Right && !row.Expanded || e.Key == Key.Left && row.Expanded;
         if (!toggle) return;
         Model.Toggle(row.Key);

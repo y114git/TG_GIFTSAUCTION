@@ -28,6 +28,29 @@ public sealed class SpriteFramesTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void APageItemFrameKeepsTheTargetOffsetAndGrowsTheBoxToHoldThePicture()
+    {
+        using var item = new GameMakerTexturePageItem { TargetX = 3, TargetY = 2, SourceWidth = 10, SourceHeight = 6, BoundingWidth = 20, BoundingHeight = 4 };
+        Assert.Equal((3, 2, 20, 8), TextureItemView.FrameOf(item));
+    }
+
+    [Fact]
+    public async Task AHugeChequerRendersWithinABudget()
+    {
+        await HeadlessApp.Run(() =>
+        {
+            var view = new Chequer { Width = TextureItemView.MaxBox, Height = TextureItemView.MaxBox };
+            view.Measure(new Avalonia.Size(TextureItemView.MaxBox, TextureItemView.MaxBox));
+            view.Arrange(new Avalonia.Rect(0, 0, TextureItemView.MaxBox, TextureItemView.MaxBox));
+            using var target = new Avalonia.Media.Imaging.RenderTargetBitmap(new Avalonia.PixelSize(256, 256));
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            target.Render(view);
+            Assert.True(clock.Elapsed < TimeSpan.FromSeconds(2), clock.Elapsed.ToString());
+            return Task.CompletedTask;
+        });
+    }
+
+    [Fact]
     public async Task PlayingStepsThroughTheFramesAndPausingStops()
     {
         using var data = TestData.Create(0);

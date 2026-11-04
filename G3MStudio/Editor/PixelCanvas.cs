@@ -212,12 +212,7 @@ public sealed class PixelCanvas : Control, IDisposable
         var area = new Rect(0, 0, Picture.Width * Zoom, Picture.Height * Zoom);
         // A checkerboard in two theme colors shows what is transparent.
         var cell = Math.Max(Zoom, 8);
-        using (context.PushClip(area))
-        {
-            context.FillRectangle(G3MStudio.Theme.CanvasTheme.Bg, area);
-            for (var y = 0; y * cell < area.Height; y++)
-                for (var x = (y % 2); x * cell < area.Width; x += 2) context.FillRectangle(G3MStudio.Theme.CanvasTheme.Stage, new Rect(x * cell, y * cell, cell, cell));
-        }
+        Chequer.Draw(context, area, cell);
 
         context.DrawImage(_bitmap, new Rect(0, 0, Picture.Width, Picture.Height), area);
         if (ShowGrid && Zoom >= 6)

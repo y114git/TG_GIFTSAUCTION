@@ -61,6 +61,7 @@ public partial class MainWindow
         ApplyOverrides(s.Overrides);
         G3MStudio.Theme.FluentForwards.Apply();
         ApplyDecompiler(s.Decompiler);
+        Explorer.Model.ShowNulls = s.ShowNullEntries;
         Editor.RoomOptions.Set(s.RoomGridOverride, Math.Clamp(s.RoomGridWidth, 1, 1024), Math.Clamp(s.RoomGridHeight, 1, 1024));
         Editor.EditorOptions.Set(s.CodeFontSize, s.CodeWordWrap, s.CodeLineNumbers, s.CodeFontFamily.Length > 0 ? Fonts.Resolve(s.CodeFontFamily) ?? new FontFamily(s.CodeFontFamily) : null);
         foreach (var command in Registry.All.ToList())

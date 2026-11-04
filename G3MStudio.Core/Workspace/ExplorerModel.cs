@@ -2,7 +2,7 @@ using G3MLib.DataFile;
 
 namespace G3MStudio.Core.Workspace;
 
-public enum ExplorerRowKind { Group, Type, Item }
+public enum ExplorerRowKind { Group, Type, Item, Null }
 
 /// <summary>One visible row of the flattened tree. <see cref="Key"/> is the type key for Group and Type rows.</summary>
 public sealed record ExplorerRow(ExplorerRowKind Kind, string Key, string Text, int Depth)
@@ -15,7 +15,10 @@ public sealed record ExplorerRow(ExplorerRowKind Kind, string Key, string Text, 
 
     public bool IsItem => Kind == ExplorerRowKind.Item;
 
-    public string Chevron => IsItem ? "" : Expanded ? "▼" : "►";
+    /// <summary>A group or type heading, the rows that open and close.</summary>
+    public bool IsHeader => Kind is ExplorerRowKind.Group or ExplorerRowKind.Type;
+
+    public string Chevron => !IsHeader ? "" : Expanded ? "▼" : "►";
 }
 
 /// <summary>
@@ -68,7 +71,19 @@ public sealed class ExplorerModel(Func<string, string> title)
     public bool IsFiltering => Filter.Length > 0;
 
     /// <summary>All entries of the loaded data file.</summary>
-    public int Total => _sections.Sum(s => s.Items.Length);
+    public int Total => _sections.Sum(s => s.Items.Count(r => r.IsItem));
+
+    /// <summary>Lists the null entries of a list (GameMaker 2024.11 and later) as rows that cannot be opened (UTMT-TREE-11).</summary>
+    public bool ShowNulls
+    {
+        get;
+        set
+        {
+            if (field == value) return;
+            field = value;
+            Reload();
+        }
+    }
 
     /// <summary>Entries shown now (equals <see cref="Total"/> without a filter, even when types are collapsed).</summary>
     public int Matches { get; private set; }
@@ -84,12 +99,44 @@ public sealed class ExplorerModel(Func<string, string> title)
     /// <summary>Reads the names again after an edit or a language change.</summary>
     public void Reload()
     {
-        _sections = [];
+        ReadSections();
+        Rebuild();
+    }
+
+    /// <summary>Like <see cref="Reload"/>, but raises <see cref="Changed"/> only when an entry was added, removed or renamed; an edit of a property changes none.</summary>
+    public void Refresh()
+    {
+        if (ReadSections()) Rebuild();
+    }
+
+    /// <summary>Reads the entries again, keeping the rows of a type whose entries and names did not change. True when anything differs.</summary>
+    private bool ReadSections()
+    {
+        var old = _sections.ToDictionary(s => s.Type.Key);
+        var changed = false;
+        List<Section> sections = [];
         if (_data is not null)
             foreach (var type in ResourceTypes.All)
                 if (type.Items(_data) is { } items)
-                    _sections.Add(new Section(type, [.. items.Select(i => new ExplorerRow(ExplorerRowKind.Item, type.Key, ResourceTypes.NameOf(i), type.IsData ? 3 : 2) { Item = i })]));
-        Rebuild();
+                {
+                    var depth = type.IsData ? 3 : 2;
+                    ExplorerRow Item(object i) => new(ExplorerRowKind.Item, type.Key, ResourceTypes.NameOf(i), depth) { Item = i };
+                    // Raw keeps the list positions, so a null row sits where the entry would be.
+                    ExplorerRow[] rows = [.. ShowNulls && type.Raw?.Invoke(_data) is { } raw
+                        ? raw.Select((i, n) => i is null ? new ExplorerRow(ExplorerRowKind.Null, type.Key, $"[{n}] {title("null")}", depth) : Item(i))
+                        : items.Select(Item)];
+                    if (old.TryGetValue(type.Key, out var before) && before.Items.Length == rows.Length && Enumerable.Range(0, rows.Length).All(i => before.Items[i].Kind == rows[i].Kind && ReferenceEquals(before.Items[i].Item, rows[i].Item) && before.Items[i].Text == rows[i].Text))
+                        sections.Add(before);
+                    else
+                    {
+                        changed = true;
+                        sections.Add(new Section(type, rows));
+                    }
+                }
+
+        changed |= sections.Count != old.Count;
+        _sections = sections;
+        return changed;
     }
 
     public void SetFilter(string text)
@@ -129,11 +176,11 @@ public sealed class ExplorerModel(Func<string, string> title)
         {
             var items = !IsFiltering ? section.Items
                 : (_typeFilter.Length > 0 && _typeFilter != section.Type.Key) ? []
-                : [.. section.Items.Where(r => r.Text.Contains(_needle, StringComparison.OrdinalIgnoreCase))];
+                : [.. section.Items.Where(r => r.IsItem && r.Text.Contains(_needle, StringComparison.OrdinalIgnoreCase))];
             if (IsFiltering && items.Length == 0) continue;
             var open = IsFiltering || _expanded.Contains(section.Type.Key);
-            rows.Add(new ExplorerRow(ExplorerRowKind.Type, section.Type.Key, title(section.Type.Key), depth) { Count = items.Length, Expanded = open });
-            Matches += items.Length;
+            rows.Add(new ExplorerRow(ExplorerRowKind.Type, section.Type.Key, title(section.Type.Key), depth) { Count = items.Count(r => r.IsItem), Expanded = open });
+            Matches += items.Count(r => r.IsItem);
             if (open) rows.AddRange(items);
         }
     }

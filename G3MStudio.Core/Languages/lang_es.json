@@ -202,6 +202,7 @@
     "count": "{count} recursos",
     "matches": "{matches} de {total}",
     "noMatch": "Ningún recurso coincide con «{filter}».",
+    "nullEntry": "(nula)",
     "opening": "Abriendo {name}... {percent} %",
     "cancel": "Cancelar",
     "newTitle": "Nuevo {type}",
@@ -441,6 +442,7 @@
     "linksDone": "Los enlaces g3mstudio:// ahora se abren en este programa.",
     "linksFailed": "No se pudieron registrar los enlaces",
     "reduceMotion": "Reducir movimiento (las vistas previas no se mueven)",
+    "showNullEntries": "Mostrar entradas nulas en el árbol de recursos",
     "profilesNote": "El perfil de ejecución que elijas se recuerda para cada archivo de datos.",
     "shortcutShared": "{shortcut} también lo usan: {commands}.",
     "addFont": "Añadir archivo de fuente...",
@@ -492,6 +494,7 @@
     "newFile": "Archivo nuevo, aún sin seguimiento."
   },
   "properties": {
+    "addEntry": "Añadir entrada",
     "section": {
       "physics": "Física",
       "texture": "Configuración de textura",

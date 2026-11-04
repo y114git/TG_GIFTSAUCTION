@@ -177,12 +177,48 @@ public sealed class PluginHost
         Changed?.Invoke();
     }
 
-    private void Start(PluginInfo plugin)
+    /// <summary>
+    /// Like <see cref="Reload"/>, but the compile of a changed source runs on a pool thread, so the window keeps responding.
+    /// Call on the thread that owns the host; the plugin stops and starts there once the compile is done.
+    /// </summary>
+    public Task ReloadAsync(PluginInfo plugin) => _lastReload = ReloadAfter(_lastReload, plugin);
+
+    // Reloads run one after the other, so a second save never starts while the first compile is still going.
+    private Task _lastReload = Task.CompletedTask;
+
+    private async Task ReloadAfter(Task previous, PluginInfo plugin)
+    {
+        await previous;
+        var fresh = Read(plugin.Folder);
+        byte[]? bytes = null;
+        Exception? error = null;
+        if (fresh.State != PluginState.Failed)
+        {
+            try
+            {
+                bytes = await Task.Run(() => Compile(fresh));
+            }
+            catch (Exception e)
+            {
+                error = e;
+            }
+        }
+
+        Stop(plugin);
+        plugin.Manifest = fresh.Manifest;
+        plugin.State = fresh.State;
+        plugin.Error = fresh.Error;
+        if (fresh.State != PluginState.Failed) Start(plugin, bytes, error);
+        Changed?.Invoke();
+    }
+
+    private void Start(PluginInfo plugin, byte[]? compiled = null, Exception? compileError = null)
     {
         plugin.Error = null;
         try
         {
-            var bytes = Compile(plugin);
+            if (compileError is not null) throw compileError;
+            var bytes = compiled ?? Compile(plugin);
             var context = new AssemblyLoadContext(plugin.Manifest.Id, isCollectible: true);
             plugin.Context = context;
             var libs = Path.Combine(plugin.Folder, "lib");

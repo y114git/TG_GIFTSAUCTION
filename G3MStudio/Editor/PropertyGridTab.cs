@@ -37,7 +37,7 @@ public sealed class PropertyGridTab : DockPanel
         if (header is SpriteFramesView sprite)
         {
             _sprite = sprite;
-            sprite.OriginLockChanged += Fill;
+            sprite.OriginLockChanged += () => Fill();
         }
 
         if (Sections.TryGetValue(type, out var sections)) _closedGroups.UnionWith(sections.Select(x => "§" + x.Key));
@@ -92,7 +92,7 @@ public sealed class PropertyGridTab : DockPanel
 
     private void OnHistoryChanged()
     {
-        if (!_applying) Fill();
+        if (!_applying) Fill(false);
     }
 
     /// <summary>Commits one row. False, with a message, when the text does not fit.</summary>
@@ -117,12 +117,20 @@ public sealed class PropertyGridTab : DockPanel
         }
     }
 
-    private void Fill()
+    private List<PropertyRow>? _shown;
+
+    private static bool Same(PropertyRow a, PropertyRow b) =>
+        a.Path == b.Path && a.Name == b.Name && a.Kind == b.Kind && a.Value == b.Value && a.Depth == b.Depth && a.ReadOnly == b.ReadOnly && a.Target == b.Target
+        && (a.Choices ?? []).SequenceEqual(b.Choices ?? []);
+
+    /// <param name="force">False after an edit elsewhere: the rows are built again only when what they show changed, which keeps typed text and the scroll position.</param>
+    private void Fill(bool force = true)
     {
-        _rows.Children.Clear();
-        _headings.Clear();
         if (PropertyModel.FindRoot(_workspace.Data, _type, _name) is not { } root)
         {
+            _rows.Children.Clear();
+            _headings.Clear();
+            _shown = null;
             _message.Text = Loc.Current.Format("properties.missing", ("name", _name));
             return;
         }
@@ -137,7 +145,14 @@ public sealed class PropertyGridTab : DockPanel
             shown = null;
         }
 
-        if (shown is null) return;
+        if (shown is null)
+        {
+            _rows.Children.Clear();
+            _headings.Clear();
+            _shown = null;
+            return;
+        }
+
         var text = _filter.Text?.Trim() ?? "";
         var collapsed = new List<string>();
         var kept = new List<PropertyRow>();
@@ -152,7 +167,12 @@ public sealed class PropertyGridTab : DockPanel
             if (text.Length == 0 && IsClosed(row)) collapsed.Add(row.Path);
         }
 
-        foreach (var row in _prefix.Length == 0 && text.Length == 0 ? Sectioned(kept) : kept)
+        var wanted = _prefix.Length == 0 && text.Length == 0 ? Sectioned(kept) : kept;
+        if (!force && _shown is not null && _shown.Count == wanted.Count && _shown.Zip(wanted).All(pair => Same(pair.First, pair.Second))) return;
+        _shown = wanted;
+        _rows.Children.Clear();
+        _headings.Clear();
+        foreach (var row in wanted)
         {
             _rows.Children.Add(Build(row));
             if (row.Kind is PropertyKind.Group or PropertyKind.List) _headings[row.Path] = row.Kind;
@@ -225,10 +245,36 @@ public sealed class PropertyGridTab : DockPanel
         }
 
         line.Children.Add(label);
+        // The add row and the remove buttons of a list of strings (UTMT-CTRL-06).
+        if (row.Addable) line.Children.Add(EntryButton("ListAdd_" + row.Path, Loc.Current["properties.addEntry"], new ListEntryCommand(_type, _name, row.Path, ListEntryCommand.Add, -1)));
+        if (row.Removable && ListEntryPath(row.Path) is var (list, at)) line.Children.Add(EntryButton("ListRemove_" + row.Path, Loc.Current["timelines.remove"], new ListEntryCommand(_type, _name, list, ListEntryCommand.Remove, at)));
         var editor = Editor(row);
         if (_sprite is { OriginLocked: true } && _prefix.Length == 0 && row.Path is "OriginX" or "OriginY") editor.IsEnabled = false;
         line.Children.Add(editor);
         return line;
+    }
+
+    private static (string List, int Index)? ListEntryPath(string path) => path.LastIndexOf('[') is > 0 and var open && int.TryParse(path[(open + 1)..^1], out var at) ? (path[..open], at) : null;
+
+    private Button EntryButton(string name, string text, ListEntryCommand command)
+    {
+        var button = new Button { Name = name, Content = text, Margin = new Thickness(8, 0, 0, 0) };
+        SetDock(button, Avalonia.Controls.Dock.Right);
+        button.Click += (_, _) =>
+        {
+            try
+            {
+                _workspace.Edit(command);
+                _message.Text = "";
+            }
+            catch (InvalidOperationException e)
+            {
+                _message.Text = Loc.Current.Format("properties.refused", ("path", name), ("reason", e.Message));
+            }
+
+            Fill();
+        };
+        return button;
     }
 
     // A swatch that opens three sliders (red, green, blue) and the number itself in a box beside it (UTMT-CTRL-05). The picked color is committed when the flyout closes, so a drag is one undo step; the top byte of the stored value is kept.

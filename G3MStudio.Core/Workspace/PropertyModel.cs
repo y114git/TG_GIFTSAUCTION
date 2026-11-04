@@ -13,6 +13,12 @@ public sealed record PropertyRow(string Path, string Name, PropertyKind Kind, st
 {
     /// <summary>Explorer key of the entry a reference row points at (<c>sprites:spr_player</c>), so the editor can open it.</summary>
     public string? Target { get; init; }
+
+    /// <summary>On a list of strings: the list can take a new entry (the add row of UTMT-CTRL-06).</summary>
+    public bool Addable { get; init; }
+
+    /// <summary>On an entry of a list of strings: it can be removed.</summary>
+    public bool Removable { get; init; }
 }
 
 /// <summary>
@@ -73,20 +79,25 @@ public static class PropertyModel
             {
                 rows.Add(new PropertyRow(path, property.Name, PropertyKind.Info, $"{bytes.Length} bytes", depth, true));
             }
-            else if (value is IList { Count: 0 })
+            else if (value is IList { Count: 0 } and not IList<GameMakerString>)
             {
                 // An empty list has nothing to show or edit, so it gets no row.
             }
             else if (value is IList list)
             {
-                rows.Add(new PropertyRow(path, property.Name, PropertyKind.List, $"{list.Count} items", depth, true));
+                // A list of strings is edited in place: each entry is a text box and the list takes new entries.
+                var strings = value is IList<GameMakerString>;
+                rows.Add(new PropertyRow(path, property.Name, PropertyKind.List, $"{list.Count} items", depth, true) { Addable = strings });
                 if (depth < MaxDepth)
                     for (var i = 0; i < Math.Min(list.Count, MaxListItems); i++)
-                        Describe(list[i], $"{path}[{i}]", $"[{i}]", depth + 1, rows, seen);
+                    {
+                        if (strings) rows.Add(new PropertyRow($"{path}[{i}]", $"[{i}]", PropertyKind.GmString, Format(list[i]), depth + 1, false) { Removable = true });
+                        else Describe(list[i], $"{path}[{i}]", $"[{i}]", depth + 1, rows, seen);
+                    }
             }
             else if (value is IEnumerable and not string)
             {
-                rows.Add(new PropertyRow(path, property.Name, PropertyKind.Info, type.Name, depth, true));
+                rows.Add(new PropertyRow(path, property.Name, PropertyKind.Info, value is ICollection collection ? $"{collection.Count} items" : type.Name, depth, true));
             }
             else if (type.IsClass && !typeof(Delegate).IsAssignableFrom(type) && !typeof(Stream).IsAssignableFrom(type))
             {
@@ -168,9 +179,22 @@ public static class PropertyModel
         throw new InvalidOperationException("The path does not end in a property.");
     }
 
+    /// <summary>True for a path that ends in a list index (<c>Tags[2]</c>), with the list's own path and the index.</summary>
+    private static bool IsEntry(string path, out string list, out int index)
+    {
+        (list, index) = ("", -1);
+        var open = path.LastIndexOf('[');
+        if (open <= 0 || !path.EndsWith(']')) return false;
+        list = path[..open];
+        return int.TryParse(path[(open + 1)..^1], NumberStyles.None, CultureInfo.InvariantCulture, out index);
+    }
+
+    private static IList EntriesOf(object root, string path) => ReadRaw(root, path) as IList ?? throw new InvalidOperationException($"'{path}' is not a list.");
+
     /// <summary>The value as text, for the old value of an edit.</summary>
     public static string Read(object root, string path)
     {
+        if (IsEntry(path, out var entries, out var at)) return Format(EntriesOf(root, entries)[at]);
         var (owner, property) = Resolve(root, path);
         var value = property.GetValue(owner);
         return NamedValues(owner, property) is { } names ? Show(names, value) : Format(value);
@@ -179,12 +203,19 @@ public static class PropertyModel
     /// <summary>The value as the object itself, so undo puts back the very same table entry.</summary>
     public static object? ReadRaw(object root, string path)
     {
+        if (IsEntry(path, out var entries, out var at)) return EntriesOf(root, entries)[at];
         var (owner, property) = Resolve(root, path);
         return property.GetValue(owner);
     }
 
     public static void WriteRaw(object root, string path, object? value)
     {
+        if (IsEntry(path, out var entries, out var at))
+        {
+            EntriesOf(root, entries)[at] = value;
+            return;
+        }
+
         var (owner, property) = Resolve(root, path);
         property.SetValue(owner, value);
     }
@@ -192,6 +223,13 @@ public static class PropertyModel
     /// <summary>Sets a property from text. Throws <see cref="FormatException"/> or <see cref="OverflowException"/> for text the type cannot hold.</summary>
     public static void Set(GameMakerData data, object root, string path, string text)
     {
+        if (IsEntry(path, out var entries, out var at))
+        {
+            if (EntriesOf(root, entries) is not IList<GameMakerString> strings) throw new InvalidOperationException($"'{path}' is not a string.");
+            strings[at] = data.Strings.MakeString(text, out _);
+            return;
+        }
+
         var (owner, property) = Resolve(root, path);
         var type = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
         if (NamedValues(owner, property) is { } names && Array.IndexOf(names, text) is var named and >= 0) text = named.ToString(CultureInfo.InvariantCulture);

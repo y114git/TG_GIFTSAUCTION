@@ -202,6 +202,7 @@
     "count": "{count} resources",
     "matches": "{matches} of {total}",
     "noMatch": "No resources match '{filter}'.",
+    "nullEntry": "(null)",
     "opening": "Opening {name}... {percent}%",
     "cancel": "Cancel",
     "newTitle": "New {type}",
@@ -441,6 +442,7 @@
     "linksDone": "Links of the form g3mstudio:// now open in this program.",
     "linksFailed": "The links could not be registered",
     "reduceMotion": "Reduce motion (previews stand still)",
+    "showNullEntries": "Show null entries in the resource tree",
     "profilesNote": "The run profile you pick is remembered for each data file.",
     "shortcutShared": "{shortcut} is also used by: {commands}.",
     "addFont": "Add font file...",
@@ -492,6 +494,7 @@
     "newFile": "New file, not tracked yet."
   },
   "properties": {
+    "addEntry": "Add entry",
     "section": {
       "physics": "Physics",
       "texture": "Texture settings",

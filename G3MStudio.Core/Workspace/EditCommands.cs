@@ -32,6 +32,7 @@ public abstract class EditCommand
         RenameResourceCommand.Name => new RenameResourceCommand(args["type"], args["old"], args["new"]),
         EditCodeCommand.Name => new EditCodeCommand(args["entry"], args["text"]),
         SetPropertyCommand.Name => new SetPropertyCommand(args["type"], args["name"], args["path"], args["text"]),
+        ListEntryCommand.Name => ListEntryCommand.FromArgs(args),
         RoomInstanceCommand.Name => RoomInstanceCommand.FromArgs(args),
         RoomTileCommand.Name => RoomTileCommand.FromArgs(args),
         GroupCommand.Name => GroupCommand.FromArgs(args),

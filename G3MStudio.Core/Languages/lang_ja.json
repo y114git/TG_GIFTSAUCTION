@@ -202,6 +202,7 @@
     "count": "{count} 件のリソース",
     "matches": "{total} 件中 {matches} 件",
     "noMatch": "「{filter}」に一致するリソースはありません。",
+    "nullEntry": "(null)",
     "opening": "{name} を開いています... {percent}%",
     "cancel": "キャンセル",
     "newTitle": "新規 {type}",
@@ -441,6 +442,7 @@
     "linksDone": "g3mstudio:// リンクをこのプログラムで開くようになりました。",
     "linksFailed": "リンクを登録できませんでした",
     "reduceMotion": "動きを減らす（プレビューを静止させる）",
+    "showNullEntries": "リソースツリーにnullエントリを表示する",
     "profilesNote": "選んだ実行プロファイルは、データファイルごとに記憶されます。",
     "shortcutShared": "{shortcut} は次でも使用されています: {commands}。",
     "addFont": "フォントファイルを追加...",
@@ -492,6 +494,7 @@
     "newFile": "新しいファイルです。まだ追跡されていません。"
   },
   "properties": {
+    "addEntry": "エントリを追加",
     "section": {
       "physics": "物理",
       "texture": "テクスチャ設定",

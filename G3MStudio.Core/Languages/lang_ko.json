@@ -202,6 +202,7 @@
     "count": "리소스 {count}개",
     "matches": "{total}개 중 {matches}개",
     "noMatch": "'{filter}'과(와) 일치하는 리소스가 없습니다.",
+    "nullEntry": "(null)",
     "opening": "{name} 여는 중... {percent}%",
     "cancel": "취소",
     "newTitle": "새 {type}",
@@ -441,6 +442,7 @@
     "linksDone": "이제 g3mstudio:// 링크가 이 프로그램에서 열립니다.",
     "linksFailed": "링크를 등록할 수 없습니다",
     "reduceMotion": "동작 줄이기(미리 보기가 움직이지 않음)",
+    "showNullEntries": "리소스 트리에 null 항목 표시",
     "profilesNote": "선택한 실행 프로필은 데이터 파일마다 기억됩니다.",
     "shortcutShared": "{shortcut}은(는) 다음에서도 사용됩니다: {commands}.",
     "addFont": "글꼴 파일 추가...",
@@ -492,6 +494,7 @@
     "newFile": "새 파일이며 아직 추적되지 않습니다."
   },
   "properties": {
+    "addEntry": "항목 추가",
     "section": {
       "physics": "물리",
       "texture": "텍스처 설정",

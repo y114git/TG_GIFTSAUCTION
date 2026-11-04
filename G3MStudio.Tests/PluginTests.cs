@@ -93,6 +93,30 @@ public sealed class PluginTests
     }
 
     [Fact]
+    public async Task ReloadAsyncPicksUpAnEditedSourceAndTurnsOffOneThatDoesNotCompile()
+    {
+        using var dir = new TempDir();
+        var (host, registry, _) = NewHost(dir);
+        var folder = host.CreateTemplate("Editable");
+        host.Load();
+        var plugin = host.Plugins[0];
+        var path = Path.Combine(folder, "src", "Main.cs");
+        var source = await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken);
+        await File.WriteAllTextAsync(path, source.Replace("Say Hello", "Say Goodbye", StringComparison.Ordinal), TestContext.Current.CancellationToken);
+        await host.ReloadAsync(plugin);
+
+        Assert.Equal(PluginState.Active, plugin.State);
+        Assert.Equal("Editable: Say Goodbye", registry.Get(Assert.Single(plugin.CommandIds)).Title);
+
+        await File.WriteAllTextAsync(path, "public sealed class Main : { }", TestContext.Current.CancellationToken);
+        await host.ReloadAsync(plugin);
+
+        Assert.Equal(PluginState.Failed, plugin.State);
+        Assert.False(string.IsNullOrEmpty(plugin.Error));
+        Assert.Empty(registry.All);
+    }
+
+    [Fact]
     public void InstallingAZipOrFolderLoadsThePluginAndAZipCannotWriteOutsideItsFolder()
     {
         using var dir = new TempDir();

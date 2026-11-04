@@ -89,6 +89,9 @@ public sealed record AppSettings
 
     public bool CodeWordWrap { get; init; }
 
+    /// <summary>Lists the null entries of resource lists in the Explorer (UTMT-SET-09).</summary>
+    public bool ShowNullEntries { get; init; }
+
     /// <summary>One grid size for every room instead of each room's own (UTMT-SET-13); 1 to 1024.</summary>
     public bool RoomGridOverride { get; init; }
 

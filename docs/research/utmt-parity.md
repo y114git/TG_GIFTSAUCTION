@@ -81,7 +81,7 @@ Count: 14.
 | UTMT-TREE-08 | Reorder by drag | Dragging an asset onto another of the same type swaps their positions. Off by default. | UndertaleModTool/MainWindow.xaml.cs (TreeView_Drop) | P2 | implemented |
 | UTMT-TREE-09 | Drag asset as reference | Dragging from the tree into reference fields or the room canvas links or places the asset. | UndertaleModTool/MainWindow.xaml.cs (TreeView_MouseMove), UndertaleModTool/Controls/UndertaleObjectReference.xaml.cs | P0 | in progress |
 | UTMT-TREE-10 | Version-aware labels | Backgrounds node is labeled "Tile sets" for GMS2 games. | UndertaleModTool/MainWindow.xaml.cs | P2 | implemented |
-| UTMT-TREE-11 | Null entries | Optional display of null list entries, which GM 2024.11+ games contain. | UndertaleModTool/Settings.cs (ShowNullEntriesInResourceTree) | P1 | planned |
+| UTMT-TREE-11 | Null entries | Optional display of null list entries, which GM 2024.11+ games contain. | UndertaleModTool/Settings.cs (ShowNullEntriesInResourceTree) | P1 | done (ExplorerModel.ShowNulls, OI-310) |
 
 Count: 11.
 
@@ -125,7 +125,7 @@ Count: 6.
 | UTMT-SET-06 | Remember window placement | Default off. | UndertaleModTool/Windows/SettingsWindow.xaml | P2 | implemented |
 | UTMT-SET-07 | Warn on close | Default on. | UndertaleModTool/Windows/SettingsWindow.xaml | P0 | verified |
 | UTMT-SET-08 | Warn about temp running | Default on. | UndertaleModTool/Windows/SettingsWindow.xaml | P1 | implemented |
-| UTMT-SET-09 | Show null entries in tree | Default off. | UndertaleModTool/Windows/SettingsWindow.xaml | P1 | planned |
+| UTMT-SET-09 | Show null entries in tree | Default off. | UndertaleModTool/Windows/SettingsWindow.xaml | P1 | done (Settings > Appearance, ShowNullEntries, OI-310) |
 | UTMT-SET-10 | Recompile all GML on project save | Recompiles every project code source before writing the data file. Default off. | UndertaleModTool/Windows/SettingsWindow.xaml, UndertaleModLib/Project/ProjectContext.cs | P1 | not planned: Studio's own Project mode (docs/decisions/0010) replaces UTMT's project format |
 | UTMT-SET-11 | Dark mode toggle | Default off. | UndertaleModTool/Windows/SettingsWindow.xaml | P0 | not applicable (one dark theme and no light theme, Q23) |
 | UTMT-SET-12 | Transparency grid colors | Two ARGB hex colors for the checkerboard behind images. | UndertaleModTool/Windows/SettingsWindow.xaml, UndertaleModTool/Controls/TransparencyGridBrush.xaml | P2 | in progress |
@@ -207,7 +207,7 @@ Count: 13.
 | UTMT-CODE-14 | Script asset editor | Name and linked code entry. | UndertaleModTool/Editors/UndertaleScriptEditor.xaml | P0 | verified |
 | UTMT-CODE-15 | Modern GML syntax | Template strings `$"{x}"`, nullish compound assignment (2026.1), `variable_get_hash()` folding, built-in function list filtered by GameMaker version. | UndertaleModLib/Compiler/*.cs, Underanalyzer, 0.9.2.0 release notes | P0 | planned |
 | UTMT-CODE-16 | Game-specific definitions | JSON definitions for generic GameMaker, Undertale and Deltarune resolve macros, enums and asset types in decompiled code (incl. the AudioGroup macro type). Detection can match by name regex. | UndertaleModLib/GameSpecificData/** | P1 | not planned: game-specific definitions for Undertale and Deltarune; Studio stays generic |
-| UTMT-CODE-17 | Code import groups | Library API used by scripts to import many GML files at once, create missing assets, resolve cross references and collision event names. | UndertaleModLib/Compiler/CodeImportGroup.cs | P0 | planned |
+| UTMT-CODE-17 | Code import groups | Library API used by scripts to import many GML files at once, create missing assets, resolve cross references and collision event names. | UndertaleModLib/Compiler/CodeImportGroup.cs | P0 | done (G3MLib 1.1.2 CodeImportGroup: Studio compiles every code edit through it, EditCommands.EditCodeCommand; scripts reach the same class through the library, OI-313) |
 
 Count: 17.
 
@@ -319,7 +319,7 @@ Count: 6.
 | UTMT-ROOM-23 | Auto size tile layer | Sets tile layer size to match the room size. | UndertaleModTool/Editors/UndertaleRoomEditor/UndertaleRoomEditor.xaml.cs (AutoSizeTile_Click) | P2 | verified |
 | UTMT-ROOM-24 | Instance creation order | Keeps the GMS2 instance creation order list in sync when adding or deleting instances. | UndertaleModTool/Editors/UndertaleRoomEditor/UndertaleRoomEditor.xaml.cs | P0 | verified |
 | UTMT-ROOM-25 | Path layers | Path layers render the path on the canvas. | UndertaleModTool/Editors/UndertaleRoomEditor/UndertaleRoomEditor.xaml (PathDataTemplate) | P2 | not built: G3MLib has no path layer data to draw |
-| UTMT-ROOM-26 | Sequence instances | Listed under assets layers and movable, without a property editor. | UndertaleModTool/Editors/UndertaleRoomEditor/UndertaleRoomEditor.xaml | P2 | planned |
+| UTMT-ROOM-26 | Sequence instances | Listed under assets layers and movable, without a property editor. | UndertaleModTool/Editors/UndertaleRoomEditor/UndertaleRoomEditor.xaml | P2 | done (room element list: sequence instances under their asset layer, moved with the canvas or the list, OI-308) |
 
 Count: 26.
 
@@ -402,10 +402,10 @@ Count: 9.
 |---|---|---|---|---|---|
 | UTMT-CTRL-01 | Asset reference field | Shows the referenced asset. Drop an asset of the right type to change it, double-click or "..." to open, middle-click for a new tab, "X" to clear. Context menu: Open in new tab, Find all references. | UndertaleModTool/Controls/UndertaleObjectReference.xaml(.cs) | P0 | in progress |
 | UTMT-CTRL-02 | String reference field | Inline text edit of a shared string with the update prompt, drop a string to relink, "..." opens the string. | UndertaleModTool/Controls/UndertaleStringReference.xaml(.cs) | P0 | verified |
-| UTMT-CTRL-03 | Texture page item display | Renders a page item with its bounding box on a transparency grid. | UndertaleModTool/Controls/UndertaleTexturePageItemDisplay.xaml | P0 | planned |
+| UTMT-CTRL-03 | Texture page item display | Renders a page item with its bounding box on a transparency grid. | UndertaleModTool/Controls/UndertaleTexturePageItemDisplay.xaml | P0 | done (TextureItemView, OI-311) |
 | UTMT-CTRL-04 | Flags box | Expander with one checkbox per flag of an enum. | UndertaleModTool/Controls/FlagsBox.xaml | P0 | verified |
 | UTMT-CTRL-05 | Color picker | ARGB color field with preview. | UndertaleModTool/Controls/ColorPicker.xaml | P1 | implemented |
-| UTMT-CTRL-06 | Editable list grids | Data grids with "Double click to add" rows used by most editors. | UndertaleModTool/Controls/System/DataGridDark.cs | P0 | planned |
+| UTMT-CTRL-06 | Editable list grids | Data grids with "Double click to add" rows used by most editors. | UndertaleModTool/Controls/System/DataGridDark.cs | P0 | done (lists of strings in the property list: text box per entry, Add entry, Remove; the other lists have Add/Remove in their own editors, OI-312) |
 
 Count: 6.
 
@@ -500,7 +500,7 @@ Note: global Ctrl+C and Ctrl+P (paste) are bound at window level but only forwar
 | UTMT-FMT-08 | Texture formats | PNG, QOI, BZ2 plus QOI (GM 2022.3+ texture compression), DDS, raw BGRA. | UndertaleModLib/Util/GMImage.cs | P0 | implemented |
 | UTMT-FMT-09 | Debug data format | `.yydebug` writer for GMS1 debugger data. | UndertaleModLib/UndertaleDebugChunks.cs, UndertaleModLib/UndertaleDebugData.cs | P2 | done: G3MLib reads and writes .yydebug (GameMakerDebugIO) and 1.1.1 generates it (DebugDataGenerator) |
 | UTMT-FMT-10 | Write integrity checks | Writer verifies every referenced object was written (`ThrowIfUnwrittenObjects`) and keeps alignment rules per chunk. | UndertaleModLib/UndertaleIO.cs | P0 | verified |
-| UTMT-FMT-11 | Pointer offset map | Offset map generator for format debugging. | UndertaleModLib/UndertaleIO.cs (GenerateOffsetMap) | P2 | planned |
+| UTMT-FMT-11 | Pointer offset map | Offset map generator for format debugging. | UndertaleModLib/UndertaleIO.cs (GenerateOffsetMap) | P2 | done (chunk level: Tools > Write Chunk Offset Map, OI-305; items inside a chunk need the library) |
 
 Count: 11.
 

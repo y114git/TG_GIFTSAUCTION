@@ -50,6 +50,31 @@ public sealed class PropertyGridTests
     }
 
     [Fact]
+    public async Task AnEditOfAnotherEntryKeepsTheRowsAndAnEditOfThisEntryChangesThem()
+    {
+        using var dir = new TempDir();
+        using var workspace = await Open(dir);
+        var number = PropertyModel.Describe(workspace.Data.GameObjects[0]).First(r => r.Kind == PropertyKind.Whole && !r.ReadOnly);
+        await HeadlessApp.Run(() =>
+        {
+            var tab = new PropertyGridTab(workspace, "objects", "obj_0");
+            var window = new Window { Content = tab, Width = 700, Height = 500 };
+            window.Show();
+            Dispatcher.UIThread.RunJobs();
+            var box = tab.GetVisualDescendants().OfType<TextBox>().Single(t => t.Name == "Prop_" + number.Path);
+
+            workspace.Edit(new SetPropertyCommand("objects", "obj_1", number.Path, "7"));
+            Assert.Same(box, tab.GetVisualDescendants().OfType<TextBox>().Single(t => t.Name == "Prop_" + number.Path));
+
+            workspace.Edit(new SetPropertyCommand("objects", "obj_0", number.Path, "8"));
+            var after = tab.GetVisualDescendants().OfType<TextBox>().Single(t => t.Name == "Prop_" + number.Path);
+            Assert.NotSame(box, after);
+            Assert.Equal("8", after.Text);
+            window.Close();
+        });
+    }
+
+    [Fact]
     public async Task PhysicsFieldsSitInAClosedSectionThatOpensOnAClickAndAFilterShowsThemInPlace()
     {
         using var dir = new TempDir();

@@ -36,7 +36,7 @@ public sealed partial class MainWindow
         // Saving a plugin's sources reloads it, so a plugin can be developed while the app runs.
         _pluginWatcher = new PluginWatcher(_plugins.Folder, name => Dispatcher.UIThread.Post(() =>
         {
-            if (_plugins.Plugins.FirstOrDefault(p => Path.GetFileName(p.Folder) == name && p.State != PluginState.Disabled) is { } plugin) _plugins.Reload(plugin);
+            if (_plugins.Plugins.FirstOrDefault(p => Path.GetFileName(p.Folder) == name && p.State != PluginState.Disabled) is { } plugin) _ = _plugins.ReloadAsync(plugin);
         }));
     }
 

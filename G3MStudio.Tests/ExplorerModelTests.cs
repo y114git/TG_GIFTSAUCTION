@@ -83,6 +83,29 @@ public sealed class ExplorerModelTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void RefreshRaisesChangedOnlyWhenEntriesWereAddedRemovedOrRenamed()
+    {
+        using var data = TestData.Create(2);
+        var model = NewModel();
+        model.Load(data);
+        var raised = 0;
+        model.Changed += () => raised++;
+
+        model.Refresh();
+        Assert.Equal(0, raised);
+
+        data.GameObjects[0].Name.Content = "obj_renamed";
+        model.Refresh();
+        Assert.Equal(1, raised);
+        Assert.Contains(model.Rows, r => r.Text == "obj_renamed");
+
+        data.GameObjects.RemoveAt(1);
+        model.Refresh();
+        Assert.Equal(2, raised);
+        Assert.Single(model.Rows, r => r is { IsItem: true, Key: "objects" });
+    }
+
+    [Fact]
     public void FilterOn50000EntriesReturnsInUnder100Ms()
     {
         using var data = Generate(50_000);

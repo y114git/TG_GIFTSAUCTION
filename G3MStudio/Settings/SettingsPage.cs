@@ -288,6 +288,9 @@ public sealed class SettingsPage : UserControl
         var rememberWindow = new CheckBox { Name = "RememberWindow", Tag = Loc.Current["settings.rememberWindow"], Content = Loc.Current["settings.rememberWindow"], IsChecked = s.RememberWindow };
         rememberWindow.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { RememberWindow = rememberWindow.IsChecked == true }); };
 
+        var showNulls = new CheckBox { Name = "ShowNullEntries", Tag = Loc.Current["settings.showNullEntries"], Content = Loc.Current["settings.showNullEntries"], IsChecked = s.ShowNullEntries };
+        showNulls.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { ShowNullEntries = showNulls.IsChecked == true }); };
+
         var gridOverride = new CheckBox { Name = "RoomGridOverride", Tag = Loc.Current["settings.roomGridOverride"], Content = Loc.Current["settings.roomGridOverride"], IsChecked = s.RoomGridOverride };
         gridOverride.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { RoomGridOverride = gridOverride.IsChecked == true }); };
 
@@ -405,7 +408,7 @@ public sealed class SettingsPage : UserControl
         var d = new AppSettings();
         Func<AppSettings, AppSettings>[] resets =
         [
-            x => x with { UiScale = d.UiScale, FontFamily = d.FontFamily, FontWeight = d.FontWeight, CompactDensity = d.CompactDensity, ReduceMotion = d.ReduceMotion, Sizes = d.Sizes },
+            x => x with { UiScale = d.UiScale, FontFamily = d.FontFamily, FontWeight = d.FontWeight, CompactDensity = d.CompactDensity, ReduceMotion = d.ReduceMotion, ShowNullEntries = d.ShowNullEntries, Sizes = d.Sizes },
             x => x with { Colors = d.Colors },
             x => x with { CodeFontSize = d.CodeFontSize, CodeFontFamily = d.CodeFontFamily, CodeWordWrap = d.CodeWordWrap, CodeLineNumbers = d.CodeLineNumbers },
             x => x with { RoomGridOverride = d.RoomGridOverride, RoomGridWidth = d.RoomGridWidth, RoomGridHeight = d.RoomGridHeight },
@@ -453,6 +456,7 @@ public sealed class SettingsPage : UserControl
                 sizePanel,
                 compact,
                 reduce,
+                showNulls,
                 FontFiles(),
                 Heading("settings.colors"),
                 Colors(),

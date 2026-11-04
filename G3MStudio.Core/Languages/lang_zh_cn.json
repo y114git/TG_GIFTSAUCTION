@@ -202,6 +202,7 @@
     "count": "{count} 个资源",
     "matches": "{total} 个中的 {matches} 个",
     "noMatch": "没有与“{filter}”匹配的资源。",
+    "nullEntry": "(空)",
     "opening": "正在打开 {name}... {percent}%",
     "cancel": "取消",
     "newTitle": "新建{type}",
@@ -441,6 +442,7 @@
     "linksDone": "现在 g3mstudio:// 链接会在此程序中打开。",
     "linksFailed": "无法注册链接",
     "reduceMotion": "减少动态效果（预览保持静止）",
+    "showNullEntries": "在资源树中显示空条目",
     "profilesNote": "所选的运行配置会按数据文件分别记住。",
     "shortcutShared": "{shortcut} 也被以下命令使用：{commands}。",
     "addFont": "添加字体文件...",
@@ -492,6 +494,7 @@
     "newFile": "新文件，尚未跟踪。"
   },
   "properties": {
+    "addEntry": "添加条目",
     "section": {
       "physics": "物理",
       "texture": "纹理设置",

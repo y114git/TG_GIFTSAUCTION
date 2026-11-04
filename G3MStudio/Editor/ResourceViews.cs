@@ -12,10 +12,36 @@ using G3MStudio.Rooms;
 
 namespace G3MStudio.Editor;
 
-/// <summary>A texture page item (a tile set, a font sheet or an embedded image) on a dark chequer, with a zoom of 1x to 8x; it opens at the largest whole zoom that fits.</summary>
+/// <summary>The two-tone grid drawn behind pictures with transparent parts. One tiled brush fills the area, so the cost does not grow with its size.</summary>
+public sealed class Chequer : Control
+{
+    public static void Draw(DrawingContext context, Rect area, double cell)
+    {
+        var pair = 2 * cell;
+        var tile = new DrawingGroup
+        {
+            Children =
+            {
+                new GeometryDrawing { Brush = G3MStudio.Theme.CanvasTheme.Bg, Geometry = new RectangleGeometry(new Rect(0, 0, pair, pair)) },
+                new GeometryDrawing { Brush = G3MStudio.Theme.CanvasTheme.Stage, Geometry = new GeometryGroup { Children = { new RectangleGeometry(new Rect(0, 0, cell, cell)), new RectangleGeometry(new Rect(cell, cell, cell, cell)) } } },
+            },
+        };
+        context.FillRectangle(new DrawingBrush(tile) { TileMode = TileMode.Tile, DestinationRect = new RelativeRect(0, 0, pair, pair, RelativeUnit.Absolute) }, area);
+    }
+
+    public override void Render(DrawingContext context) => Draw(context, new Rect(Bounds.Size), 8);
+}
+
+/// <summary>
+/// A texture page item (a tile set, a font sheet, an embedded image or a page item) on a chequer that shows what is transparent, with a zoom of 1x to 8x; it opens at the largest whole zoom that fits.
+/// When the item sits inside a larger bounding box, the box is outlined and the picture is placed where the game draws it (UTMT-CTRL-03).
+/// </summary>
 public sealed class TextureItemView : DockPanel
 {
-    private readonly Image _image = new() { Stretch = Stretch.None };
+    private readonly Image _image = new() { Stretch = Stretch.None, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top };
+    private readonly Chequer _chequer = new() { HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top };
+    private readonly Avalonia.Controls.Shapes.Rectangle _box = new() { Stroke = G3MStudio.Theme.CanvasTheme.Point, StrokeThickness = 2, IsHitTestVisible = false, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top };
+    private (int X, int Y, int W, int H) _frame;
     private readonly ScrollViewer _scroll = new() { HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, Background = G3MStudio.Theme.CanvasTheme.Bg };
     private readonly TextBlock _caption = new() { Classes = { "muted" }, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
     private readonly Avalonia.Controls.Shapes.Rectangle _mark = new() { Stroke = Brushes.Yellow, StrokeThickness = 2, IsVisible = false, IsHitTestVisible = false, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top };
@@ -32,7 +58,7 @@ public sealed class TextureItemView : DockPanel
         var bar = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 8, Children = { _zoomBar, export, _caption } };
         SetDock(bar, Avalonia.Controls.Dock.Top);
         Children.Add(bar);
-        _scroll.Content = new Grid { Children = { _image, _mark } };
+        _scroll.Content = new Grid { Children = { _chequer, _image, _box, _mark } };
         Children.Add(_scroll);
         _image.PointerPressed += (_, e) =>
         {
@@ -66,7 +92,7 @@ public sealed class TextureItemView : DockPanel
     {
         _mark.IsVisible = _marked is not null;
         if (_marked is not { } a) return;
-        _mark.Margin = new Thickness(a.X * Zoom, a.Y * Zoom, 0, 0);
+        _mark.Margin = new Thickness((a.X + _frame.X) * Zoom, (a.Y + _frame.Y) * Zoom, 0, 0);
         _mark.Width = a.W * Zoom;
         _mark.Height = a.H * Zoom;
     }
@@ -107,8 +133,18 @@ public sealed class TextureItemView : DockPanel
         _image.Width = source.Size.Width * Zoom;
         _image.Height = source.Size.Height * Zoom;
         _image.Stretch = Stretch.Fill;
+        _image.Margin = new Thickness(_frame.X * Zoom, _frame.Y * Zoom, 0, 0);
+        _chequer.Width = _box.Width = Math.Min(_frame.W * Zoom, MaxBox);
+        _chequer.Height = _box.Height = Math.Min(_frame.H * Zoom, MaxBox);
         PlaceMark();
     }
+
+    /// <summary>The largest chequer and box in pixels per side; a file can claim a box of 65535 and the picture itself stays scrollable.</summary>
+    public const double MaxBox = 8192;
+
+    /// <summary>Where the picture sits inside its bounding box, and the box itself; a box smaller than the picture grows to hold it.</summary>
+    public static (int X, int Y, int W, int H) FrameOf(GameMakerTexturePageItem item) =>
+        (item.TargetX, item.TargetY, Math.Max(item.BoundingWidth, item.TargetX + item.SourceWidth), Math.Max(item.BoundingHeight, item.TargetY + item.SourceHeight));
 
     private async Task ShowAsync(GameMakerTexturePageItem? item, TextureBitmaps textures)
     {
@@ -120,6 +156,7 @@ public sealed class TextureItemView : DockPanel
             return;
         }
 
+        _frame = FrameOf(item);
         _image.Source = new CroppedBitmap(bitmap, new PixelRect(item.SourceX, item.SourceY, item.SourceWidth, item.SourceHeight));
         _caption.Text = $"{item.SourceWidth} x {item.SourceHeight}";
         // Start at the largest whole scale that still fits the view, so a small sheet is readable without touching the slider.

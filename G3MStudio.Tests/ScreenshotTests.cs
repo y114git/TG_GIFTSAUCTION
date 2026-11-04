@@ -110,6 +110,21 @@ public sealed class ScreenshotTests
                     Shoot(window, Path.Combine(folder, $"02-{type}.png"));
                 }
 
+                // The tag list and a texture page item use the list entry and bounding box views.
+                foreach (var (kind, name, picture) in new[] { ("general", ResourceTypes.TagsName, "tags"), ("texturePageItems", ResourceTypes.NameOf(workspace.Data.TexturePageItems[0]), "pageitem") })
+                {
+                    var key = ResourceTypes.KeyOf(kind, name);
+                    window.Docking.OpenTab("resource", key, false);
+                    window.Explorer.Select(key);
+                    for (var i = 0; i < 6; i++)
+                    {
+                        await Task.Delay(150);
+                        Dispatcher.UIThread.RunJobs();
+                    }
+
+                    Shoot(window, Path.Combine(folder, $"02-{picture}.png"));
+                }
+
                 // The corpus has no timeline with moments, so one is built in memory (not through the undo history) to see the tab.
                 using var shotTimeline = new G3MLib.DataFile.Models.GameMakerTimeline { Name = workspace.Data.Strings.MakeString("tl_screenshot", out _) };
                 workspace.Data.Timelines.Add(shotTimeline);

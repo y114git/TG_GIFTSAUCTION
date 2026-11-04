@@ -93,6 +93,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
                 GameMakerGameObject obj => new StackPanel { Spacing = 8, Children = { new ObjectEventsView(obj, OpenEntry, workspace), new PhysicsVerticesView(obj, workspace) } },
                 GameMakerBackground background => TilePicker(background, workspace),
                 GameMakerFont font => FontTab(font, workspace),
+                GameMakerTexturePageItem pageItem => new TextureItemView(pageItem, _textures),
                 GameMakerEmbeddedImage image => new TextureItemView(image.TextureEntry, _textures),
                 GameMakerPath path => new PathEditor(path, workspace),
                 GameMakerParticleSystem system => new StackPanel { Spacing = 8, Children = { new ParticlePreviewView(system), new ParticleEmittersView(system, workspace) } },
