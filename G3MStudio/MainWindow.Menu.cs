@@ -1,3 +1,4 @@
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Data;
 using G3MStudio.Commands;
@@ -16,6 +17,7 @@ public sealed partial class MainWindow
         foreach (var (titleKey, ids) in AppCommands.Menus)
         {
             var menu = new MenuItem();
+            AutomationProperties.SetAutomationId(menu, titleKey);
             menu.Bind(MenuItem.HeaderProperty, Tr(titleKey));
             var submenus = new Dictionary<string, MenuItem>();
             foreach (var id in ids)
@@ -29,6 +31,7 @@ public sealed partial class MainWindow
                 var command = Registry.Get(id);
                 var item = new MenuItem { Command = new RegistryCommand(Registry, command), InputGesture = Shortcuts.Parse(command.Shortcut) };
                 _menuItems[id] = item;
+                AutomationProperties.SetAutomationId(item, id);
                 item.Bind(MenuItem.HeaderProperty, Tr(AppCommands.TitleKey(id)));
                 // view.panel.explorer goes into the submenu "menu.sub.view.panel".
                 var parts = id.Split('.');
