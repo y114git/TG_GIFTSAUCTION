@@ -55,7 +55,16 @@ public sealed class StringsWindow : Window
         };
         _apply.Click += (_, _) => Apply();
         workspace.History.Changed += Refresh;
-        Closed += (_, _) => workspace.History.Changed -= Refresh;
+        _indexTimer.Tick += (_, _) =>
+        {
+            _indexTimer.Stop();
+            BuildIndex();
+        };
+        Closed += (_, _) =>
+        {
+            workspace.History.Changed -= Refresh;
+            _indexTimer.Stop();
+        };
         Refresh();
     }
 
@@ -94,21 +103,24 @@ public sealed class StringsWindow : Window
             }
             else
             {
-                match = t => t.Contains(needle, StringComparison.CurrentCultureIgnoreCase);
+                // Ordinal: the culture-aware comparison is about ten times slower, which shows on a table of 100,000 strings.
+                match = t => t.Contains(needle, StringComparison.OrdinalIgnoreCase);
             }
         }
 
         // With the reference index the kind comes from where the string is used; until it is built (it is made off the UI thread) a string equal to the name of a resource is a name and the rest is text.
         EnsureIndex();
         var index = _indexVersion == _workspace.History.Version ? _index : null;
-        var names = ResourceTypes.All.Where(t => !t.IsData).SelectMany(t => t.Items(_workspace.Data) ?? []).Select(ResourceTypes.NameOf).ToHashSet(StringComparer.Ordinal);
+        var names = index is null ? ResourceNames() : [];
+        string kindName = Loc.Current["strings.kindName"], kindText = Loc.Current["strings.kindText"];
+        var kinds = new Dictionary<G3MLib.DataFile.References.StringUse, string>();
         var rows = new List<Row>();
         for (var i = 0; i < _workspace.Data.Strings.Count; i++)
         {
             var text = _workspace.Data.Strings[i].Content ?? "";
             try
             {
-                if (match(text)) rows.Add(new Row(i, text, index is not null ? KindOf(index.ClassifyString(_workspace.Data.Strings[i])) : names.Contains(text) ? Loc.Current["strings.kindName"] : Loc.Current["strings.kindText"]));
+                if (match(text)) rows.Add(new Row(i, text, index is not null ? KindOf(index.ClassifyString(_workspace.Data.Strings[i]), kinds) : names.Contains(text) ? kindName : kindText));
             }
             catch (RegexMatchTimeoutException)
             {
@@ -122,6 +134,20 @@ public sealed class StringsWindow : Window
         _count.Text = Loc.Current.Format("strings.count", ("shown", rows.Count.ToString("N0", System.Globalization.CultureInfo.CurrentCulture)), ("total", _workspace.Data.Strings.Count.ToString("N0", System.Globalization.CultureInfo.CurrentCulture)));
     }
 
+    // The names of the resources, for the kind column until the index is ready; kept while the data is the same.
+    private HashSet<string>? _names;
+    private int _namesVersion = -1;
+
+    private HashSet<string> ResourceNames()
+    {
+        if (_names is not null && _namesVersion == _workspace.History.Version) return _names;
+        _namesVersion = _workspace.History.Version;
+        return _names = ResourceTypes.All.Where(t => !t.IsData).SelectMany(t => t.Items(_workspace.Data) ?? []).Select(ResourceTypes.NameOf).ToHashSet(StringComparer.Ordinal);
+    }
+
+    private static string KindOf(G3MLib.DataFile.References.StringUse use, Dictionary<G3MLib.DataFile.References.StringUse, string> cache) =>
+        cache.TryGetValue(use, out var known) ? known : cache[use] = KindOf(use);
+
     private static string KindOf(G3MLib.DataFile.References.StringUse use) => Loc.Current[use switch
     {
         G3MLib.DataFile.References.StringUse.ResourceName => "strings.kindName",
@@ -133,14 +159,32 @@ public sealed class StringsWindow : Window
     }];
 
     // The index is built once per state of the data, on a pool thread under the read lock, and the list is filled again when it is ready.
+    // An edit drops the index. Building it takes the read lock for a quarter of a second, and the next edit has to wait for that lock, so after the first build
+    // the new index is made only once edits have paused; until then the kind column uses the names.
+    private readonly Avalonia.Threading.DispatcherTimer _indexTimer = new() { Interval = TimeSpan.FromMilliseconds(1500) };
+
     private void EnsureIndex()
+    {
+        var version = _workspace.History.Version;
+        if (_building || _indexVersion == version) return;
+        if (_index is not null)
+        {
+            _indexTimer.Stop();
+            _indexTimer.Start();
+            return;
+        }
+
+        BuildIndex();
+    }
+
+    private void BuildIndex()
     {
         var version = _workspace.History.Version;
         if (_building || _indexVersion == version) return;
         _building = true;
         _ = Task.Run(() =>
         {
-            using (_workspace.Lock.Read()) return G3MLib.DataFile.References.ReferenceIndex.Build(_workspace.Data);
+            using (_workspace.Lock.Read()) return ReferenceCache.Of(_workspace.Data).Get(_workspace.Data);
         }).ContinueWith(task =>
         {
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>

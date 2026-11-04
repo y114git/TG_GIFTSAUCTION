@@ -75,6 +75,20 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
         .Where(r => r.Key is not null)
         .ToDictionary(r => r.Key ?? "", r => r.Value.ViewState);
 
+    // A closed tab's views are dropped here; kept in these lists they held a sprite's pictures or a room's scene alive for the whole session.
+    private void PruneViews()
+    {
+        var open = Docking.Tabs.Tabs.Select(t => t.Id).ToHashSet();
+        Prune(_frameViews, open);
+        Prune(_roomViews, open);
+        Prune(_codeTabs, open);
+    }
+
+    private static void Prune<T>(Dictionary<string, T> views, HashSet<string> open)
+    {
+        foreach (var id in views.Keys.Where(id => !open.Contains(id)).ToList()) views.Remove(id);
+    }
+
     private SpriteFramesView RememberFrames(string tabId, SpriteFramesView view) => _frameViews[tabId] = view;
 
     private Control? CreateEditor(TabInfo tab)
@@ -184,6 +198,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
         NotifyButton.Click += (_, _) => Notifications.DismissAll();
         Docking.Changed += UpdateTexts;
         Docking.Changed += UpdateTabContexts;
+        Docking.Changed += PruneViews;
         Closed += (_, _) =>
         {
             SaveView();
@@ -347,7 +362,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
             workspace.History.Recorded += FollowRename;
             workspace.History.Changed += () =>
             {
-                Explorer.Refresh(workspace.IsDirty);
+                Explorer.Refresh(workspace.IsDirty, workspace.History.Last?.ChangesNames ?? true);
                 UpdateTexts();
             };
             SetStatus(() => Loc.Current["app.ready"]);
@@ -511,11 +526,12 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
     private Func<string, string?> RenamePreviewText(string type, string name)
     {
         var workspace = Workspaces.Current!;
-        var index = new Lazy<G3MLib.DataFile.References.ReferenceIndex>(() => G3MLib.DataFile.References.ReferenceIndex.Build(workspace.Data));
+        // The dialog opens first; the index is made in the background so Rename finds it ready.
+        _ = Task.Run(() => { using (workspace.Lock.Read()) ReferenceCache.Of(workspace.Data).Get(workspace.Data); });
         return newName =>
         {
             RenamePreview found;
-            using (workspace.Lock.Read()) found = RenamePreview.Of(workspace.Data, type, name, newName, index.Value);
+            using (workspace.Lock.Read()) found = RenamePreview.Of(workspace.Data, type, name, newName, ReferenceCache.Of(workspace.Data).Get(workspace.Data));
             if (found.Refusal is not null) return found.Refusal;
             var more = found.Changes.Count > 6 ? Environment.NewLine + Loc.Current.Format("rename.more", ("count", found.Changes.Count - 6)) : "";
             return Loc.Current.Format("rename.preview", ("count", found.Changes.Count), ("uses", found.Uses)) + Environment.NewLine + string.Join(Environment.NewLine, found.Changes.Take(6)) + more;

@@ -103,6 +103,7 @@ public sealed class SpriteFramesView : ScrollViewer
     private async Task RefillAsync()
     {
         _strip.Children.Clear();
+        _markers.Clear(); // the crosshairs of the frames that were just removed
         for (var i = 0; i < _sprite.Textures.Count; i++) _strip.Children.Add(EmptyFrame(i));
         _shown = [.. Enumerable.Range(0, _sprite.Textures.Count).Select(i => PageImage(_sprite, i))];
         SelectedFrame = Math.Min(SelectedFrame, Math.Max(0, _sprite.Textures.Count - 1));

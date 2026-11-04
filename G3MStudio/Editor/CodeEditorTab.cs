@@ -29,7 +29,7 @@ public sealed class CodeEditorTab : DockPanel
     private readonly FoldingManager _folding;
     private string _applied = "";
     private bool _loading, _applying;
-    private int _loadId;
+    private int _loadId, _loadedVersion = -1;
 
     public CodeEditorTab(Workspace workspace, string entry)
     {
@@ -119,7 +119,8 @@ public sealed class CodeEditorTab : DockPanel
         AttachedToVisualTree += (_, _) =>
         {
             workspace.History.Changed += OnHistoryChanged;
-            if (Ready.IsCompleted && !HasPending) Ready = LoadAsync();
+            // A tab shown again keeps its text, caret and scroll unless an edit reached the model while it was hidden.
+            if (Ready.IsCompleted && !HasPending && _loadedVersion != workspace.History.Version) Ready = LoadAsync();
         };
         Ready = LoadAsync();
     }
@@ -202,6 +203,7 @@ public sealed class CodeEditorTab : DockPanel
     private async Task LoadAsync()
     {
         var id = ++_loadId;
+        var version = _workspace.History.Version;
         _loading = true;
         Editor.IsReadOnly = true;
         Show(Loc.Current["code.decompiling"], false);
@@ -212,11 +214,17 @@ public sealed class CodeEditorTab : DockPanel
                 using (_workspace.Lock.Read()) return CodeText.Decompile(_workspace.Data, Entry, _workspace.DecompileContext());
             });
             if (id != _loadId) return;
-            Editor.Text = text;
+            _loadedVersion = version;
+            // The same text again (an edit elsewhere) is left alone, so the caret, scroll and selection stay and nothing is tokenized twice.
+            if (Editor.Text != text)
+            {
+                Editor.Text = text;
+                _colorizer.Tokenize(text);
+                _folding.UpdateFoldings(_colorizer.Foldings, -1);
+                Editor.TextArea.TextView.Redraw();
+            }
+
             _applied = text;
-            _colorizer.Tokenize(text);
-            _folding.UpdateFoldings(_colorizer.Foldings, -1);
-            Editor.TextArea.TextView.Redraw();
             Editor.IsReadOnly = false;
             Show("", false);
         }

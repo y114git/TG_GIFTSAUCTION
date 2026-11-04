@@ -25,6 +25,7 @@ public partial class ExplorerView : UserControl
         // A GameMaker Studio 1 game has backgrounds, not tile sets (UTMT-TREE-10).
         Model = new ExplorerModel(key => key == "null" ? Loc.Current["explorer.nullEntry"] : Loc.Current["explorer.type." + (key == "tileSets" && _legacy ? "backgrounds" : key)]);
         Model.Changed += ShowRows;
+        List.ItemsSource = _rows;
         FilterBox.PropertyChanged += (_, e) => { if (e.Property == TextBox.TextProperty) Model.SetFilter(FilterBox.Text ?? ""); };
         List.Tapped += (_, e) =>
         {
@@ -40,7 +41,9 @@ public partial class ExplorerView : UserControl
         {
             if (e.Container.DataContext is not ExplorerRow row) return;
             var key = row.IsItem ? ResourceTypes.KeyOf(row.Key, row.Text) : null;
-            ToolTip.SetTip(e.Container, new ExplorerRowTip(row.Text, key is null ? null : () => Thumbnail?.Invoke(key) ?? Task.FromResult<Avalonia.Media.IImage?>(null)));
+            Func<Task<Avalonia.Media.IImage?>>? load = key is null ? null : () => Thumbnail?.Invoke(key) ?? Task.FromResult<Avalonia.Media.IImage?>(null);
+            if (ToolTip.GetTip(e.Container) is ExplorerRowTip tip) tip.Retarget(row.Text, load);
+            else ToolTip.SetTip(e.Container, new ExplorerRowTip(row.Text, load));
         };
         List.SelectionChanged += (_, _) => SelectionChanged?.Invoke();
         // A drag starts after the pointer has moved a few pixels with the button down on an entry.
@@ -77,6 +80,8 @@ public partial class ExplorerView : UserControl
     }
 
     private PointerPressedEventArgs? _press;
+
+    private readonly ExplorerRowList _rows = [];
 
     public ExplorerModel Model { get; }
 
@@ -139,22 +144,22 @@ public partial class ExplorerView : UserControl
     }
 
     /// <summary>Names changed (rename, undo) or the dirty mark moved.</summary>
-    public void Refresh(bool dirty)
+    public void Refresh(bool dirty, bool namesChanged = true)
     {
         _dirty = dirty;
         ShowHeader();
-        Model.Refresh();
+        if (namesChanged) Model.Refresh();
     }
 
     private void ShowHeader() => Header.Text = (_dirty ? "● " : "") + _name;
 
     private void ShowRows()
     {
-        // Setting a new list resets the scroll position; put it back so expanding a type does not jump.
+        // Opening or closing a type is shown as an insertion or removal, which keeps the shown rows and the scroll position. A list that is replaced
+        // (a filter) resets the scroll position; it is put back so a language change or an edit does not jump.
         var scroll = List.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
         var offset = scroll?.Offset ?? default;
-        List.ItemsSource = Model.Rows;
-        if (scroll is not null && !Model.IsFiltering) Dispatcher.UIThread.Post(() => scroll.Offset = offset, DispatcherPriority.Loaded);
+        if (_rows.Update(Model.Rows) && scroll is not null && !Model.IsFiltering) Dispatcher.UIThread.Post(() => scroll.Offset = offset, DispatcherPriority.Loaded);
 
         Footer.Text = Model.IsFiltering
             ? Loc.Current.Format("explorer.matches", ("matches", Model.Matches.ToString("N0", System.Globalization.CultureInfo.CurrentCulture)), ("total", Model.Total.ToString("N0", System.Globalization.CultureInfo.CurrentCulture)))

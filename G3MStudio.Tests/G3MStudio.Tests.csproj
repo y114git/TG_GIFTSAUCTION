@@ -16,6 +16,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- the same setting as the program, so the timings match -->
+    <RuntimeHostConfigurationOption Include="System.GC.Gen0MaxBudget" Value="67108864" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
 

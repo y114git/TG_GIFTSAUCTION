@@ -4,13 +4,18 @@
     <OutputType>WinExe</OutputType>
     <AssemblyName>G3MStudio</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Profile-guided tier-0 code only slows the first calls of a window that is opened once; measured 10 to 40% on edits and filter typing. -->
+    <TieredPGO>false</TieredPGO>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The default budget of the youngest generation is about 12 MB; a tab or an edit allocates that much, and each collection then walked a heap of several hundred MB for 20 to 45 ms. -->
+    <RuntimeHostConfigurationOption Include="System.GC.Gen0MaxBudget" Value="67108864" />
+  </ItemGroup>
 
   <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
     <SelfContained>true</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
-    <!-- Precompiled code skips most JIT work at launch: time to first window 1.7 s to 0.55 s on a warm start, at the cost of a larger first extraction. -->
-    <PublishReadyToRun>true</PublishReadyToRun>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>

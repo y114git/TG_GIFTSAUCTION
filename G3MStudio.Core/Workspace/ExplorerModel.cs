@@ -57,7 +57,11 @@ public sealed class ExplorerModel(Func<string, string> title)
         return colon > 0 && Prefixes.TryGetValue(text[..colon], out var type) ? (type, text[(colon + 1)..].Trim()) : ("", text);
     }
 
-    private record Section(ResourceType Type, ExplorerRow[] Items);
+    private record Section(ResourceType Type, ExplorerRow[] Items)
+    {
+        /// <summary>Entries without the null rows; counted once, because a list of 100,000 rows is not walked on every redraw.</summary>
+        public int ItemCount { get; } = Items.Count(r => r.IsItem);
+    }
 
     private readonly HashSet<string> _expanded = [.. ResourceTypes.All.Where(t => !t.IsData).Select(t => t.Key), DataGroup];
     private List<Section> _sections = [];
@@ -71,7 +75,7 @@ public sealed class ExplorerModel(Func<string, string> title)
     public bool IsFiltering => Filter.Length > 0;
 
     /// <summary>All entries of the loaded data file.</summary>
-    public int Total => _sections.Sum(s => s.Items.Count(r => r.IsItem));
+    public int Total => _sections.Sum(s => s.ItemCount);
 
     /// <summary>Lists the null entries of a list (GameMaker 2024.11 and later) as rows that cannot be opened (UTMT-TREE-11).</summary>
     public bool ShowNulls
@@ -120,23 +124,36 @@ public sealed class ExplorerModel(Func<string, string> title)
                 if (type.Items(_data) is { } items)
                 {
                     var depth = type.IsData ? 3 : 2;
-                    ExplorerRow Item(object i) => new(ExplorerRowKind.Item, type.Key, ResourceTypes.NameOf(i), depth) { Item = i };
                     // Raw keeps the list positions, so a null row sits where the entry would be.
-                    ExplorerRow[] rows = [.. ShowNulls && type.Raw?.Invoke(_data) is { } raw
-                        ? raw.Select((i, n) => i is null ? new ExplorerRow(ExplorerRowKind.Null, type.Key, $"[{n}] {title("null")}", depth) : Item(i))
-                        : items.Select(Item)];
-                    if (old.TryGetValue(type.Key, out var before) && before.Items.Length == rows.Length && Enumerable.Range(0, rows.Length).All(i => before.Items[i].Kind == rows[i].Kind && ReferenceEquals(before.Items[i].Item, rows[i].Item) && before.Items[i].Text == rows[i].Text))
-                        sections.Add(before);
-                    else
+                    var source = ShowNulls && type.Raw?.Invoke(_data) is { } raw ? raw : items;
+                    // Most edits change no name: compare with the rows already made before making 100,000 new ones.
+                    if (old.TryGetValue(type.Key, out var before) && SameRows(before.Items, source))
                     {
-                        changed = true;
-                        sections.Add(new Section(type, rows));
+                        sections.Add(before);
+                        continue;
                     }
+
+                    ExplorerRow Item(object i) => new(ExplorerRowKind.Item, type.Key, ResourceTypes.NameOf(i), depth) { Item = i };
+                    changed = true;
+                    sections.Add(new Section(type, [.. source.Select((i, n) => i is null ? new ExplorerRow(ExplorerRowKind.Null, type.Key, $"[{n}] {title("null")}", depth) : Item(i))]));
                 }
 
         changed |= sections.Count != old.Count;
         _sections = sections;
         return changed;
+    }
+
+    private bool SameRows(ExplorerRow[] rows, IEnumerable<object?> source)
+    {
+        var at = 0;
+        foreach (var item in source)
+        {
+            if (at == rows.Length) return false;
+            var row = rows[at++];
+            if (item is null ? row.Kind != ExplorerRowKind.Null || row.Text != $"[{at - 1}] {title("null")}" : row.Kind != ExplorerRowKind.Item || !ReferenceEquals(row.Item, item) || row.Text != ResourceTypes.NameOf(item)) return false;
+        }
+
+        return at == rows.Length;
     }
 
     public void SetFilter(string text)
@@ -174,13 +191,15 @@ public sealed class ExplorerModel(Func<string, string> title)
     {
         foreach (var section in sections)
         {
-            var items = !IsFiltering ? section.Items
+            var unfiltered = !IsFiltering;
+            var items = unfiltered ? section.Items
                 : (_typeFilter.Length > 0 && _typeFilter != section.Type.Key) ? []
                 : [.. section.Items.Where(r => r.IsItem && r.Text.Contains(_needle, StringComparison.OrdinalIgnoreCase))];
             if (IsFiltering && items.Length == 0) continue;
             var open = IsFiltering || _expanded.Contains(section.Type.Key);
-            rows.Add(new ExplorerRow(ExplorerRowKind.Type, section.Type.Key, title(section.Type.Key), depth) { Count = items.Count(r => r.IsItem), Expanded = open });
-            Matches += items.Count(r => r.IsItem);
+            var count = unfiltered ? section.ItemCount : items.Count(r => r.IsItem);
+            rows.Add(new ExplorerRow(ExplorerRowKind.Type, section.Type.Key, title(section.Type.Key), depth) { Count = count, Expanded = open });
+            Matches += count;
             if (open) rows.AddRange(items);
         }
     }

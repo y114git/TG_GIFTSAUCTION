@@ -23,6 +23,12 @@ public abstract class EditCommand
     /// <summary>Project resources this edit changes, so autosave writes only those. Null means unknown: the whole project is refreshed.</summary>
     public virtual IReadOnlyList<ProjectTouch>? Touches => null;
 
+    /// <summary>True when applying or reverting this edit leaves the reverse reference index valid, so the history keeps the cached one (a rename changes only the text of strings).</summary>
+    public virtual bool KeepsReferences => false;
+
+    /// <summary>False when this edit cannot add, remove, move or rename an entry of the Explorer, so the Explorer need not read every name again.</summary>
+    public virtual bool ChangesNames => true;
+
     public abstract void Apply(GameMakerData data);
 
     public abstract void Revert(GameMakerData data);
@@ -90,12 +96,14 @@ public sealed class RenameResourceCommand(string type, string oldName, string ne
 
     public override IReadOnlyList<ProjectTouch>? Touches => _touches;
 
+    public override bool KeepsReferences => true;
+
     public override void Apply(GameMakerData data)
     {
         var resource = ResourceTypes.All.FirstOrDefault(t => t.Key == type)?.Items(data)?.OfType<GameMakerNamedResource>().FirstOrDefault(r => ResourceTypes.NameOf(r) == oldName)
             ?? throw new InvalidOperationException($"'{oldName}' was not found in {type}.");
-        // The index is built per rename (about 160 ms on a benchmark game) so it never goes stale after other edits.
-        var index = ReferenceIndex.Build(data);
+        // The history drops the cached index after every edit but a rename, so it is never stale here.
+        var index = ReferenceCache.Of(data).Get(data);
         _changes = RenameService.RenameResource(data, resource, newName, index);
         _touches = ProjectTouches(_changes, index.FindUsages(resource), index);
     }
@@ -248,6 +256,8 @@ public sealed class SetPropertyCommand(string type, string name, string path, st
     public override IReadOnlyDictionary<string, string> Args { get; } = new Dictionary<string, string> { ["type"] = type, ["name"] = name, ["path"] = path, ["text"] = text };
 
     public override IReadOnlyList<ProjectTouch>? Touches => _touches;
+
+    public override bool ChangesNames => path.Contains("Name", StringComparison.Ordinal);
 
     public override void Apply(GameMakerData data)
     {

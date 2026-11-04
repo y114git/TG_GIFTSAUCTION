@@ -43,8 +43,27 @@ public sealed class ObjectEventsView : StackPanel
     /// <summary>Event label and code entry name, in file order.</summary>
     public IReadOnlyList<(string Event, string Code)> Rows { get; private set; } = [];
 
+    private string _shown = "";
+
+    // What the list would show, as text: every edit and every tab switch calls Fill, and most of them change no event.
+    private string Signature()
+    {
+        var text = new System.Text.StringBuilder();
+        for (var type = 0; type < _object.Events.Count; type++)
+            foreach (var evt in _object.Events[type])
+            {
+                text.Append(type).Append('/').Append(evt.EventSubtype).Append(' ').Append(EventNames.Label((uint)type, evt.EventSubtype, _workspace?.Data));
+                foreach (var action in evt.Actions) text.Append(';');
+            }
+
+        return text.ToString();
+    }
+
     private void Fill()
     {
+        var signature = Signature();
+        if (signature == _shown && _list.Children.Count > 0 == signature.Length > 0) return;
+        _shown = signature;
         Rows = [.. Collect()];
         _list.Children.Clear();
         for (var type = 0; type < _object.Events.Count; type++)

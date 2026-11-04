@@ -80,7 +80,8 @@ public sealed class PropertyGridTab : DockPanel
         AttachedToVisualTree += (_, _) =>
         {
             workspace.History.Changed += OnHistoryChanged;
-            Fill();
+            // The rows built in the constructor are still right unless an edit came while the tab was hidden; building them again on every switch cost 100 ms or more.
+            Fill(false);
         };
         Fill();
     }
@@ -172,9 +173,10 @@ public sealed class PropertyGridTab : DockPanel
         _shown = wanted;
         _rows.Children.Clear();
         _headings.Clear();
+        var index = 0;
         foreach (var row in wanted)
         {
-            _rows.Children.Add(Build(row));
+            _rows.Children.Add(index++ < EagerRows || row.Kind is PropertyKind.Group or PropertyKind.List ? Build(row) : Lazy(row));
             if (row.Kind is PropertyKind.Group or PropertyKind.List) _headings[row.Path] = row.Kind;
         }
     }
@@ -228,6 +230,26 @@ public sealed class PropertyGridTab : DockPanel
         if (kind == PropertyKind.List) _ = _openLists.Add(path) || _openLists.Remove(path);
         else _ = _closedGroups.Add(path) || _closedGroups.Remove(path);
         Fill();
+    }
+
+    // About one screen of rows is built at once. A text box with its template costs around a millisecond, so the rows further down get an empty slot of the same
+    // height and are built when a scroll or a resize brings them within a few hundred pixels of the view.
+    private const int EagerRows = 20;
+    private const double BuildMargin = 400;
+
+    private Border Lazy(PropertyRow row)
+    {
+        var slot = new Border { MinHeight = 34 };
+        void Near(object? sender, EffectiveViewportChangedEventArgs e)
+        {
+            var view = e.EffectiveViewport;
+            if (view.Height <= 0 || view.Bottom < -BuildMargin || view.Top > slot.Bounds.Height + BuildMargin) return;
+            slot.EffectiveViewportChanged -= Near;
+            slot.Child = Build(row);
+        }
+
+        slot.EffectiveViewportChanged += Near;
+        return slot;
     }
 
     private DockPanel Build(PropertyRow row)

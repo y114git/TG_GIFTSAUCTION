@@ -48,7 +48,9 @@ public static class CodeSearch
                 Interlocked.Increment(ref failed);
             }
 
-            progress?.Report((Interlocked.Increment(ref done), entries.Length));
+            // One report per 64 entries: each report is a job on the UI thread, and 12,000 of them made the window crawl while a search ran.
+            var finished = Interlocked.Increment(ref done);
+            if (finished % 64 == 0 || finished == entries.Length) progress?.Report((finished, entries.Length));
             return ValueTask.CompletedTask;
         });
         return new CodeSearchResult([.. hits.OrderBy(h => h.Entry, StringComparer.Ordinal).ThenBy(h => h.Line)], entries.Length - failed, failed);

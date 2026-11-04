@@ -27,6 +27,50 @@ public sealed class FontReplaceTests
     }
 
     [Fact]
+    public async Task APreparedReplaceGivesTheSameGlyphsAsOneDrawnInsideTheEdit()
+    {
+        var corpus = Environment.GetEnvironmentVariable("G3MSTUDIO_CORPUS_DIR");
+        Assert.SkipWhen(string.IsNullOrEmpty(corpus) || !Directory.Exists(corpus), "G3MSTUDIO_CORPUS_DIR is not set");
+        var font = SystemFont();
+        Assert.SkipWhen(font is null, "no system TrueType font was found");
+        GameMakerData? data = null;
+        GameMakerFont? target = null;
+        foreach (var file in Directory.EnumerateFiles(corpus, "data.win", SearchOption.AllDirectories).OrderBy(f => new FileInfo(f).Length))
+        {
+            var candidate = await GameMakerIO.ReadAsync(file, cancellationToken: TestContext.Current.CancellationToken);
+            target = candidate.Fonts.Where(f => f.Texture is not null && f.Glyphs.Count is > 20 and < 200).OrderBy(f => f.Glyphs.Count).FirstOrDefault();
+            if (target is not null)
+            {
+                data = candidate;
+                break;
+            }
+
+            candidate.Dispose();
+        }
+
+        Assert.SkipWhen(data is null || target is null, "no corpus file has a small font");
+        using var open = data;
+        data = open;
+        var name = target!.Name.Content ?? "";
+        var original = target.Texture.TexturePage.TextureData.Image;
+        var plain = new FontReplaceCommand(name, font!);
+        plain.Apply(data!);
+        var expected = target.Glyphs.Select(g => (g.SourceX, g.SourceY, g.SourceWidth, g.Shift, g.Offset)).ToList();
+        var drawn = target.Texture.TexturePage.TextureData.Image;
+        plain.Revert(data!);
+        Assert.Same(original, target.Texture.TexturePage.TextureData.Image);
+
+        var prepared = new FontReplaceCommand(name, font!);
+        prepared.Prepare(data!);
+        prepared.Apply(data!);
+        Assert.Equal(expected, [.. target.Glyphs.Select(g => (g.SourceX, g.SourceY, g.SourceWidth, g.Shift, g.Offset))]);
+        Assert.NotSame(original, target.Texture.TexturePage.TextureData.Image);
+        Assert.Equal(drawn.Width, target.Texture.TexturePage.TextureData.Image.Width);
+        prepared.Revert(data!);
+        Assert.Same(original, target.Texture.TexturePage.TextureData.Image);
+    }
+
+    [Fact]
     public async Task ReplacingAFontRedrawsItsGlyphsAndUndoPutsTheOldSheetBack()
     {
         var corpus = Environment.GetEnvironmentVariable("G3MSTUDIO_CORPUS_DIR");

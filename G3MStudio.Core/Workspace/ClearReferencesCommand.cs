@@ -1,5 +1,4 @@
 using G3MLib.DataFile;
-using G3MLib.DataFile.References;
 
 namespace G3MStudio.Core.Workspace;
 
@@ -27,7 +26,7 @@ public sealed class ClearReferencesCommand(string type, string name) : EditComma
     public override void Apply(GameMakerData data)
     {
         var target = PropertyModel.FindRoot(data, type, name) ?? throw new InvalidOperationException($"'{name}' was not found in {type}.");
-        var uses = ReferenceIndex.Build(data).FindUsages(target);
+        var uses = ReferenceCache.Of(data).Get(data).FindUsages(target);
         var inCode = uses.Where(u => u.InstructionOffset >= 0).ToList();
         if (inCode.Count > 0) throw new InvalidOperationException($"'{name}' is used in code ({inCode.Count} places, first in {inCode[0].OwnerName}): change that code first, then delete it.");
         _cleared.Clear();

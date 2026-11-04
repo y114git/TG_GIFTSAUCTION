@@ -14,7 +14,7 @@ public readonly record struct GlyphRect(ushort X, ushort Y, ushort Width, ushort
 /// packed into the font's own texture region and given its new rectangle and advance. The old sheet and the old glyph values are kept, so Undo puts them back.
 /// shortcut: one sharp bitmap per glyph with no kerning and no signed distance field spread, and the glyphs must fit the existing region (a smaller size if not); upgrade when a font can get a bigger texture page.
 /// </summary>
-#pragma warning disable CA1001 // the images belong to the page, which the model disposes
+#pragma warning disable CA1001, CA2000 // the images belong to the page, which the model disposes; a prepared drawing is disposed when it is applied or replaced
 public sealed class FontReplaceCommand(string font, byte[] fontFile) : EditCommand
 {
     public const string Name = "fontReplace";
@@ -64,15 +64,74 @@ public sealed class FontReplaceCommand(string font, byte[] fontFile) : EditComma
             return;
         }
 
-        if (!LooksLikeFont(fontFile) || fontFile.Length > MaxFontBytes) throw new InvalidDataException("The file is not a TrueType or OpenType font, or it is larger than 16 MiB.");
         var item = target.Texture;
-        using var atlas = new MagickImage(MagickColors.Transparent, item.SourceWidth, item.SourceHeight);
-        var (rects, ascender, lineHeight) = Render(target, atlas);
-        item.ReplaceTexture(atlas);
+        // A glyph added or removed, or another edit of the same texture page, since Prepare makes the drawing stale: it is made again.
+        Drawing ready;
+        if (_prepared is { } prepared && prepared.Rects.Count == target.Glyphs.Count && ReferenceEquals(prepared.PageBefore, item.TexturePage.TextureData.Image))
+        {
+            ready = prepared;
+        }
+        else
+        {
+            _prepared?.Atlas.Dispose();
+            ready = Draw(target, false);
+        }
+
+        _prepared = null;
+        var (atlas, rects, ascender, lineHeight, page, _) = ready;
+        using (atlas)
+        {
+            if (page is null)
+            {
+                item.ReplaceTexture(atlas);
+            }
+            else
+            {
+                item.TexturePage.TextureData.Image = page;
+                (item.TargetWidth, item.TargetHeight) = ((ushort)atlas.Width, (ushort)atlas.Height);
+            }
+        }
 
         foreach (var (glyph, r) in target.Glyphs.Zip(rects)) (glyph.SourceX, glyph.SourceY, glyph.SourceWidth, glyph.SourceHeight, glyph.Shift, glyph.Offset) = (r.X, r.Y, r.Width, r.Height, r.Shift, r.Offset);
         (target.Ascender, target.LineHeight) = (ascender, target.LineHeight == 0 ? 0 : lineHeight);
         _after = Capture(target);
+    }
+
+    private readonly record struct Drawing(MagickImage Atlas, List<GlyphRect> Rects, uint Ascender, uint LineHeight, GMImage? Page, GMImage? PageBefore);
+
+    private Drawing? _prepared;
+
+    /// <summary>
+    /// Draws the glyphs and builds the new texture page ahead of <see cref="Apply"/>, which takes up to a second for a large font. Call with the model locked
+    /// for reading, from any thread; the edit under the write lock then only swaps the page in. Without it, Apply does the work itself (the journal replay).
+    /// </summary>
+    public void Prepare(GameMakerData data) => _prepared = Draw(Find(data), true);
+
+    private Drawing Draw(GameMakerFont target, bool composePage)
+    {
+        if (!LooksLikeFont(fontFile) || fontFile.Length > MaxFontBytes) throw new InvalidDataException("The file is not a TrueType or OpenType font, or it is larger than 16 MiB.");
+        var item = target.Texture ?? throw new InvalidOperationException("The font has no texture.");
+        var atlas = new MagickImage(MagickColors.Transparent, item.SourceWidth, item.SourceHeight);
+        try
+        {
+            var (rects, ascender, lineHeight) = Render(target, atlas);
+            if (!composePage) return new Drawing(atlas, rects, ascender, lineHeight, null, null);
+            // The same steps as the library's ReplaceTexture, up to the swap of the page picture, so they can run without the write lock.
+            var data = item.TexturePage.TextureData;
+            lock (data)
+            {
+                using var final = TextureWorker.ResizeImage(atlas, item.SourceWidth, item.SourceHeight);
+                using var worker = new TextureWorker();
+                var embedded = worker.GetEmbeddedTexture(item.TexturePage);
+                embedded.Composite(final, item.SourceX, item.SourceY, CompositeOperator.Copy);
+                return new Drawing(atlas, rects, ascender, lineHeight, GMImage.FromMagickImage(embedded).ConvertToFormat(data.Image.Format), data.Image);
+            }
+        }
+        catch
+        {
+            atlas.Dispose();
+            throw;
+        }
     }
 
     public override void Revert(GameMakerData data) => Put(Find(data), _before ?? throw new InvalidOperationException("The font was never replaced."));

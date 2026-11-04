@@ -18,8 +18,7 @@ public static class UsageSearch
             using (workspace.Lock.Read())
             {
                 var target = ResourceTypes.Find(workspace.Data, ResourceTypes.KeyOf(type, name)) ?? throw new InvalidOperationException($"'{name}' was not found in {type}.");
-                // The index is built per search (about 160 ms on a benchmark game) so it never goes stale after edits.
-                var index = ReferenceIndex.Build(workspace.Data, cancellationToken);
+                var index = ReferenceCache.Of(workspace.Data).Get(workspace.Data, cancellationToken);
                 return (IReadOnlyList<UsageHit>)[.. index.FindUsages(target)
                     .Select(r => new UsageHit(TypeKeyOf(r.Owner), OwnerNameOf(r),  r.InstructionOffset >= 0 ? $"{r.Member} @{r.InstructionOffset}" : r.Member))
                     .OrderBy(h => h.OwnerType, StringComparer.Ordinal).ThenBy(h => h.OwnerName, StringComparer.Ordinal).ThenBy(h => h.Where, StringComparer.Ordinal)];
@@ -37,7 +36,7 @@ public static class UsageSearch
         {
             using (workspace.Lock.Read())
             {
-                var index = ReferenceIndex.Build(workspace.Data, cancellationToken);
+                var index = ReferenceCache.Of(workspace.Data).Get(workspace.Data, cancellationToken);
                 var found = new List<UsageHit>();
                 foreach (var type in ResourceTypes.All.Where(t => AssetTypes.Contains(t.Key)))
                     foreach (var item in type.Items(workspace.Data) ?? [])
@@ -75,7 +74,7 @@ public static class UsageSearch
             using (workspace.Lock.Read())
             {
                 var resource = ResourceTypes.Find(workspace.Data, ResourceTypes.KeyOf(type, name)) ?? throw new InvalidOperationException($"'{name}' was not found in {type}.");
-                var index = ReferenceIndex.Build(workspace.Data, cancellationToken);
+                var index = ReferenceCache.Of(workspace.Data).Get(workspace.Data, cancellationToken);
                 var found = new List<UsageHit>();
                 foreach (var other in ResourceTypes.All.Where(t => AssetTypes.Contains(t.Key)))
                 {
@@ -120,7 +119,7 @@ public static class UsageSearch
     {
         return await Task.Run(() =>
         {
-            using (workspace.Lock.Read()) return ReferenceIndex.Build(workspace.Data, cancellationToken).FindUsages(target).Count;
+            using (workspace.Lock.Read()) return ReferenceCache.Of(workspace.Data).Get(workspace.Data, cancellationToken).FindUsages(target).Count;
         }, cancellationToken);
     }
 

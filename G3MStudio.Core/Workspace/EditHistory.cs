@@ -32,6 +32,9 @@ public sealed class EditHistory(GameMakerData data)
     /// <summary>Counts every change of the data (an edit, an undo, a redo, a bulk change), so a cache can tell that the data moved; Position cannot, because undo then a new edit returns to the same place.</summary>
     public int Version { get; private set; }
 
+    /// <summary>The command behind the last <see cref="Changed"/> (done, undone or redone); null after a save or a bulk change.</summary>
+    public EditCommand? Last { get; private set; }
+
     public event Action? Changed;
 
     /// <summary>Op is "do", "undo" or "redo".</summary>
@@ -87,6 +90,8 @@ public sealed class EditHistory(GameMakerData data)
         _saved = -1;
         BulkChanges++;
         Version++;
+        Last = null;
+        ReferenceCache.Of(data).Invalidate();
         Changed?.Invoke();
     }
 
@@ -95,6 +100,7 @@ public sealed class EditHistory(GameMakerData data)
         BulkChanges = 0;
         _saved = Position;
         Version++;
+        Last = null;
         Changed?.Invoke();
     }
 
@@ -107,6 +113,8 @@ public sealed class EditHistory(GameMakerData data)
     {
         Recorded?.Invoke(op, command);
         Version++;
+        Last = command;
+        if (!command.KeepsReferences) ReferenceCache.Of(data).Invalidate();
         Changed?.Invoke();
     }
 }

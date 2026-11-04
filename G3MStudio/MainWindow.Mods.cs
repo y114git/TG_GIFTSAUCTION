@@ -227,7 +227,9 @@ public sealed partial class MainWindow
 
             var size = workspace.Data.Fonts.FirstOrDefault(f => f.Name.Content == name)?.EmSize ?? 0;
             if (!await Confirm(Loc.Current["fonts.replace"], Loc.Current.Format("fonts.replaceAsk", ("name", name), ("file", Path.GetFileName(file)), ("size", size.ToString("0.##", System.Globalization.CultureInfo.CurrentCulture))))) return;
-            workspace.Edit(new FontReplaceCommand(name, bytes));
+            var command = new FontReplaceCommand(name, bytes);
+            await Task.Run(() => { using (workspace.Lock.Read()) command.Prepare(workspace.Data); });
+            workspace.Edit(command);
             Notify(NotificationLevel.Info, Loc.Current.Format("fonts.replaced", ("name", name)));
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException or InvalidDataException)
