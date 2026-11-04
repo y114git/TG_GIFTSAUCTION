@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="G3MLib" Version="1.1.1" />
+    <PackageReference Include="G3MLib" Version="1.1.2" />
     <PackageReference Include="NVorbis" Version="0.10.5" />
     <PackageReference Include="NLayer" Version="3.0.0" />
     <PackageReference Include="OggVorbisEncoder" Version="1.2.2" />

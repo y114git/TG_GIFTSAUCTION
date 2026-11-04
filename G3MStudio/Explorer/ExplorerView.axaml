@@ -13,9 +13,10 @@
     <Grid>
       <ListBox Name="List" Background="{DynamicResource Bg.Surface}">
         <ListBox.Styles>
-          <Style Selector="ListBoxItem">
+          <Style Selector="ListBoxItem" x:DataType="ws:ExplorerRow">
             <Setter Property="MinHeight" Value="{DynamicResource Row.Height}" />
             <Setter Property="Padding" Value="4,0" />
+            <Setter Property="AutomationProperties.Name" Value="{Binding Text}" />
           </Style>
         </ListBox.Styles>
         <ListBox.ItemTemplate>
