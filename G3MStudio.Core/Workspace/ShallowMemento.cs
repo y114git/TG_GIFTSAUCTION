@@ -19,6 +19,8 @@ internal sealed class ShallowMemento
     public void Capture(object? item, int depth)
     {
         if (item is null or string or GameMakerString || depth < 0 || _seen.Count >= MaxObjects || !_seen.Add(item)) return;
+        // Arrays of numbers (audio and picture bytes) are replaced by new arrays, never changed in place; the property value restores them.
+        if (item is Array { Length: > 0 } numbers && numbers.GetType().GetElementType()?.IsValueType == true) return;
         if (item is IList list)
         {
             var items = new object?[list.Count];
@@ -44,6 +46,13 @@ internal sealed class ShallowMemento
         foreach (var (owner, property, value) in _properties) property.SetValue(owner, value);
         foreach (var (list, items) in _lists)
         {
+            // An array cannot be cleared or grown; its items are put back in place.
+            if (list is Array array)
+            {
+                Array.Copy(items, array, items.Length);
+                continue;
+            }
+
             list.Clear();
             foreach (var item in items) list.Add(item);
         }

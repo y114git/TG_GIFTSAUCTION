@@ -114,10 +114,6 @@ public sealed partial class MainWindow
 
     public void ApplyMod() => _ = ApplyModAsync();
 
-    public void ApplyPatchOpen() => _ = ApplyPatchOpenAsync();
-
-    public void ApplyModOpen() => _ = ApplyModOpenAsync();
-
     /// <summary>
     /// Applies a patch to the open data file in memory. Like an import it is a bulk change: it needs a file without unsaved edits, cannot be undone,
     /// and Revert to Saved is the way back. A patch that fails after it started may leave the file partly changed, so the failure says so.
@@ -237,8 +233,18 @@ public sealed partial class MainWindow
     /// Applies a G3M mod ZIP: reads its mod_config.json, takes the patch operations whose target is the data file in use (the open one, or one picked), asks, and applies
     /// them in order into a new file. The data file is never overwritten; the result can be opened from the notice. Payloads other than .g3mpatch are reported, not run.
     /// </summary>
-    public async Task ApplyModAsync(string? zipPath = null)
+    public async Task ApplyModAsync(string? zipPath = null, bool? toOpen = null)
     {
+        if (Workspaces.Current is not null)
+        {
+            if ((toOpen ??= await AskApplyTargetAsync("cmd.mods.applyMod")) is null) return;
+            if (toOpen == true)
+            {
+                await ApplyModOpenAsync(zipPath);
+                return;
+            }
+        }
+
         zipPath ??= await PickPatchFile(Loc.Current["mods.pickMod"], false, ".zip");
         if (zipPath is null) return;
         ModInfo mod;
@@ -317,9 +323,23 @@ public sealed partial class MainWindow
         });
     }
 
-    /// <summary>Patches the open data file, or one the user picks, into a new file; the original is never overwritten.</summary>
-    public async Task ApplyPatchAsync(string? givenPatch = null)
+    /// <summary>With a data file open, asks where the result of Apply Patch or Apply Mod goes: into the open file or a new file (default, since the open file cannot be undone). Null when cancelled.</summary>
+    private async Task<bool?> AskApplyTargetAsync(string commandKey) =>
+        await ProjectDialogs.AskChoiceAsync(this, Loc.Current[commandKey].TrimEnd('.'), Loc.Current["mods.target"], [Loc.Current["mods.targetOpen"], Loc.Current["mods.targetNew"]], null, 1) is { } at ? at == 0 : null;
+
+    /// <summary>Patches the open data file in memory or into a new file (asked when a file is open), or a data file the user picks into a new file; the new-file route never overwrites the original.</summary>
+    public async Task ApplyPatchAsync(string? givenPatch = null, bool? toOpen = null)
     {
+        if (Workspaces.Current is not null)
+        {
+            if ((toOpen ??= await AskApplyTargetAsync("cmd.mods.applyPatch")) is null) return;
+            if (toOpen == true)
+            {
+                await ApplyPatchOpenAsync(givenPatch);
+                return;
+            }
+        }
+
         var data = Workspaces.Current?.Path ?? await PickPatchFile(Loc.Current["mods.pickData"], false);
         if (data is null || (givenPatch ?? await PickPatchFile(Loc.Current["mods.pickPatch"], false)) is not { } patch
             || await PickPatchFile(Loc.Current["mods.pickDataOut"], true) is not { } output) return;

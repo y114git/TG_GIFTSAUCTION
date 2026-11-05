@@ -21,21 +21,24 @@ public sealed partial class MainWindow
         finally { File.Delete(path); }
     }
 
-    /// <summary>Lists the .csx files in the Scripts folder next to the program, subfolders included, and runs the chosen one (UTMT-SCRIPT-01).</summary>
-    public void RunScriptFromFolder() => _ = RunScriptFromFolderAsync();
-
-    public async Task RunScriptFromFolderAsync()
+    /// <summary>The .csx files in the Scripts folder next to the program, subfolders included (UTMT-SCRIPT-01).</summary>
+    private static (string Folder, List<string> Files) ScriptsFolder()
     {
         var folder = Path.Combine(AppContext.BaseDirectory, "Scripts");
-        var files = Directory.Exists(folder) ? Directory.EnumerateFiles(folder, "*.csx", SearchOption.AllDirectories).Order(StringComparer.OrdinalIgnoreCase).ToList() : [];
-        if (files.Count == 0)
+        return (folder, Directory.Exists(folder) ? Directory.EnumerateFiles(folder, "*.csx", SearchOption.AllDirectories).Order(StringComparer.OrdinalIgnoreCase).ToList() : []);
+    }
+
+    /// <summary>Asks where the script is when the Scripts folder next to the program holds some: a file picker or a list of that folder. Null when cancelled.</summary>
+    private async Task<string?> PickScriptAsync()
+    {
+        var (folder, files) = ScriptsFolder();
+        if (files.Count > 0)
         {
-            Notify(NotificationLevel.Info, Loc.Current.Format("scripts.none", ("folder", folder)));
-            return;
+            if (await ProjectDialogs.AskChoiceAsync(this, Loc.Current["scripts.title"], Loc.Current["scripts.source"], [Loc.Current["scripts.sourceFile"], Loc.Current["scripts.sourceFolder"]], null, 0) is not { } source) return null;
+            if (source == 1) return await ProjectDialogs.AskChoiceAsync(this, Loc.Current["scripts.title"], Loc.Current["scripts.pick"], [.. files.Select(f => Path.GetRelativePath(folder, f))]) is { } at ? files[at] : null;
         }
 
-        if (await ProjectDialogs.AskChoiceAsync(this, Loc.Current["scripts.title"], Loc.Current["scripts.pick"], [.. files.Select(f => Path.GetRelativePath(folder, f))]) is { } at)
-            await RunScriptAsync(files[at]);
+        return await PickPatchFile(Loc.Current["scripts.pick"], false);
     }
 
     /// <summary>
@@ -47,7 +50,7 @@ public sealed partial class MainWindow
         if (Workspaces.Current is not { } workspace) return;
         if (!await UnsavedOkAsync(workspace, "risky.unsavedBulk")) return;
 
-        if ((chosen ?? await PickPatchFile(Loc.Current["scripts.pick"], false)) is not { } path) return;
+        if ((chosen ?? await PickScriptAsync()) is not { } path) return;
         var name = Path.GetFileName(path);
         if (!await Confirm(Loc.Current["scripts.title"], Loc.Current.Format("scripts.confirm", ("name", name)))) return;
         Notify(NotificationLevel.Info, Loc.Current.Format("scripts.running", ("name", name)));

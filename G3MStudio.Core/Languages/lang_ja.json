@@ -58,10 +58,10 @@
       "exit": "終了",
       "saveCopy": "コピーを保存...",
       "revert": "保存済みの状態に戻す...",
-      "exportSelection": "選択したリソースをエクスポート...",
-      "exportAll": "すべてエクスポート...",
-      "import": "リソースをインポート...",
-      "importFiles": "ファイルをリソースとしてインポート...",
+      "exportSelection": "選択したリソースをフォルダーにエクスポート...",
+      "exportAll": "すべてのリソースをフォルダーにエクスポート...",
+      "import": "別のデータファイルからリソースをインポート...",
+      "importFiles": "画像・サウンド・スクリプトのファイルをインポート...",
       "new": {
         "objects": "新しいオブジェクト...",
         "scripts": "新しいスクリプト...",
@@ -149,8 +149,6 @@
       "createPatch": "パッチを作成...",
       "applyPatch": "パッチを適用...",
       "applyMod": "MODを適用...",
-      "applyPatchOpen": "開いているファイルにパッチを適用...",
-      "applyModOpen": "開いているファイルにMODを適用...",
       "validatePatch": "パッチを検証...",
       "mergePatches": "パッチをマージ...",
       "compareFiles": "データファイルを比較...",
@@ -173,7 +171,6 @@
       "plugins": "プラグイン...",
       "strings": "文字列...",
       "runScript": "スクリプトを実行...",
-      "runScriptFromFolder": "Scripts フォルダーのスクリプトを実行...",
       "runCommand": "C# コマンドを実行...",
       "roomOrder": "ルームの順序...",
       "disassemble": "コードエントリの逆アセンブル...",
@@ -187,6 +184,9 @@
   },
   "palette": {
     "title": "コマンドパレット",
+    "altApplyPatch": "現在のデータファイルにパッチを適用、パッチ済みデータファイルを新規保存",
+    "altApplyMod": "現在のデータファイルにMODを適用、MOD適用済みデータファイルを新規保存",
+    "altRunScript": "Scripts フォルダーのスクリプトを実行、スクリプトファイルを実行",
     "placeholder": "コマンドを入力",
     "empty": "「{text}」に一致する結果はありません。"
   },
@@ -598,6 +598,9 @@
     "selectedCount": "選択した {count} 件のリソース"
   },
   "mods": {
+    "target": "結果をどこに置きますか。開いているデータファイルへの適用は元に戻せません。戻すには「保存済みの状態に戻す」を使います。",
+    "targetOpen": "開いているデータファイルに適用",
+    "targetNew": "結果を新しいデータファイルとして保存",
     "pickOriginal": "元のデータファイル (パッチの適用先)",
     "pickData": "パッチを当てるデータファイル",
     "pickPatch": "パッチファイル",
@@ -788,7 +791,7 @@
     "restart": "最初から再生",
     "add": "エミッターを追加"
   },
-  "scripts": { "commandTitle": "C# コマンド", "commandLabel": "開いているデータファイルに対して実行する C# コード", "none": "{folder} にスクリプトがありません。.csx ファイルを置いてください。", "pickFile": "スクリプトがファイルを求めています", "pickFolder": "スクリプトがフォルダーを求めています", "pickSave": "スクリプトが保存先を尋ねています",
+  "scripts": { "source": "スクリプトはどこにありますか。", "sourceFile": ".csx ファイルを選ぶ", "sourceFolder": "プログラムの隣の Scripts フォルダーから選ぶ", "commandTitle": "C# コマンド", "commandLabel": "開いているデータファイルに対して実行する C# コード", "pickFile": "スクリプトがファイルを求めています", "pickFolder": "スクリプトがフォルダーを求めています", "pickSave": "スクリプトが保存先を尋ねています",
     "pick": "スクリプト (.csx) を選んでください",
     "title": "スクリプトの実行",
     "confirm": "{name} を実行しますか？\n\nスクリプトはデータファイルのあらゆる内容を変更でき、このコンピューター上の任意のファイルを読み書きできます。変更は元に戻せません。戻すには「保存済みに戻す」を使います。信頼できるスクリプトだけを実行してください。\n\nUndertaleModTool 形式の .csx スクリプトを実行しますが、そのツールの機能の一部しかありません: Data、FilePath、ScriptPath、ScriptMessage、ScriptWarning、ScriptError、ScriptQuestion（常に「はい」）。ダイアログ、デコンパイラ補助、UI が必要なスクリプトは、足りない関数名を示すコンパイルエラーで止まります。",

@@ -200,6 +200,15 @@ public static class CopyPlanner
         return (system.Emitters ?? []).Select(e => e.Resource?.Name?.Content).OfType<string>().FirstOrDefault(taken.Contains);
     }
 
+    // The first code entry of the script (its own, then the function entries that are its children) that the target already has: compiling it would
+    // replace the target's entry by a new one, and the target's global init list would still point at the old one.
+    private static string? FunctionClash(GameMakerData source, GameMakerData target, GameMakerCode code)
+    {
+        if (code.Name?.Content is { } own && target.Code.ByName(own) is not null) return own;
+        return source.Scripts.Where(w => ReferenceEquals(w.Code?.ParentEntry, code)).Select(w => w.Name?.Content)
+            .FirstOrDefault(n => n is not null && (target.Scripts.ByName(n) is not null || target.Code.ByName(n) is not null));
+    }
+
     /// <summary>Null when the item can be copied; else the reason it cannot.</summary>
     public static string? ItemRefusal(GameMakerData source, GameMakerData target, string type, string name)
     {
@@ -213,6 +222,9 @@ public static class CopyPlanner
         {
             GameMakerSound { GroupID: > 0 } => $"{name} is in an audio group file; its audio is not in the data file, so it cannot be copied.",
             GameMakerSound { AudioFile: null } => $"{name} has no embedded audio (it plays from a file next to the data file).",
+            // A code entry or function entry of the same name in the target would be replaced or doubled by the compile.
+            GameMakerScript { Code: { } code } when !Exists(target, "scripts", name) && FunctionClash(source, target, code) is { } clash =>
+                $"{name} has the code entry {clash}, which the target already has under another script.",
             GameMakerScript { Code.ParentEntry: not null } => $"The code of {name} is part of a larger code entry, so it cannot be copied on its own.",
             GameMakerParticleSystem system when EmitterClash(system, target) is { } clash => $"{name} has the emitter '{clash}', which the target already has in another particle system.",
             GameMakerCode { ParentEntry: not null } => $"{name} is part of a larger code entry, so it cannot be copied on its own.",

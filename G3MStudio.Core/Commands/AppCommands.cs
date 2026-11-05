@@ -144,10 +144,6 @@ public interface IShell
     void ValidatePatch();
     void ApplyMod();
 
-    void ApplyPatchOpen();
-
-    void ApplyModOpen();
-
     void Undo();
 
     void Redo();
@@ -214,8 +210,6 @@ public interface IShell
 
     void RunScript();
 
-    void RunScriptFromFolder();
-
     void RunCommand();
 
     /// <summary>Go to Resource (Ctrl+P).</summary>
@@ -271,11 +265,19 @@ public static class AppCommands
         ("menu.sound", ["edit.editAudio", "edit.replaceAudio", "edit.exportAudio", "edit.exportAllAudio"]),
         ("menu.room", ["room.play", "-", "room.creationCode", "room.creationOrder", "room.exportTiles", "room.importTiles", "room.savePng"]),
         ("menu.run", ["run.game", "run.withRuntime", "run.stop"]),
-        ("menu.mods", ["mods.createPatch", "mods.applyPatch", "mods.applyMod", "mods.applyPatchOpen", "mods.applyModOpen", "mods.mergePatches", "mods.validatePatch", "mods.compareFiles", "mods.exportMod"]),
-        ("menu.tools", ["tools.plugins", "tools.strings", "tools.roomOrder", "tools.hexView", "tools.offsetMap", "tools.writeDebugData", "tools.disassemble", "tools.runScript", "tools.runScriptFromFolder", "tools.runCommand", "-", "tools.repackTextures", "tools.exportPage", "tools.replacePage"]),
+        ("menu.mods", ["mods.createPatch", "mods.applyPatch", "mods.applyMod", "mods.mergePatches", "mods.validatePatch", "mods.compareFiles", "mods.exportMod"]),
+        ("menu.tools", ["tools.plugins", "tools.strings", "tools.roomOrder", "tools.hexView", "tools.offsetMap", "tools.writeDebugData", "tools.disassemble", "tools.runScript", "tools.runCommand", "-", "tools.repackTextures", "tools.exportPage", "tools.replacePage"]),
         ("menu.window", ["tabs.close", "tabs.closeOthers", "tabs.closeAll", "tabs.reopen", "-", "tabs.next", "tabs.previous", "tabs.back", "tabs.forward", "-", "tabs.pin", "tabs.keepOpen", "tabs.splitRight", "-", "window.layout.studio", "window.layout.code", "window.layout.canvas", "window.layout.reset", "window.layout.saved"]),
         ("menu.help", ["help.gettingStarted", "help.tour", "help.documentation", "help.checkUpdates", "help.openDataFolder", "-", "help.about"]),
     ];
+
+    /// <summary>Palette-only extra search text (language key) for commands that took over the job of removed duplicates: they ask where the result goes or where the script is.</summary>
+    public static readonly IReadOnlyDictionary<string, string> PaletteAlt = new Dictionary<string, string>
+    {
+        ["mods.applyPatch"] = "palette.altApplyPatch",
+        ["mods.applyMod"] = "palette.altApplyMod",
+        ["tools.runScript"] = "palette.altRunScript",
+    };
 
     /// <summary>The language key of a command title: a panel command is named like the panel itself, every other one "cmd.&lt;id&gt;".</summary>
     public static string TitleKey(string id) => id.StartsWith("view.panel.", StringComparison.Ordinal) ? "panel." + id["view.panel.".Length..] : "cmd." + id;
@@ -341,8 +343,6 @@ public static class AppCommands
         Add("mods.exportMod", null, shell.ExportMod, WorkspaceOpen);
         Add("mods.validatePatch", null, shell.ValidatePatch);
         Add("mods.applyMod", null, shell.ApplyMod);
-        Add("mods.applyPatchOpen", null, shell.ApplyPatchOpen, WorkspaceOpen);
-        Add("mods.applyModOpen", null, shell.ApplyModOpen, WorkspaceOpen);
         Add("file.close", "Ctrl+Alt+W", shell.CloseWorkspace, WorkspaceOpen);
         Add("file.exit", "Ctrl+Q", shell.Exit);
         Add("edit.undo", "Ctrl+Z", shell.Undo, WorkspaceOpen);
@@ -408,7 +408,6 @@ public static class AppCommands
         Add("window.layout.reset", null, shell.ResetLayout, WorkspaceOpen);
         Add("window.layout.saved", null, shell.ShowLayouts, WorkspaceOpen);
         Add("tools.runScript", null, shell.RunScript, WorkspaceOpen);
-        Add("tools.runScriptFromFolder", null, shell.RunScriptFromFolder, WorkspaceOpen);
         Add("tools.runCommand", null, shell.RunCommand, WorkspaceOpen);
         Add("help.about", null, shell.ShowAbout);
         Add("help.openDataFolder", null, shell.OpenDataFolder);

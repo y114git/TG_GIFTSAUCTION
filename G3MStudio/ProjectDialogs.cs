@@ -271,12 +271,12 @@ internal static class ProjectDialogs
     }
 
     /// <summary>A list to pick one entry from, with Ok and Cancel; the index of the entry, or null when cancelled. With <paramref name="columns"/> each item is cells split by a tab, shown under those headings.</summary>
-    public static async Task<int?> AskChoiceAsync(Window owner, string title, string label, IReadOnlyList<string> items, IReadOnlyList<string>? columns = null)
+    public static async Task<int?> AskChoiceAsync(Window owner, string title, string label, IReadOnlyList<string> items, IReadOnlyList<string>? columns = null, int selected = -1)
     {
         var window = Shell("transfer.confirmTitle", 520);
         window.Title = title;
         int? answer = null;
-        var list = new ListBox { Name = "ChoiceList", ItemsSource = items, SelectedIndex = -1, MaxHeight = 280, ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<string>((text, _) => columns is null ? new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap } : ChoiceRow(text.Split('\t'), false)) };
+        var list = new ListBox { Name = "ChoiceList", ItemsSource = items, SelectedIndex = selected, MaxHeight = 280, ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<string>((text, _) => columns is null ? new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap } : ChoiceRow(text.Split('\t'), false)) };
         ScrollViewer.SetHorizontalScrollBarVisibility(list, Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled);
         list.DoubleTapped += (_, _) =>
         {

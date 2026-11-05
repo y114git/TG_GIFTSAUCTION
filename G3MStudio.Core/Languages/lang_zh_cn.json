@@ -58,10 +58,10 @@
       "exit": "退出",
       "saveCopy": "保存副本...",
       "revert": "还原到已保存...",
-      "exportSelection": "导出所选资源...",
-      "exportAll": "导出全部...",
-      "import": "导入资源...",
-      "importFiles": "将文件导入为资源...",
+      "exportSelection": "将所选资源导出到文件夹...",
+      "exportAll": "将全部资源导出到文件夹...",
+      "import": "从其他数据文件导入资源...",
+      "importFiles": "从文件导入图片、声音和脚本...",
       "new": {
         "objects": "新建对象...",
         "scripts": "新建脚本...",
@@ -149,8 +149,6 @@
       "createPatch": "创建补丁...",
       "applyPatch": "应用补丁...",
       "applyMod": "应用模组...",
-      "applyPatchOpen": "将补丁应用到打开的文件...",
-      "applyModOpen": "将模组应用到打开的文件...",
       "validatePatch": "验证补丁...",
       "mergePatches": "合并补丁...",
       "compareFiles": "比较数据文件...",
@@ -173,7 +171,6 @@
       "plugins": "插件...",
       "strings": "字符串...",
       "runScript": "运行脚本...",
-      "runScriptFromFolder": "运行 Scripts 文件夹中的脚本...",
       "runCommand": "运行 C# 命令...",
       "roomOrder": "房间顺序...",
       "disassemble": "代码条目反汇编...",
@@ -187,6 +184,9 @@
   },
   "palette": {
     "title": "命令面板",
+    "altApplyPatch": "将补丁应用到当前数据文件，将打补丁的数据文件保存为新文件",
+    "altApplyMod": "将模组应用到当前数据文件，将应用模组的数据文件保存为新文件",
+    "altRunScript": "运行 Scripts 文件夹中的脚本，运行脚本文件",
     "placeholder": "输入命令",
     "empty": "没有与“{text}”匹配的结果。"
   },
@@ -552,7 +552,7 @@
     "badPattern": "此模式无效：{reason}",
     "timeout": "此模式在某一行上耗时过长。请简化它。"
   },
-  "disassembly": { "assemble": "汇编", "assembled": "已汇编。", "assembleFailed": "无法汇编：{reason}", "title": "{entry} 的反汇编", "loading": "正在读取指令...", "failed": "无法读取指令: {reason}" },
+  "disassembly": { "assemble": "汇编", "assembled": "已汇编。", "assembleFailed": "无法汇编：{reason}", "title": "{entry} 的反汇编", "loading": "正在读取指令...", "failed": "无法读取指令: {reason}" },
   "tileSet": {"findRooms": "查找使用此图块的房间"},
   "textureItem": {"export": "导出 PNG", "saved": "已保存到 {path}", "failed": "无法保存：{reason}"},
   "entryScripts": {"globalInit": "游戏开始时运行的脚本", "gameEnd": "游戏结束时运行的脚本", "add": "添加"},
@@ -598,6 +598,9 @@
     "selectedCount": "已选的 {count} 个资源"
   },
   "mods": {
+    "target": "结果放到哪里？应用到打开的数据文件无法撤销，可用“还原到已保存”恢复。",
+    "targetOpen": "应用到打开的数据文件",
+    "targetNew": "保存结果为新的数据文件",
     "pickOriginal": "原始数据文件（补丁所应用的文件）",
     "pickData": "要打补丁的数据文件",
     "pickPatch": "补丁文件",
@@ -788,7 +791,7 @@
     "restart": "重新开始",
     "add": "添加发射器"
   },
-  "scripts": { "commandTitle": "C# 命令", "commandLabel": "对已打开的数据文件运行的 C# 代码", "none": "{folder} 中没有脚本。请放入 .csx 文件。", "pickFile": "脚本请求选择文件", "pickFolder": "脚本请求选择文件夹", "pickSave": "脚本询问保存位置",
+  "scripts": { "source": "脚本在哪里？", "sourceFile": "选择 .csx 文件", "sourceFolder": "从程序旁的 Scripts 文件夹中选择", "commandTitle": "C# 命令", "commandLabel": "对已打开的数据文件运行的 C# 代码", "pickFile": "脚本请求选择文件", "pickFolder": "脚本请求选择文件夹", "pickSave": "脚本询问保存位置",
     "pick": "选择脚本 (.csx)",
     "title": "运行脚本",
     "confirm": "运行 {name}？\n\n脚本可以更改数据文件中的任何内容，也可以读写这台电脑上的任何文件。更改无法撤销，可用“还原为已保存”恢复。只运行你信任的脚本。\n\n这里运行 UndertaleModTool 风格的 .csx 脚本，但只提供该工具的一部分函数：Data、FilePath、ScriptPath、ScriptMessage、ScriptWarning、ScriptError 和 ScriptQuestion（一律回答“是”）。需要对话框、反编译助手或界面的脚本会因编译错误而停止，错误会指出缺少的函数。",

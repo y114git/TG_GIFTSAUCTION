@@ -58,10 +58,10 @@
       "exit": "Salir",
       "saveCopy": "Guardar una copia...",
       "revert": "Volver a lo guardado...",
-      "exportSelection": "Exportar el recurso seleccionado...",
-      "exportAll": "Exportar todo...",
-      "import": "Importar recursos...",
-      "importFiles": "Importar archivos como recursos...",
+      "exportSelection": "Exportar los recursos seleccionados a una carpeta...",
+      "exportAll": "Exportar todos los recursos a una carpeta...",
+      "import": "Importar recursos de otro archivo de datos...",
+      "importFiles": "Importar imágenes, sonidos y scripts desde archivos...",
       "new": {
         "objects": "Nuevo objeto...",
         "scripts": "Nuevo script...",
@@ -149,8 +149,6 @@
       "createPatch": "Crear parche...",
       "applyPatch": "Aplicar parche...",
       "applyMod": "Aplicar mod...",
-      "applyPatchOpen": "Aplicar parche al archivo abierto...",
-      "applyModOpen": "Aplicar mod al archivo abierto...",
       "validatePatch": "Validar parche...",
       "mergePatches": "Combinar parches...",
       "compareFiles": "Comparar archivos de datos...",
@@ -173,7 +171,6 @@
       "plugins": "Complementos...",
       "strings": "Cadenas...",
       "runScript": "Ejecutar script...",
-      "runScriptFromFolder": "Ejecutar script de la carpeta Scripts...",
       "runCommand": "Ejecutar comando C#...",
       "roomOrder": "Orden de salas...",
       "disassemble": "Desensamblado de la entrada de código...",
@@ -187,6 +184,9 @@
   },
   "palette": {
     "title": "Paleta de comandos",
+    "altApplyPatch": "Aplicar parche al archivo de datos actual, guardar archivo parcheado como nuevo",
+    "altApplyMod": "Aplicar mod al archivo de datos actual, guardar archivo con mod como nuevo",
+    "altRunScript": "Ejecutar script de la carpeta Scripts, ejecutar archivo de script",
     "placeholder": "Escribe un comando",
     "empty": "Sin resultados para «{text}»."
   },
@@ -598,6 +598,9 @@
     "selectedCount": "Recursos seleccionados: {count}"
   },
   "mods": {
+    "target": "¿Dónde va el resultado? Aplicarlo al archivo de datos abierto no se puede deshacer; el camino de vuelta es «Volver a lo guardado».",
+    "targetOpen": "Aplicar al archivo de datos abierto",
+    "targetNew": "Guardar el resultado como un archivo de datos nuevo",
     "pickOriginal": "Archivo de datos original (al que se aplica el parche)",
     "pickData": "Archivo de datos que se va a parchear",
     "pickPatch": "Archivo de parche",
@@ -788,7 +791,7 @@
     "restart": "Reiniciar",
     "add": "Añadir emisor"
   },
-  "scripts": { "commandTitle": "Comando C#", "commandLabel": "Código C# para ejecutar sobre el archivo de datos actual", "none": "No hay scripts en {folder}. Pon allí archivos .csx.", "pickFile": "El script pide un archivo", "pickFolder": "El script pide una carpeta", "pickSave": "El script pregunta dónde guardar",
+  "scripts": { "source": "¿Dónde está el script?", "sourceFile": "Elegir un archivo .csx", "sourceFolder": "Elegir de la carpeta Scripts junto al programa", "commandTitle": "Comando C#", "commandLabel": "Código C# para ejecutar sobre el archivo de datos actual", "pickFile": "El script pide un archivo", "pickFolder": "El script pide una carpeta", "pickSave": "El script pregunta dónde guardar",
     "pick": "Elige un script (.csx)",
     "title": "Ejecutar script",
     "confirm": "¿Ejecutar {name}?\n\nUn script puede cambiar cualquier cosa del archivo de datos y leer y escribir cualquier archivo de este equipo. El cambio no se puede deshacer; Revertir al guardado es la vuelta atrás. Ejecuta solo scripts de confianza.\n\nSe ejecutan scripts .csx al estilo de UndertaleModTool, pero aquí solo existe parte de las funciones de esa herramienta: Data, FilePath, ScriptPath, ScriptMessage, ScriptWarning, ScriptError y ScriptQuestion (respondida con sí). Los scripts que necesitan diálogos, las ayudas del descompilador o la interfaz se detienen con un error de compilación que nombra la función que falta.",

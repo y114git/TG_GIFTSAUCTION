@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using G3MLib.DataFile;
+using G3MLib.DataFile.Models;
 using G3MLib.Modding.Resources;
 
 namespace G3MStudio.Core.Workspace;
@@ -71,6 +72,7 @@ public sealed class CopyResourcesCommand : EditCommand
             var failed = CopyPackage.Import(data, folder, Selection(folder), Progress, Cancellation).FirstOrDefault(r => r.Kind == ResultKind.Failed);
             if (failed is not null) throw new InvalidOperationException($"{failed.Name} could not be copied: {failed.Message}");
             if (data.GeneralInfo is { } info && _lastId > info.LastObj) info.LastObj = _lastId;
+            FillLayerLists(data);
         }
         catch
         {
@@ -91,6 +93,23 @@ public sealed class CopyResourcesCommand : EditCommand
         if (_snapshot is null || _memento is null) throw new InvalidOperationException("The copy was never applied.");
         _snapshot.Restore();
         _memento.Restore();
+    }
+
+    // A room from a file of an older version has no list for what newer layers hold (particle systems, text items). The writer of a newer
+    // target writes a pointer for each, and a null list leaves a pointer that nothing reads back.
+    private void FillLayerLists(GameMakerData data)
+    {
+        var rooms = _steps.Where(s => s.Type == "rooms").Select(s => s.Name).ToHashSet(StringComparer.Ordinal);
+        foreach (var room in data.Rooms.Where(r => rooms.Contains(r.Name?.Content ?? "")))
+            foreach (var assets in (room.Layers ?? []).Select(l => l.Data).OfType<GameMakerRoom.Layer.LayerAssetsData>())
+            {
+                assets.LegacyTiles ??= [];
+                assets.Sprites ??= [];
+                assets.Sequences ??= [];
+                assets.NineSlices ??= [];
+                assets.ParticleSystems ??= [];
+                assets.TextItems ??= [];
+            }
     }
 
     // Every added name must be free and every replaced item must exist, before anything changes.

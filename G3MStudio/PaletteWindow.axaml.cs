@@ -38,7 +38,7 @@ public partial class PaletteWindow : Window
         var items = _registry.All
             .Where(_registry.IsEnabled)
             .Select(c => new PaletteItem(c.Id, c.Title ?? _loc[AppCommands.TitleKey(c.Id)], Shortcuts.Parse(c.Shortcut)?.ToString() ?? ""))
-            .Where(i => i.Title.Contains(text, StringComparison.CurrentCultureIgnoreCase))
+            .Where(i => i.Title.Contains(text, StringComparison.CurrentCultureIgnoreCase) || AppCommands.PaletteAlt.TryGetValue(i.Id, out var alt) && _loc[alt].Contains(text, StringComparison.CurrentCultureIgnoreCase))
             .OrderByDescending(i => i.Title.StartsWith(text, StringComparison.CurrentCultureIgnoreCase))
             .ThenBy(i => i.Title, StringComparer.CurrentCultureIgnoreCase)
             .ToList();

@@ -105,7 +105,7 @@ public sealed class ModsTests
 
                 await window.OpenAsync(original);
                 answers.Enqueue(patch);
-                await window.ApplyPatchOpenAsync();
+                await window.ApplyPatchAsync(null, true);
                 Assert.Equal(3, window.Workspaces.Current!.Data.GameObjects.Count);
                 Assert.True(window.Workspaces.Current.History.IsDirty);
                 Assert.Equal(original, window.Workspaces.Current.Path); // the file on disk is not touched
@@ -113,7 +113,7 @@ public sealed class ModsTests
 
                 // With unsaved changes the mod waits for a yes (a no changes nothing; risky actions set to refuse show the plain refusal); after Revert to Saved it applies the same way.
                 window.Confirmer = (_, _) => Task.FromResult(false);
-                await window.ApplyModOpenAsync(modZip);
+                await window.ApplyModAsync(modZip, true);
                 Assert.Equal(1, window.Workspaces.Current.History.BulkChanges); // the patch from before; a no added nothing
                 window.Workspaces.Settings.Update(x => x with { AskRiskyActions = false });
                 await window.ApplyModOpenAsync(modZip);

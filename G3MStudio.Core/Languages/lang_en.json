@@ -58,10 +58,10 @@
       "exit": "Exit",
       "saveCopy": "Save a Copy...",
       "revert": "Revert to Saved...",
-      "exportSelection": "Export Selected Resource...",
-      "exportAll": "Export Everything...",
-      "import": "Import Resources...",
-      "importFiles": "Import Files as Resources...",
+      "exportSelection": "Export Selected Resources to a Folder...",
+      "exportAll": "Export All Resources to a Folder...",
+      "import": "Import Resources from Another Data File...",
+      "importFiles": "Import Pictures, Sounds and Scripts from Files...",
       "new": {
         "objects": "New Object...",
         "scripts": "New Script...",
@@ -149,8 +149,6 @@
       "createPatch": "Create Patch...",
       "applyPatch": "Apply Patch...",
       "applyMod": "Apply Mod...",
-      "applyPatchOpen": "Apply Patch to Current File...",
-      "applyModOpen": "Apply Mod to Current File...",
       "validatePatch": "Validate Patch...",
       "mergePatches": "Merge Patches...",
       "compareFiles": "Compare Data Files...",
@@ -173,7 +171,6 @@
       "plugins": "Plugins...",
       "strings": "Strings...",
       "runScript": "Run Script...",
-      "runScriptFromFolder": "Run Script from Scripts Folder...",
       "runCommand": "Run C# Command...",
       "roomOrder": "Room Order...",
       "disassemble": "Disassembly of Code Entry...",
@@ -187,6 +184,9 @@
   },
   "palette": {
     "title": "Command Palette",
+    "altApplyPatch": "Apply Patch to the Current Data File, Save Patched Data File as New",
+    "altApplyMod": "Apply Mod to the Current Data File, Save Modded Data File as New",
+    "altRunScript": "Run Script from the Scripts Folder, Run Script File",
     "placeholder": "Type a command",
     "empty": "No results for '{text}'."
   },
@@ -598,6 +598,9 @@
     "selectedCount": "Selected resources: {count}"
   },
   "mods": {
+    "target": "Where should the result go? Applying to the current data file cannot be undone; Revert to Saved is the way back.",
+    "targetOpen": "Apply to the current data file",
+    "targetNew": "Save the result as a new data file",
     "pickOriginal": "Original data file (the one the patch applies to)",
     "pickData": "Data file to patch",
     "pickPatch": "Patch file",
@@ -788,7 +791,7 @@
     "restart": "Restart",
     "add": "Add emitter"
   },
-  "scripts": { "commandTitle": "C# command", "commandLabel": "C# code to run on the current data file", "none": "No scripts found in {folder}. Put .csx files there.", "pickFile": "The script asks for a file", "pickFolder": "The script asks for a folder", "pickSave": "The script asks where to save",
+  "scripts": { "source": "Where is the script?", "sourceFile": "Pick a .csx file", "sourceFolder": "Choose from the Scripts folder next to the program", "commandTitle": "C# command", "commandLabel": "C# code to run on the current data file", "pickFile": "The script asks for a file", "pickFolder": "The script asks for a folder", "pickSave": "The script asks where to save",
     "pick": "Choose a script (.csx)",
     "title": "Run script",
     "confirm": "Run {name}?\n\nA script can change anything in the data file and can read and write any file on this computer. The change cannot be undone; Revert to Saved is the way back. Only run scripts you trust.\n\nThis runs UndertaleModTool-style .csx scripts, but only part of that tool's functions exist here: Data, FilePath, ScriptPath, ScriptMessage, ScriptWarning, ScriptError and ScriptQuestion (answered yes). Scripts that need dialogs, the decompiler helpers or the UI stop with a compile error that names the missing function.",

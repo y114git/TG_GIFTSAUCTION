@@ -58,10 +58,10 @@
       "exit": "結束",
       "saveCopy": "儲存副本...",
       "revert": "還原到已儲存...",
-      "exportSelection": "匯出所選資源...",
-      "exportAll": "匯出全部...",
-      "import": "匯入資源...",
-      "importFiles": "將檔案匯入為資源...",
+      "exportSelection": "將所選資源匯出到資料夾...",
+      "exportAll": "將全部資源匯出到資料夾...",
+      "import": "從其他資料檔案匯入資源...",
+      "importFiles": "從檔案匯入圖片、聲音和指令碼...",
       "new": {
         "objects": "新增物件...",
         "scripts": "新增腳本...",
@@ -149,8 +149,6 @@
       "createPatch": "建立修補...",
       "applyPatch": "套用修補...",
       "applyMod": "套用模組...",
-      "applyPatchOpen": "將修補程式套用到開啟的檔案...",
-      "applyModOpen": "將模組套用到開啟的檔案...",
       "validatePatch": "驗證修補...",
       "mergePatches": "合併修補...",
       "compareFiles": "比較資料檔案...",
@@ -173,7 +171,6 @@
       "plugins": "外掛...",
       "strings": "字串...",
       "runScript": "執行指令碼...",
-      "runScriptFromFolder": "執行 Scripts 資料夾中的指令碼...",
       "runCommand": "執行 C# 命令...",
       "roomOrder": "房間順序...",
       "disassemble": "程式碼項目反組譯...",
@@ -187,6 +184,9 @@
   },
   "palette": {
     "title": "命令選擇區",
+    "altApplyPatch": "將修補程式套用到目前資料檔案，將已修補的資料檔案儲存為新檔案",
+    "altApplyMod": "將模組套用到目前資料檔案，將已套用模組的資料檔案儲存為新檔案",
+    "altRunScript": "執行 Scripts 資料夾中的指令碼，執行指令碼檔案",
     "placeholder": "輸入命令",
     "empty": "沒有符合「{text}」的結果。"
   },
@@ -598,6 +598,9 @@
     "selectedCount": "已選的 {count} 個資源"
   },
   "mods": {
+    "target": "結果要放在哪裡？套用到開啟的資料檔案無法復原，可用「還原到已儲存」回復。",
+    "targetOpen": "套用到開啟的資料檔案",
+    "targetNew": "儲存結果為新的資料檔案",
     "pickOriginal": "原始資料檔案（修補所套用的檔案）",
     "pickData": "要修補的資料檔案",
     "pickPatch": "修補檔案",
@@ -788,7 +791,7 @@
     "restart": "重新開始",
     "add": "新增發射器"
   },
-  "scripts": { "commandTitle": "C# 命令", "commandLabel": "對目前的資料檔案執行的 C# 程式碼", "none": "{folder} 中沒有指令碼。請放入 .csx 檔案。", "pickFile": "指令碼要求選擇檔案", "pickFolder": "指令碼要求選擇資料夾", "pickSave": "指令碼詢問儲存位置",
+  "scripts": { "source": "指令碼在哪裡？", "sourceFile": "選擇 .csx 檔案", "sourceFolder": "從程式旁的 Scripts 資料夾中選擇", "commandTitle": "C# 命令", "commandLabel": "對目前的資料檔案執行的 C# 程式碼", "pickFile": "指令碼要求選擇檔案", "pickFolder": "指令碼要求選擇資料夾", "pickSave": "指令碼詢問儲存位置",
     "pick": "選擇指令碼 (.csx)",
     "title": "執行指令碼",
     "confirm": "執行 {name}？\n\n指令碼可以變更資料檔中的任何內容，也可以讀寫這台電腦上的任何檔案。變更無法復原，可用「還原到已儲存」回復。只執行你信任的指令碼。\n\n這裡執行 UndertaleModTool 風格的 .csx 指令碼，但只提供該工具的一部分函式：Data、FilePath、ScriptPath、ScriptMessage、ScriptWarning、ScriptError 與 ScriptQuestion（一律回答「是」）。需要對話方塊、反編譯輔助或介面的指令碼會因編譯錯誤而停止，錯誤會指出缺少的函式。",

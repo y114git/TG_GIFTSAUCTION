@@ -89,7 +89,7 @@ public static class ResourceCopier
         return selection;
     }
 
-    private static readonly string[] CodePrefixes = ["gml_Object_", "gml_Script_", "gml_RoomCC_", "gml_Room_", "gml_Timeline_"];
+    private static readonly string[] CodePrefixes = ["gml_Object_", "gml_Script_", "gml_GlobalScript_", "gml_RoomCC_", "gml_Room_", "gml_Timeline_"];
 
     private static string? RenamedCode(PlanEntry entry, string code)
     {
@@ -99,7 +99,8 @@ public static class ResourceCopier
 
     private static void AddEmitters(GameMakerData data, List<PlanEntry> entries, Dictionary<string, HashSet<string>> selection)
     {
-        foreach (var system in data.ParticleSystems.Where(s => entries.Any(e => e.Type == "particleSystems" && e.Name == s.Name.Content)))
+        // Files without the particle chunk have no list.
+        foreach (var system in (data.ParticleSystems ?? []).Where(s => entries.Any(e => e.Type == "particleSystems" && e.Name == s.Name.Content)))
         {
             if (!selection.TryGetValue("ParticleSystemEmitters", out var set)) selection["ParticleSystemEmitters"] = set = [];
             foreach (var emitter in system.Emitters ?? []) if (emitter.Resource?.Name?.Content is { } name) set.Add(name);

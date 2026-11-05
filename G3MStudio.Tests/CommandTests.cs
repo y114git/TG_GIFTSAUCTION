@@ -83,10 +83,6 @@ internal sealed class FakeShell : IShell
     public void ApplyPatch() { }
     public void ValidatePatch() { }
     public void ApplyMod() { }
-
-    public void ApplyPatchOpen() { }
-
-    public void ApplyModOpen() { }
     public void Undo() { }
     public void Redo() { }
     public void Rename() { }
@@ -112,8 +108,6 @@ internal sealed class FakeShell : IShell
 
     public void ShowTour() { }
     public void RunScript() { }
-
-    public void RunScriptFromFolder() { }
 
     public void RunCommand() { }
     public void QuickOpen() { }

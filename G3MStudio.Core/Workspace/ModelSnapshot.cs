@@ -13,7 +13,7 @@ internal sealed class ModelSnapshot
     [
         "Sprites", "Backgrounds", "Sounds", "Paths", "Scripts", "Shaders", "Fonts", "Timelines", "GameObjects", "Rooms", "Extensions", "Sequences",
         "AnimationCurves", "ParticleSystems", "Code", "CodeLocals", "Strings", "Variables", "Functions", "TexturePageItems", "EmbeddedTextures",
-        "EmbeddedImages", "EmbeddedAudio", "AudioGroups", "TextureGroupInfo",
+        "EmbeddedImages", "EmbeddedAudio", "AudioGroups", "TextureGroupInfo", "GlobalInitScripts", "GameEndScripts",
     ];
 
     private readonly List<(IList List, object?[] Items)> _lists = [];

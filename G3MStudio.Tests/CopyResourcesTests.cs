@@ -1,4 +1,5 @@
 using G3MLib.DataFile;
+using G3MLib.DataFile.Models;
 using G3MStudio.Core.Workspace;
 
 namespace G3MStudio.Tests;
@@ -95,6 +96,27 @@ public sealed class CopyResourcesTests : IDisposable
         // The copy is a valid data file: it writes and reads back.
         using var again = await GameMakerIO.ReadAsync(new MemoryStream(TestData.Bytes(b.Data)), cancellationToken: TestContext.Current.CancellationToken);
         Assert.Single(again.GameObjects, o => o.Name.Content == "obj_a");
+    }
+
+    // Real games found this: a room of a 2022.9 file has no particle list in its asset layers, and a 2023.2 or newer target writes a pointer for it.
+    [Fact]
+    public async Task ARoomFromAnOlderFileGetsTheLayerListsTheTargetWritesAndSavesReadable()
+    {
+        using var a = await Open("a.win", Source().Also(d => new EditHistory(d).Execute(ResourceTemplates.New(d, "rooms", "room_a"))));
+        using var b = await Open("b.win", Target((d, _) => d.GeneralInfo!.Branch = GameMakerGeneralInfo.BranchType.Post2022_0));
+        Assert.True(b.Data.IsNonLTSVersionAtLeast(2023, 2));
+        new RoomLayerCommand("room_a", RoomLayerCommand.AddAssets, 0, "Assets_1").Apply(a.Data);
+        var assets = a.Data.Rooms.Single(r => r.Name.Content == "room_a").Layers.Select(l => l.Data).OfType<GameMakerRoom.Layer.LayerAssetsData>().Single();
+        assets.ParticleSystems = null!;
+        assets.TextItems = null!;
+
+        await ResourceCopier.CopyAsync(a, b, await Plan(a, b, [("rooms", "room_a")], dependencies: false), null, TestContext.Current.CancellationToken);
+
+        var copied = b.Data.Rooms.Single(r => r.Name.Content == "room_a").Layers.Select(l => l.Data).OfType<GameMakerRoom.Layer.LayerAssetsData>().Single();
+        Assert.NotNull(copied.ParticleSystems);
+        Assert.NotNull(copied.TextItems);
+        using var again = await GameMakerIO.ReadAsync(new MemoryStream(TestData.Bytes(b.Data)), cancellationToken: TestContext.Current.CancellationToken);
+        Assert.Single(again.Rooms, r => r.Name.Content == "room_a");
     }
 
     [Fact]
@@ -276,6 +298,93 @@ public sealed class CopyResourcesTests : IDisposable
         Assert.Equal(["obj_a"], reopened.Data.GameObjects.Select(o => o.Name.Content));
         Assert.Equal(Code(a, "gml_Script_scr_big"), Code(reopened, "gml_Script_scr_big"));
         Assert.Equal(Code(a, "gml_Object_obj_a_Create_0"), Code(reopened, "gml_Object_obj_a_Create_0"));
+    }
+
+    // Real games found these (Deltarune 2023.6): a file with no particle chunk, 2.3 code named gml_GlobalScript_*, and arrays inside a replaced item.
+    [Fact]
+    public async Task AFileWithoutParticleSystemsCanBeCopiedFrom()
+    {
+        using var a = await Open("a.win", Source());
+        using var b = await Open("b.win", Target());
+        a.Data.FORM.Chunks.Remove("PSYS");
+        Assert.Null(a.Data.ParticleSystems);
+        await ResourceCopier.CopyAsync(a, b, await Plan(a, b, OnlyObject), null, TestContext.Current.CancellationToken);
+        Assert.Single(b.Data.GameObjects, o => o.Name.Content == "obj_a");
+    }
+
+    [Fact]
+    public async Task TheGlobalScriptCodeOfARenamedScriptGetsTheNewNameAndTheTargetCodeStays()
+    {
+        static void Shape(GameMakerData d, string text)
+        {
+            var history = new EditHistory(d);
+            history.Execute(ResourceTemplates.New(d, "scripts", "scr_g"));
+            d.Code.ByName("gml_Script_scr_g").Name.Content = "gml_GlobalScript_scr_g";
+            history.Execute(new EditCodeCommand("gml_GlobalScript_scr_g", text));
+        }
+
+        using var a = await Open("a.win", Source().Also(d => Shape(d, "return 3;")));
+        using var b = await Open("b.win", Target((d, _) => Shape(d, "return 9;")));
+        var plan = await Plan(a, b, [("scripts", "scr_g")], dependencies: false);
+        Assert.Equal("scr_g_copy", plan.Entries.Single().TargetName);
+
+        await ResourceCopier.CopyAsync(a, b, plan, null, TestContext.Current.CancellationToken);
+
+        Assert.Equal("return 9;", Code(b, "gml_GlobalScript_scr_g").Trim());
+        Assert.Equal("return 3;", Code(b, "gml_GlobalScript_scr_g_copy").Trim());
+    }
+
+    [Fact]
+    public async Task UndoTakesTheStartScriptThatTheCompiledGlobalScriptAddedOutOfTheList()
+    {
+        static void Shape(GameMakerData d)
+        {
+            var history = new EditHistory(d);
+            history.Execute(ResourceTemplates.New(d, "scripts", "scr_g"));
+            d.Code.ByName("gml_Script_scr_g").Name.Content = "gml_GlobalScript_scr_g";
+            history.Execute(new EditCodeCommand("gml_GlobalScript_scr_g", "return 3;"));
+        }
+
+        using var a = await Open("a.win", Source().Also(Shape));
+        using var b = await Open("b.win", Target());
+        Assert.SkipWhen(b.Data.GlobalInitScripts is null, "the generated file has no start script list");
+        var before = b.Data.GlobalInitScripts.Count;
+        await ResourceCopier.CopyAsync(a, b, await Plan(a, b, [("scripts", "scr_g")], dependencies: false), null, TestContext.Current.CancellationToken);
+        Assert.Equal(before + 1, b.Data.GlobalInitScripts.Count);
+
+        b.Undo();
+
+        Assert.Equal(before, b.Data.GlobalInitScripts.Count);
+        Assert.All(b.Data.GlobalInitScripts, i => Assert.Contains(i.Code, b.Data.Code));
+    }
+
+    [Fact]
+    public void AScriptWhoseCodeEntryNameIsTakenInTheTargetIsRefused()
+    {
+        using var source = Source();
+        new EditHistory(source).Execute(ResourceTemplates.New(source, "scripts", "scr_g"));
+        source.Code.ByName("gml_Script_scr_g").Name.Content = "gml_GlobalScript_scr_g";
+        using var target = TestData.Create(0, false);
+#pragma warning disable CA2000 // the entry belongs to the target, which owns and disposes it
+        target.Code.Add(GameMakerCode.CreateEmptyEntry(target, "gml_GlobalScript_scr_g"));
+#pragma warning restore CA2000
+
+        var reason = CopyPlanner.ItemRefusal(source, target, "scripts", "scr_g");
+
+        Assert.Contains("gml_GlobalScript_scr_g", reason, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AMementoPutsBackAFixedSizeListInPlaceAndSkipsNumberArrays()
+    {
+        var names = new[] { "a", "b" };
+        var bytes = new byte[] { 1, 2, 3 };
+        var memento = new ShallowMemento();
+        memento.Capture(names, 2);
+        memento.Capture(bytes, 2);
+        names[0] = "changed";
+        memento.Restore();
+        Assert.Equal(["a", "b"], names);
     }
 
     [Fact]
