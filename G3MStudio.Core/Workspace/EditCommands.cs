@@ -71,7 +71,7 @@ public abstract class EditCommand
         RoomElementCommand.Name => RoomElementCommand.FromArgs(args),
         RecalcMaskCommand.Name => RecalcMaskCommand.FromArgs(args),
         FontReplaceCommand.Name => FontReplaceCommand.FromArgs(args),
-        FrameListCommand.Name => new FrameListCommand(args["sprite"], args["operation"], int.Parse(args["frame"], System.Globalization.CultureInfo.InvariantCulture)),
+        FrameListCommand.Name => new FrameListCommand(args["sprite"], args["operation"], int.Parse(args["frame"], System.Globalization.CultureInfo.InvariantCulture), args.ContainsKey("force")),
         ReplaceFrameCommand.Name => new ReplaceFrameCommand(args["sprite"], int.Parse(args["frame"], System.Globalization.CultureInfo.InvariantCulture), Convert.FromBase64String(args["picture"])),
         _ => throw new InvalidDataException($"Unknown edit command '{kind}'."),
     };

@@ -114,7 +114,7 @@ public sealed partial class SettingsPage : UserControl
             x => x with { BackupCount = d.BackupCount, AskOnClose = d.AskOnClose, RememberWindow = d.RememberWindow },
             x => x with { Project = d.Project },
             x => x with { RuntimeFolders = d.RuntimeFolders, RunRunner = d.RunRunner, RunArguments = d.RunArguments, RunDebugOutput = d.RunDebugOutput, WarnTempRun = d.WarnTempRun, ActiveRunProfile = d.ActiveRunProfile },
-            x => x with { Overrides = d.Overrides, MemoryLimitMb = d.MemoryLimitMb },
+            x => x with { Overrides = d.Overrides, MemoryLimitMb = d.MemoryLimitMb, AskRiskyActions = d.AskRiskyActions, AllowUnsafeSilently = d.AllowUnsafeSilently },
             x => x with { CrashReports = d.CrashReports },
             x => x with { Shortcuts = d.Shortcuts },
         ];

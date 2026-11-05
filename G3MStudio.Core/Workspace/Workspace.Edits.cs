@@ -64,11 +64,11 @@ public sealed partial class Workspace
 
     /// <summary>
     /// Like <see cref="Edit"/> for a long edit: it applies on a pool thread under the write lock, and the history, the journal and the events follow
-    /// on the thread that called this. Refused while the workspace is saving or exporting, because a copy that waited in a queue could not be cancelled.
+    /// on the thread that called this. While the workspace is saving or exporting it waits for that to end, then goes first (it is not put in the edit queue, which could not be cancelled).
     /// </summary>
     public async Task EditInBackground(EditCommand command)
     {
-        if (_hold || History.Frozen) throw new InvalidOperationException("The workspace is saving; try again when it is done.");
+        while (_hold || History.Frozen) await Task.Delay(50);
         History.Frozen = true;
         try
         {

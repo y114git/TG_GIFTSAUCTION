@@ -111,9 +111,15 @@ public sealed class ModsTests
                 Assert.Equal(original, window.Workspaces.Current.Path); // the file on disk is not touched
                 using (var onDisk = await G3MLib.DataFile.GameMakerIO.ReadAsync(original, cancellationToken: TestContext.Current.CancellationToken)) Assert.Equal(2, onDisk.GameObjects.Count);
 
-                // With unsaved changes nothing is applied; after Revert to Saved the mod applies the same way.
+                // With unsaved changes the mod waits for a yes (a no changes nothing; risky actions set to refuse show the plain refusal); after Revert to Saved it applies the same way.
+                window.Confirmer = (_, _) => Task.FromResult(false);
+                await window.ApplyModOpenAsync(modZip);
+                Assert.Equal(1, window.Workspaces.Current.History.BulkChanges); // the patch from before; a no added nothing
+                window.Workspaces.Settings.Update(x => x with { AskRiskyActions = false });
                 await window.ApplyModOpenAsync(modZip);
                 Assert.Contains(window.Notifications.Active, n => n.Text.Contains("unsaved", StringComparison.OrdinalIgnoreCase));
+                window.Workspaces.Settings.Update(x => x with { AskRiskyActions = true });
+                window.Confirmer = (_, _) => Task.FromResult(true);
                 await window.RevertAsync();
                 await window.ApplyModOpenAsync(modZip);
                 Assert.Equal(3, window.Workspaces.Current!.Data.GameObjects.Count);

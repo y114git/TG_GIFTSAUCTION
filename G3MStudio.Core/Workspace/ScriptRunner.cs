@@ -87,7 +87,7 @@ public sealed class StudioScripts(GameMakerData data, string filePath, string sc
 public static class ScriptRunner
 {
     /// <summary>Runs the script. Returns null when it finished, or the error text (compile error, ScriptError or an exception in the script).</summary>
-    public static async Task<string?> RunAsync(Workspace workspace, string scriptPath, Action<string> message, Action<string> warning, ScriptHost? host = null)
+    public static async Task<string?> RunAsync(Workspace workspace, string scriptPath, Action<string> message, Action<string> warning, ScriptHost? host = null, bool allowUnsaved = false)
     {
         var globals = new StudioScripts(workspace.Data, workspace.Path, scriptPath, host ?? new ScriptHost())
         {
@@ -101,7 +101,7 @@ public static class ScriptRunner
             // The change runs on a pool thread without a synchronization context, so waiting here cannot deadlock; the write lock must stay held until the script ends.
             var result = G3MLib.DataFile.Scripting.ScriptRunner.RunAsync(scriptPath, globals).GetAwaiter().GetResult();
             error = result.Success ? null : result.Error;
-        });
+        }, allowUnsaved);
         return error;
     }
 }

@@ -46,11 +46,7 @@ public sealed partial class MainWindow
     public async Task ExportModAsync()
     {
         if (Workspaces.Current is not { } workspace) return;
-        if (workspace.History.IsDirty)
-        {
-            Notify(NotificationLevel.Warning, Loc.Current["mods.needsSave"]);
-            return;
-        }
+        if (!await UnsavedOkAsync(workspace, "risky.unsavedExport", "mods.needsSave")) return;
 
         if (await PickPatchFile(Loc.Current["mods.pickOriginal"], false) is not { } original
             || await PickPatchFile(Loc.Current["mods.pickModOut"], true) is not { } output) return;
@@ -129,11 +125,7 @@ public sealed partial class MainWindow
     public async Task ApplyPatchOpenAsync(string? givenPatch = null)
     {
         if (Workspaces.Current is not { } workspace) return;
-        if (workspace.History.IsDirty)
-        {
-            Notify(NotificationLevel.Warning, Loc.Current["transfer.needsSave"]);
-            return;
-        }
+        if (!await UnsavedOkAsync(workspace, "risky.unsavedBulk")) return;
 
         if ((givenPatch ?? await PickPatchFile(Loc.Current["mods.pickPatch"], false)) is not { } patch) return;
         var name = Path.GetFileName(patch);
@@ -142,7 +134,7 @@ public sealed partial class MainWindow
         {
             PatchApplyResult? result = null;
             // ApplyBulkAsync runs the action on a pool thread, where blocking cannot deadlock.
-            await workspace.ApplyBulkAsync(() => result = PatchService.ApplyPatchAsync(workspace.Data, patch, new PatchApplyOptions { DataFilePath = workspace.Path }, null, token).GetAwaiter().GetResult());
+            await workspace.ApplyBulkAsync(() => result = PatchService.ApplyPatchAsync(workspace.Data, patch, new PatchApplyOptions { DataFilePath = workspace.Path }, null, token).GetAwaiter().GetResult(), true);
             return result is { Success: true } ? (true, Loc.Current.Format("mods.appliedOpen", ("name", name))) : (false, (result?.Error ?? Loc.Current["mods.unknownError"]) + " " + Loc.Current["mods.openPartly"]);
         });
     }
@@ -151,11 +143,7 @@ public sealed partial class MainWindow
     public async Task ApplyModOpenAsync(string? zipPath = null)
     {
         if (Workspaces.Current is not { } workspace) return;
-        if (workspace.History.IsDirty)
-        {
-            Notify(NotificationLevel.Warning, Loc.Current["transfer.needsSave"]);
-            return;
-        }
+        if (!await UnsavedOkAsync(workspace, "risky.unsavedBulk")) return;
 
         zipPath ??= await PickPatchFile(Loc.Current["mods.pickMod"], false, ".zip");
         if (zipPath is null) return;
@@ -196,7 +184,7 @@ public sealed partial class MainWindow
                         error = result.Error;
                         return;
                     }
-                });
+                }, true);
                 return error is null ? (true, Loc.Current.Format("mods.appliedOpen", ("name", mod.Name))) : (false, error + " " + Loc.Current["mods.openPartly"]);
             }
             finally
@@ -318,11 +306,7 @@ public sealed partial class MainWindow
     public async Task CreatePatchAsync()
     {
         if (Workspaces.Current is not { } workspace) return;
-        if (workspace.History.IsDirty)
-        {
-            Notify(NotificationLevel.Warning, Loc.Current["mods.needsSave"]);
-            return;
-        }
+        if (!await UnsavedOkAsync(workspace, "risky.unsavedExport", "mods.needsSave")) return;
 
         if (await PickPatchFile(Loc.Current["mods.pickOriginal"], false) is not { } original
             || await PickPatchFile(Loc.Current["mods.pickPatchOut"], true) is not { } output) return;

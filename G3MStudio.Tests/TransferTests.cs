@@ -114,9 +114,18 @@ public sealed class TransferTests(ITestOutputHelper output)
                 await window.ExportAllAsync();
                 var workspace = window.Workspaces.Current!;
                 workspace.Edit(new RenameResourceCommand("objects", "obj_0", "obj_renamed"));
+                window.Confirmer = (_, _) => Task.FromResult(false);
+                await window.ImportAsync();
+                Assert.Equal("obj_renamed", workspace.Data.GameObjects[0].Name.Content); // unsaved edit: the import waits for a yes
+                window.Workspaces.Settings.Update(x => x with { AskRiskyActions = false });
+                window.Confirmer = (_, _) => Task.FromResult(true);
                 await window.ImportAsync();
                 Assert.Contains(window.Notifications.Active, n => n.Text.Contains("save", StringComparison.OrdinalIgnoreCase));
-                Assert.Equal("obj_renamed", workspace.Data.GameObjects[0].Name.Content); // unsaved edit: the import is refused
+                Assert.Equal("obj_renamed", workspace.Data.GameObjects[0].Name.Content); // risky actions set to refuse: the plain refusal
+                window.Workspaces.Settings.Update(x => x with { AskRiskyActions = true });
+                await window.ImportAsync();
+                Assert.Contains(workspace.Data.GameObjects, o => o.Name.Content == "obj_0"); // a yes goes on: the import brings the object back over the unsaved edit
+                Assert.Equal(1, workspace.History.BulkChanges);
 
                 window.Save();
                 for (var i = 0; i < 100 && workspace.History.IsDirty; i++) await Task.Delay(50, TestContext.Current.CancellationToken);

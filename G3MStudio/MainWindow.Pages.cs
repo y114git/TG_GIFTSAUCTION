@@ -44,8 +44,8 @@ public sealed partial class MainWindow
         if (await PickPatchFile(Loc.Current["pages.pick"], false) is not { } path) return;
         try
         {
-            workspace.Edit(new ReplacePageCommand(page, await File.ReadAllBytesAsync(path)));
-            Notify(NotificationLevel.Info, Loc.Current.Format("pages.replaced", ("page", page)));
+            var picture = await File.ReadAllBytesAsync(path);
+            if (await EditOrForceAsync(workspace, force => new ReplacePageCommand(page, picture, force), page)) Notify(NotificationLevel.Info, Loc.Current.Format("pages.replaced", ("page", page)));
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException or InvalidDataException or ImageMagick.MagickException)
         {

@@ -67,15 +67,16 @@ public sealed partial class MainWindow
         }
     }
 
-    private async Task<bool> RunCopyAsync(Workspace source, Workspace target, CopyPlan plan)
+    private async Task<bool> RunCopyAsync(Workspace source, Workspace target, CopyPlan plan, bool allowLarge = false)
     {
         using var cancel = _exporting = new CancellationTokenSource();
         (_exportName, _exportDone, _exportTotal) = (Loc.Current.Format("copyTo.working", ("target", target.Name)), 0, 0);
         ShowProgress();
+        RiskyRefusalException large;
         try
         {
             var progress = new Progress<G3MLib.Modding.Resources.BatchProgress>(p => { (_exportDone, _exportTotal) = (p.Done, p.Total); ShowProgress(); });
-            var command = await ResourceCopier.CopyAsync(source, target, plan, progress, cancel.Token);
+            var command = await ResourceCopier.CopyAsync(source, target, plan, progress, cancel.Token, allowLarge);
             foreach (var problem in command.Results.Where(r => r.Kind is G3MLib.Modding.Resources.ResultKind.Failed or G3MLib.Modding.Resources.ResultKind.Warning))
                 Notifications.Post(problem.Kind == G3MLib.Modding.Resources.ResultKind.Failed ? NotificationLevel.Error : NotificationLevel.Warning, $"{problem.Name}: {problem.Message}");
             Notify(NotificationLevel.Info, Loc.Current.Format("copyTo.done", ("count", plan.Applied.Count()), ("target", target.Name)));
@@ -85,6 +86,10 @@ public sealed partial class MainWindow
         {
             Notify(NotificationLevel.Info, Loc.Current["copyTo.cancelled"]);
             return false;
+        }
+        catch (RiskyRefusalException e) when (!allowLarge)
+        {
+            large = e;
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException or InvalidDataException or CodeCompileException)
         {
@@ -98,6 +103,9 @@ public sealed partial class MainWindow
             Progress.IsVisible = false;
             UpdateTexts();
         }
+
+        // The package was too large; the progress and the token are gone, so ask here and run the copy again.
+        return await AskRiskyAsync(large, target.Name) && await RunCopyAsync(source, target, plan, true);
     }
 
     // The target was opened for this copy alone, so its edit cannot stay on an undo stack nobody sees: save it or take the copy out again.

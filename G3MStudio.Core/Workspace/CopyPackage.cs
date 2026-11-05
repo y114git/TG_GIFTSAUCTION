@@ -125,7 +125,7 @@ public static partial class CopyPackage
     }
 
     /// <summary>The folder's files as a ZIP.</summary>
-    public static byte[] Zip(string directory)
+    public static byte[] Zip(string directory, bool allowLarge = false)
     {
         using var stream = new MemoryStream();
         using (var zip = new ZipArchive(stream, ZipArchiveMode.Create, true))
@@ -134,7 +134,7 @@ public static partial class CopyPackage
                 zip.CreateEntryFromFile(file, Path.GetRelativePath(directory, file).Replace('\\', '/'), CompressionLevel.Fastest);
         }
 
-        if (stream.Length > MaxBytes) throw new InvalidOperationException($"The copy is {stream.Length / (1024 * 1024)} MB; copy fewer items at a time (the limit is {MaxBytes / (1024 * 1024)} MB).");
+        if (stream.Length > MaxBytes && !allowLarge) throw new RiskyRefusalException("risky.copySizeTitle", "risky.copySize", $"The copy is {stream.Length / (1024 * 1024)} MB; copy fewer items at a time (the limit is {MaxBytes / (1024 * 1024)} MB).");
         return stream.ToArray();
     }
 

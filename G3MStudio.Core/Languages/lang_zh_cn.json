@@ -219,11 +219,15 @@
     "deleteBody": "删除 {name}？保存文件之前可以撤销恢复。",
     "deleteUsed": "{name} 在 {count} 处被使用：\n{places}\n\n这些用法会被设为无，或从列表中移除。代码中的用法无法清除，会使删除中止。游戏的行为可能改变或无法运行。保存之前可以撤销恢复全部内容。",
     "deleteUsedTitle": "仍要删除 {name} 吗？",
+    "deleteCodeTitle": "删除 {name} 并保留使用它的代码？",
+    "deleteCode": "{reason}\n\n仍然删除的话，这些代码会继续指向已不存在的内容。代码运行时游戏可能崩溃或出错。保存之前，撤销可以恢复一切。",
+    "nameUnusual": "“{name}”不是简单名称（字母、数字和下划线，且不以数字开头）。GML 代码无法使用它，其他工具也可能出错。要仍然使用，请再按一次按钮。保存之前可以撤销。",
+    "nameTaken": "已经有名为“{name}”的资源或代码条目。同名的有两个时，编辑器和删除只会碰到第一个。要仍然使用该名称，请再按一次按钮。保存之前，可用撤销移除它。",
     "type": {
       "general": "游戏",
       "sprites": "精灵",
       "tileSets": "图块集",
-      "backgrounds": "背景",
+      "backgrounds": "背景",
       "variableCounts": "变量区块头中的计数器。错误的值会损坏游戏。",
       "varInstance": "实例变量",
       "varGlobal": "全局变量",
@@ -357,7 +361,7 @@
     "failed": "无法保存“{entry}”的代码：{reason}",
     "notApplied": "文本无法编译",
     "showFailed": "无法显示“{entry}”的代码：{reason}"
-  },
+  },
   "status": { "assetId": "ID {index}" },
   "notify": {
     "button": "通知 ({count})"
@@ -416,7 +420,10 @@
     "files": "文件",
     "backups": "数据文件备份（1 至 3）",
     "askOnClose": "关闭时若有未保存的更改则先询问",
-    "rooms": "房间",
+    "askRisky": "执行有风险的操作前先询问，并允许仍然执行",
+    "unsafeSilently": "不经询问允许有风险的操作",
+    "riskyNote": "Studio 会拒绝某些操作以保护数据。开启第一项后，它会说明风险，并允许你仍然执行。开启第二项后，操作会立即执行，不再警告。保存之前仍可撤销。只有清楚可能出什么问题时才使用第二项。",
+    "rooms": "房间",
     "decompiler": "反编译器",
     "roomGridOverride": "所有房间使用同一网格",
     "roomGridSize": "网格宽度和高度",
@@ -544,8 +551,8 @@
     "cancelled": "搜索已取消。",
     "badPattern": "此模式无效：{reason}",
     "timeout": "此模式在某一行上耗时过长。请简化它。"
-  },
-  "disassembly": { "assemble": "汇编", "assembled": "已汇编。", "assembleFailed": "无法汇编：{reason}", "title": "{entry} 的反汇编", "loading": "正在读取指令...", "failed": "无法读取指令: {reason}" },
+  },
+  "disassembly": { "assemble": "汇编", "assembled": "已汇编。", "assembleFailed": "无法汇编：{reason}", "title": "{entry} 的反汇编", "loading": "正在读取指令...", "failed": "无法读取指令: {reason}" },
   "tileSet": {"findRooms": "查找使用此图块的房间"},
   "textureItem": {"export": "导出 PNG", "saved": "已保存到 {path}", "failed": "无法保存：{reason}"},
   "entryScripts": {"globalInit": "游戏开始时运行的脚本", "gameEnd": "游戏结束时运行的脚本", "add": "添加"},
@@ -649,7 +656,6 @@
     "maskExported": "已将 {sprite} 的遮罩 {index} 保存到 {path}。",
     "badPicture": "{name} 不是可读取的图片：{reason}",
     "replaced": "已替换 {sprite} 的第 {frame} 帧。",
-    "lastFrame": "精灵至少需要一帧。",
     "maskDone": "已根据各帧重建 {sprite} 的碰撞遮罩。"
   },
   "run": {
@@ -755,7 +761,7 @@
     "skip": "跳过设置",
     "later": "之后可在设置 > 外观中更改语言，也可通过帮助 > 入门再次打开此窗口。"
   },
-  "links": {
+  "links": {
     "downloadTitle": "下载文件",
     "downloadAsk": "要从 {host} 下载 {address} 处的文件吗？文件会保存到临时文件夹，仅当它是游戏数据文件时才会打开。",
     "downloading": "正在从 {host} 下载...",
@@ -1012,7 +1018,7 @@
     "ToolPinItemControlDockAsDocumentString": "停靠为标签文档",
     "ToolChromeControlDockString": "停靠",
     "ToolChromeControlAutoHideString": "自动隐藏"
-  },
+  },
   "debug": { "pick": "每个代码条目的源文本内容", "decompiled": "反编译的 GML", "assembler": "汇编，在赋值、跳转和返回处标记", "fullAssembler": "汇编，每条指令都标记", "working": "正在写出调试数据...", "done": "已写出 {file}。", "failed": "未能写出调试数据：{reason}" },
   "hex": { "chunk": "转到区块",
     "offsetMapDone": "已写出 {file}。",
@@ -1120,5 +1126,28 @@
     "failed": "复制失败：{reason}",
     "cancelled": "复制已取消，未做任何更改。",
     "counts": "将复制：{copy}。跳过：{skip}。无法复制：{refused}。"
+  },
+  "risky": {
+    "audioSizeTitle": "仍然放入很大的音频文件吗？",
+    "audioSize": "{reason}\n\n很大的声音在打开和保存数据文件时会占用大量内存，游戏也可能无法加载。保存之前，可用撤销把它去掉。",
+    "audioKindTitle": "仍然放入另一种类型的音频吗？",
+    "audioKind": "{reason}\n\n声音会保留原来的类型和标志，所以游戏可能无法播放另一种类型的音频。保存之前，可用撤销换回原来的音频。",
+    "pageSizeTitle": "用另一种尺寸的图片替换该页吗？",
+    "pageSize": "{reason}\n\n此页上的每个精灵帧、字形和图块都指向页上的一个矩形。尺寸不同时，它们可能显示错误的部分或什么也不显示。保存之前，可用撤销换回原来的图片。",
+    "lastFrameTitle": "移除 {name} 的最后一帧吗？",
+    "lastFrame": "{reason}\n\n没有帧的精灵什么也不绘制，游戏在使用 {name} 的地方可能出错。保存之前，可用撤销把帧放回去。",
+    "lastPointTitle": "移除 {name} 的最后一个点吗？",
+    "lastPoint": "{reason}\n\n空路径可能让游戏在沿 {name} 移动的地方出错。保存之前，可用撤销把点放回去。",
+    "importTypeTitle": "将 {name} 作为脚本导入吗？",
+    "importType": "{reason}\n\n继续的话，Studio 会把文件当作文本读取并据此创建脚本。不是 GML 的文件按原样无法编译。保存之前，可用撤销移除该脚本。",
+    "copySizeTitle": "仍然复制很大的包吗？",
+    "copySize": "{reason}\n\n整个包会保存在内存和日志中，Studio 可能内存不足或变慢。保存之前，可用撤销移除该副本。",
+    "collisionTitle": "删除 {name} 并移除指向它的事件吗？",
+    "collision": "{reason}\n\n继续的话，这些碰撞事件及其代码会从其他对象中移除。保存之前，可用撤销恢复它们。",
+    "roomPngTitle": "保存房间的缩小图片吗？",
+    "roomPng": "{reason}\n\n继续的话，图片会缩小，使较长的一边为 16384 像素。它不再是逐像素一致。",
+    "unsavedTitle": "带着未保存的更改继续吗？",
+    "unsavedBulk": "有未保存的更改。此操作无法撤销，所以撤销历史会被清空。未保存的更改仍留在打开的文件中，但不能再撤销，崩溃恢复也会从这里重新开始。不确定的话请先保存。",
+    "unsavedExport": "有未保存的更改。模组或补丁是用磁盘上已保存的文件制作的，所以不会包含它们。先保存才能包含。"
   }
 }

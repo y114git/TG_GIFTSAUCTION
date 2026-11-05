@@ -22,6 +22,12 @@ public sealed record AppSettings
     /// <summary>Tell once per session that a run uses a temporary copy and keeps no changes in the data file (<c>warnTempRun</c>, UTMT-SET-08).</summary>
     public bool WarnTempRun { get; init; } = true;
 
+    /// <summary>Offer "do it anyway" with a warning where Studio would refuse a risky action; off keeps the plain refusal (<c>safety.askRisky</c>).</summary>
+    public bool AskRiskyActions { get; init; } = true;
+
+    /// <summary>Do a risky action without the warning (<c>safety.unsafeSilently</c>); for owners who know the risk.</summary>
+    public bool AllowUnsafeSilently { get; init; }
+
     /// <summary>Where the main window was when it was closed; null before the first close.</summary>
     public WindowPlacement? Window { get; init; }
 
@@ -252,3 +258,16 @@ public sealed class SettingsStore : IDisposable
 
 /// <summary>Position and size of the main window in device pixels, and whether it was maximized; the numbers are those of the normal window.</summary>
 public sealed record WindowPlacement(int X, int Y, int Width, int Height, bool Maximized);
+
+/// <summary>What Studio does where it would refuse a risky action: refuse, warn and let the owner go on, or go on without asking.</summary>
+public enum RiskChoice
+{
+    Refuse,
+    Ask,
+    Allow,
+}
+
+public static class RiskPolicy
+{
+    public static RiskChoice Of(AppSettings s) => s.AllowUnsafeSilently ? RiskChoice.Allow : s.AskRiskyActions ? RiskChoice.Ask : RiskChoice.Refuse;
+}

@@ -10,9 +10,9 @@ public static class BulkResources
         [.. keys.Select(ResourceTypes.SplitKey).OfType<(string, string)>().Distinct()];
 
     /// <summary>One edit that deletes every item; an item that something uses first has those uses cleared, as a single delete does.</summary>
-    public static EditCommand Delete(IReadOnlyList<(string Type, string Name, bool Used)> items) =>
+    public static EditCommand Delete(IReadOnlyList<(string Type, string Name, bool Used)> items, bool keepCodeUses = false) =>
         new GroupCommand([.. items.SelectMany(i => i.Used
-            ? new EditCommand[] { new ClearReferencesCommand(i.Type, i.Name), new ResourceListCommand(i.Type, ResourceListCommand.Delete, i.Name) }
+            ? new EditCommand[] { new ClearReferencesCommand(i.Type, i.Name, keepCodeUses), new ResourceListCommand(i.Type, ResourceListCommand.Delete, i.Name) }
             : [new ResourceListCommand(i.Type, ResourceListCommand.Delete, i.Name)])]);
 
     /// <summary>A free name for a copy: name_copy, then name_copy2, name_copy3. <paramref name="taken"/> holds the copies chosen so far in the same batch.</summary>

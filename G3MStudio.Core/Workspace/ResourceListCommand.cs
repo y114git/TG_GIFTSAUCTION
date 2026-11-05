@@ -4,6 +4,12 @@ using G3MLib.DataFile.Models;
 
 namespace G3MStudio.Core.Workspace;
 
+/// <summary>A new resource name is not a plain GML name, or another resource has it; the owner may use it anyway (it is still a safe file name).</summary>
+public sealed class UnusualNameException(string message, bool taken = false) : InvalidOperationException(message)
+{
+    public bool Taken { get; } = taken;
+}
+
 /// <summary>
 /// Creates an empty resource (object, script, path or timeline) or deletes one. Undo puts the lists back as they were. A delete leaves the code of
 /// the resource out too (the events of an object, the code of a script); the caller checks first that nothing uses it.
@@ -29,17 +35,23 @@ public sealed partial class ResourceListCommand : EditCommand
     private List<GameMakerGameObject.Event>? _shifted;
     private int _at = -1;
 
-    public ResourceListCommand(string type, string operation, string name) => (_type, _operation, _name) = (type, operation, name);
+    private readonly bool _force;
+    private List<(IList<GameMakerGameObject.Event> Live, List<GameMakerGameObject.Event> Before)>? _collisionLists;
+
+    // force: the owner chose to go on where Studio would refuse: a new name that is unusual or taken (still a safe file name), or a delete that removes the collision events aimed at the object.
+    public ResourceListCommand(string type, string operation, string name, bool force = false) => (_type, _operation, _name, _force) = (type, operation, name, force);
 
     public override string Kind => Name;
 
     public override string Editor => _type;
 
-    public override IReadOnlyDictionary<string, string> Args => new Dictionary<string, string> { ["type"] = _type, ["operation"] = _operation, ["name"] = _name };
+    public override IReadOnlyDictionary<string, string> Args => _force
+        ? new Dictionary<string, string> { ["type"] = _type, ["operation"] = _operation, ["name"] = _name, ["force"] = "1" }
+        : new Dictionary<string, string> { ["type"] = _type, ["operation"] = _operation, ["name"] = _name };
 
     public override IReadOnlyList<ProjectTouch>? Touches => [new(_type, _name), new("CodeEntries", null), new("Strings", null)];
 
-    public static ResourceListCommand FromArgs(IReadOnlyDictionary<string, string> a) => new(a["type"], a["operation"], a["name"]);
+    public static ResourceListCommand FromArgs(IReadOnlyDictionary<string, string> a) => new(a["type"], a["operation"], a["name"], a.ContainsKey("force"));
 
     /// <summary>True when the text can name a resource: letters, digits and underscores, not starting with a digit.</summary>
     public static bool IsValidName(string name) => ResourceName().IsMatch(name);
@@ -57,12 +69,21 @@ public sealed partial class ResourceListCommand : EditCommand
         (_code, _locals, _audio) = (codeBefore, localsBefore, audioBefore);
     }
 
+    private void CheckName(GameMakerData data)
+    {
+        var unusual = !IsValidName(_name);
+        if (unusual && !CopyPackage.IsSafeName(_name)) throw new InvalidOperationException($"'{_name}' cannot be a name: it is empty, too long, or has characters that a file name cannot hold (slash, colon and others), and resources are stored as files.");
+        var taken = NameTaken(data, _name) || _type == "scripts" && data.Code.ByName("gml_Script_" + _name) is not null;
+        if (_force || !unusual && !taken) return;
+        throw new UnusualNameException(taken
+            ? $"A resource or code entry named '{_name}' exists already. Allow risky actions in Settings > Advanced to use the name twice anyway."
+            : $"'{_name}' is not a plain name: letters, digits and underscores, not starting with a digit. Code cannot use other names. Allow risky actions in Settings > Advanced to use it anyway.", taken);
+    }
+
     private void Create(GameMakerData data)
     {
         if (!Creatable.Contains(_type)) throw new InvalidOperationException($"A new {_type} entry cannot be created here.");
-        if (!IsValidName(_name)) throw new InvalidOperationException($"'{_name}' is not a name: use letters, digits and underscores, and do not start with a digit.");
-        if (NameTaken(data, _name)) throw new InvalidOperationException($"A resource named '{_name}' exists already.");
-        if (_type == "scripts" && data.Code.ByName("gml_Script_" + _name) is not null) throw new InvalidOperationException($"A code entry named 'gml_Script_{_name}' exists already.");
+        CheckName(data);
         var name = data.Strings.MakeString(_name, out _);
         switch (_type)
         {
@@ -137,8 +158,8 @@ public sealed partial class ResourceListCommand : EditCommand
         {
             // A collision event names its partner by position in the object list: the events after the removed entry move up by one, and an event that aims at it blocks the delete.
             var index = (uint)_at;
+            DropCollisionsAimedAt(data, index);
             var collisions = data.GameObjects.SelectMany(o => o.Events[(int)EventType.Collision]).ToList();
-            if (collisions.Any(e => e.EventSubtype == index)) throw new InvalidOperationException($"'{_name}' is the partner of a collision event: remove those events first.");
             _shifted = [.. collisions.Where(e => e.EventSubtype > index)];
             foreach (var shifted in _shifted) shifted.EventSubtype--;
             foreach (var code in owner.Events.SelectMany(e => e).SelectMany(e => e.Actions).Select(a => a.CodeId).OfType<GameMakerCode>().ToList()) Drop(data, code);
@@ -150,6 +171,21 @@ public sealed partial class ResourceListCommand : EditCommand
 
         list.RemoveAt(_at);
         Sync(data, list);
+    }
+
+    // Events that aim at the removed object would point at the next object, or past the end of the list. Forced, they are removed with their code (undo puts the lists back).
+    private void DropCollisionsAimedAt(GameMakerData data, uint index)
+    {
+        var aimed = data.GameObjects.Select(o => o.Events[(int)EventType.Collision]).Where(l => l.Any(e => e.EventSubtype == index)).ToList();
+        if (aimed.Count == 0) return;
+        if (!_force) throw new RiskyRefusalException("risky.collisionTitle", "risky.collision", $"'{_name}' is the partner of a collision event: remove those events first.");
+        _collisionLists = [.. aimed.Select(l => (l, new List<GameMakerGameObject.Event>(l)))];
+        foreach (var list in aimed)
+            foreach (var doomed in list.Where(e => e.EventSubtype == index).ToList())
+            {
+                foreach (var code in doomed.Actions.Select(a => a.CodeId).OfType<GameMakerCode>().ToList()) Drop(data, code);
+                list.Remove(doomed);
+            }
     }
 
     private static void Drop(GameMakerData data, GameMakerCode code)
@@ -168,6 +204,7 @@ public sealed partial class ResourceListCommand : EditCommand
         else
         {
             foreach (var shifted in _shifted ?? []) shifted.EventSubtype++;
+            foreach (var (live, before) in _collisionLists ?? []) Refill(live, before);
             list.Insert(_at, _item);
         }
         Sync(data, list);

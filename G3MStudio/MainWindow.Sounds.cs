@@ -22,11 +22,7 @@ public sealed partial class MainWindow
         AudioEditorWindow window;
         try
         {
-            window = new AudioEditorWindow(Loc.Current.Format("audio.title", ("sound", sound)), audio, wav =>
-            {
-                workspace.Edit(new ReplaceAudioCommand(sound, wav));
-                Notify(NotificationLevel.Info, Loc.Current.Format("sounds.replaced", ("sound", sound), ("kb", wav.Length / 1024)));
-            });
+            window = new AudioEditorWindow(Loc.Current.Format("audio.title", ("sound", sound)), audio, wav => _ = PutAudioAsync(workspace, sound, wav));
         }
         catch (InvalidOperationException e)
         {
@@ -67,6 +63,13 @@ public sealed partial class MainWindow
         await ReplaceAudioFromAsync(workspace, sound, path);
     }
 
+    /// <summary>One undoable replace of the audio of a sound; a file over the size limit or of another kind goes in only after a warning.</summary>
+    private async Task PutAudioAsync(Workspace workspace, string sound, byte[] bytes)
+    {
+        if (await EditOrForceAsync(workspace, force => new ReplaceAudioCommand(sound, bytes, force: force), sound))
+            Notify(NotificationLevel.Info, Loc.Current.Format("sounds.replaced", ("sound", sound), ("kb", bytes.Length / 1024)));
+    }
+
     /// <summary>Puts a WAV, OGG or MP3 file into a sound; one undoable step. Used by Replace Audio and by a file dropped on a sound tab.</summary>
     private async Task ReplaceAudioFromAsync(Workspace workspace, string sound, string path)
     {
@@ -76,8 +79,7 @@ public sealed partial class MainWindow
             // A WAV, OGG or MP3 file goes in as the kind the sound stores (WAV or OGG): another kind is decoded and encoded again.
             var stored = workspace.Data.Sounds.FirstOrDefault(s => s.Name.Content == sound)?.AudioFile?.Data is { } current && SoundAudio.Format(current) == "wav" ? "wav" : "ogg";
             var bytes = await Task.Run(() => AudioCodec.Convert(file, stored));
-            workspace.Edit(new ReplaceAudioCommand(sound, bytes));
-            Notify(NotificationLevel.Info, Loc.Current.Format("sounds.replaced", ("sound", sound), ("kb", bytes.Length / 1024)));
+            await PutAudioAsync(workspace, sound, bytes);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException)
         {

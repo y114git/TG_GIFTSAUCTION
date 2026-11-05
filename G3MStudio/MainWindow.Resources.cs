@@ -4,6 +4,7 @@ using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
 using G3MStudio.Commands;
 using G3MStudio.Core.Notifications;
+using G3MStudio.Core.Settings;
 
 namespace G3MStudio;
 
@@ -18,11 +19,21 @@ public partial class MainWindow
         _ = dialog.AskAsync(this);
     }
 
-    private string? CreateResource(Workspace workspace, string type, string name)
+    private string? _unusualName;
+
+    internal string? CreateResource(Workspace workspace, string type, string name)
     {
         try
         {
-            workspace.Edit(ResourceTemplates.New(workspace.Data, type, name));
+            // An unusual name is warned about once in the dialog; the same name sent again, or the setting that allows risky actions, goes through.
+            var choice = RiskPolicy.Of(Workspaces.Settings.Current);
+            workspace.Edit(ResourceTemplates.New(workspace.Data, type, name, choice == RiskChoice.Allow || choice == RiskChoice.Ask && _unusualName == name));
+        }
+        catch (UnusualNameException e)
+        {
+            if (RiskPolicy.Of(Workspaces.Settings.Current) == RiskChoice.Refuse) return e.Message;
+            _unusualName = name;
+            return Loc.Current.Format(e.Taken ? "explorer.nameTaken" : "explorer.nameUnusual", ("name", name));
         }
         catch (InvalidOperationException e)
         {
@@ -101,15 +112,7 @@ public partial class MainWindow
         var list = string.Join(Environment.NewLine, items.Take(8).Select(i => "  " + i.Name)) + (items.Count > 8 ? Environment.NewLine + $"  ... +{items.Count - 8}" : "");
         var uses = places.Count == 0 ? "" : Environment.NewLine + Loc.Current.Format("explorer.deleteManyUses", ("count", places.Count), ("places", string.Join(Environment.NewLine, places.Take(8)) + (places.Count > 8 ? Environment.NewLine + $"  ... +{places.Count - 8}" : "")));
         if (!await Confirm(Loc.Current.Format("explorer.deleteManyTitle", ("count", items.Count)), Loc.Current.Format("explorer.deleteMany", ("count", items.Count), ("names", list)) + uses)) return;
-        try
-        {
-            workspace.Edit(BulkResources.Delete(used));
-        }
-        catch (InvalidOperationException e)
-        {
-            Notify(NotificationLevel.Error, e.Message);
-            return;
-        }
+        if (!await EditOrForceAsync(workspace, keep => BulkResources.Delete(used, keep), string.Join(", ", items.Take(3).Select(i => i.Name)))) return;
 
         foreach (var tab in Docking.Tabs.Tabs.Where(t => ResourceTypes.SplitKey(t.Key ?? "") is var (type, name) && chosen.Contains((type, name))).ToList()) Docking.CloseTab(tab.Id);
     }
@@ -158,15 +161,7 @@ public partial class MainWindow
             ? (Loc.Current.Format("explorer.deleteTitle", ("name", name)), Loc.Current.Format("explorer.deleteBody", ("name", name)))
             : (Loc.Current.Format("explorer.deleteUsedTitle", ("name", name)), Loc.Current.Format("explorer.deleteUsed", ("name", name), ("count", hits.Count), ("places", places)));
         if (!await Confirm(question.Item1, question.Item2)) return;
-        try
-        {
-            workspace.Edit(hits.Count == 0 ? new ResourceListCommand(type, ResourceListCommand.Delete, name) : new GroupCommand([new ClearReferencesCommand(type, name), new ResourceListCommand(type, ResourceListCommand.Delete, name)]));
-        }
-        catch (InvalidOperationException e)
-        {
-            Notify(NotificationLevel.Error, e.Message);
-            return;
-        }
+        if (!await EditOrForceAsync(workspace, keep => hits.Count == 0 ? new ResourceListCommand(type, ResourceListCommand.Delete, name) : new GroupCommand([new ClearReferencesCommand(type, name, keep), new ResourceListCommand(type, ResourceListCommand.Delete, name)]), name)) return;
 
         foreach (var tab in Docking.Tabs.Tabs.Where(t => t.Key == key).ToList()) Docking.CloseTab(tab.Id);
     }

@@ -8,7 +8,7 @@ namespace G3MStudio.Core.Workspace;
 /// Replaces the picture of a whole embedded texture page. The new picture must have the size of the page, because every sprite frame, font glyph and tile
 /// of the page is a rectangle on it. Undo puts the old picture back. The picture is stored in the journal.
 /// </summary>
-public sealed class ReplacePageCommand(string page, byte[] picture) : EditCommand
+public sealed class ReplacePageCommand(string page, byte[] picture, bool force = false) : EditCommand
 {
     public const string Name = "replacePage";
 
@@ -19,11 +19,12 @@ public sealed class ReplacePageCommand(string page, byte[] picture) : EditComman
 
     public override string Editor => "embeddedTextures";
 
-    public override IReadOnlyDictionary<string, string> Args { get; } = new Dictionary<string, string> { ["page"] = page, ["picture"] = Convert.ToBase64String(picture) };
+    public override IReadOnlyDictionary<string, string> Args { get; } = new Dictionary<string, string> { ["page"] = page, ["picture"] = Convert.ToBase64String(picture) }
+        .Concat(force ? [new KeyValuePair<string, string>("force", "1")] : []).ToDictionary();
 
     public override IReadOnlyList<ProjectTouch>? Touches => [new("EmbeddedTextures", page)];
 
-    public static ReplacePageCommand FromArgs(IReadOnlyDictionary<string, string> a) => new(a["page"], Convert.FromBase64String(a["picture"]));
+    public static ReplacePageCommand FromArgs(IReadOnlyDictionary<string, string> a) => new(a["page"], Convert.FromBase64String(a["picture"]), a.ContainsKey("force"));
 
     /// <summary>The page as a PNG, for saving to a file.</summary>
     public static byte[] ReadPng(GameMakerData data, string page)
@@ -44,8 +45,8 @@ public sealed class ReplacePageCommand(string page, byte[] picture) : EditComman
         if (_after is null)
         {
             using var image = ReplaceFrameCommand.ReadPicture(picture);
-            if (image.Width != (uint)current.Width || image.Height != (uint)current.Height)
-                throw new InvalidOperationException($"The picture is {image.Width}x{image.Height}; the page is {current.Width}x{current.Height}. Use a picture of the page's size.");
+            if ((image.Width != (uint)current.Width || image.Height != (uint)current.Height) && !force)
+                throw new RiskyRefusalException("risky.pageSizeTitle", "risky.pageSize", $"The picture is {image.Width}x{image.Height}; the page is {current.Width}x{current.Height}. Use a picture of the page's size.");
             _after = GMImage.FromMagickImage(image).ConvertToFormat(current.Format);
         }
 

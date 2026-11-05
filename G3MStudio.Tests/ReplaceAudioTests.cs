@@ -54,7 +54,7 @@ public sealed class ReplaceAudioTests
         Assert.Equal(other, sound.AudioFile.Data);
         if (kind == "wav") Assert.Equal(2f, sound.AudioLength);
         var wrong = kind == "wav" ? [(byte)'O', (byte)'g', (byte)'g', (byte)'S', 0, 0] : Wav(1);
-        Assert.Throws<InvalidOperationException>(() => new ReplaceAudioCommand(name, wrong).Apply(data));
+        Assert.ThrowsAny<InvalidOperationException>(() => new ReplaceAudioCommand(name, wrong).Apply(data));
         command.Revert(data);
         Assert.Equal(beforeData, sound.AudioFile.Data);
         Assert.Equal(beforeLength, sound.AudioLength);

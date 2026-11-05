@@ -30,6 +30,9 @@ public sealed class PathView : Control
         DetachedFromVisualTree += (_, _) => workspace.History.Changed -= Refresh;
     }
 
+    /// <summary>Applies an edit that may be refused with a warning the owner can overrule; set by the window. Without it the edit is made plainly.</summary>
+    public static Func<Workspace, Func<bool, EditCommand>, string, Task<bool>>? RiskyEdit { get; set; }
+
     /// <summary>The picked point, or -1.</summary>
     public int Selected { get; set { field = value; SelectionChanged?.Invoke(); InvalidateVisual(); } } = -1;
 
@@ -140,8 +143,9 @@ public sealed class PathView : Control
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
-        if (e.Key != Key.Delete || _workspace is null || Selected < 0 || Selected >= _path.Points.Count || _path.Points.Count < 2) return;
-        _workspace.Edit(new PathPointsCommand(PathName, PathPointsCommand.Delete, Selected));
+        if (e.Key != Key.Delete || _workspace is null || Selected < 0 || Selected >= _path.Points.Count) return;
+        var (name, at) = (PathName, Selected);
+        _ = RiskyEdit?.Invoke(_workspace, force => new PathPointsCommand(name, PathPointsCommand.Delete, at, force: force), name) ?? Task.FromResult(_workspace.Edit(new PathPointsCommand(name, PathPointsCommand.Delete, at)));
         Selected = -1;
         InvalidateVisual();
         e.Handled = true;

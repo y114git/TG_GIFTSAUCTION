@@ -102,8 +102,15 @@ public sealed partial class MainWindow
         try
         {
             await room.Ready;
+            var reduce = false;
+            if (room.View.TooLargeForPng is { } refusal)
+            {
+                if (!await AskRiskyAsync(refusal, name)) return;
+                reduce = true;
+            }
+
             await using var stream = File.Create(path);
-            room.View.SavePng(stream);
+            room.View.SavePng(stream, reduce);
             Notify(NotificationLevel.Info, Loc.Current.Format("rooms.pngSaved", ("room", name), ("path", path)));
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException)

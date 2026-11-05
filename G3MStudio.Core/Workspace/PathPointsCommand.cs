@@ -25,9 +25,10 @@ public sealed class PathPointsCommand : EditCommand
     private readonly float _y;
     private GameMakerPath.PathPoint? _point;
     private (float X, float Y) _old;
+    private readonly bool _force;
 
     // index: the point to delete or move; for an add, the position the new point takes (-1 appends).
-    public PathPointsCommand(string path, string operation, int index, float x = 0, float y = 0) => (_path, _operation, _index, _x, _y) = (path, operation, index, x, y);
+    public PathPointsCommand(string path, string operation, int index, float x = 0, float y = 0, bool force = false) => (_path, _operation, _index, _x, _y, _force) = (path, operation, index, x, y, force);
 
     public override string Kind => Name;
 
@@ -40,12 +41,12 @@ public sealed class PathPointsCommand : EditCommand
         ["index"] = _index.ToString(CultureInfo.InvariantCulture),
         ["x"] = _x.ToString("R", CultureInfo.InvariantCulture),
         ["y"] = _y.ToString("R", CultureInfo.InvariantCulture),
-    };
+    }.Concat(_force ? [new KeyValuePair<string, string>("force", "1")] : []).ToDictionary();
 
     public override IReadOnlyList<ProjectTouch>? Touches => [new("Paths", _path)];
 
     public static PathPointsCommand FromArgs(IReadOnlyDictionary<string, string> a) => new(a["path"], a["operation"], int.Parse(a["index"], CultureInfo.InvariantCulture),
-        float.Parse(a["x"], CultureInfo.InvariantCulture), float.Parse(a["y"], CultureInfo.InvariantCulture));
+        float.Parse(a["x"], CultureInfo.InvariantCulture), float.Parse(a["y"], CultureInfo.InvariantCulture), a.ContainsKey("force"));
 
     private GameMakerPath Find(GameMakerData data) => data.Paths.FirstOrDefault(p => p.Name.Content == _path) ?? throw new InvalidOperationException($"Path '{_path}' does not exist.");
 
@@ -84,7 +85,7 @@ public sealed class PathPointsCommand : EditCommand
         }
         else if (_operation == Delete)
         {
-            if (points.Count == 1) throw new InvalidOperationException("A path needs at least one point.");
+            if (points.Count == 1 && !_force) throw new RiskyRefusalException("risky.lastPointTitle", "risky.lastPoint", "A path needs at least one point.");
             points.RemoveAt(_index);
         }
         else

@@ -57,7 +57,7 @@ public static class SoundAudio
 /// not) describe the old audio; the play length is read from the new file. Undo puts back the old audio. The audio is stored in the journal.
 /// With <c>changeKind</c> the sound may switch between WAV and OGG: its type, file name and compressed flag follow, as the library sets them for a new sound.
 /// </summary>
-public sealed class ReplaceAudioCommand(string sound, byte[] audio, bool changeKind = false) : EditCommand
+public sealed class ReplaceAudioCommand(string sound, byte[] audio, bool changeKind = false, bool force = false) : EditCommand
 {
     public const string Name = "replaceAudio";
     public const int MaxBytes = 64 * 1024 * 1024;
@@ -71,24 +71,25 @@ public sealed class ReplaceAudioCommand(string sound, byte[] audio, bool changeK
     public override string Editor => "sounds";
 
     public override IReadOnlyDictionary<string, string> Args { get; } = new Dictionary<string, string> { ["sound"] = sound, ["audio"] = Convert.ToBase64String(audio) }
-        .Concat(changeKind ? [new KeyValuePair<string, string>("changeKind", "1")] : []).ToDictionary();
+        .Concat(changeKind ? [new KeyValuePair<string, string>("changeKind", "1")] : []).Concat(force ? [new KeyValuePair<string, string>("force", "1")] : []).ToDictionary();
 
     public override IReadOnlyList<ProjectTouch>? Touches => [new("Sounds", sound), new("EmbeddedAudio", null)];
 
-    public static ReplaceAudioCommand FromArgs(IReadOnlyDictionary<string, string> a) => new(a["sound"], Convert.FromBase64String(a["audio"]), a.ContainsKey("changeKind"));
+    public static ReplaceAudioCommand FromArgs(IReadOnlyDictionary<string, string> a) => new(a["sound"], Convert.FromBase64String(a["audio"]), a.ContainsKey("changeKind"), a.ContainsKey("force"));
 
     public override void Apply(GameMakerData data)
     {
         var target = data.Sounds.FirstOrDefault(s => s.Name.Content == sound) ?? throw new InvalidOperationException($"Sound '{sound}' does not exist.");
         var file = target.AudioFile ?? throw new InvalidOperationException($"'{sound}' keeps its audio outside the data file, so there is nothing here to replace.");
-        if (audio.Length is 0 or > MaxBytes) throw new InvalidOperationException("The audio file is empty or larger than 64 MB.");
+        if (audio.Length == 0) throw new InvalidOperationException("The audio file is empty.");
+        if (audio.Length > MaxBytes && !force) throw new RiskyRefusalException("risky.audioSizeTitle", "risky.audioSize", $"The audio file is {audio.Length / (1024 * 1024)} MB; the limit is 64 MB.");
         var kind = SoundAudio.Format(audio);
         var current = SoundAudio.Format(file.Data);
-        if (kind is not ("wav" or "ogg") || kind != current && !(changeKind && current is "wav" or "ogg")) throw new InvalidOperationException($"'{sound}' holds {current.ToUpperInvariant()} audio: replace it with a {(current is "wav" or "ogg" ? current.ToUpperInvariant() : "WAV or OGG")} file.");
+        if ((kind is not ("wav" or "ogg") || kind != current && !(changeKind && current is "wav" or "ogg")) && !force) throw new RiskyRefusalException("risky.audioKindTitle", "risky.audioKind", $"'{sound}' holds {current.ToUpperInvariant()} audio: replace it with a {(current is "wav" or "ogg" ? current.ToUpperInvariant() : "WAV or OGG")} file.");
         var seconds = SoundAudio.Seconds(audio); // read first: nothing changes when the header is odd
         (_before, _beforeLength) = (file.Data, target.AudioLength);
         _beforeKind = (target.Type, target.File, target.Flags);
-        if (kind != current)
+        if (kind != current && kind is "wav" or "ogg") // forced audio of another kind keeps the old type and file name
         {
             var stem = Path.GetFileNameWithoutExtension(target.File?.Content ?? sound);
             target.Type = data.Strings.MakeString("." + kind);

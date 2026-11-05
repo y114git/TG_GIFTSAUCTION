@@ -1,5 +1,4 @@
 using G3MLib.DataFile.Util;
-using G3MStudio.Core.Notifications;
 using G3MStudio.Localization;
 
 namespace G3MStudio;
@@ -16,11 +15,7 @@ public sealed partial class MainWindow
     public async Task RepackTexturesAsync()
     {
         if (Workspaces.Current is not { } workspace) return;
-        if (workspace.History.IsDirty)
-        {
-            Notify(NotificationLevel.Warning, Loc.Current["transfer.needsSave"]);
-            return;
-        }
+        if (!await UnsavedOkAsync(workspace, "risky.unsavedBulk")) return;
 
         await RunPatchAsync("textures.repacking", async token =>
         {
@@ -31,7 +26,7 @@ public sealed partial class MainWindow
             }, token);
             var (before, after) = plan.PageCount;
             if (!await Confirm(Loc.Current["textures.title"], Loc.Current.Format("textures.confirm", ("before", before), ("after", after)))) return (true, Loc.Current["mods.cancelled"]);
-            await workspace.ApplyBulkAsync(() => repacker.Apply(plan));
+            await workspace.ApplyBulkAsync(() => repacker.Apply(plan), true);
             return (true, Loc.Current.Format("textures.done", ("before", before), ("after", after)));
         });
     }

@@ -45,11 +45,7 @@ public sealed partial class MainWindow
     public async Task RunScriptAsync(string? chosen = null)
     {
         if (Workspaces.Current is not { } workspace) return;
-        if (workspace.History.IsDirty)
-        {
-            Notify(NotificationLevel.Warning, Loc.Current["transfer.needsSave"]);
-            return;
-        }
+        if (!await UnsavedOkAsync(workspace, "risky.unsavedBulk")) return;
 
         if ((chosen ?? await PickPatchFile(Loc.Current["scripts.pick"], false)) is not { } path) return;
         var name = Path.GetFileName(path);
@@ -63,7 +59,7 @@ public sealed partial class MainWindow
             var error = await ScriptRunner.RunAsync(workspace, path,
                 text => Avalonia.Threading.Dispatcher.UIThread.Post(() => Notify(NotificationLevel.Info, text)),
                 text => Avalonia.Threading.Dispatcher.UIThread.Post(() => Notify(NotificationLevel.Warning, text)),
-                host);
+                host, allowUnsaved: true);
             if (error is not null) Notify(NotificationLevel.Error, Loc.Current.Format("scripts.failed", ("name", name), ("reason", error)));
             else if (host.FinishedMessage) Notify(NotificationLevel.Info, Loc.Current.Format("scripts.done", ("name", name)));
             if (host.Selections.Count > 0 && UsageSearch.TypeKeyOf(host.Selections[^1]) is { } type) OpenEntry(ResourceTypes.KeyOf(type, ResourceTypes.NameOf(host.Selections[^1])));

@@ -219,11 +219,15 @@
     "deleteBody": "Delete {name}? Undo brings it back until the file is saved.",
     "deleteUsed": "Places that use {name}: {count}\n{places}\n\nThese uses are set to none or taken out of their lists. A use in code cannot be cleared and stops the delete. The game can behave differently or stop working. Undo brings everything back until you save.",
     "deleteUsedTitle": "Delete {name} anyway?",
+    "deleteCodeTitle": "Delete {name} and leave the code that uses it?",
+    "deleteCode": "{reason}\n\nIf you delete it anyway, that code keeps pointing at something that no longer exists. The game can crash or act wrongly when the code runs. Undo brings everything back until you save.",
+    "nameUnusual": "'{name}' is not a plain name (letters, digits and underscores, not starting with a digit). GML code cannot use it, and other tools may fail on it. Press the button again to use it anyway. Undo removes it until you save.",
+    "nameTaken": "A resource or code entry named '{name}' exists already. With two of one name, the editor and delete reach only the first. Press the button again to use the name twice anyway. Undo removes it until you save.",
     "type": {
       "general": "Game",
       "sprites": "Sprites",
       "tileSets": "Tile Sets",
-      "backgrounds": "Backgrounds",
+      "backgrounds": "Backgrounds",
       "variableCounts": "Variables chunk header counters. A wrong value breaks the game.",
       "varInstance": "Instance variables",
       "varGlobal": "Global variables",
@@ -357,7 +361,7 @@
     "failed": "Could not save the code of '{entry}': {reason}",
     "notApplied": "the text does not compile",
     "showFailed": "Could not show the code of '{entry}': {reason}"
-  },
+  },
   "status": { "assetId": "ID {index}" },
   "notify": {
     "button": "Notifications ({count})"
@@ -416,7 +420,10 @@
     "files": "Files",
     "backups": "Backups of the data file (1 to 3)",
     "askOnClose": "Ask before closing with unsaved changes",
-    "rooms": "Rooms",
+    "askRisky": "Ask before risky actions and offer to do them anyway",
+    "unsafeSilently": "Allow risky actions without asking",
+    "riskyNote": "Studio refuses some actions to protect your data. With the first option on, it explains the risk and lets you do the action anyway. With the second option on, it does the action at once with no warning. Undo still works until you save. Use the second option only if you know what can go wrong.",
+    "rooms": "Rooms",
     "decompiler": "Decompiler",
     "roomGridOverride": "Use one grid for every room",
     "roomGridSize": "Grid width and height",
@@ -544,8 +551,8 @@
     "cancelled": "Search cancelled.",
     "badPattern": "This pattern is not valid: {reason}",
     "timeout": "The pattern takes too long on a line. Make it simpler."
-  },
-  "disassembly": { "assemble": "Assemble", "assembled": "Assembled.", "assembleFailed": "Could not assemble: {reason}", "title": "Disassembly of {entry}", "loading": "Reading the instructions...", "failed": "Could not read the instructions: {reason}" },
+  },
+  "disassembly": { "assemble": "Assemble", "assembled": "Assembled.", "assembleFailed": "Could not assemble: {reason}", "title": "Disassembly of {entry}", "loading": "Reading the instructions...", "failed": "Could not read the instructions: {reason}" },
   "tileSet": {"findRooms": "Find rooms using this tile"},
   "textureItem": {"export": "Export PNG", "saved": "Saved to {path}", "failed": "Could not save: {reason}"},
   "entryScripts": {"globalInit": "Scripts run when the game starts", "gameEnd": "Scripts run when the game ends", "add": "Add"},
@@ -649,7 +656,6 @@
     "maskExported": "Mask {index} of {sprite} was saved to {path}.",
     "badPicture": "{name} is not a picture that can be read: {reason}",
     "replaced": "Frame {frame} of {sprite} replaced.",
-    "lastFrame": "A sprite needs at least one frame.",
     "maskDone": "Collision mask of {sprite} rebuilt from its frames."
   },
   "run": {
@@ -755,7 +761,7 @@
     "skip": "Skip Setup",
     "later": "You can change the language later in Settings > Appearance, and open this window again from Help > Getting Started."
   },
-  "links": {
+  "links": {
     "downloadTitle": "Download a file",
     "downloadAsk": "Download the file at {address} from {host}? It is saved to a temporary folder and only opened if it is a game data file.",
     "downloading": "Downloading from {host}...",
@@ -1012,7 +1018,7 @@
     "ToolPinItemControlDockAsDocumentString": "Dock as tabbed document",
     "ToolChromeControlDockString": "Dock",
     "ToolChromeControlAutoHideString": "Auto hide"
-  },
+  },
   "debug": { "pick": "What the source text of each code entry holds", "decompiled": "Decompiled GML", "assembler": "Assembler, marks at stores, jumps and returns", "fullAssembler": "Assembler, marks at every instruction", "working": "Writing debug data...", "done": "Written {file}.", "failed": "Debug data not written: {reason}" },
   "hex": { "chunk": "Go to chunk",
     "offsetMapDone": "Written {file}.",
@@ -1120,5 +1126,28 @@
     "failed": "The copy failed: {reason}",
     "cancelled": "The copy was cancelled; nothing changed.",
     "counts": "To copy: {copy}. Skipped: {skip}. Refused: {refused}."
+  },
+  "risky": {
+    "audioSizeTitle": "Put in a very large audio file anyway?",
+    "audioSize": "{reason}\n\nA very large sound uses a lot of memory when the data file is opened and saved, and the game can fail to load it. Undo takes it out again until you save.",
+    "audioKindTitle": "Put in audio of another kind anyway?",
+    "audioKind": "{reason}\n\nThe sound keeps its old type and flags, so the game may not play audio of another kind. Undo brings the old audio back until you save.",
+    "pageSizeTitle": "Replace the page with a picture of another size?",
+    "pageSize": "{reason}\n\nEvery sprite frame, glyph and tile on this page points at a rectangle on it. With another size they can show the wrong part or nothing. Undo brings the old picture back until you save.",
+    "lastFrameTitle": "Remove the last frame of {name}?",
+    "lastFrame": "{reason}\n\nA sprite without frames draws nothing, and the game can fail where it uses {name}. Undo puts the frame back until you save.",
+    "lastPointTitle": "Remove the last point of {name}?",
+    "lastPoint": "{reason}\n\nAn empty path can make the game fail where it follows {name}. Undo puts the point back until you save.",
+    "importTypeTitle": "Import {name} as a script?",
+    "importType": "{reason}\n\nIf you go on, Studio reads the file as text and makes a script from it. A file that is not GML will not compile as it is. Undo removes the script until you save.",
+    "copySizeTitle": "Copy a very large package anyway?",
+    "copySize": "{reason}\n\nThe whole package is held in memory and in the journal, so Studio can run out of memory or become slow. Undo removes the copy until you save.",
+    "collisionTitle": "Delete {name} and remove the events that aim at it?",
+    "collision": "{reason}\n\nIf you go on, those collision events and their code are removed from the other objects. Undo brings them back until you save.",
+    "roomPngTitle": "Save a reduced picture of the room?",
+    "roomPng": "{reason}\n\nIf you go on, the picture is made smaller so that its longer side is 16384 pixels. It is not pixel for pixel.",
+    "unsavedTitle": "Go on with unsaved changes?",
+    "unsavedBulk": "You have unsaved changes. This action cannot be undone, so the undo history is cleared. The unsaved changes stay in the file in memory but can no longer be undone, and crash recovery starts again from here. Save first if you are unsure.",
+    "unsavedExport": "You have unsaved changes. The mod or patch is made from the saved file on disk, so they are not in it. Save first to include them."
   }
 }

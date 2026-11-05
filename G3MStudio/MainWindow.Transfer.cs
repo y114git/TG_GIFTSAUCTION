@@ -62,23 +62,22 @@ public sealed partial class MainWindow
     public async Task ImportFilesAsync()
     {
         var files = await PickPatchFiles(Loc.Current["transfer.pickFiles"]);
-        ImportFilePaths(files);
+        await ImportFilePathsAsync(files);
     }
 
-    /// <summary>Adds a sprite, sound or script for each picture, WAV or GML file; each is one undoable edit, and the last one opens.</summary>
-    public void ImportFilePaths(IEnumerable<string> paths)
+    /// <summary>Adds a sprite, sound or script for each picture, WAV or GML file; each is one undoable edit, and the last one opens. Another file type is offered as a script, after a warning.</summary>
+    public void ImportFilePaths(IEnumerable<string> paths) => _ = ImportFilePathsAsync(paths);
+
+    public async Task ImportFilePathsAsync(IEnumerable<string> paths)
     {
         if (Workspaces.Current is not { } workspace) return;
         string? last = null;
         var added = 0;
-        foreach (var path in paths.Where(p => FileImport.TypeOf(p) is not null))
+        foreach (var path in paths)
         {
             try
             {
-                var (command, type, name) = MemoryLimit.RetryOnOutOfMemory(() =>
-                {
-                    using (workspace.Lock.Read()) return (FileImport.Build(workspace.Data, path, out var builtType, out var builtName), builtType, builtName);
-                }, Memory.Relieve);
+                if (await BuildImportAsync(workspace, path) is not var (command, type, name)) continue;
                 workspace.Edit(command);
                 (last, added) = (ResourceTypes.KeyOf(type, name), added + 1);
             }
@@ -152,15 +151,30 @@ public sealed partial class MainWindow
         await RunOperationAsync(workspace.Name, (progress, token) => ResourceTransfer.ExportAllAsync(workspace, folder, progress, token), folder, export: true);
     }
 
+    // A file of an unknown type is built as a script from its text only when the owner agrees (or allowed risky actions).
+    private async Task<(EditCommand Command, string Type, string Name)?> BuildImportAsync(Workspace workspace, string path)
+    {
+        for (var asText = false; ; asText = true)
+        {
+            try
+            {
+                return MemoryLimit.RetryOnOutOfMemory(() =>
+                {
+                    using (workspace.Lock.Read()) return (FileImport.Build(workspace.Data, path, out var builtType, out var builtName, asText), builtType, builtName);
+                }, Memory.Relieve);
+            }
+            catch (RiskyRefusalException e) when (!asText)
+            {
+                if (!await AskRiskyAsync(e, Path.GetFileName(path))) return null;
+            }
+        }
+    }
+
     /// <summary>Imports the resource folders of a chosen directory. It cannot be undone, so it needs a workspace without unsaved changes.</summary>
     public async Task ImportAsync()
     {
         if (Workspaces.Current is not { } workspace) return;
-        if (workspace.History.IsDirty)
-        {
-            Notify(NotificationLevel.Warning, Loc.Current["transfer.needsSave"]);
-            return;
-        }
+        if (!await UnsavedOkAsync(workspace, "risky.unsavedBulk")) return;
 
         if (await PickFolder(Loc.Current["transfer.pickImport"]) is not { } folder) return;
         var folders = ResourceTransfer.FoldersIn(folder);
@@ -177,7 +191,7 @@ public sealed partial class MainWindow
             try
             {
                 // The write lock is held on a pool thread; the change cannot be undone, so it ends in a bulk change whatever happens.
-                await workspace.ApplyBulkAsync(() => results = ResourceTransfer.Import(workspace, folder, folders, progress, token));
+                await workspace.ApplyBulkAsync(() => results = ResourceTransfer.Import(workspace, folder, folders, progress, token), true);
             }
             catch (OperationCanceledException)
             {

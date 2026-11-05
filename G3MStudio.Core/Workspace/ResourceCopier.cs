@@ -34,7 +34,7 @@ public static class ResourceCopier
         }, cancellationToken);
 
     /// <summary>Exports the planned items from the source, makes them fit the target and returns the edit. Nothing in either file changes.</summary>
-    public static Task<CopyResourcesCommand> BuildAsync(Workspace source, Workspace target, CopyPlan plan, IProgress<BatchProgress>? progress, CancellationToken cancellationToken) =>
+    public static Task<CopyResourcesCommand> BuildAsync(Workspace source, Workspace target, CopyPlan plan, IProgress<BatchProgress>? progress, CancellationToken cancellationToken, bool allowLarge = false) =>
         Task.Run(() =>
         {
             if (plan.Refusal is not null) throw new InvalidOperationException(plan.Refusal);
@@ -50,7 +50,7 @@ public static class ResourceCopier
                     var selection = Select(source.Data, graph, applied, out var renames);
                     CopyPackage.Export(source.Data, source.Path, folder, selection, progress, cancellationToken);
                     var last = CopyPackage.Prepare(folder, renames, firstFree);
-                    var package = CopyPackage.Zip(folder);
+                    var package = CopyPackage.Zip(folder, allowLarge);
                     var steps = applied.Select(e => new CopyStep(e.Type, e.TargetName, e.Action == CopyAction.Replace)).ToList();
                     return new CopyResourcesCommand(package, CopyVersion.Of(source.Data), steps, last);
                 }
@@ -62,10 +62,10 @@ public static class ResourceCopier
         }, cancellationToken);
 
     /// <summary>Builds the edit and applies it to the target as one undo step. The edit's Progress and Cancellation work during the apply.</summary>
-    public static async Task<CopyResourcesCommand> CopyAsync(Workspace source, Workspace target, CopyPlan plan, IProgress<BatchProgress>? progress, CancellationToken cancellationToken)
+    public static async Task<CopyResourcesCommand> CopyAsync(Workspace source, Workspace target, CopyPlan plan, IProgress<BatchProgress>? progress, CancellationToken cancellationToken, bool allowLarge = false)
     {
         if (TargetRefusal(source, target) is { } refusal) throw new InvalidOperationException(refusal);
-        var command = await BuildAsync(source, target, plan, progress, cancellationToken);
+        var command = await BuildAsync(source, target, plan, progress, cancellationToken, allowLarge);
         command.Progress = progress;
         command.Cancellation = cancellationToken;
         await target.EditInBackground(command);

@@ -27,7 +27,7 @@ public sealed class SpriteTemplateTests
             Assert.Equal((32, 32), (frame.Width, frame.Height));
             Assert.True(frame.Data.Where((_, i) => i % 4 == 3).All(a => a == 0)); // every pixel transparent
             Assert.Equal((sprites + 1, pages + 1, items + 1, groupPages + 1), (data.Sprites.Count, data.EmbeddedTextures.Count, data.TexturePageItems.Count, group.TexturePages.Count));
-            Assert.Throws<InvalidOperationException>(() => new ResourceListCommand("sprites", ResourceListCommand.New, "spr_zz_new").Apply(data)); // the name is taken
+            Assert.ThrowsAny<InvalidOperationException>(() => new ResourceListCommand("sprites", ResourceListCommand.New, "spr_zz_new").Apply(data)); // the name is taken
 
             using var stream = new MemoryStream();
             await GameMakerIO.WriteAsync(stream, data, cancellationToken: TestContext.Current.CancellationToken);

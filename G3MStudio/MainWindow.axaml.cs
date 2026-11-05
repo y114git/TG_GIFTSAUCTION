@@ -87,6 +87,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
         };
         CrashReporting.Apply(Workspaces.Settings.Current.CrashReports);
         Workspaces.Settings.Changed += () => CrashReporting.Apply(Workspaces.Settings.Current.CrashReports);
+        G3MStudio.Editor.PathView.RiskyEdit = EditOrForceAsync;
         Registry = AppCommands.Create(this);
         BuildMenu();
         InitPlugins();

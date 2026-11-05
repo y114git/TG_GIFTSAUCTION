@@ -44,7 +44,7 @@ public sealed class ClearReferencesTests
         var index = ReferenceIndex.Build(data, TestContext.Current.CancellationToken);
         var usedInCode = data.Scripts.FirstOrDefault(s => index.FindUsages(s).Any(u => u.InstructionOffset >= 0));
         Assert.SkipWhen(usedInCode is null, "No script of the smallest corpus game is used from code.");
-        var error = Assert.Throws<InvalidOperationException>(() => new ClearReferencesCommand("scripts", usedInCode.Name.Content!).Apply(data));
+        var error = Assert.ThrowsAny<InvalidOperationException>(() => new ClearReferencesCommand("scripts", usedInCode.Name.Content!).Apply(data));
         Assert.Contains("used in code", error.Message, StringComparison.Ordinal);
     }
 

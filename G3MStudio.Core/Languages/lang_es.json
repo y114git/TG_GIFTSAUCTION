@@ -219,6 +219,10 @@
     "deleteBody": "¿Eliminar {name}? Deshacer lo recupera hasta que se guarde el archivo.",
     "deleteUsed": "Lugares donde se usa {name}: {count}\n{places}\n\nEsos usos se ponen en ninguno o se quitan de sus listas. Un uso en código no se puede limpiar y detiene la eliminación. El juego puede comportarse distinto o dejar de funcionar. Deshacer lo recupera todo hasta que se guarde.",
     "deleteUsedTitle": "¿Eliminar {name} de todos modos?",
+    "deleteCodeTitle": "¿Eliminar {name} y dejar el código que lo usa?",
+    "deleteCode": "{reason}\n\nSi lo eliminas igualmente, ese código seguirá apuntando a algo que ya no existe. El juego puede cerrarse o fallar al ejecutar ese código. Deshacer lo devuelve todo hasta que guardes.",
+    "nameUnusual": "'{name}' no es un nombre simple (letras, dígitos y guiones bajos, sin empezar por un dígito). El código GML no puede usarlo y otras herramientas pueden fallar. Pulsa el botón otra vez para usarlo igualmente. Deshacer lo quita hasta que guardes.",
+    "nameTaken": "Ya existe un recurso o entrada de código llamado '{name}'. Con dos del mismo nombre, el editor y eliminar solo llegan al primero. Pulsa el botón otra vez para usar el nombre dos veces. Deshacer lo quita hasta que guardes.",
     "type": {
       "general": "Juego",
       "sprites": "Sprites",
@@ -416,6 +420,9 @@
     "files": "Archivos",
     "backups": "Copias de seguridad del archivo de datos (1 a 3)",
     "askOnClose": "Preguntar antes de cerrar con cambios sin guardar",
+    "askRisky": "Preguntar antes de acciones arriesgadas y permitir hacerlas igualmente",
+    "unsafeSilently": "Permitir acciones arriesgadas sin preguntar",
+    "riskyNote": "Studio rechaza algunas acciones para proteger tus datos. Con la primera opción activada, explica el riesgo y te deja hacerlas igualmente. Con la segunda, la acción se hace al instante, sin aviso. Deshacer sigue funcionando hasta que guardes. Usa la segunda solo si sabes qué puede fallar.",
     "rooms": "Salas",
     "decompiler": "Descompilador",
     "roomGridOverride": "Usar una misma cuadrícula en todas las salas",
@@ -649,7 +656,6 @@
     "maskExported": "La máscara {index} de {sprite} se guardó en {path}.",
     "badPicture": "{name} no es una imagen que se pueda leer: {reason}",
     "replaced": "Fotograma {frame} de {sprite} reemplazado.",
-    "lastFrame": "Un sprite necesita al menos un fotograma.",
     "maskDone": "Máscara de colisión de {sprite} reconstruida a partir de sus fotogramas."
   },
   "run": {
@@ -1120,5 +1126,28 @@
     "failed": "La copia falló: {reason}",
     "cancelled": "La copia se canceló; no cambió nada.",
     "counts": "A copiar: {copy}. Omitidos: {skip}. Rechazados: {refused}."
+  },
+  "risky": {
+    "audioSizeTitle": "¿Poner igualmente un archivo de audio muy grande?",
+    "audioSize": "{reason}\n\nUn sonido muy grande usa mucha memoria al abrir y guardar el archivo de datos, y el juego puede no cargarlo. Deshacer lo quita hasta que guardes.",
+    "audioKindTitle": "¿Poner igualmente audio de otro tipo?",
+    "audioKind": "{reason}\n\nEl sonido conserva su tipo y sus indicadores anteriores, así que el juego puede no reproducir audio de otro tipo. Deshacer devuelve el audio anterior hasta que guardes.",
+    "pageSizeTitle": "¿Reemplazar la página con una imagen de otro tamaño?",
+    "pageSize": "{reason}\n\nCada fotograma de sprite, glifo y tesela de esta página apunta a un rectángulo de ella. Con otro tamaño pueden mostrar la parte equivocada o nada. Deshacer devuelve la imagen anterior hasta que guardes.",
+    "lastFrameTitle": "¿Quitar el último fotograma de {name}?",
+    "lastFrame": "{reason}\n\nUn sprite sin fotogramas no dibuja nada, y el juego puede fallar donde usa {name}. Deshacer devuelve el fotograma hasta que guardes.",
+    "lastPointTitle": "¿Quitar el último punto de {name}?",
+    "lastPoint": "{reason}\n\nUna ruta vacía puede hacer fallar el juego donde sigue {name}. Deshacer devuelve el punto hasta que guardes.",
+    "importTypeTitle": "¿Importar {name} como script?",
+    "importType": "{reason}\n\nSi sigues, Studio lee el archivo como texto y crea un script con él. Un archivo que no es GML no compilará tal cual. Deshacer quita el script hasta que guardes.",
+    "copySizeTitle": "¿Copiar igualmente un paquete muy grande?",
+    "copySize": "{reason}\n\nTodo el paquete se guarda en memoria y en el diario, así que Studio puede quedarse sin memoria o ir lento. Deshacer quita la copia hasta que guardes.",
+    "collisionTitle": "¿Eliminar {name} y quitar los eventos que apuntan a él?",
+    "collision": "{reason}\n\nSi sigues, esos eventos de colisión y su código se quitan de los otros objetos. Deshacer los devuelve hasta que guardes.",
+    "roomPngTitle": "¿Guardar una imagen reducida de la sala?",
+    "roomPng": "{reason}\n\nSi sigues, la imagen se hace más pequeña para que su lado más largo mida 16384 píxeles. No será píxel por píxel.",
+    "unsavedTitle": "¿Seguir con cambios sin guardar?",
+    "unsavedBulk": "Tienes cambios sin guardar. Esta acción no se puede deshacer, así que se borra el historial de deshacer. Los cambios sin guardar siguen en el archivo abierto pero ya no se pueden deshacer, y la recuperación tras un fallo empieza desde aquí. Si dudas, guarda primero.",
+    "unsavedExport": "Tienes cambios sin guardar. El mod o parche se hace con el archivo guardado en disco, así que no estarán en él. Guarda primero para incluirlos."
   }
 }

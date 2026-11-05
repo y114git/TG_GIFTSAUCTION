@@ -26,9 +26,9 @@ public static class FileImport
     }
 
     /// <summary>The one undoable edit that adds the resource and fills it from the file. The picture or audio is checked before anything reaches the history.</summary>
-    public static EditCommand Build(GameMakerData data, string path, out string type, out string name)
+    public static EditCommand Build(GameMakerData data, string path, out string type, out string name, bool asText = false)
     {
-        type = TypeOf(path) ?? throw new InvalidOperationException($"'{Path.GetFileName(path)}' is not a picture, sound or GML file.");
+        type = TypeOf(path) ?? (asText ? "scripts" : throw new RiskyRefusalException("risky.importTypeTitle", "risky.importType", $"'{Path.GetFileName(path)}' is not a picture, sound or GML file."));
         name = NameFor(data, path);
         var (kind, own) = (type, name); // out parameters cannot be used inside the lambda below
         var make = ResourceTemplates.New(data, kind, own);
@@ -51,7 +51,9 @@ public static class FileImport
                 if (format == "mp3") audio = AudioCodec.Convert(audio, "ogg");
                 return new GroupCommand([make, new ReplaceAudioCommand(own, audio, changeKind: true)]);
             default:
-                return new GroupCommand([make, new EditCodeCommand("gml_Script_" + own, File.ReadAllText(path, Encoding.UTF8))]);
+                var text = File.ReadAllText(path, Encoding.UTF8);
+                if (text.Contains((char)0, StringComparison.Ordinal)) throw new InvalidDataException($"'{Path.GetFileName(path)}' is a binary file, not text; a script cannot hold it.");
+                return new GroupCommand([make, new EditCodeCommand("gml_Script_" + own, text)]);
         }
     }
 }

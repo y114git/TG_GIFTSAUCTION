@@ -4,8 +4,8 @@ using G3MLib.DataFile.Models;
 namespace G3MStudio.Core.Workspace;
 
 #pragma warning disable CA1001 // the entry belongs to the sprite or is put back into it; the model disposes it
-/// <summary>Adds a copy of a sprite frame after it, or removes a frame. A copy shares the picture of the frame it came from. The last frame cannot be removed.</summary>
-public sealed class FrameListCommand(string sprite, string operation, int frame) : EditCommand
+/// <summary>Adds a copy of a sprite frame after it, or removes a frame. A copy shares the picture of the frame it came from. Removing the last frame is a refusal the owner may overrule.</summary>
+public sealed class FrameListCommand(string sprite, string operation, int frame, bool force = false) : EditCommand
 {
     public const string Name = "frameList";
     public const string Duplicate = "duplicate";
@@ -22,7 +22,7 @@ public sealed class FrameListCommand(string sprite, string operation, int frame)
         ["sprite"] = sprite,
         ["operation"] = operation,
         ["frame"] = frame.ToString(System.Globalization.CultureInfo.InvariantCulture),
-    };
+    }.Concat(force ? [new KeyValuePair<string, string>("force", "1")] : []).ToDictionary();
 
     private GameMakerSprite Find(GameMakerData data) => data.Sprites.FirstOrDefault(s => s.Name.Content == sprite) ?? throw new InvalidOperationException($"Sprite '{sprite}' does not exist.");
 
@@ -37,7 +37,7 @@ public sealed class FrameListCommand(string sprite, string operation, int frame)
                 target.Textures.Insert(frame + 1, _entry);
                 break;
             case Remove:
-                if (target.Textures.Count < 2) throw new InvalidOperationException("The last frame of a sprite cannot be removed.");
+                if (target.Textures.Count < 2 && !force) throw new RiskyRefusalException("risky.lastFrameTitle", "risky.lastFrame", "The last frame of a sprite cannot be removed.");
                 _entry = target.Textures[frame];
                 target.Textures.RemoveAt(frame);
                 break;

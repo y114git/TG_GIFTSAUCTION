@@ -47,7 +47,7 @@ public sealed class ReplacePageTests
         Assert.Equal(original.Length, ReplacePageCommand.ReadPng(data, name).Length);
 
         using var small = new MagickImage(MagickColors.Red, 4, 4);
-        Assert.Throws<InvalidOperationException>(() => new ReplacePageCommand(name, small.ToByteArray(MagickFormat.Png)).Apply(data));
+        Assert.ThrowsAny<InvalidOperationException>(() => new ReplacePageCommand(name, small.ToByteArray(MagickFormat.Png)).Apply(data));
     }
 
     [Fact]

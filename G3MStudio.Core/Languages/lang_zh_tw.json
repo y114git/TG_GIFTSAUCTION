@@ -219,11 +219,15 @@
     "deleteBody": "刪除 {name}？儲存檔案之前可以復原。",
     "deleteUsed": "{name} 在 {count} 處被使用：\n{places}\n\n這些用法會設為無，或從清單中移除。程式碼中的用法無法清除，會使刪除中止。遊戲的行為可能改變或無法執行。儲存之前可以復原全部內容。",
     "deleteUsedTitle": "仍要刪除 {name} 嗎？",
+    "deleteCodeTitle": "刪除 {name} 並保留使用它的程式碼？",
+    "deleteCode": "{reason}\n\n仍然刪除的話，這些程式碼會繼續指向已不存在的內容。程式碼執行時遊戲可能當機或出錯。儲存之前，復原可以還原一切。",
+    "nameUnusual": "「{name}」不是簡單名稱（字母、數字和底線，且不以數字開頭）。GML 程式碼無法使用它，其他工具也可能出錯。要仍然使用，請再按一次按鈕。儲存之前可以復原。",
+    "nameTaken": "已經有名為「{name}」的資源或程式碼項目。同名的有兩個時，編輯器和刪除只會碰到第一個。要仍然使用該名稱，請再按一次按鈕。儲存之前，可用復原移除它。",
     "type": {
       "general": "遊戲",
       "sprites": "精靈",
       "tileSets": "圖塊集",
-      "backgrounds": "背景",
+      "backgrounds": "背景",
       "variableCounts": "變數區塊標頭中的計數器。錯誤的值會損壞遊戲。",
       "varInstance": "實例變數",
       "varGlobal": "全域變數",
@@ -416,6 +420,9 @@
     "files": "檔案",
     "backups": "資料檔案備份（1 至 3）",
     "askOnClose": "關閉時若有未儲存的變更則先詢問",
+    "askRisky": "執行有風險的操作前先詢問，並允許仍然執行",
+    "unsafeSilently": "不經詢問允許有風險的操作",
+    "riskyNote": "Studio 會拒絕某些操作以保護資料。開啟第一項後，它會說明風險，並允許你仍然執行。開啟第二項後，操作會立即執行，不再警告。儲存之前仍可復原。只有清楚可能出什麼問題時才使用第二項。",
     "rooms": "房間",
     "decompiler": "反編譯器",
     "roomGridOverride": "所有房間使用同一格線",
@@ -545,7 +552,7 @@
     "badPattern": "此模式無效：{reason}",
     "timeout": "此模式在某一行上耗時過長。請簡化它。"
   },
-  "disassembly": { "assemble": "組譯", "assembled": "已組譯。", "assembleFailed": "無法組譯：{reason}", "title": "{entry} 的反組譯", "loading": "正在讀取指令...", "failed": "無法讀取指令: {reason}" },
+  "disassembly": { "assemble": "組譯", "assembled": "已組譯。", "assembleFailed": "無法組譯：{reason}", "title": "{entry} 的反組譯", "loading": "正在讀取指令...", "failed": "無法讀取指令: {reason}" },
   "tileSet": {"findRooms": "尋找使用此圖塊的房間"},
   "textureItem": {"export": "匯出 PNG", "saved": "已儲存到 {path}", "failed": "無法儲存：{reason}"},
   "entryScripts": {"globalInit": "遊戲開始時執行的指令碼", "gameEnd": "遊戲結束時執行的指令碼", "add": "新增"},
@@ -649,7 +656,6 @@
     "maskExported": "已將 {sprite} 的遮罩 {index} 儲存到 {path}。",
     "badPicture": "{name} 不是可讀取的圖片：{reason}",
     "replaced": "已取代 {sprite} 的第 {frame} 影格。",
-    "lastFrame": "精靈至少需要一個影格。",
     "maskDone": "已根據各影格重建 {sprite} 的碰撞遮罩。"
   },
   "run": {
@@ -1012,7 +1018,7 @@
     "ToolPinItemControlDockAsDocumentString": "停駐為索引標籤文件",
     "ToolChromeControlDockString": "停駐",
     "ToolChromeControlAutoHideString": "自動隱藏"
-  },
+  },
   "debug": { "pick": "每個程式碼項目的原始碼文字內容", "decompiled": "反編譯的 GML", "assembler": "組合語言，在賦值、跳躍和返回處標記", "fullAssembler": "組合語言，每個指令都標記", "working": "正在寫出偵錯資料...", "done": "已寫出 {file}。", "failed": "未能寫出偵錯資料：{reason}" },
   "hex": { "chunk": "跳至區塊",
     "offsetMapDone": "已寫出 {file}。",
@@ -1120,5 +1126,28 @@
     "failed": "複製失敗：{reason}",
     "cancelled": "複製已取消，未做任何變更。",
     "counts": "將複製：{copy}。略過：{skip}。無法複製：{refused}。"
+  },
+  "risky": {
+    "audioSizeTitle": "仍然放入很大的音訊檔案嗎？",
+    "audioSize": "{reason}\n\n很大的聲音在開啟和儲存資料檔案時會佔用大量記憶體，遊戲也可能無法載入。儲存之前，可用復原把它移除。",
+    "audioKindTitle": "仍然放入另一種類型的音訊嗎？",
+    "audioKind": "{reason}\n\n聲音會保留原來的類型和旗標，所以遊戲可能無法播放另一種類型的音訊。儲存之前，可用復原換回原來的音訊。",
+    "pageSizeTitle": "用另一種尺寸的圖片取代該頁嗎？",
+    "pageSize": "{reason}\n\n此頁上的每個精靈影格、字形和圖塊都指向頁上的一個矩形。尺寸不同時，它們可能顯示錯誤的部分或什麼也不顯示。儲存之前，可用復原換回原來的圖片。",
+    "lastFrameTitle": "移除 {name} 的最後一個影格嗎？",
+    "lastFrame": "{reason}\n\n沒有影格的精靈什麼也不繪製，遊戲在使用 {name} 的地方可能出錯。儲存之前，可用復原把影格放回去。",
+    "lastPointTitle": "移除 {name} 的最後一個點嗎？",
+    "lastPoint": "{reason}\n\n空路徑可能讓遊戲在沿 {name} 移動的地方出錯。儲存之前，可用復原把點放回去。",
+    "importTypeTitle": "將 {name} 作為指令碼匯入嗎？",
+    "importType": "{reason}\n\n繼續的話，Studio 會把檔案當作文字讀取並據此建立指令碼。不是 GML 的檔案照原樣無法編譯。儲存之前，可用復原移除該指令碼。",
+    "copySizeTitle": "仍然複製很大的套件嗎？",
+    "copySize": "{reason}\n\n整個套件會保存在記憶體和日誌中，Studio 可能記憶體不足或變慢。儲存之前，可用復原移除該副本。",
+    "collisionTitle": "刪除 {name} 並移除指向它的事件嗎？",
+    "collision": "{reason}\n\n繼續的話，這些碰撞事件及其程式碼會從其他物件中移除。儲存之前，可用復原還原它們。",
+    "roomPngTitle": "儲存房間的縮小圖片嗎？",
+    "roomPng": "{reason}\n\n繼續的話，圖片會縮小，使較長的一邊為 16384 像素。它不再是逐像素一致。",
+    "unsavedTitle": "帶著未儲存的變更繼續嗎？",
+    "unsavedBulk": "有未儲存的變更。此操作無法復原，所以復原歷程會被清空。未儲存的變更仍留在開啟的檔案中，但不能再復原，當機復原也會從這裡重新開始。不確定的話請先儲存。",
+    "unsavedExport": "有未儲存的變更。模組或修補是用磁碟上已儲存的檔案製作的，所以不會包含它們。先儲存才能包含。"
   }
 }

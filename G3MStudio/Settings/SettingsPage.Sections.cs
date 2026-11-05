@@ -268,8 +268,13 @@ public sealed partial class SettingsPage
         var index = Array.IndexOf(MemoryPresets, s.MemoryLimitMb);
         var preset = new ComboBox { Name = "MemoryLimit", ItemsSource = labels, SelectedIndex = index < 0 ? MemoryPresets.Length : index, MinWidth = 160 };
         var custom = Number("MemoryLimitMb", 0, 1_048_576, 256, s.MemoryLimitMb, (x, n) => x with { MemoryLimitMb = n });
+        var unit = new TextBlock { Text = "MB", VerticalAlignment = VerticalAlignment.Center };
+        // The number is only for a custom limit; a preset already says it.
+        void ShowNumber() => custom.IsVisible = unit.IsVisible = preset.SelectedIndex == MemoryPresets.Length;
+        ShowNumber();
         preset.SelectionChanged += (_, _) =>
         {
+            ShowNumber();
             if (_building || preset.SelectedIndex < 0 || preset.SelectedIndex >= MemoryPresets.Length) return;
             var megabytes = MemoryPresets[preset.SelectedIndex];
             _building = true;
@@ -287,7 +292,7 @@ public sealed partial class SettingsPage
         };
         return
         [
-            Row("settings.memoryLimit", preset, custom, new TextBlock { Text = "MB", VerticalAlignment = VerticalAlignment.Center }),
+            Row("settings.memoryLimit", preset, custom, unit),
             new TextBlock { Text = Loc.Current["settings.memoryNote"], Classes = { "muted" }, TextWrapping = TextWrapping.Wrap },
         ];
     }
@@ -300,10 +305,19 @@ public sealed partial class SettingsPage
             if (TopLevel.GetTopLevel(this) is { } top && await top.StorageProvider.TryGetFileFromPathAsync(_store.FilePath) is { } file) await top.Launcher.LaunchFileAsync(file);
         };
 
+        var s = _store.Current;
+        var askRisky = new CheckBox { Name = "AskRiskyActions", Tag = Loc.Current["settings.askRisky"], Content = Loc.Current["settings.askRisky"], IsChecked = s.AskRiskyActions };
+        askRisky.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { AskRiskyActions = askRisky.IsChecked == true }); };
+        var unsafeSilently = new CheckBox { Name = "AllowUnsafeSilently", Tag = Loc.Current["settings.unsafeSilently"], Content = Loc.Current["settings.unsafeSilently"], IsChecked = s.AllowUnsafeSilently };
+        unsafeSilently.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { AllowUnsafeSilently = unsafeSilently.IsChecked == true }); };
+
         return
         [
             Heading("settings.advanced"),
             new TextBlock { Text = Loc.Current["settings.advancedNote"], Classes = { "muted" }, TextWrapping = TextWrapping.Wrap },
+            askRisky,
+            unsafeSilently,
+            new TextBlock { Text = Loc.Current["settings.riskyNote"], Classes = { "muted" }, TextWrapping = TextWrapping.Wrap },
             .. MemoryControls(_store.Current),
             openFile,
         ];

@@ -23,8 +23,8 @@ public sealed class ResourceListTests
         }
 
         foreach (var type in ResourceListCommand.Creatable) Assert.Equal(counts[type] + 1, ResourceTypes.Counts(data)[type]);
-        Assert.Throws<InvalidOperationException>(() => new ResourceListCommand("objects", ResourceListCommand.New, "zz_new_objects").Apply(data));
-        Assert.Throws<InvalidOperationException>(() => new ResourceListCommand("objects", ResourceListCommand.New, "9bad name").Apply(data));
+        Assert.ThrowsAny<InvalidOperationException>(() => new ResourceListCommand("objects", ResourceListCommand.New, "zz_new_objects").Apply(data));
+        Assert.ThrowsAny<InvalidOperationException>(() => new ResourceListCommand("objects", ResourceListCommand.New, "9bad name").Apply(data));
 
         using var stream = new MemoryStream();
         await GameMakerIO.WriteAsync(stream, data, cancellationToken: TestContext.Current.CancellationToken);
@@ -46,7 +46,7 @@ public sealed class ResourceListTests
         var events = data.GameObjects.SelectMany(o => o.Events[(int)G3MLib.DataFile.Models.EventType.Collision]).ToList();
         var partner = events.FirstOrDefault()?.EventSubtype;
         if (partner is { } p && p < data.GameObjects.Count)
-            Assert.Throws<InvalidOperationException>(() => new ResourceListCommand("objects", ResourceListCommand.Delete, data.GameObjects[(int)p].Name.Content!).Apply(data));
+            Assert.ThrowsAny<InvalidOperationException>(() => new ResourceListCommand("objects", ResourceListCommand.Delete, data.GameObjects[(int)p].Name.Content!).Apply(data));
         var removable = Enumerable.Range(0, data.GameObjects.Count).FirstOrDefault(i => events.All(e => e.EventSubtype != i) && events.Any(e => e.EventSubtype > i), -1);
         if (removable >= 0)
         {

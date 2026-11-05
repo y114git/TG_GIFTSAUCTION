@@ -1,17 +1,30 @@
 using Avalonia;
 using Avalonia.Media;
+using G3MStudio.Core.Workspace;
 
 namespace G3MStudio.Rooms;
 
 public sealed partial class RoomView
 {
-    /// <summary>Draws the whole room at 100% (visible layers only, no selection or grid) and writes it as a PNG. Rooms over 16384 pixels on a side are refused.</summary>
-    public void SavePng(Stream stream)
+    public const int MaxPngSide = 16384;
+
+    /// <summary>The refusal for a room over 16384 pixels on a side (the owner may export it reduced instead); null when it fits.</summary>
+    public RiskyRefusalException? TooLargeForPng => Scene is { } scene && (scene.Width > MaxPngSide || scene.Height > MaxPngSide)
+        ? new RiskyRefusalException("risky.roomPngTitle", "risky.roomPng", $"The room is {scene.Width:0}x{scene.Height:0} pixels; a side may be at most {MaxPngSide}.")
+        : null;
+
+    /// <summary>
+    /// Draws the whole room at 100% (visible layers only, no selection or grid) and writes it as a PNG. A room over 16384 pixels on a side is refused,
+    /// unless <paramref name="reduce"/> is set: then it is drawn smaller so that its longer side is 16384.
+    /// </summary>
+    public void SavePng(Stream stream, bool reduce = false)
     {
         if (Scene is not { } scene) throw new InvalidOperationException("The room has nothing to draw.");
-        if (scene.Width > 16384 || scene.Height > 16384) throw new InvalidOperationException("The room is larger than 16384 pixels on a side.");
-        using var target = new Avalonia.Media.Imaging.RenderTargetBitmap(new PixelSize(Math.Max(1, (int)scene.Width), Math.Max(1, (int)scene.Height)));
+        if (TooLargeForPng is { } refusal && !reduce) throw refusal;
+        var scale = Math.Min(1, MaxPngSide / Math.Max(scene.Width, scene.Height));
+        using var target = new Avalonia.Media.Imaging.RenderTargetBitmap(new PixelSize(Math.Max(1, (int)(scene.Width * scale)), Math.Max(1, (int)(scene.Height * scale))));
         using (var context = target.CreateDrawingContext(true))
+        using (context.PushTransform(Matrix.CreateScale(scale, scale)))
         {
             context.FillRectangle(scene.FillColor is { } c ? new SolidColorBrush(Color.FromRgb((byte)c, (byte)(c >> 8), (byte)(c >> 16))) : Brushes.Black, new Rect(0, 0, scene.Width, scene.Height));
             foreach (var item in scene.Items) DrawItem(context, item, item.Dest);

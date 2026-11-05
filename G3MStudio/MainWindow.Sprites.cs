@@ -170,13 +170,8 @@ public sealed partial class MainWindow
             return;
         }
 
-        if (operation == FrameListCommand.Remove && view.FrameCount < 2)
-        {
-            Notify(NotificationLevel.Warning, Loc.Current["sprites.lastFrame"]);
-            return;
-        }
-
-        workspace.Edit(new FrameListCommand(sprite, operation, view.SelectedFrame));
+        var frame = view.SelectedFrame;
+        _ = EditOrForceAsync(workspace, force => new FrameListCommand(sprite, operation, frame, force), sprite);
     }
 
     /// <summary>Replaces the clicked frame of the sprite in the front tab with a picture file; one undoable step.</summary>
