@@ -62,6 +62,22 @@ public static class GmlNames
     /// <summary>Where a name leads: the Explorer key of the resource of the open file that has it (a script leads to its code). Built-in names lead nowhere.</summary>
     public static Func<string, string?> Definitions(Workspace workspace) => name => TableOf(workspace).Definitions.GetValueOrDefault(name);
 
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Workspace, Dictionary<string, Signature>> Signatures = [];
+
+    /// <summary>The call hint of a built-in function, from the compiler's list (argument counts). Null for a script of the file.</summary>
+    public static Signature? SignatureOf(Workspace workspace, string name)
+    {
+        if (!Signatures.TryGetValue(workspace, out var table))
+        {
+            table = [];
+            using (workspace.Lock.Read())
+                foreach (var f in new BuiltinList(workspace.Data).Functions.Values) table[f.Name] = Signature.FromCounts(f.Name, f.MinArguments, f.MaxArguments);
+            Signatures.AddOrUpdate(workspace, table);
+        }
+
+        return table.GetValueOrDefault(name);
+    }
+
     /// <summary>The name (letters, digits and underscores) that touches the offset, or null when the offset is not on one.</summary>
     public static string? WordAt(string text, int offset)
     {

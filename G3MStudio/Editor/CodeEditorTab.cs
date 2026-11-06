@@ -5,6 +5,7 @@ using Avalonia.Threading;
 using AvaloniaEdit;
 using AvaloniaEdit.Folding;
 using AvaloniaEdit.Search;
+using G3MLib.DataFile;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Core.Localization;
 using G3MStudio.Localization;
@@ -17,11 +18,14 @@ namespace G3MStudio.Editor;
 /// shortcut: the text is decompiled once and highlighted by re-tokenizing the whole text 300 ms after a change; add incremental
 /// tokens and diagnostics with spans when the full code editor comes in M2.
 /// </summary>
-public sealed class CodeEditorTab : DockPanel
+public sealed partial class CodeEditorTab : DockPanel
 {
     private readonly Workspace _workspace;
     private readonly GmlColorizer _colorizer;
-    private readonly TextBlock _message = new() { TextWrapping = TextWrapping.Wrap, Name = "Message" };
+    private readonly Func<bool, CodeLoad>? _loader;
+    private CodeLoad? _shown;
+
+    private readonly SelectableTextBlock _message = new() { TextWrapping = TextWrapping.Wrap, Name = "Message", VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
     private readonly Button _apply = new() { Name = "Apply" };
     private readonly Button _revert = new() { Name = "Revert" };
     private readonly DispatcherTimer _retokenize = new() { Interval = TimeSpan.FromMilliseconds(300) };
@@ -31,15 +35,20 @@ public sealed class CodeEditorTab : DockPanel
     private bool _loading, _applying;
     private int _loadId, _loadedVersion = -1, _loadedRevision = -1;
 
-    public CodeEditorTab(Workspace workspace, string entry)
+    /// <param name="workspace">The open data file.</param>
+    /// <param name="entry">Name of the code entry.</param>
+    /// <param name="loader">Produces the text instead of the decompiler (tests).</param>
+    public CodeEditorTab(Workspace workspace, string entry, Func<bool, CodeLoad>? loader = null)
     {
         _workspace = workspace;
+        _loader = loader;
         Entry = entry;
         Editor = GmlColorizer.CreateEditor("", readOnly: true, out _colorizer);
         Editor.Name = "Code";
         _colorizer.Classifier = GmlNames.For(workspace);
         _ = new GmlCompletion(Editor, GmlNames.Completions(workspace));
         InstallGoTo(workspace);
+        InstallIntel(workspace);
         _search = SearchPanel.Install(Editor);
         _search.IsReplaceMode = true;
         _folding = FoldingManager.Install(Editor.TextArea);
@@ -52,9 +61,15 @@ public sealed class CodeEditorTab : DockPanel
         {
             if (e.Property == AvaloniaEdit.Editing.TextArea.OverstrikeModeProperty) mode.Text = e.NewValue is true ? "OVR" : "INS";
         };
-        var bar = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 8, Margin = new Thickness(8, 4), Children = { _apply, _revert, _message, mode } };
+        var buttons = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 8, Children = { _apply, _revert } };
+        var bar = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto,Auto"), ColumnSpacing = 8, Margin = new Thickness(8, 4), Children = { buttons, _message, _copyDetails, mode } };
+        Grid.SetColumn(_message, 1);
+        Grid.SetColumn(_copyDetails, 2);
+        Grid.SetColumn(mode, 3);
+        _copyDetails.Click += (_, _) => CopyDetails();
         SetDock(bar, Avalonia.Controls.Dock.Top);
         Children.Add(bar);
+        Children.Add(BuildBanner());
         Children.Add(Editor);
         Editor.TextChanged += (_, _) =>
         {
@@ -63,13 +78,7 @@ public sealed class CodeEditorTab : DockPanel
             _retokenize.Start();
             UpdateState();
         };
-        _retokenize.Tick += (_, _) =>
-        {
-            _retokenize.Stop();
-            _colorizer.Tokenize(Editor.Text);
-            _folding.UpdateFoldings(_colorizer.Foldings, -1);
-            Editor.TextArea.TextView.Redraw();
-        };
+        _retokenize.Tick += (_, _) => Retokenize();
         // Only a shown tab follows the model; a tab that was hidden meanwhile catches up when it is shown again.
         DetachedFromVisualTree += (_, _) => workspace.History.Changed -= OnHistoryChanged;
         void Relabel(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -157,7 +166,7 @@ public sealed class CodeEditorTab : DockPanel
         _applying = true;
         try
         {
-            _workspace.Edit(new EditCodeCommand(Entry, Editor.Text));
+            _workspace.Edit(Mode == CodeMode.Assembly ? new EditAssemblyCommand(Entry, Editor.Text) : new EditCodeCommand(Entry, Editor.Text));
             _applied = Editor.Text;
             _workspace.Problems.Clear(Entry);
             Show("", false);
@@ -205,7 +214,7 @@ public sealed class CodeEditorTab : DockPanel
         if (!_applying && !HasPending) Ready = LoadAsync();
     }
 
-    private async Task LoadAsync()
+    private async Task LoadAsync(bool parent = false)
     {
         var id = ++_loadId;
         var version = _workspace.History.Version;
@@ -215,26 +224,24 @@ public sealed class CodeEditorTab : DockPanel
         Show(Loc.Current["code.decompiling"], false);
         try
         {
-            var text = await Task.Run(() =>
-            {
-                using (_workspace.Lock.Read()) return CodeText.Decompile(_workspace.Data, Entry, _workspace.DecompileContext());
-            });
+            var shown = _shown;
+            var load = await Task.Run(() => Load(parent ? shown : null));
             if (id != _loadId) return;
             (_loadedVersion, _loadedRevision) = (version, revision);
             // The same text again (an edit elsewhere) is left alone, so the caret, scroll and selection stay and nothing is tokenized twice.
-            if (Editor.Text != text)
+            if (Editor.Text != load.Text)
             {
-                Editor.Text = text;
-                _colorizer.Tokenize(text);
-                _folding.UpdateFoldings(_colorizer.Foldings, -1);
-                Editor.TextArea.TextView.Redraw();
+                Editor.Text = load.Text;
+                Retokenize();
             }
 
-            _applied = text;
-            Editor.IsReadOnly = false;
+            (_shown, Mode) = (load, load.Mode);
+            _applied = load.Text;
+            Editor.IsReadOnly = load.Mode == CodeMode.Parent;
             Show("", false);
+            ShowFallback(load);
         }
-        catch (Exception e) when (e is InvalidOperationException or NotSupportedException)
+        catch (Exception e) when (e is not OutOfMemoryException)
         {
             if (id == _loadId) Show(Loc.Current.Format("code.showFailed", ("entry", Entry), ("reason", e.Message)), true);
         }
@@ -245,9 +252,33 @@ public sealed class CodeEditorTab : DockPanel
         }
     }
 
+    // parentOf is the failed load whose parent text is wanted, or null for a normal load.
+    private CodeLoad Load(CodeLoad? parentOf)
+    {
+        if (_loader is not null) return _loader(parentOf is not null);
+        using (_workspace.Lock.Read())
+        {
+            var data = _workspace.Data;
+            var context = _workspace.DecompileContext();
+            if (parentOf is not null) return CodeLoader.LoadParent(parentOf.Reason, parentOf.ParentName, () => CodeText.Decompile(data, parentOf.ParentName ?? Entry, context));
+            var parentName = data.Code.ByName(Entry)?.ParentEntry?.Name?.Content;
+            return CodeLoader.Load(() => CodeText.Decompile(data, Entry, context), () => CodeText.Disassemble(data, Entry), parentName);
+        }
+    }
+
+    private void Retokenize()
+    {
+        _retokenize.Stop();
+        _colorizer.Tokenize(Editor.Text);
+        _folding.UpdateFoldings(GmlStructure.Foldings(Doc), -1);
+        Editor.TextArea.TextView.Redraw();
+    }
+
     private void Show(string text, bool error)
     {
         _message.Text = text;
+        ToolTip.SetTip(_message, text.Length > 0 ? text : null);
+        _copyDetails.IsVisible = error && text.Length > 0;
         _message.Foreground = error ? (IBrush?)Application.Current?.FindResource("Danger") : (IBrush?)Application.Current?.FindResource("Text.Muted");
     }
 

@@ -94,7 +94,7 @@
       "paintFrame": "フレームを描画...",
             "editAudio": "オーディオを編集...",
 "replaceAudio": "オーディオを置き換え...",
-      "exportAudio": "オーディオを保存...",
+      "exportAudio": "オーディオをエクスポート...",
       "duplicateFrame": "スプライトのフレームを複製",
       "removeFrame": "スプライトのフレームを削除",
       "recalculateMask": "衝突マスクを再計算",
@@ -178,7 +178,7 @@
       "offsetMap": "チャンクのオフセット表を書き出す",
       "writeDebugData": "デバッグデータを書き出す...",
       "repackTextures": "テクスチャページを再パック...",
-      "exportPage": "テクスチャページを保存...",
+      "exportPage": "テクスチャページをエクスポート...",
       "replacePage": "テクスチャページを置き換え..."
     }
   },
@@ -355,6 +355,28 @@
     "more": "... ほか {count} 件"
   },
   "code": {
+    "menu": {
+      "goToDefinition": "定義へ移動",
+      "findUsages": "使用箇所を検索",
+      "copyName": "名前をコピー",
+      "toggleComment": "行コメントを切り替え",
+      "cut": "切り取り",
+      "copy": "コピー",
+      "paste": "貼り付け"
+    },
+    "copyDetails": "詳細をコピー",
+    "retry": "再試行",
+    "sideBySide": "アセンブリを並べて表示",
+    "showParent": "親スクリプトを表示",
+    "fallbackAssembly": "デコンパイラが失敗しました: {reason}。アセンブリを表示しています。",
+    "fallbackParent": "デコンパイラが失敗しました: {reason}。親スクリプト {parent} を表示しています。読み取り専用です。",
+    "rename": {
+      "invalid": "新しい名前は有効なGML名ではありません。",
+      "same": "新しい名前は元の名前と同じです。",
+      "member": "他のインスタンスのメンバーです。このコードエントリのみ変更されます。",
+      "notLocal": "この名前は var や globalvar で宣言されていません。このコードエントリのみ変更されます。",
+      "collision": "新しい名前はこのコードで既に使われています。それでも変更しますか?"
+    },
     "apply": "適用",
     "revert": "元に戻す",
     "decompiling": "デコンパイル中...",

@@ -97,3 +97,9 @@ Only decisions that change the design or need the owner. Everything else buildab
   - Q68: build everything that is useful to Studio, modders and users, simple or advanced, but only what can be done 100% without blockers, limitations, new libraries or large changes without a clear win.
   - Q64: keep window place remembered by default.
   - Q66: Back and Forward history is per tab, like a browser.
+
+## Code intelligence questions (2026-11-06, answered by picking GameMaker behavior)
+
+- Rename collision: warn, then allow (GameMaker refuses). Revisit if modders report broken code.
+- Auto close quotes: not after a letter, so apostrophes in comments stay single.
+- Colour literals: `$BBGGRR` and `0xBBGGRR` are read as GameMaker does (blue first); six digits only.

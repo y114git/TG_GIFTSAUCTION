@@ -94,7 +94,7 @@
       "paintFrame": "Paint Frame...",
             "editAudio": "Edit Audio...",
 "replaceAudio": "Replace Audio...",
-      "exportAudio": "Save Audio...",
+      "exportAudio": "Export Audio...",
       "duplicateFrame": "Duplicate Sprite Frame",
       "removeFrame": "Remove Sprite Frame",
       "recalculateMask": "Recalculate Collision Mask",
@@ -178,7 +178,7 @@
       "offsetMap": "Write Chunk Offset Map",
       "writeDebugData": "Write Debug Data...",
       "repackTextures": "Repack Texture Pages...",
-      "exportPage": "Save Texture Page...",
+      "exportPage": "Export Texture Page...",
       "replacePage": "Replace Texture Page..."
     }
   },
@@ -355,6 +355,28 @@
     "more": "... and {count} more"
   },
   "code": {
+    "menu": {
+      "goToDefinition": "Go to Definition",
+      "findUsages": "Find Usages",
+      "copyName": "Copy Name",
+      "toggleComment": "Toggle Line Comment",
+      "cut": "Cut",
+      "copy": "Copy",
+      "paste": "Paste"
+    },
+    "copyDetails": "Copy Details",
+    "retry": "Retry",
+    "sideBySide": "Show Assembly Side by Side",
+    "showParent": "Show Parent Script",
+    "fallbackAssembly": "Decompiler failed: {reason}. Showing assembly.",
+    "fallbackParent": "Decompiler failed: {reason}. Showing the parent script {parent}. Read only.",
+    "rename": {
+      "invalid": "The new name is not a valid GML name.",
+      "same": "The new name is the same as the old one.",
+      "member": "This is a member of another instance. Only this code entry changes.",
+      "notLocal": "This name is not declared here with var or globalvar. Only this code entry changes.",
+      "collision": "Another name in this code already uses the new name. Rename anyway?"
+    },
     "apply": "Apply",
     "revert": "Revert",
     "decompiling": "Decompiling...",

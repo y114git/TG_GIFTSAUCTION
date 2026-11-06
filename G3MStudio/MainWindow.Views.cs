@@ -106,6 +106,8 @@ public sealed partial class MainWindow
 
         var editor = new CodeEditorTab(workspace, entry);
         editor.GoToRequested += key => Docking.OpenTab(key.StartsWith("code:", StringComparison.Ordinal) ? "code" : "resource", key, false);
+        editor.DisassemblyRequested += () => new DisassemblyWindow(workspace, entry).Show(this);
+        editor.FindUsagesRequested += name => { Docking.ShowPanel("Usages"); if (Core.Workspace.GmlUsages.Resolve(workspace, name) is var (t, n)) _ = _usages.ShowAsync(n, Core.Workspace.UsageSearch.FindAsync(workspace, t, n)); };
         _codeTabs[tab.Id] = editor;
         editor.Edited += () => Docking.KeepOpen(tab.Id);
         editor.PendingChanged += () =>

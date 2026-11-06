@@ -94,7 +94,7 @@
       "paintFrame": "繪製影格...",
             "editAudio": "編輯音訊...",
 "replaceAudio": "取代音訊...",
-      "exportAudio": "儲存音訊...",
+      "exportAudio": "匯出音訊...",
       "duplicateFrame": "複製精靈影格",
       "removeFrame": "刪除精靈影格",
       "recalculateMask": "重新計算碰撞遮罩",
@@ -178,7 +178,7 @@
       "offsetMap": "寫出區塊偏移表",
       "writeDebugData": "寫出偵錯資料...",
       "repackTextures": "重新打包紋理頁...",
-      "exportPage": "儲存紋理頁...",
+      "exportPage": "匯出紋理頁...",
       "replacePage": "取代紋理頁..."
     }
   },
@@ -355,6 +355,28 @@
     "more": "……另有 {count} 項"
   },
   "code": {
+    "menu": {
+      "goToDefinition": "跳至定義",
+      "findUsages": "尋找用法",
+      "copyName": "複製名稱",
+      "toggleComment": "切換行註解",
+      "cut": "剪下",
+      "copy": "複製",
+      "paste": "貼上"
+    },
+    "copyDetails": "複製詳細資料",
+    "retry": "重試",
+    "sideBySide": "並排顯示組合語言",
+    "showParent": "顯示父指令碼",
+    "fallbackAssembly": "反編譯失敗：{reason}。正在顯示組合語言。",
+    "fallbackParent": "反編譯失敗：{reason}。正在顯示父指令碼 {parent}，唯讀。",
+    "rename": {
+      "invalid": "新名稱不是有效的 GML 名稱。",
+      "same": "新名稱與舊名稱相同。",
+      "member": "這是其他實例的成員。只會變更此程式碼項目。",
+      "notLocal": "此名稱未以 var 或 globalvar 宣告。只會變更此程式碼項目。",
+      "collision": "新名稱已在此程式碼中使用。仍要重新命名嗎?"
+    },
     "apply": "套用",
     "revert": "還原",
     "decompiling": "正在反編譯...",

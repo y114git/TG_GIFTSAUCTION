@@ -29,6 +29,9 @@ public static class ResourceSearch
             .Where(x => x.Rank < 4)
             .OrderBy(x => x.Rank)
             .ThenBy(x => order.GetValueOrDefault(x.Item.Key, int.MaxValue))
+            // The same name as a resource and as code lists the resource first.
+            .ThenBy(x => x.Item.Type == "code" ? 1 : 0)
+            .DistinctBy(x => x.Item.Key)
             .Take(limit)
             .Select(x => x.Item)];
     }

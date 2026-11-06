@@ -32,6 +32,7 @@ public sealed class QuickOpenWindow : Window
             Children =
             {
                 new TextBlock { Text = Loc.Current["explorer.type." + item.Type], Classes = { "muted" }, [DockPanel.DockProperty] = Avalonia.Controls.Dock.Right },
+                new TextBlock { Text = Badge(item.Type), Width = 28, FontWeight = Avalonia.Media.FontWeight.Bold, Classes = { "muted" }, [DockPanel.DockProperty] = Avalonia.Controls.Dock.Left },
                 new TextBlock { Text = item.Name },
             },
         });
@@ -42,6 +43,18 @@ public sealed class QuickOpenWindow : Window
         Opened += (_, _) => _input.Focus();
         Refresh();
     }
+
+    /// <summary>A short mark in front of a row, so a script and the code of the same name differ at a glance and not by the right-hand label alone.</summary>
+    public static string Badge(string type) => type switch
+    {
+        "code" => "{ }",
+        "scripts" => "fx",
+        "objects" => "ob",
+        "sprites" => "sp",
+        "rooms" => "rm",
+        "sounds" => "sn",
+        _ => type.Length > 1 ? type[..2] : type,
+    };
 
     public IReadOnlyList<QuickOpenItem> Items => [.. _results.Items.OfType<QuickOpenItem>()];
 

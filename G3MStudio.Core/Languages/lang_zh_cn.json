@@ -94,7 +94,7 @@
       "paintFrame": "绘制帧...",
             "editAudio": "编辑音频...",
 "replaceAudio": "替换音频...",
-      "exportAudio": "保存音频...",
+      "exportAudio": "导出音频...",
       "duplicateFrame": "复制精灵帧",
       "removeFrame": "删除精灵帧",
       "recalculateMask": "重新计算碰撞遮罩",
@@ -178,7 +178,7 @@
       "offsetMap": "写出区块偏移表",
       "writeDebugData": "写出调试数据...",
       "repackTextures": "重新打包纹理页...",
-      "exportPage": "保存纹理页...",
+      "exportPage": "导出纹理页...",
       "replacePage": "替换纹理页..."
     }
   },
@@ -355,6 +355,28 @@
     "more": "……另有 {count} 项"
   },
   "code": {
+    "menu": {
+      "goToDefinition": "转到定义",
+      "findUsages": "查找用法",
+      "copyName": "复制名称",
+      "toggleComment": "切换行注释",
+      "cut": "剪切",
+      "copy": "复制",
+      "paste": "粘贴"
+    },
+    "copyDetails": "复制详情",
+    "retry": "重试",
+    "sideBySide": "并排显示汇编",
+    "showParent": "显示父脚本",
+    "fallbackAssembly": "反编译失败：{reason}。正在显示汇编。",
+    "fallbackParent": "反编译失败：{reason}。正在显示父脚本 {parent}，只读。",
+    "rename": {
+      "invalid": "新名称不是有效的 GML 名称。",
+      "same": "新名称与旧名称相同。",
+      "member": "这是其他实例的成员。只会更改此代码条目。",
+      "notLocal": "此名称未用 var 或 globalvar 声明。只会更改此代码条目。",
+      "collision": "新名称已在此代码中使用。仍要重命名吗?"
+    },
     "apply": "应用",
     "revert": "还原",
     "decompiling": "正在反编译...",

@@ -94,7 +94,7 @@
       "paintFrame": "Pintar fotograma...",
             "editAudio": "Editar audio...",
 "replaceAudio": "Reemplazar audio...",
-      "exportAudio": "Guardar audio...",
+      "exportAudio": "Exportar audio...",
       "duplicateFrame": "Duplicar fotograma del sprite",
       "removeFrame": "Quitar fotograma del sprite",
       "recalculateMask": "Recalcular máscara de colisión",
@@ -178,7 +178,7 @@
       "offsetMap": "Escribir mapa de desplazamientos de fragmentos",
       "writeDebugData": "Escribir datos de depuración...",
       "repackTextures": "Reempaquetar páginas de texturas...",
-      "exportPage": "Guardar página de texturas...",
+      "exportPage": "Exportar página de texturas...",
       "replacePage": "Reemplazar página de texturas..."
     }
   },
@@ -355,6 +355,28 @@
     "more": "... y {count} más"
   },
   "code": {
+    "menu": {
+      "goToDefinition": "Ir a la definición",
+      "findUsages": "Buscar usos",
+      "copyName": "Copiar nombre",
+      "toggleComment": "Alternar comentario de línea",
+      "cut": "Cortar",
+      "copy": "Copiar",
+      "paste": "Pegar"
+    },
+    "copyDetails": "Copiar detalles",
+    "retry": "Reintentar",
+    "sideBySide": "Mostrar ensamblador al lado",
+    "showParent": "Mostrar el script padre",
+    "fallbackAssembly": "El descompilador falló: {reason}. Se muestra el ensamblador.",
+    "fallbackParent": "El descompilador falló: {reason}. Se muestra el script padre {parent}. Solo lectura.",
+    "rename": {
+      "invalid": "El nuevo nombre no es un nombre GML válido.",
+      "same": "El nuevo nombre es igual al anterior.",
+      "member": "Es un miembro de otra instancia. Solo cambia esta entrada de código.",
+      "notLocal": "El nombre no se declara aquí con var o globalvar. Solo cambia esta entrada de código.",
+      "collision": "El nuevo nombre ya se usa en este código. ¿Renombrar de todos modos?"
+    },
     "apply": "Aplicar",
     "revert": "Revertir",
     "decompiling": "Descompilando...",
