@@ -86,6 +86,9 @@ public interface IShell
     /// <summary>Opens the painter on the clicked frame of the sprite in front.</summary>
     void PaintFrame();
 
+    /// <summary>Opens the image editor as a tab on the clicked frame of the sprite in front; every edit is one undoable step.</summary>
+    void EditImage();
+
     /// <summary>Replaces the audio of the sound in front with a WAV or OGG file of the same kind.</summary>
     void ReplaceAudio();
 
@@ -261,7 +264,7 @@ public static class AppCommands
         ("menu.edit", ["edit.undo", "edit.redo", "-", "edit.rename", "edit.duplicate", "edit.copyToOtherFile", "edit.moveUp", "edit.moveDown", "edit.copyName", "edit.delete", "edit.selectAll", "-", "edit.find", "edit.findInCode", "edit.findUsages", "edit.findUses", "edit.findUnreferenced", "edit.findChildren"]),
         ("menu.view", ["view.commandPalette", "go.quickOpen", "-", .. Panels.Select(p => "view.panel." + p.ToLowerInvariant()), "-", "view.zoomIn", "view.zoomOut", "view.zoomReset", "view.fullscreen"]),
         ("menu.project", ["project.enable", "project.sync", "project.options", "project.resolve", "project.moveDataFile", "project.disable"]),
-        ("menu.sprite", ["edit.paintFrame", "edit.replaceFrame", "edit.duplicateFrame", "edit.removeFrame", "-", "edit.recalculateMask", "edit.importMask", "edit.exportMask", "edit.exportGif"]),
+        ("menu.sprite", ["edit.editImage", "edit.paintFrame", "edit.replaceFrame", "edit.duplicateFrame", "edit.removeFrame", "-", "edit.recalculateMask", "edit.importMask", "edit.exportMask", "edit.exportGif"]),
         ("menu.sound", ["edit.editAudio", "edit.replaceAudio", "edit.exportAudio", "edit.exportAllAudio"]),
         ("menu.room", ["room.play", "-", "room.creationCode", "room.creationOrder", "room.exportTiles", "room.importTiles", "room.savePng"]),
         ("menu.run", ["run.game", "run.withRuntime", "run.stop"]),
@@ -312,6 +315,7 @@ public static class AppCommands
         Add("edit.editAudio", null, shell.EditAudio, WorkspaceOpen);
         Add("edit.replaceAudio", null, shell.ReplaceAudio, WorkspaceOpen);
         Add("edit.exportAudio", null, shell.ExportAudio, WorkspaceOpen);
+        Add("edit.editImage", null, shell.EditImage, SpriteTab);
         Add("edit.paintFrame", null, shell.PaintFrame, WorkspaceOpen);
         Add("edit.replaceFrame", null, shell.ReplaceFrame, SpriteTab);
         Add("edit.duplicateFrame", null, shell.DuplicateFrame, SpriteTab);

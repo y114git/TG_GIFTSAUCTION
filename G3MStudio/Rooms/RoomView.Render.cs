@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Media;
 using G3MStudio.Core.Workspace;
+using static G3MLib.DataFile.Models.GameMakerRoom;
 
 namespace G3MStudio.Rooms;
 
@@ -66,8 +67,12 @@ public sealed partial class RoomView
             var selected = item.Element is not null && _selection.Contains(item.Element);
             var dest = selected && _moving ? item.Dest.Translate(delta) : item.Dest;
             if (!dest.Intersects(view)) continue;
-            DrawItem(context, item, dest);
-            if (selected) context.DrawRectangle(null, outline, dest);
+            using (selected && _transform is { } matrix && item.Element is GameObject ? context.PushTransform(matrix) : default)
+            {
+                DrawItem(context, item, dest);
+                if (selected) context.DrawRectangle(null, outline, dest);
+            }
+
             DrawnItems++;
         }
 
@@ -99,10 +104,25 @@ public sealed partial class RoomView
             foreach (var camera in Views) context.DrawRectangle(null, viewPen, camera);
         }
 
-        if (_stroke is not null && TileLayer is { TilesData.Background: { } set } tileLayer)
-            foreach (var (x, y) in _stroke)
-                context.DrawRectangle(G3MStudio.Theme.CanvasTheme.Soft(G3MStudio.Theme.CanvasTheme.Line, 0.35), null, new Rect(tileLayer.XOffset + x * set.GMS2TileWidth, tileLayer.YOffset + y * set.GMS2TileHeight, set.GMS2TileWidth, set.GMS2TileHeight));
+        DrawTileOverlays(context);
+        DrawHandles(context);
         if (_marquee is { } marquee) context.DrawRectangle(null, outline, marquee);
+    }
+
+    private void DrawTileOverlays(DrawingContext context)
+    {
+        if (TileLayer is not { TilesData.Background: { } set } tileLayer) return;
+        Rect Cell(int x, int y) => new(tileLayer.XOffset + x * set.GMS2TileWidth, tileLayer.YOffset + y * set.GMS2TileHeight, set.GMS2TileWidth, set.GMS2TileHeight);
+        var soft = G3MStudio.Theme.CanvasTheme.Soft(G3MStudio.Theme.CanvasTheme.Line, 0.35);
+        if (_stroke is not null)
+            foreach (var (x, y) in Brushed(_stroke)) context.DrawRectangle(soft, null, Cell(x, y));
+        if (TileSelection is { } selection)
+            context.DrawRectangle(null, new Pen(G3MStudio.Theme.CanvasTheme.Line, 2 / _zoom, DashStyle.Dash), Cell(selection.X, selection.Y).Union(Cell(selection.X + selection.Width - 1, selection.Y + selection.Height - 1)));
+        if (Floating is not { } block) return;
+        for (var y = 0; y < block.Height; y++)
+            for (var x = 0; x < block.Width; x++)
+                if (block[x, y] != 0) context.DrawRectangle(soft, null, Cell(_floatAt.X + x, _floatAt.Y + y));
+        context.DrawRectangle(null, new Pen(G3MStudio.Theme.CanvasTheme.Line, 2 / _zoom), Cell(_floatAt.X, _floatAt.Y).Union(Cell(_floatAt.X + block.Width - 1, _floatAt.Y + block.Height - 1)));
     }
 
     private void DrawGrid(DrawingContext context, Rect view)

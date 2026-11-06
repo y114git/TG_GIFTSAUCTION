@@ -1,5 +1,7 @@
 using System.Globalization;
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.VisualTree;
 using Avalonia.Controls.Primitives;
 using G3MLib.DataFile.Models;
 using G3MStudio.Core.Workspace;
@@ -20,8 +22,12 @@ public sealed class RoomLayersPanel : DockPanel
     private readonly TextBox _name = new() { Name = "LayerName" };
     private readonly ComboBox _kind = new() { Name = "LayerKind", MinWidth = 100 };
     private readonly ComboBox _tileSet = new() { Name = "LayerTileSet", MinWidth = 100, IsVisible = false };
+    private readonly ComboBox _effect = new() { Name = "LayerEffect", MinWidth = 100, IsVisible = false, ItemsSource = EffectTypes, SelectedIndex = 0 };
     private readonly Dictionary<string, NumericUpDown> _props = [];
-    private static readonly string[] Kinds = [RoomLayerCommand.AddInstances, RoomLayerCommand.AddAssets, RoomLayerCommand.AddBackground, RoomLayerCommand.AddTiles];
+    private static readonly DataFormat<string> LayerDrag = DataFormat.CreateStringApplicationFormat("g3mstudio.roomlayer");
+    private static readonly string[] EffectTypes = ["_filter_blur", "_filter_tint", "_filter_vignette"];
+    private Avalonia.Input.PointerPressedEventArgs? _press;
+    private static readonly string[] Kinds = [RoomLayerCommand.AddInstances, RoomLayerCommand.AddAssets, RoomLayerCommand.AddBackground, RoomLayerCommand.AddTiles, RoomLayerCommand.AddPath, RoomLayerCommand.AddEffect];
     private static readonly (string Operation, string Label)[] Props =
     [
         (RoomLayerCommand.Depth, "rooms.layerProp.depth"), (RoomLayerCommand.XOffset, "rooms.layerProp.xoffset"), (RoomLayerCommand.YOffset, "rooms.layerProp.yoffset"),
@@ -39,15 +45,20 @@ public sealed class RoomLayersPanel : DockPanel
         var add = Tool("AddLayer", "rooms.addLayer", AddLayer);
         var delete = Tool("DeleteLayer", "rooms.deleteLayer", () => Edit(Selected is { } l ? [Command(RoomLayerCommand.Delete, l)] : []));
         var fit = Tool("FitTiles", "rooms.fitTiles", () => Edit(Selected is { LayerType: LayerType.Tiles } l ? [Command(RoomLayerCommand.FitTiles, l)] : []));
+        var duplicate = Tool("DuplicateLayer", "roomEditor.duplicateLayer", Duplicate);
         var up = Tool("LayerUp", "rooms.layerUp", () => Move(-1));
         var down = Tool("LayerDown", "rooms.layerDown", () => Move(1));
         var rename = Tool("RenameLayer", "rooms.renameLayer", () => Edit(Selected is { } l && _name.Text is { Length: > 0 } text ? [Command(RoomLayerCommand.Rename, l, text)] : []));
         _kind.ItemsSource = Kinds.Select(k => Loc.Current["rooms.layerKind." + k]).ToList();
         _kind.SelectedIndex = 0;
-        _kind.SelectionChanged += (_, _) => _tileSet.IsVisible = Kinds[Math.Max(0, _kind.SelectedIndex)] == RoomLayerCommand.AddTiles;
+        _kind.SelectionChanged += (_, _) =>
+        {
+            _tileSet.IsVisible = Kinds[Math.Max(0, _kind.SelectedIndex)] == RoomLayerCommand.AddTiles;
+            _effect.IsVisible = Kinds[Math.Max(0, _kind.SelectedIndex)] == RoomLayerCommand.AddEffect;
+        };
         _tileSet.ItemsSource = workspace.Data.Backgrounds.Where(b => b.GMS2TileWidth > 0 && b.GMS2TileCount > 0).Select(b => b.Name.Content).OfType<string>().ToList();
         _tileSet.SelectedIndex = _tileSet.ItemCount > 0 ? 0 : -1;
-        var tools = new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Children = { _kind, _tileSet, add, delete, up, down, fit } };
+        var tools = new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Children = { _kind, _tileSet, _effect, add, duplicate, delete, up, down, fit } };
         var properties = new StackPanel { Spacing = 2 };
         foreach (var (operation, label) in Props)
         {
@@ -73,6 +84,25 @@ public sealed class RoomLayersPanel : DockPanel
         Children.Add(tools);
         Children.Add(nameBar);
         Children.Add(_list);
+        _list.AddHandler(PointerPressedEvent, (_, e) => _press = e.GetCurrentPoint(_list).Properties.IsLeftButtonPressed && e.Source is Control { DataContext: not null } ? e : null, Avalonia.Interactivity.RoutingStrategies.Tunnel);
+        _list.PointerReleased += (_, _) => _press = null;
+        _list.PointerMoved += async (_, e) =>
+        {
+            if (_press is not { } press || (e.GetPosition(_list) - press.GetPosition(_list)) is var d && d.X * d.X + d.Y * d.Y < 64) return;
+            _press = null;
+            if ((press.Source as Avalonia.Visual)?.FindAncestorOfType<ListBoxItem>(true)?.Tag is not Layer dragged) return;
+            var item = new DataTransferItem();
+            item.Set(LayerDrag, dragged.LayerId.ToString(CultureInfo.InvariantCulture));
+            var data = new DataTransfer();
+            data.Add(item);
+            await DragDrop.DoDragDropAsync(press, data, DragDropEffects.Move);
+        };
+        DragDrop.SetAllowDrop(_list, true);
+        _list.AddHandler(DragDrop.DragOverEvent, (_, e) => e.DragEffects = e.DataTransfer.TryGetValue(LayerDrag) is null ? DragDropEffects.None : DragDropEffects.Move);
+        _list.AddHandler(DragDrop.DropEvent, (_, e) =>
+        {
+            if (e.DataTransfer.TryGetValue(LayerDrag) is { } id && (e.Source as Avalonia.Visual)?.FindAncestorOfType<ListBoxItem>(true)?.Tag is Layer target) DropLayer(uint.Parse(id, CultureInfo.InvariantCulture), target);
+        });
         _list.SelectionChanged += (_, _) =>
         {
             if (_building) return;
@@ -121,7 +151,28 @@ public sealed class RoomLayersPanel : DockPanel
         for (var i = 1; names.Contains(name); i++) name = baseName + "_" + i.ToString(CultureInfo.InvariantCulture);
         var front = Math.Max(-16000, (_room.Layers ?? []).Select(l => l.LayerDepth).DefaultIfEmpty(0).Min() - 100);
         if (kind == RoomLayerCommand.AddTiles && _tileSet.SelectedItem is not string) return;
-        Edit([new RoomLayerCommand(_room.Name.Content ?? "", kind, 0, name, front, _tileSet.SelectedItem as string ?? "")]);
+        var extra = kind == RoomLayerCommand.AddEffect ? _effect.SelectedItem as string : _tileSet.SelectedItem as string;
+        Edit([new RoomLayerCommand(_room.Name.Content ?? "", kind, 0, name, front, extra ?? "")]);
+    }
+
+    /// <summary>Copies the selected layer in front of the original, named after it with _copy.</summary>
+    public void Duplicate()
+    {
+        if (Selected is not { } layer) return;
+        var names = (_room.Layers ?? []).Select(l => l.LayerName.Content).ToHashSet();
+        var name = (layer.LayerName.Content ?? "Layer") + "_copy";
+        for (var i = 2; names.Contains(name); i++) name = (layer.LayerName.Content ?? "Layer") + "_copy" + i.ToString(CultureInfo.InvariantCulture);
+        Edit([RoomLayerCommand.DuplicateOf(_room.Name.Content ?? "", layer.LayerId, name, Math.Max(-16000, layer.LayerDepth - 1))]);
+    }
+
+    /// <summary>Puts the dragged layer where the target row is: the depth changes come from <see cref="LayerOrder"/>, as one undo step.</summary>
+    public void DropLayer(uint draggedId, Layer target)
+    {
+        var layers = Layers;
+        var from = layers.ToList().FindIndex(l => l.LayerId == draggedId);
+        var to = layers.ToList().IndexOf(target);
+        var changes = LayerOrder.Move([.. layers.Select(l => (l.LayerId, l.LayerDepth))], from, to);
+        Edit(changes.Select(c => Command(RoomLayerCommand.Depth, layers.First(l => l.LayerId == c.Id), c.Depth.ToString(CultureInfo.InvariantCulture))));
     }
 
     /// <summary>The data of a background or effect layer in a property list under the layer fields; the other layer types keep their own tools.</summary>

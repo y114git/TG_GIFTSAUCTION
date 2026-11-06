@@ -149,6 +149,7 @@ public sealed partial class MainWindow
         _codeTabs.Remove(tabId);
         _roomViews.Remove(tabId);
         _frameViews.Remove(tabId);
+        DisposeImage(tabId);
     }
 
     public void PinTab()

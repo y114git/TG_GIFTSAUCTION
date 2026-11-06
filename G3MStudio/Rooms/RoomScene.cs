@@ -42,6 +42,22 @@ public sealed class RoomScene : IDisposable
     /// <summary>True when the scene decoded its own pages, and so frees them. Pages from a <see cref="TextureBitmaps"/> belong to it.</summary>
     public bool OwnsPages { get; init; }
 
+    private Dictionary<object, Rect>? _bounds;
+
+    /// <summary>The drawn bounds of an element (instance, tile or asset), or null when it is not drawn. The index is built on first use, so a lookup costs the same on a room with 200,000 items.</summary>
+    public Rect? BoundsOf(object element)
+    {
+        if (_bounds is null)
+        {
+            _bounds = new Dictionary<object, Rect>(ReferenceEqualityComparer.Instance);
+            foreach (var item in Items)
+                if (item.Element is { } owner) _bounds[owner] = _bounds.TryGetValue(owner, out var seen) ? seen.Union(item.Dest.Normalize()) : item.Dest.Normalize();
+            foreach (var marker in Markers) _bounds[marker.Element] = marker.Bounds;
+        }
+
+        return _bounds.TryGetValue(element, out var found) ? found : null;
+    }
+
     /// <summary>Frees the texture pages the scene decoded itself.</summary>
     public void Dispose()
     {

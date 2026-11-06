@@ -14,6 +14,8 @@ internal sealed class FakeShell : IShell
     public void ShowPalette() { }
     public void ToggleFullscreen() { }
     public void PaintFrame() { }
+
+    public void EditImage() { }
     public void ReplaceAudio() { }
     public void EditAudio() { }
     public void ExportAudio() { }

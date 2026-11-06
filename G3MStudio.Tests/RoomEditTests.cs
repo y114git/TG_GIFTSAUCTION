@@ -132,7 +132,7 @@ public sealed class RoomEditTests
             using var textures = new Rooms.TextureBitmaps();
             var preview = new Editor.RoomPreview(data.Rooms[0], textures);
             await preview.RestoreViewAsync([2, 10, 20]);
-            Assert.Equal([2, 10, 20], preview.ViewState);
+            Assert.Equal([2, 10, 20], preview.ViewState[..3]);
         });
     }
 

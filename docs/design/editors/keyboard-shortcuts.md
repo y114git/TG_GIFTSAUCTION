@@ -91,3 +91,22 @@ See section 4 item 7.
 ## 11. Parity coverage
 
 - UTMT-KEY-01 to UTMT-KEY-06: section 5 (UTMT preset) and the default map in shell.md section 16.
+
+## 12. Image editor keys
+
+The image editor has its own keys while its canvas has focus (they are not rebindable yet). They follow GameMaker's ImageEditorHotkeys; the full table is in [../../research/image-editor-parity-2026-11.md](../../research/image-editor-parity-2026-11.md).
+
+| Keys | Action |
+| --- | --- |
+| D (B), E, V, H, F, L | Pencil, Eraser, Replace colour, Remove colour, Fill, Line |
+| R, C, P (Shift: filled) | Rectangle, Ellipse, Polygon |
+| A, O (I), S, Q, W, M | Curve, Colour picker, Rectangle select, Lasso, Magic wand, Move |
+| X, G | Swap primary and secondary colour, Grid |
+| + and - | Larger and smaller brush |
+| 1 and 2 | Previous and next frame |
+| Alt+C, Alt+F | Actual size, Fit |
+| Ctrl+Z, Ctrl+Y | Undo, Redo |
+| Ctrl+A, Ctrl+I, Escape | Select all, Invert selection, Clear selection |
+| Ctrl+C, Ctrl+X, Ctrl+V, Delete | Copy, Cut, Paste, Clear |
+| Space (hold) and drag, middle button | Pan |
+| Arrows, Shift+arrows | Nudge the selection by 1 or 8 pixels |

@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Input;
+using G3MStudio.Core.Workspace;
 using static G3MLib.DataFile.Models.GameMakerRoom;
 
 namespace G3MStudio.Rooms;
@@ -22,6 +23,18 @@ public sealed partial class RoomView
         if (Tool == RoomTool.Place && !_space && point.IsLeftButtonPressed)
         {
             PlaceRequested?.Invoke(PaintPoint(ToRoom(at)));
+            return;
+        }
+
+        if (point.IsLeftButtonPressed && !_space && Floating is not null)
+        {
+            DropFloating(ToRoom(at));
+            return;
+        }
+
+        if (point.IsLeftButtonPressed && !_space && BeginTransform(ToRoom(at)))
+        {
+            e.Pointer.Capture(this);
             return;
         }
 
@@ -82,7 +95,17 @@ public sealed partial class RoomView
         _pointer = at;
         var here = ToRoom(at);
         Hovered?.Invoke(here, PaintPoint(here), HitTest(here));
-        if (_paintSource is not null)
+        if (Floating is not null && CellAt(here) is { } over)
+        {
+            _floatAt = over;
+            InvalidateVisual();
+        }
+
+        if (_handle != Handle.None)
+        {
+            DragTransform(here, e.KeyModifiers);
+        }
+        else if (_paintSource is not null)
         {
             var next = PaintPoint(ToRoom(at));
             if (next != _paintPoints[^1]) _paintPoints.Add(next);
@@ -92,7 +115,11 @@ public sealed partial class RoomView
         {
             if (TileCell(ToRoom(at)) is { } cell)
             {
-                if (Tool == RoomTool.Rectangle)
+                if (Tool == RoomTool.Line)
+                {
+                    _stroke = TileBlocks.Line(_stroke[0], cell);
+                }
+                else if (Tool is RoomTool.Rectangle or RoomTool.Select)
                 {
                     var (a, b) = (_stroke[0], cell);
                     _stroke = [.. Enumerable.Range(Math.Min(a.X, b.X), Math.Abs(a.X - b.X) + 1).SelectMany(x => Enumerable.Range(Math.Min(a.Y, b.Y), Math.Abs(a.Y - b.Y) + 1).Select(y => (x, y)))];
@@ -122,6 +149,13 @@ public sealed partial class RoomView
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
+        if (_handle != Handle.None)
+        {
+            EndTransform();
+            e.Pointer.Capture(null);
+            return;
+        }
+
         if (_paintSource is { } painted)
         {
             var origin = new Point(painted.X, painted.Y);
@@ -166,10 +200,7 @@ public sealed partial class RoomView
     {
         if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
         {
-            var at = e.GetPosition(this);
-            var room = ToRoom(at);
-            _zoom = Math.Clamp(_zoom * (e.Delta.Y > 0 ? 1.25 : 0.8), MinZoom, MaxZoom);
-            Offset = new Point(room.X - at.X / _zoom, room.Y - at.Y / _zoom);
+            ZoomAt(e.GetPosition(this), e.Delta.Y > 0 ? 1.25 : 0.8);
         }
         else if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
         {
@@ -193,6 +224,12 @@ public sealed partial class RoomView
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
+        if (TileKeyOperation(e))
+        {
+            e.Handled = true;
+            return;
+        }
+
         if (TileLayer is not null && !e.KeyModifiers.HasFlag(KeyModifiers.Control) && !e.KeyModifiers.HasFlag(KeyModifiers.Alt) && TileKeyPressed?.Invoke(e.Key) == true)
         {
             e.Handled = true;
@@ -230,6 +267,9 @@ public sealed partial class RoomView
                 var room = ToRoom(_pointer);
                 PasteRequested?.Invoke(new Point(Snap(room.X, GridWidth), Snap(room.Y, GridHeight)));
                 break;
+            case Key.D when ctrl && selected.Count > 0:
+                DuplicateRequested?.Invoke(selected, new Point(SnapToGrid ? GridWidth : 16, SnapToGrid ? GridHeight : 16));
+                break;
             case Key.A when ctrl && Scene is not null:
                 Select(Scene.Items.Select(i => i.Element).OfType<object>().Concat(Scene.Markers.Select(m => m.Element)));
                 break;
@@ -252,10 +292,10 @@ public sealed partial class RoomView
                 Select([]);
                 break;
             case Key.OemPlus or Key.Add when ctrl:
-                Zoom = _zoom * 1.25;
+                ZoomAt(new Point(Bounds.Width / 2, Bounds.Height / 2), 1.25);
                 break;
             case Key.OemMinus or Key.Subtract when ctrl:
-                Zoom = _zoom * 0.8;
+                ZoomAt(new Point(Bounds.Width / 2, Bounds.Height / 2), 0.8);
                 break;
             case Key.D0 or Key.NumPad0 when ctrl && shift:
                 Zoom = 1;

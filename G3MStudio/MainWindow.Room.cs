@@ -18,12 +18,23 @@ public sealed partial class MainWindow
         return null;
     }
 
-    public void ShowCreationCode()
+    public void ShowCreationCode() => _ = EditCreationCodeAsync(0);
+
+    /// <summary>Opens the creation code of the room in front (instance 0) or of one of its instances. A missing entry is created after a warning the owner may overrule.</summary>
+    private async Task EditCreationCodeAsync(uint instanceId)
     {
-        if (FrontRoom() is not var (_, room)) return;
-        if (room.CreationCodeId?.Name.Content is { } code) OpenCodeAt(code, 1, 1);
-        else Notify(NotificationLevel.Info, Loc.Current["rooms.noCode"]);
+        if (FrontRoom() is not var (workspace, room)) return;
+        if (RoomCreationCodeCommand.CodeOf(room, instanceId) is null)
+        {
+            var refusal = new RiskyRefusalException("roomEditor.codeWarnTitle", "roomEditor.codeWarn", Loc.Current["roomEditor.noCodeReason"]);
+            if (!await AskRiskyAsync(refusal, instanceId == 0 ? room.Name.Content ?? "" : $"inst_{instanceId:X8}")) return;
+            workspace.Edit(new RoomCreationCodeCommand(room.Name.Content ?? "", instanceId));
+        }
+
+        if (RoomCreationCodeCommand.CodeOf(room, instanceId)?.Name.Content is { } code) OpenCodeAt(code, 1, 1);
     }
+
+    private void ShowInstanceCreationCode(GameMakerRoom.GameObject instance) => _ = EditCreationCodeAsync(instance.InstanceID);
 
     public void ShowCreationOrder()
     {

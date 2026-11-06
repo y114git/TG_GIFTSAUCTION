@@ -23,10 +23,11 @@ public sealed class InstanceInspector : StackPanel
     private readonly Dictionary<string, NumericUpDown> _boxes = [];
     private readonly ComboBox _object = new() { Name = "InstanceObject", MinWidth = 160 };
     private readonly TextBlock _title = new() { Name = "InstanceTitle", Classes = { "muted" } };
+    private readonly Button _code = new() { Name = "InstanceCode", Content = Loc.Current["roomEditor.editInstanceCode"] };
     private IReadOnlyList<GameObject> _selection = [];
     private bool _building;
 
-    public InstanceInspector(Workspace workspace, string room)
+    public InstanceInspector(Workspace workspace, string room, Action<GameObject>? editCode = null)
     {
         (_workspace, _room) = (workspace, room);
         Name = "InstanceInspector";
@@ -49,6 +50,15 @@ public sealed class InstanceInspector : StackPanel
             if (!_building && _object.SelectedItem is string name) Set("object", name);
         };
         Children.Add(new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 6, Children = { new TextBlock { Text = Loc.Current["rooms.inspector.object"], MinWidth = 70, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center }, _object } });
+        if (editCode is not null)
+        {
+            _code.Click += (_, _) =>
+            {
+                if (_selection.Count == 1) editCode(_selection[0]);
+            };
+            Children.Add(_code);
+        }
+
         Show([]);
     }
 
@@ -66,6 +76,7 @@ public sealed class InstanceInspector : StackPanel
             box.Value = first is null ? null : (decimal)Read(first, field);
         }
 
+        _code.IsVisible = selection.Count == 1;
         _object.IsEnabled = first is not null;
         if (_object.Parent is Control objectRow) objectRow.IsVisible = first is not null;
         _object.SelectedItem = first?.ObjectDefinition?.Name.Content;

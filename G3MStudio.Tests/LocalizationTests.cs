@@ -30,7 +30,7 @@ public sealed partial class LocalizationTests
 
     private static bool IsString(string key) => !key.StartsWith("metadata.", StringComparison.Ordinal);
 
-    private static readonly string[] LayerKeyParts = [.. new[] { "depth", "xoffset", "yoffset", "hspeed", "vspeed" }.Select(k => "layerProp." + k), .. new[] { "addInstances", "addAssets", "addBackground", "addTiles" }.Select(k => "layerKind." + k)];
+    private static readonly string[] LayerKeyParts = [.. new[] { "depth", "xoffset", "yoffset", "hspeed", "vspeed" }.Select(k => "layerProp." + k), .. new[] { "addInstances", "addAssets", "addBackground", "addTiles", "addPath", "addEffect" }.Select(k => "layerKind." + k)];
 
     [GeneratedRegex(@"\{(\w+)\}")]
     private static partial Regex Placeholder();
@@ -83,7 +83,7 @@ public sealed partial class LocalizationTests
         var triggers = Enum.GetNames<Core.Projects.Trigger>().Select(n => "project.trigger." + n);
         var types = ResourceTypes.All.Select(t => "explorer.type." + t.Key).Append("explorer.type." + ExplorerModel.DataGroup).Append("explorer.type.backgrounds");
         var tools = Enum.GetNames<Rooms.RoomTool>().Select(n => "rooms.tool." + n).Concat(TourWindow.Steps.SelectMany(s => new[] { "tour." + s.Key + ".title", "tour." + s.Key + ".text" }));
-        var painterKeys = Enum.GetNames<Editor.PaintTool>().Select(n => "painter.tool." + n);
+        var painterKeys = Enum.GetNames<Editor.ImageTool>().SelectMany(n => new[] { "image.tool." + n, "image.hint." + n }).Concat(Enum.GetNames<Editor.ShapeStyle>().Select(n => "image.style." + n)).Concat(Enum.GetNames<Core.Workspace.BrushShape>().Select(n => "image.shape." + n));
         var searchKeys = G3MStudio.Editor.SearchPanelTexts.Keys;
         var dockKeys = G3MStudio.Docking.DockTexts.Keys.Select(k => "dock." + k);
         var layerKeys = LayerKeyParts.Select(k => "rooms." + k).Concat(Enum.GetNames<Core.Plugins.PluginState>().Select(n => "plugins.state." + n));
@@ -94,7 +94,7 @@ public sealed partial class LocalizationTests
         Assert.True(used.All(english.Contains), $"unknown keys: {string.Join(", ", used.Except(english))}");
     }
 
-    [GeneratedRegex("\"((?:app|debug|object|painter|pages|memory|roomOrder|audio|dock|hex|disassembly|tilesets|entryScripts|textureItem|tileSet|warnings|status|menu|cmd|palette|start|explorer|editor|save|notify|prompt|history|rename|code|project|quick|settings|layouts|onboarding|links|tour|git|properties|about|search|usages|help|transfer|mods|sprites|run|update|sounds|rooms|textures|plugins|strings|fonts|paths|timelines|particles|scripts|sequences|inspector|panel|empty|copyTo|risky)\\.[A-Za-z.]+)\"")]
+    [GeneratedRegex("\"((?:app|debug|object|painter|image|pages|memory|roomOrder|audio|dock|hex|disassembly|tilesets|entryScripts|textureItem|tileSet|warnings|status|menu|cmd|palette|start|explorer|editor|save|notify|prompt|history|rename|code|project|quick|settings|layouts|onboarding|links|tour|git|properties|about|search|usages|help|transfer|mods|sprites|run|update|sounds|rooms|textures|plugins|strings|fonts|paths|timelines|particles|scripts|sequences|inspector|panel|empty|copyTo|risky|roomEditor)\\.[A-Za-z.]+)\"")]
     private static partial Regex KeyLiteral();
 
     [GeneratedRegex(@"\{loc:Tr ([A-Za-z.]+)\}")]

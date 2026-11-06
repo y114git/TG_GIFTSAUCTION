@@ -13,12 +13,12 @@ namespace G3MStudio.Editor;
 /// nudged, flipped, copied, pasted, deleted and added; each gesture is one undoable edit and the picture is rebuilt from the model afterwards.
 /// The pages come in off the UI thread.
 /// </summary>
-public sealed class RoomPreview : DockPanel
+public sealed partial class RoomPreview : DockPanel
 {
     private readonly GameMakerRoom _room;
     private readonly TextureBitmaps _textures;
     private readonly Workspace? _workspace;
-    private List<(string Object, int X, int Y, float ScaleX, float ScaleY)> _clipboard = [];
+    private List<(string Object, int X, int Y, float ScaleX, float ScaleY, float Rotation)> _clipboard = [];
     private readonly TextBlock _placeHint = new() { Name = "RoomPlaceHint", Classes = { "muted" }, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center, Margin = new Thickness(8, 0), IsVisible = false };
     private readonly ComboBox _tool = new() { Name = "RoomTool", MinWidth = 120 };
     private readonly Border _paletteHost = new() { Name = "TilePaletteHost", IsVisible = false };
@@ -30,18 +30,23 @@ public sealed class RoomPreview : DockPanel
     private bool _fitted;
     private uint? _shownLayer;
 
-    public RoomPreview(GameMakerRoom room, TextureBitmaps textures, Workspace? workspace = null, Action? creationOrder = null, Action? creationCode = null)
+    public RoomPreview(GameMakerRoom room, TextureBitmaps textures, Workspace? workspace = null, Action? creationOrder = null, Action? creationCode = null, Action<GameMakerRoom.GameObject>? instanceCode = null)
     {
-        (_room, _textures, _workspace) = (room, textures, workspace);
+        (_room, _textures, _workspace, _instanceCode) = (room, textures, workspace, instanceCode);
         Name = "RoomPreview";
         _elements = new RoomElementList(room);
         MinHeight = 200;
-        void ApplyGrid() => (View.GridWidth, View.GridHeight) = RoomOptions.GridFor(room.GridWidth, room.GridHeight);
+        void ApplyGrid()
+        {
+            (View.GridWidth, View.GridHeight) = RoomOptions.GridFor(room.GridWidth, room.GridHeight);
+            SyncGridBoxes();
+        }
+
         ApplyGrid();
         AttachedToVisualTree += (_, _) =>
         {
             RoomOptions.Changed += ApplyGrid;
-            ApplyGrid();
+            if (RoomOptions.GridOverride || !_gridEdited) ApplyGrid();
         };
         DetachedFromVisualTree += (_, _) => RoomOptions.Changed -= ApplyGrid;
         View.Views = [.. room.Views.Where(v => v.Enabled).Select(v => new Avalonia.Rect(v.ViewX, v.ViewY, v.ViewWidth, v.ViewHeight))];
@@ -61,26 +66,16 @@ public sealed class RoomPreview : DockPanel
             {
                 if (PlaceableSource() is { } key) Place(key, at);
             };
-            var bar = new WrapPanel { ItemSpacing = 6, LineSpacing = 4, Children = { _tool, ViewButtons(), _placeHint } };
+            var bar = new WrapPanel { ItemSpacing = 6, LineSpacing = 4, Children = { _tool, EditButtons(), ViewButtons(), _placeHint } };
             SetDock(bar, Avalonia.Controls.Dock.Top);
             Children.Add(bar);
             if (room.Layers is not null)
             {
                 var layers = _layers = new RoomLayersPanel(room, workspace);
                 layers.LockChanged += ApplyLocks;
-                _inspector = new InstanceInspector(workspace, RoomName);
+                _inspector = new InstanceInspector(workspace, RoomName, instanceCode);
                 SidePanel = new StackPanel { Name = "RoomSidePanel", Spacing = 8, Children = { layers, _inspector, _paletteHost } };
-                if (creationOrder is not null && creationCode is not null)
-                {
-                    Button Command(string name, string id, Action run)
-                    {
-                        var button = new Button { Name = name, Content = Loc.Current[AppCommands.TitleKey(id)] };
-                        button.Click += (_, _) => run();
-                        return button;
-                    }
-
-                    ((StackPanel)SidePanel).Children.Insert(1, new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Children = { Command("RoomCreationCode", "room.creationCode", creationCode), Command("RoomCreationOrder", "room.creationOrder", creationOrder) } });
-                }
+                if (creationOrder is not null && creationCode is not null) ((StackPanel)SidePanel).Children.Insert(1, CodeButtons(creationOrder, creationCode));
 
                 View.SelectionChanged += () => _inspector.Show([.. View.Selection.OfType<GameMakerRoom.GameObject>()]);
                 layers.SelectionChanged += () =>
@@ -91,21 +86,7 @@ public sealed class RoomPreview : DockPanel
                 };
                 SetDock(_elements, Avalonia.Controls.Dock.Bottom);
                 Children.Add(_elements);
-                _elements.PickedChanged += picked =>
-                {
-                    if (_syncing) return;
-                    _syncing = true;
-                    View.Select(picked);
-                    _syncing = false;
-                };
-                View.SelectionChanged += () =>
-                {
-                    if (_syncing) return;
-                    _syncing = true;
-                    _elements.Mark(View.Selection);
-                    _syncing = false;
-                };
-                _elements.Show(null);
+                LinkElementList();
             }
 
             WireEdits(workspace);
@@ -113,6 +94,38 @@ public sealed class RoomPreview : DockPanel
 
         AddCanvas();
         Ready = BuildAsync();
+    }
+
+    private static WrapPanel CodeButtons(Action creationOrder, Action creationCode)
+    {
+        Button Command(string name, string id, Action run)
+        {
+            var button = new Button { Name = name, Content = Loc.Current[AppCommands.TitleKey(id)] };
+            button.Click += (_, _) => run();
+            return button;
+        }
+
+        return new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Children = { Command("RoomCreationCode", "room.creationCode", creationCode), Command("RoomCreationOrder", "room.creationOrder", creationOrder) } };
+    }
+
+    /// <summary>Keeps the element list under the canvas and the canvas selection in step, each change guarded against echoing back.</summary>
+    private void LinkElementList()
+    {
+        _elements.PickedChanged += picked =>
+        {
+            if (_syncing) return;
+            _syncing = true;
+            View.Select(picked);
+            _syncing = false;
+        };
+        View.SelectionChanged += () =>
+        {
+            if (_syncing) return;
+            _syncing = true;
+            _elements.Mark(View.Selection);
+            _syncing = false;
+        };
+        _elements.Show(null);
     }
 
     private void WireEdits(Workspace workspace)
@@ -125,6 +138,7 @@ public sealed class RoomPreview : DockPanel
         View.PasteRequested += Paste;
         View.CopiesPainted += PaintCopies;
         View.TilesPainted += Paint;
+        WireRoomEditing();
         workspace.History.Changed += OnHistoryChanged;
         DetachedFromVisualTree += (_, _) => workspace.History.Changed -= OnHistoryChanged;
     }
@@ -155,14 +169,19 @@ public sealed class RoomPreview : DockPanel
     public Control? SidePanel { get; private set; }
 
     /// <summary>The zoom and the top-left room position of the canvas, to be restored with <see cref="RestoreViewAsync"/>.</summary>
-    public double[] ViewState => [View.Zoom, View.Offset.X, View.Offset.Y];
+    public double[] ViewState => [View.Zoom, View.Offset.X, View.Offset.Y, View.SnapToGrid ? 1 : 0, View.ShowGrid ? 1 : 0, View.GridWidth, View.GridHeight];
 
     /// <summary>Puts a saved zoom and position back once the scene is drawn.</summary>
     public async Task RestoreViewAsync(double[] state)
     {
-        if (state is not [var zoom, var x, var y]) return;
+        if (state is not [var zoom, var x, var y, ..]) return;
         await Ready;
         (View.Zoom, View.Offset) = (zoom, new Point(x, y));
+        if (state is not [_, _, _, var snap, var grid, var gridW, var gridH]) return;
+        (View.SnapToGrid, View.ShowGrid) = (snap > 0, grid > 0);
+        if (RoomOptions.GridOverride || gridW <= 0 || gridH <= 0) return;
+        (View.GridWidth, View.GridHeight, _gridEdited) = (gridW, gridH, true);
+        SyncGridBoxes();
     }
 
     /// <summary>Completes when the scene is drawn (or could not be built).</summary>
@@ -244,14 +263,14 @@ public sealed class RoomPreview : DockPanel
     {
         if (_clipboard.Count == 0) return;
         var (ax, ay) = (_clipboard[0].X, _clipboard[0].Y);
-        Edit(_clipboard.Select(c => new RoomInstanceCommand(RoomName, RoomInstanceCommand.Add, 0, (int)at.X + c.X - ax, (int)at.Y + c.Y - ay, c.Object) { ScaleX = c.ScaleX, ScaleY = c.ScaleY }));
+        Edit(_clipboard.Select(c => new RoomInstanceCommand(RoomName, RoomInstanceCommand.Add, 0, (int)at.X + c.X - ax, (int)at.Y + c.Y - ay, c.Object) { ScaleX = c.ScaleX, ScaleY = c.ScaleY, Rotation = c.Rotation }));
     }
 
     /// <summary>One copy of the instance at each place, as one undo step.</summary>
     public void PaintCopies(GameMakerRoom.GameObject source, IReadOnlyList<Point> places)
     {
         if (source.ObjectDefinition?.Name.Content is not { } name) return;
-        Edit(places.Select(p => new RoomInstanceCommand(RoomName, RoomInstanceCommand.Add, 0, (int)p.X, (int)p.Y, name) { ScaleX = source.ScaleX, ScaleY = source.ScaleY }));
+        Edit(places.Select(p => new RoomInstanceCommand(RoomName, RoomInstanceCommand.Add, 0, (int)p.X, (int)p.Y, name) { ScaleX = source.ScaleX, ScaleY = source.ScaleY, Rotation = source.Rotation }));
     }
 
     /// <summary>Remembers the instances (object, position, scale) for a later paste.</summary>
@@ -259,7 +278,7 @@ public sealed class RoomPreview : DockPanel
     {
         _clipboard = [];
         foreach (var i in elements.OfType<GameMakerRoom.GameObject>())
-            if (i.ObjectDefinition?.Name.Content is { } name) _clipboard.Add((name, i.X, i.Y, i.ScaleX, i.ScaleY));
+            if (i.ObjectDefinition?.Name.Content is { } name) _clipboard.Add((name, i.X, i.Y, i.ScaleX, i.ScaleY, i.Rotation));
     }
 
     /// <summary>Shows the tile set of the chosen layer as the palette and makes it the layer that painting changes; other layers leave painting off.</summary>
@@ -276,6 +295,7 @@ public sealed class RoomPreview : DockPanel
             Children = { FlagBox(_palette, 1, "rooms.flagMirror"), FlagBox(_palette, 2, "rooms.flagFlip"), FlagBox(_palette, 4, "rooms.flagRotate"), _palette },
         };
         _paletteHost.IsVisible = _palette is not null;
+        _tileBar.IsVisible = View.TileLayer is not null;
     }
 
     private static CheckBox FlagBox(TilePalette palette, int bit, string key)
@@ -290,7 +310,7 @@ public sealed class RoomPreview : DockPanel
     private bool TileKey(Avalonia.Input.Key key)
     {
         if (_palette is null) return false;
-        RoomTool? tool = key switch { Avalonia.Input.Key.B => RoomTool.Paint, Avalonia.Input.Key.E => RoomTool.Erase, Avalonia.Input.Key.G => RoomTool.Fill, Avalonia.Input.Key.R => RoomTool.Rectangle, Avalonia.Input.Key.P => RoomTool.Pick, _ => null };
+        RoomTool? tool = key switch { Avalonia.Input.Key.B => RoomTool.Paint, Avalonia.Input.Key.E => RoomTool.Erase, Avalonia.Input.Key.G => RoomTool.Fill, Avalonia.Input.Key.R => RoomTool.Rectangle, Avalonia.Input.Key.P => RoomTool.Pick, Avalonia.Input.Key.L => RoomTool.Line, Avalonia.Input.Key.S => RoomTool.Select, _ => null };
         if (tool is { } chosen)
         {
             _tool.SelectedIndex = (int)chosen;
@@ -314,6 +334,13 @@ public sealed class RoomPreview : DockPanel
             return;
         }
 
+        if (tool == RoomTool.Select)
+        {
+            SelectTiles(cells);
+            return;
+        }
+
+        cells = tool is RoomTool.Paint or RoomTool.Erase or RoomTool.Line ? Brushed(layer, cells) : cells;
         var value = tool == RoomTool.Erase ? 0u : _palette?.TileValue ?? 0;
         List<(int X, int Y, uint Value)> changes = tool == RoomTool.Fill && layer.TilesData is { TileData: { } rows } && cells.Count > 0
             ? RoomTilesCommand.FloodFill(rows, cells[0].X, cells[0].Y, value)
@@ -375,6 +402,8 @@ public sealed class RoomPreview : DockPanel
             }
 
             var assets = (_room.Layers ?? []).Where(l => l.AssetsData is not null).SelectMany(l => new[] { RoomElements.Sprite, RoomElements.Sequence, RoomElements.Particle, RoomElements.Text }.SelectMany(k => RoomElements.ListOf(l, k)?.Cast<object>() ?? []));
+            selectedIds = _pendingSelect ?? selectedIds;
+            _pendingSelect = null;
             View.Select(RoomInstanceCommand.Lists(_room).SelectMany(l => l).Where(i => selectedIds.Contains(i.InstanceID)).DistinctBy(i => i.InstanceID).Cast<object>()
                 .Concat(assets.Where(e => selectedAssets.Contains((RoomElements.KindOf(e), RoomElements.NameOf(e))))));
         }

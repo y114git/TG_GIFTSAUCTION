@@ -8,7 +8,7 @@ using static G3MLib.DataFile.Models.GameMakerRoom;
 
 namespace G3MStudio.Rooms;
 
-public enum RoomTool { None, Place, Paint, Erase, Fill, Rectangle, Pick }
+public enum RoomTool { None, Place, Paint, Erase, Fill, Rectangle, Pick, Line, Select }
 
 /// <summary>
 /// Draws a <see cref="RoomScene"/> and edits its object instances. Left-drag on empty space draws a marquee, middle-drag or Space+drag pans,
@@ -133,6 +133,9 @@ public sealed partial class RoomView : Control
 
     public event Action<IReadOnlyList<object>>? CopyRequested;
 
+    /// <summary>Ctrl+D: the selection and the offset (one grid step) at which to put the copies.</summary>
+    public event Action<IReadOnlyList<object>, Point>? DuplicateRequested;
+
     /// <summary>Alt+drag over an instance: the instance and the places (room pixels, snapped when snapping is on) to put a copy of it, not counting its own place.</summary>
     public event Action<GameObject, IReadOnlyList<Point>>? CopiesPainted;
 
@@ -183,6 +186,14 @@ public sealed partial class RoomView : Control
         var reach = 8 / _zoom;
         var near = guides.OrderBy(g => Math.Abs(g - value)).Select(g => (double?)g).FirstOrDefault();
         return near is { } guide && Math.Abs(guide - value) <= reach ? guide : Snap(value, cell);
+    }
+
+    /// <summary>Zooms by a factor and keeps the room point under <paramref name="screen"/> where it is.</summary>
+    public void ZoomAt(Point screen, double factor)
+    {
+        var room = ToRoom(screen);
+        _zoom = Math.Clamp(_zoom * factor, MinZoom, MaxZoom);
+        Offset = new Point(room.X - screen.X / _zoom, room.Y - screen.Y / _zoom);
     }
 
     public Point ToRoom(Point screen) => new(screen.X / _zoom + _offset.X, screen.Y / _zoom + _offset.Y);

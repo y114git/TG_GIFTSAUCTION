@@ -1,6 +1,6 @@
 # Image editor
 
-Status: proposed. A pixel editor for sprite frames, tile set images and single texture page items (F-RES-9). It keeps the core of GameMaker's Image Editor: the tools, frames strip and frame operations. Layers are left out because data files store flattened bitmaps. Shared rules: [../ux-standards.md](../ux-standards.md). The sprite properties are in [sprites.md](sprites.md).
+Status: partly built (2026-11-06, OI-350). The tools, panels and commands exist; the built state and what is missing are in [../../research/image-editor-parity-2026-11.md](../../research/image-editor-parity-2026-11.md). Edits are journaled workspace steps instead of the session and Apply flow of section 5, and the keys follow GameMaker's file (Q71). A pixel editor for sprite frames, tile set images and single texture page items (F-RES-9). It keeps the core of GameMaker's Image Editor: the tools, frames strip and frame operations. Layers are left out because data files store flattened bitmaps. Shared rules: [../ux-standards.md](../ux-standards.md). The sprite properties are in [sprites.md](sprites.md).
 
 ## 1. Purpose and entry points
 

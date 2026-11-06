@@ -21,6 +21,11 @@ public sealed class RoomLayerCommand : EditCommand
     public const string AddAssets = "addAssets";
     public const string AddBackground = "addBackground";
     public const string AddTiles = "addTiles";
+    public const string AddPath = "addPath";
+    public const string AddEffect = "addEffect";
+
+    /// <summary>Copies the layer with its contents under the name in the text; instances get new ids.</summary>
+    public const string Duplicate = "duplicate";
     public const string XOffset = "xoffset";
     public const string YOffset = "yoffset";
     public const string HSpeed = "hspeed";
@@ -38,6 +43,8 @@ public sealed class RoomLayerCommand : EditCommand
     private string _oldText = "";
     private (uint[][] Data, uint X, uint Y)? _oldTiles;
     private List<(int Index, GameObject Instance)> _removed = [];
+    private List<GameObject> _copies = [];
+    private uint _oldLastObj;
 
     // layerId: the layer to change; for an add, 0 picks the next free id. text: visible "1" or "0"; rename and add the name; depth the new depth.
     public RoomLayerCommand(string room, string operation, uint layerId, string text = "", int depth = 0, string tileSet = "")
@@ -51,8 +58,14 @@ public sealed class RoomLayerCommand : EditCommand
             ["text"] = text,
             ["newDepth"] = depth.ToString(CultureInfo.InvariantCulture),
             ["tileSet"] = tileSet,
+            ["source"] = "0",
         };
     }
+
+    /// <summary>A duplicate of <paramref name="source"/> named <paramref name="name"/> at the given depth.</summary>
+    public static RoomLayerCommand DuplicateOf(string room, uint source, string name, int depth) => new(room, Duplicate, 0, name, depth) { Source = source };
+
+    public uint Source { get => uint.Parse(_args["source"], CultureInfo.InvariantCulture); init => _args["source"] = value.ToString(CultureInfo.InvariantCulture); }
 
     public override string Kind => Name;
 
@@ -63,7 +76,10 @@ public sealed class RoomLayerCommand : EditCommand
     public override IReadOnlyList<ProjectTouch>? Touches => [new("Rooms", _room), new("Strings", null)];
 
     public static RoomLayerCommand FromArgs(IReadOnlyDictionary<string, string> a) => new(a["room"], a["operation"], uint.Parse(a["layer"], CultureInfo.InvariantCulture), a["text"],
-        int.Parse(a.GetValueOrDefault("newDepth", "0"), CultureInfo.InvariantCulture), a.GetValueOrDefault("tileSet", ""));
+        int.Parse(a.GetValueOrDefault("newDepth", "0"), CultureInfo.InvariantCulture), a.GetValueOrDefault("tileSet", ""))
+    {
+        Source = uint.Parse(a.GetValueOrDefault("source", "0"), CultureInfo.InvariantCulture),
+    };
 
     private uint Id => uint.Parse(_args["layer"], CultureInfo.InvariantCulture);
 
@@ -94,23 +110,47 @@ public sealed class RoomLayerCommand : EditCommand
                 var tiles = new uint[rows][];
                 for (var y = 0; y < rows; y++) tiles[y] = new uint[columns];
                 return new Layer.LayerTilesData { ParentLayer = layer, Background = set, TilesX = columns, TilesY = rows, TileData = tiles };
+            case AddEffect:
+                return new Layer.LayerEffectData { EffectType = layer.EffectType, Properties = layer.EffectProperties };
             default:
                 return new Layer.LayerInstancesData();
         }
+    }
+
+    private Layer CopyOf(GameMakerData data, GameMakerRoom room, Layer source, uint id)
+    {
+        var copy = LayerCopy.Shallow(source);
+        (copy.LayerName, copy.LayerId, copy.ParentRoom) = (data.Strings.MakeString(_text, out _), id, room);
+        copy.EffectProperties = LayerCopy.Properties(source.EffectProperties);
+        if (source.Data is not null) copy.Data = LayerCopy.Data(source.Data, copy, room, data, _copies);
+        return copy;
     }
 
     public override void Apply(GameMakerData data)
     {
         var room = data.Rooms.FirstOrDefault(r => r.Name.Content == _room) ?? throw new InvalidOperationException($"Room '{_room}' does not exist.");
         var layers = room.Layers ?? throw new InvalidOperationException($"Room '{_room}' has no layers.");
-        if (_operation is AddInstances or AddAssets or AddBackground or AddTiles)
+        if (_operation is AddInstances or AddAssets or AddBackground or AddTiles or AddPath or AddEffect or Duplicate)
         {
             if (layers.Any(l => l.LayerName.Content == _text)) throw new InvalidOperationException($"'{_text}' is already a layer name.");
             var id = Id != 0 ? Id : layers.Select(l => l.LayerId).DefaultIfEmpty().Max() + 1;
             _args["layer"] = id.ToString(CultureInfo.InvariantCulture);
-            var type = _operation switch { AddAssets => LayerType.Assets, AddBackground => LayerType.Background, AddTiles => LayerType.Tiles, _ => LayerType.Instances };
+            _oldLastObj = data.GeneralInfo.LastObj;
+            if (_operation == Duplicate)
+            {
+                var source = layers.FirstOrDefault(l => l.LayerId == Source) ?? throw new InvalidOperationException($"Room '{_room}' has no layer {Source}.");
+                _copies = [];
+                _layer = CopyOf(data, room, source, id);
+                _layer.LayerDepth = int.Parse(_args["newDepth"], CultureInfo.InvariantCulture);
+                _index = layers.Count;
+                layers.Add(_layer);
+                return;
+            }
+
+            var type = _operation switch { AddAssets => LayerType.Assets, AddBackground => LayerType.Background, AddTiles => LayerType.Tiles, AddPath => data.IsVersionAtLeast(2022, 1) ? LayerType.Path2 : LayerType.Path, AddEffect => LayerType.Effect, _ => LayerType.Instances };
             _layer = new Layer { LayerName = data.Strings.MakeString(_text, out _), LayerId = id, LayerType = type, LayerDepth = int.Parse(_args["newDepth"], CultureInfo.InvariantCulture), IsVisible = true, ParentRoom = room };
-            _layer.Data = NewData(data, room, _layer);
+            if (_operation == AddEffect) (_layer.EffectEnabled, _layer.EffectType, _layer.EffectProperties) = (true, data.Strings.MakeString(_args["tileSet"], out _), []);
+            if (_operation != AddPath) _layer.Data = NewData(data, room, _layer);
             _index = layers.Count;
             layers.Add(_layer);
             return;
@@ -202,6 +242,12 @@ public sealed class RoomLayerCommand : EditCommand
                 break;
             default:
                 layers.Remove(_layer);
+                if (_operation == Duplicate && room.GameObjects is { } master)
+                {
+                    foreach (var copy in _copies) master.Remove(copy);
+                    data.GeneralInfo.LastObj = _oldLastObj;
+                }
+
                 break;
         }
     }

@@ -41,6 +41,9 @@ public sealed class RoomInstanceCommand : EditCommand
 
     public float ScaleY { get; init; } = 1;
 
+    /// <summary>The rotation of an added instance, in degrees.</summary>
+    public float Rotation { get; init; }
+
     public string Value { get; init; } = "";
 
     public override string Kind => Name;
@@ -57,6 +60,7 @@ public sealed class RoomInstanceCommand : EditCommand
         ["object"] = _object,
         ["sx"] = ScaleX.ToString("R", CultureInfo.InvariantCulture),
         ["sy"] = ScaleY.ToString("R", CultureInfo.InvariantCulture),
+        ["rot"] = Rotation.ToString("R", CultureInfo.InvariantCulture),
         ["value"] = Value,
     };
 
@@ -67,6 +71,7 @@ public sealed class RoomInstanceCommand : EditCommand
     {
         ScaleX = float.Parse(a.GetValueOrDefault("sx", "1"), CultureInfo.InvariantCulture),
         ScaleY = float.Parse(a.GetValueOrDefault("sy", "1"), CultureInfo.InvariantCulture),
+        Rotation = float.Parse(a.GetValueOrDefault("rot", "0"), CultureInfo.InvariantCulture),
         Value = a.GetValueOrDefault("value", ""),
     };
 
@@ -96,7 +101,7 @@ public sealed class RoomInstanceCommand : EditCommand
             var id = Id != 0 ? Id : Math.Max(_oldLastObj, data.Rooms.SelectMany(Lists).SelectMany(l => l).Select(i => i.InstanceID).DefaultIfEmpty().Max()) + 1;
             Id = id;
             data.GeneralInfo.LastObj = Math.Max(_oldLastObj, id);
-            _instance = new GameMakerRoom.GameObject { ObjectDefinition = definition, X = _x, Y = _y, InstanceID = id, ScaleX = ScaleX, ScaleY = ScaleY };
+            _instance = new GameMakerRoom.GameObject { ObjectDefinition = definition, X = _x, Y = _y, InstanceID = id, ScaleX = ScaleX, ScaleY = ScaleY, Rotation = Rotation };
             foreach (var list in new IList<GameMakerRoom.GameObject>?[] { room.GameObjects, layer }.OfType<IList<GameMakerRoom.GameObject>>())
             {
                 _slots.Add((list, list.Count));

@@ -37,6 +37,7 @@ public sealed partial class MainWindow
     private readonly OutputPanel _output = new();
     private readonly Dictionary<string, CodeEditorTab> _codeTabs = [];
     private readonly Dictionary<string, SpriteFramesView> _frameViews = [];
+    private readonly Dictionary<string, ImageEditorView> _imageViews = [];
     private readonly Dictionary<string, RoomPreview> _roomViews = [];
 
     private Dictionary<string, double[]>? _savedRooms;
@@ -59,6 +60,7 @@ public sealed partial class MainWindow
     {
         var open = Docking.Tabs.Tabs.Select(t => t.Id).ToHashSet();
         Prune(_frameViews, open);
+        PruneImages(open);
         Prune(_roomViews, open);
         Prune(_codeTabs, open);
     }
@@ -73,13 +75,14 @@ public sealed partial class MainWindow
     private Control? CreateEditor(TabInfo tab)
     {
         if (Workspaces.Current is not { } workspace || ResourceTypes.SplitKey(tab.Key) is not var (kind, entry)) return new TextBlock { Text = tab.Key, Classes = { "muted" } };
+        if (tab.Kind == "image") return ImageTab(tab, workspace, entry);
         if (tab.Kind != "code")
         {
             var resource = ResourceTypes.Find(workspace.Data, tab.Key);
             Control? header = resource switch
             {
                 GameMakerSprite sprite => RememberFrames(tab.Id, new SpriteFramesView(sprite, _textures, workspace.History)),
-                GameMakerRoom room => RememberRoom(tab.Id, new RoomPreview(room, _textures, workspace, ShowCreationOrder, ShowCreationCode), tab.Key),
+                GameMakerRoom room => RememberRoom(tab.Id, new RoomPreview(room, _textures, workspace, ShowCreationOrder, ShowCreationCode, ShowInstanceCreationCode), tab.Key),
                 GameMakerSound sound => new SoundPlayerView(sound, UrlOpener),
                 GameMakerGeneralInfo => new EntryScriptsView(workspace, OpenEntry),
                 GameMakerVariable => new VariableCountsView(workspace),
