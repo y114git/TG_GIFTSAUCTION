@@ -174,6 +174,8 @@
       "runScript": "執行指令碼...",
       "runCommand": "執行 C# 命令...",
       "roomOrder": "房間順序...",
+      "textureGroups": "紋理群組...",
+      "audioGroups": "音訊群組...",
       "disassemble": "程式碼項目反組譯...",
       "hexView": "資料檔案十六進位視圖...",
       "offsetMap": "寫出區塊偏移表",
@@ -1313,5 +1315,91 @@
     "codeWarnTitle": "要為 {name} 建立建立程式碼嗎?",
     "codeWarn": "{reason}\n\n繼續將建立並連結一個空的程式碼項目。儲存前可復原。",
     "noCodeReason": "尚無建立程式碼。"
+  },
+  "editors": {
+    "frame": "影格",
+    "origin": {
+      "title": "原點",
+      "topLeft": "左上",
+      "topCenter": "上中",
+      "topRight": "右上",
+      "middleLeft": "左中",
+      "center": "中心",
+      "middleRight": "右中",
+      "bottomLeft": "左下",
+      "bottomCenter": "下中",
+      "bottomRight": "右下",
+      "custom": "自訂"
+    },
+    "mask": {
+      "title": "碰撞遮罩",
+      "auto": "自動",
+      "full": "整個影像",
+      "manual": "手動",
+      "rectangle": "矩形",
+      "rotated": "旋轉矩形",
+      "ellipse": "橢圓",
+      "diamond": "菱形",
+      "precise": "精確",
+      "preciseFrames": "逐格精確",
+      "tolerance": "容差",
+      "box": "邊界：左、上、右、下"
+    },
+    "slice": {
+      "enabled": "九宮格"
+    },
+    "tile": {
+      "stretch": "拉伸",
+      "repeat": "重複",
+      "mirror": "鏡像",
+      "blankRepeat": "空白重複",
+      "hide": "隱藏"
+    },
+    "object": {
+      "eventUp": "上移",
+      "eventDown": "下移",
+      "eventDuplicate": "複製",
+      "eventCopyTo": "複製到...",
+      "noFreeEvent": "此類型的事件已全部存在，無法複製。",
+      "noCopyTarget": "沒有缺少此事件的其他物件。",
+      "noParent": "（無父物件）",
+      "parent": "父物件"
+    },
+    "sequence": {
+      "addKey": "在播放頭處新增關鍵影格",
+      "splitKey": "在播放頭處分割關鍵影格",
+      "deleteKey": "刪除關鍵影格"
+    },
+    "curve": {
+      "linear": "線性",
+      "smooth": "平滑",
+      "bezier": "貝茲",
+      "channel": "通道",
+      "add": "新增點",
+      "delete": "刪除點",
+      "value": "值"
+    },
+    "path": {
+      "reverse": "反轉順序",
+      "mirror": "水平鏡像",
+      "flip": "垂直翻轉",
+      "closed": "閉合",
+      "smooth": "平滑",
+      "resetView": "重設視圖"
+    },
+    "tiles": {
+      "indices": "顯示圖塊編號",
+      "animated": "動畫圖塊",
+      "frames": "影格",
+      "apply": "設定影格",
+      "speed": "速度（影格/秒）"
+    },
+    "groups": {
+      "textureTitle": "紋理群組",
+      "audioTitle": "音訊群組",
+      "move": "移動",
+      "moveTo": "將所選項移到",
+      "moved": "已將 {count} 項移到 {group}。"
+    }
   }
 }

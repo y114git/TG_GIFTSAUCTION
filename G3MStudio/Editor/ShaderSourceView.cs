@@ -137,8 +137,14 @@ public sealed class TilePickerView : StackPanel
         Texture.Picked += (x, y) => Pick(TileGeometry.IndexAt(_background, x, y));
         _list.SelectionChanged += (_, _) => Texture.Highlight(_list.SelectedIndex is >= 0 and var i ? TileGeometry.RectOf(_background, i) : null);
         Children.Add(new TileSetInfoView(background, workspace));
+        var overlay = new TileIndexOverlay(background, () => Texture.Zoom) { IsVisible = false };
+        Texture.AddOverlay(overlay);
+        var indices = new CheckBox { Name = "TileIndices", Content = Loc.Current["editors.tiles.indices"] };
+        indices.IsCheckedChanged += (_, _) => overlay.IsVisible = indices.IsChecked == true;
+        Children.Add(indices);
         Children.Add(Texture);
         Children.Add(_list);
+        Children.Add(new TileAnimationView(background, workspace));
         var find = new Button { Name = "FindTile", Content = Loc.Current["tileSet.findRooms"], IsEnabled = false };
         find.Click += (_, _) => { if (Selected >= 0 || _picked >= 0) FindRequested?.Invoke(_picked); };
         _findButton = find;

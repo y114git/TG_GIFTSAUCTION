@@ -174,6 +174,8 @@
       "runScript": "スクリプトを実行...",
       "runCommand": "C# コマンドを実行...",
       "roomOrder": "ルームの順序...",
+      "textureGroups": "テクスチャグループ...",
+      "audioGroups": "オーディオグループ...",
       "disassemble": "コードエントリの逆アセンブル...",
       "hexView": "データファイルの16進ビュー...",
       "offsetMap": "チャンクのオフセット表を書き出す",
@@ -1313,5 +1315,91 @@
     "codeWarnTitle": "{name} の作成コードを作成しますか?",
     "codeWarn": "{reason}\n\n続行すると空のコードエントリが作成されてリンクされます。保存するまでは「元に戻す」で取り消せます。",
     "noCodeReason": "まだ作成コードがありません。"
+  },
+  "editors": {
+    "frame": "フレーム",
+    "origin": {
+      "title": "原点",
+      "topLeft": "左上",
+      "topCenter": "上中央",
+      "topRight": "右上",
+      "middleLeft": "左中央",
+      "center": "中央",
+      "middleRight": "右中央",
+      "bottomLeft": "左下",
+      "bottomCenter": "下中央",
+      "bottomRight": "右下",
+      "custom": "カスタム"
+    },
+    "mask": {
+      "title": "衝突マスク",
+      "auto": "自動",
+      "full": "画像全体",
+      "manual": "手動",
+      "rectangle": "矩形",
+      "rotated": "回転矩形",
+      "ellipse": "楕円",
+      "diamond": "ひし形",
+      "precise": "精密",
+      "preciseFrames": "フレームごとに精密",
+      "tolerance": "許容値",
+      "box": "範囲: 左、上、右、下"
+    },
+    "slice": {
+      "enabled": "9スライス"
+    },
+    "tile": {
+      "stretch": "引き伸ばし",
+      "repeat": "繰り返し",
+      "mirror": "ミラー",
+      "blankRepeat": "空白繰り返し",
+      "hide": "非表示"
+    },
+    "object": {
+      "eventUp": "上へ",
+      "eventDown": "下へ",
+      "eventDuplicate": "複製",
+      "eventCopyTo": "コピー先...",
+      "noFreeEvent": "このタイプのイベントはすべて存在するため、複製できません。",
+      "noCopyTarget": "このイベントを持たない他のオブジェクトはありません。",
+      "noParent": "(親なし)",
+      "parent": "親"
+    },
+    "sequence": {
+      "addKey": "再生位置にキーフレームを追加",
+      "splitKey": "再生位置でキーフレームを分割",
+      "deleteKey": "キーフレームを削除"
+    },
+    "curve": {
+      "linear": "リニア",
+      "smooth": "スムーズ",
+      "bezier": "ベジェ",
+      "channel": "チャンネル",
+      "add": "点を追加",
+      "delete": "点を削除",
+      "value": "値"
+    },
+    "path": {
+      "reverse": "逆順",
+      "mirror": "左右反転",
+      "flip": "上下反転",
+      "closed": "閉じる",
+      "smooth": "スムーズ",
+      "resetView": "ビューをリセット"
+    },
+    "tiles": {
+      "indices": "タイル番号を表示",
+      "animated": "アニメーションタイル",
+      "frames": "フレーム",
+      "apply": "フレームを設定",
+      "speed": "速度（フレーム/秒）"
+    },
+    "groups": {
+      "textureTitle": "テクスチャグループ",
+      "audioTitle": "オーディオグループ",
+      "move": "移動",
+      "moveTo": "選択項目の移動先",
+      "moved": "{count} 件を {group} に移動しました。"
+    }
   }
 }

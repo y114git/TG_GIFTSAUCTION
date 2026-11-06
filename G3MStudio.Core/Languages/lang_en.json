@@ -174,6 +174,8 @@
       "runScript": "Run Script...",
       "runCommand": "Run C# Command...",
       "roomOrder": "Room Order...",
+      "textureGroups": "Texture Groups...",
+      "audioGroups": "Audio Groups...",
       "disassemble": "Disassembly of Code Entry...",
       "hexView": "Hex View of Data File...",
       "offsetMap": "Write Chunk Offset Map",
@@ -1313,5 +1315,91 @@
     "codeWarnTitle": "Create creation code for {name}?",
     "codeWarn": "{reason}\n\nIf you go on, an empty code entry is created and linked. Undo removes it until you save.",
     "noCodeReason": "This has no creation code yet."
+  },
+  "editors": {
+    "frame": "Frame",
+    "origin": {
+      "title": "Origin",
+      "topLeft": "Top left",
+      "topCenter": "Top center",
+      "topRight": "Top right",
+      "middleLeft": "Middle left",
+      "center": "Center",
+      "middleRight": "Middle right",
+      "bottomLeft": "Bottom left",
+      "bottomCenter": "Bottom center",
+      "bottomRight": "Bottom right",
+      "custom": "Custom"
+    },
+    "mask": {
+      "title": "Collision mask",
+      "auto": "Automatic",
+      "full": "Full image",
+      "manual": "Manual",
+      "rectangle": "Rectangle",
+      "rotated": "Rotated rectangle",
+      "ellipse": "Ellipse",
+      "diamond": "Diamond",
+      "precise": "Precise",
+      "preciseFrames": "Precise per frame",
+      "tolerance": "Tolerance",
+      "box": "Box left, top, right, bottom"
+    },
+    "slice": {
+      "enabled": "Nine slice"
+    },
+    "tile": {
+      "stretch": "Stretch",
+      "repeat": "Repeat",
+      "mirror": "Mirror",
+      "blankRepeat": "Blank repeat",
+      "hide": "Hide"
+    },
+    "object": {
+      "eventUp": "Up",
+      "eventDown": "Down",
+      "eventDuplicate": "Duplicate",
+      "eventCopyTo": "Copy to...",
+      "noFreeEvent": "Every event of this type already exists, so it cannot be duplicated.",
+      "noCopyTarget": "No other object lacks this event.",
+      "noParent": "(no parent)",
+      "parent": "Parent"
+    },
+    "sequence": {
+      "addKey": "Add keyframe at playhead",
+      "splitKey": "Split keyframe at playhead",
+      "deleteKey": "Delete keyframe"
+    },
+    "curve": {
+      "linear": "Linear",
+      "smooth": "Smooth",
+      "bezier": "Bezier",
+      "channel": "Channel",
+      "add": "Add point",
+      "delete": "Delete point",
+      "value": "Value"
+    },
+    "path": {
+      "reverse": "Reverse",
+      "mirror": "Mirror",
+      "flip": "Flip",
+      "closed": "Closed",
+      "smooth": "Smooth",
+      "resetView": "Reset view"
+    },
+    "tiles": {
+      "indices": "Show tile indices",
+      "animated": "Animated tiles",
+      "frames": "Frames",
+      "apply": "Set frames",
+      "speed": "Speed (frames per second)"
+    },
+    "groups": {
+      "textureTitle": "Texture Groups",
+      "audioTitle": "Audio Groups",
+      "move": "Move",
+      "moveTo": "Move picked to",
+      "moved": "Moved {count} to {group}."
+    }
   }
 }

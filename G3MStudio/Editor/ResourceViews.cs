@@ -40,6 +40,8 @@ public sealed class TextureItemView : DockPanel
     private readonly Chequer _chequer = new() { HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top };
     private readonly Avalonia.Controls.Shapes.Rectangle _box = new() { Stroke = G3MStudio.Theme.CanvasTheme.Point, StrokeThickness = 2, IsHitTestVisible = false, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top };
     private (int X, int Y, int W, int H) _frame;
+    private readonly Grid _grid = new();
+    private Control? _overlay;
     private readonly ScrollViewer _scroll = new() { HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, Background = G3MStudio.Theme.CanvasTheme.Bg };
     private readonly TextBlock _caption = new() { Classes = { "muted" }, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
     private readonly Avalonia.Controls.Shapes.Rectangle _mark = new() { Stroke = Brushes.Yellow, StrokeThickness = 2, IsVisible = false, IsHitTestVisible = false, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top };
@@ -56,7 +58,8 @@ public sealed class TextureItemView : DockPanel
         var bar = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 8, Children = { _zoomBar, export, _caption } };
         SetDock(bar, Avalonia.Controls.Dock.Top);
         Children.Add(bar);
-        _scroll.Content = new Grid { Children = { _chequer, _image, _box, _mark } };
+        foreach (var layer in new Control[] { _chequer, _image, _box, _mark }) _grid.Children.Add(layer);
+        _scroll.Content = _grid;
         Children.Add(_scroll);
         _image.PointerPressed += (_, e) =>
         {
@@ -113,6 +116,17 @@ public sealed class TextureItemView : DockPanel
         }
     }
 
+    /// <summary>Puts a control over the picture; it is sized and placed like the picture at every zoom, and draws in picture pixels times <see cref="Zoom"/>.</summary>
+    public void AddOverlay(Control overlay)
+    {
+        _overlay = overlay;
+        overlay.IsHitTestVisible = false;
+        overlay.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left;
+        overlay.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top;
+        _grid.Children.Add(overlay);
+        ApplyZoom();
+    }
+
     public (int Width, int Height)? PictureSize => _image.Source is { } source ? ((int)source.Size.Width, (int)source.Size.Height) : null;
 
     public double Zoom
@@ -132,6 +146,11 @@ public sealed class TextureItemView : DockPanel
         _image.Height = source.Size.Height * Zoom;
         _image.Stretch = Stretch.Fill;
         _image.Margin = new Thickness(_frame.X * Zoom, _frame.Y * Zoom, 0, 0);
+        if (_overlay is not null)
+        {
+            (_overlay.Margin, _overlay.Width, _overlay.Height) = (_image.Margin, _image.Width, _image.Height);
+            _overlay.InvalidateVisual();
+        }
         _chequer.Width = _box.Width = Math.Min(_frame.W * Zoom, MaxBox);
         _chequer.Height = _box.Height = Math.Min(_frame.H * Zoom, MaxBox);
         PlaceMark();

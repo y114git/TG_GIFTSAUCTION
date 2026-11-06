@@ -291,3 +291,19 @@ Deferred on purpose: auto tile and Brush Builder (L, rules not stored), canvas g
 - The image editor and code editor intelligence are not covered; they belong to other work in progress.
 - GameMaker detail was taken from the existing manual notes in [gamemaker/editors.md](gamemaker/editors.md); no additional manual pages were fetched.
 - Whether each field above is stored for every game version (GMS1, 2.3, LTS) was not checked against G3MLib; check [gamemaker-format-coverage.md](gamemaker-format-coverage.md) before building an item.
+
+## 16. Done in Studio (2026-11-06)
+
+Built on branch worktree-other-editors, each edit one undoable, journaled command with headless tests; the real window was not run. Open items OI-350 to OI-356.
+
+| Backlog item | Status | Notes |
+| --- | --- | --- |
+| 7 Sprite collision mask editor | done | mode, shape, tolerance, box fields and canvas handles; the file stores mode, margins, separation type and bits only. Ellipse and diamond read back as precise |
+| 8 Sprite origin presets and drag | done | nine presets plus custom, draggable cross |
+| 9 Sprite nine slice | done | guides on the canvas, four distances, tile modes; sprites below version 3 cannot hold it |
+| 10 Animation curve graph | done | points, Bezier handles (offset reading, see questions.md), type, point table; presets not built |
+| 11 Sequence keyframes | done | add, split, delete, snapping; not for moment or broadcast rows or empty tracks |
+| 12 Object duplicate and copy event | done | plus reorder and a parent picker; no add event dialog, the type and subtype lists stay |
+| 13 Path edit | done | multi-select, reverse, mirror, flip, closed, smooth, pan and zoom; insert and speed existed; room backdrop skipped (editor state) |
+| 14 Tile set index overlay and animated tiles | done | table of frames per tile and speed |
+| 15 Texture and audio group dialogs | done | move members; creating or renaming groups not built |

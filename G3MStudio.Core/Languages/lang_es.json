@@ -174,6 +174,8 @@
       "runScript": "Ejecutar script...",
       "runCommand": "Ejecutar comando C#...",
       "roomOrder": "Orden de salas...",
+      "textureGroups": "Grupos de texturas...",
+      "audioGroups": "Grupos de audio...",
       "disassemble": "Desensamblado de la entrada de código...",
       "hexView": "Vista hexadecimal del archivo de datos...",
       "offsetMap": "Escribir mapa de desplazamientos de fragmentos",
@@ -1313,5 +1315,91 @@
     "codeWarnTitle": "¿Crear código de creación para {name}?",
     "codeWarn": "{reason}\n\nSi continúas, se crea y se enlaza una entrada de código vacía. Deshacer la quita hasta que guardes.",
     "noCodeReason": "Aún no tiene código de creación."
+  },
+  "editors": {
+    "frame": "Fotograma",
+    "origin": {
+      "title": "Origen",
+      "topLeft": "Arriba izquierda",
+      "topCenter": "Arriba centro",
+      "topRight": "Arriba derecha",
+      "middleLeft": "Centro izquierda",
+      "center": "Centro",
+      "middleRight": "Centro derecha",
+      "bottomLeft": "Abajo izquierda",
+      "bottomCenter": "Abajo centro",
+      "bottomRight": "Abajo derecha",
+      "custom": "Personalizado"
+    },
+    "mask": {
+      "title": "Máscara de colisión",
+      "auto": "Automática",
+      "full": "Imagen completa",
+      "manual": "Manual",
+      "rectangle": "Rectángulo",
+      "rotated": "Rectángulo rotado",
+      "ellipse": "Elipse",
+      "diamond": "Diamante",
+      "precise": "Precisa",
+      "preciseFrames": "Precisa por fotograma",
+      "tolerance": "Tolerancia",
+      "box": "Caja: izquierda, arriba, derecha, abajo"
+    },
+    "slice": {
+      "enabled": "Nueve secciones"
+    },
+    "tile": {
+      "stretch": "Estirar",
+      "repeat": "Repetir",
+      "mirror": "Espejo",
+      "blankRepeat": "Repetir en blanco",
+      "hide": "Ocultar"
+    },
+    "object": {
+      "eventUp": "Subir",
+      "eventDown": "Bajar",
+      "eventDuplicate": "Duplicar",
+      "eventCopyTo": "Copiar a...",
+      "noFreeEvent": "Ya existen todos los eventos de este tipo, no se puede duplicar.",
+      "noCopyTarget": "Ningún otro objeto carece de este evento.",
+      "noParent": "(sin padre)",
+      "parent": "Padre"
+    },
+    "sequence": {
+      "addKey": "Añadir fotograma clave en el cursor",
+      "splitKey": "Dividir fotograma clave en el cursor",
+      "deleteKey": "Eliminar fotograma clave"
+    },
+    "curve": {
+      "linear": "Lineal",
+      "smooth": "Suave",
+      "bezier": "Bézier",
+      "channel": "Canal",
+      "add": "Añadir punto",
+      "delete": "Eliminar punto",
+      "value": "Valor"
+    },
+    "path": {
+      "reverse": "Invertir",
+      "mirror": "Reflejar",
+      "flip": "Voltear",
+      "closed": "Cerrado",
+      "smooth": "Suave",
+      "resetView": "Restablecer vista"
+    },
+    "tiles": {
+      "indices": "Mostrar índices de teselas",
+      "animated": "Teselas animadas",
+      "frames": "Fotogramas",
+      "apply": "Aplicar fotogramas",
+      "speed": "Velocidad (fotogramas por segundo)"
+    },
+    "groups": {
+      "textureTitle": "Grupos de texturas",
+      "audioTitle": "Grupos de audio",
+      "move": "Mover",
+      "moveTo": "Mover lo elegido a",
+      "moved": "Se movieron {count} a {group}."
+    }
   }
 }

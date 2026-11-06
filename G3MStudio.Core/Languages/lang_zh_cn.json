@@ -174,6 +174,8 @@
       "runScript": "运行脚本...",
       "runCommand": "运行 C# 命令...",
       "roomOrder": "房间顺序...",
+      "textureGroups": "纹理组...",
+      "audioGroups": "音频组...",
       "disassemble": "代码条目反汇编...",
       "hexView": "数据文件十六进制视图...",
       "offsetMap": "写出区块偏移表",
@@ -1313,5 +1315,91 @@
     "codeWarnTitle": "为 {name} 创建创建代码?",
     "codeWarn": "{reason}\n\n继续将创建并关联一个空的代码条目。保存前可撤销。",
     "noCodeReason": "尚无创建代码。"
+  },
+  "editors": {
+    "frame": "帧",
+    "origin": {
+      "title": "原点",
+      "topLeft": "左上",
+      "topCenter": "上中",
+      "topRight": "右上",
+      "middleLeft": "左中",
+      "center": "中心",
+      "middleRight": "右中",
+      "bottomLeft": "左下",
+      "bottomCenter": "下中",
+      "bottomRight": "右下",
+      "custom": "自定义"
+    },
+    "mask": {
+      "title": "碰撞遮罩",
+      "auto": "自动",
+      "full": "整个图像",
+      "manual": "手动",
+      "rectangle": "矩形",
+      "rotated": "旋转矩形",
+      "ellipse": "椭圆",
+      "diamond": "菱形",
+      "precise": "精确",
+      "preciseFrames": "逐帧精确",
+      "tolerance": "容差",
+      "box": "边界：左、上、右、下"
+    },
+    "slice": {
+      "enabled": "九宫格"
+    },
+    "tile": {
+      "stretch": "拉伸",
+      "repeat": "重复",
+      "mirror": "镜像",
+      "blankRepeat": "空白重复",
+      "hide": "隐藏"
+    },
+    "object": {
+      "eventUp": "上移",
+      "eventDown": "下移",
+      "eventDuplicate": "复制",
+      "eventCopyTo": "复制到...",
+      "noFreeEvent": "此类型的事件已全部存在，无法复制。",
+      "noCopyTarget": "没有缺少此事件的其他对象。",
+      "noParent": "（无父对象）",
+      "parent": "父对象"
+    },
+    "sequence": {
+      "addKey": "在播放头处添加关键帧",
+      "splitKey": "在播放头处拆分关键帧",
+      "deleteKey": "删除关键帧"
+    },
+    "curve": {
+      "linear": "线性",
+      "smooth": "平滑",
+      "bezier": "贝塞尔",
+      "channel": "通道",
+      "add": "添加点",
+      "delete": "删除点",
+      "value": "值"
+    },
+    "path": {
+      "reverse": "反转顺序",
+      "mirror": "水平镜像",
+      "flip": "垂直翻转",
+      "closed": "闭合",
+      "smooth": "平滑",
+      "resetView": "重置视图"
+    },
+    "tiles": {
+      "indices": "显示图块编号",
+      "animated": "动画图块",
+      "frames": "帧",
+      "apply": "设置帧",
+      "speed": "速度（帧/秒）"
+    },
+    "groups": {
+      "textureTitle": "纹理组",
+      "audioTitle": "音频组",
+      "move": "移动",
+      "moveTo": "将所选项移到",
+      "moved": "已将 {count} 项移到 {group}。"
+    }
   }
 }

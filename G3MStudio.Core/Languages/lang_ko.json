@@ -174,6 +174,8 @@
       "runScript": "스크립트 실행...",
       "runCommand": "C# 명령 실행...",
       "roomOrder": "룸 순서...",
+      "textureGroups": "텍스처 그룹...",
+      "audioGroups": "오디오 그룹...",
       "disassemble": "코드 항목 디스어셈블리...",
       "hexView": "데이터 파일 16진수 뷰...",
       "offsetMap": "청크 오프셋 맵 쓰기",
@@ -1313,5 +1315,91 @@
     "codeWarnTitle": "{name}의 생성 코드를 만들까요?",
     "codeWarn": "{reason}\n\n계속하면 빈 코드 항목이 만들어져 연결됩니다. 저장하기 전에는 실행 취소로 지울 수 있습니다.",
     "noCodeReason": "아직 생성 코드가 없습니다."
+  },
+  "editors": {
+    "frame": "프레임",
+    "origin": {
+      "title": "원점",
+      "topLeft": "왼쪽 위",
+      "topCenter": "위 가운데",
+      "topRight": "오른쪽 위",
+      "middleLeft": "왼쪽 가운데",
+      "center": "가운데",
+      "middleRight": "오른쪽 가운데",
+      "bottomLeft": "왼쪽 아래",
+      "bottomCenter": "아래 가운데",
+      "bottomRight": "오른쪽 아래",
+      "custom": "사용자 지정"
+    },
+    "mask": {
+      "title": "충돌 마스크",
+      "auto": "자동",
+      "full": "전체 이미지",
+      "manual": "수동",
+      "rectangle": "사각형",
+      "rotated": "회전 사각형",
+      "ellipse": "타원",
+      "diamond": "마름모",
+      "precise": "정밀",
+      "preciseFrames": "프레임별 정밀",
+      "tolerance": "허용치",
+      "box": "범위: 왼쪽, 위, 오른쪽, 아래"
+    },
+    "slice": {
+      "enabled": "9분할"
+    },
+    "tile": {
+      "stretch": "늘이기",
+      "repeat": "반복",
+      "mirror": "미러",
+      "blankRepeat": "빈 반복",
+      "hide": "숨기기"
+    },
+    "object": {
+      "eventUp": "위로",
+      "eventDown": "아래로",
+      "eventDuplicate": "복제",
+      "eventCopyTo": "복사 대상...",
+      "noFreeEvent": "이 유형의 이벤트가 모두 있어 복제할 수 없습니다.",
+      "noCopyTarget": "이 이벤트가 없는 다른 오브젝트가 없습니다.",
+      "noParent": "(부모 없음)",
+      "parent": "부모"
+    },
+    "sequence": {
+      "addKey": "재생 위치에 키프레임 추가",
+      "splitKey": "재생 위치에서 키프레임 분할",
+      "deleteKey": "키프레임 삭제"
+    },
+    "curve": {
+      "linear": "선형",
+      "smooth": "부드럽게",
+      "bezier": "베지어",
+      "channel": "채널",
+      "add": "점 추가",
+      "delete": "점 삭제",
+      "value": "값"
+    },
+    "path": {
+      "reverse": "순서 뒤집기",
+      "mirror": "좌우 반전",
+      "flip": "상하 반전",
+      "closed": "닫힘",
+      "smooth": "부드럽게",
+      "resetView": "뷰 초기화"
+    },
+    "tiles": {
+      "indices": "타일 번호 표시",
+      "animated": "애니메이션 타일",
+      "frames": "프레임",
+      "apply": "프레임 설정",
+      "speed": "속도(초당 프레임)"
+    },
+    "groups": {
+      "textureTitle": "텍스처 그룹",
+      "audioTitle": "오디오 그룹",
+      "move": "이동",
+      "moveTo": "선택 항목 이동 대상",
+      "moved": "{count}개를 {group}(으)로 이동했습니다."
+    }
   }
 }

@@ -17,6 +17,11 @@ public sealed class PathView : Control
     private readonly Workspace? _workspace;
     private (Rect Box, double Scale)? _frame;
     private Point? _dragTo;
+    private Point _dragFrom;
+    private int _dragIndex = -1;
+    private Point? _panFrom;
+    private Vector _pan;
+    private double _zoom = 1;
 
     public PathView(GameMakerPath path, Workspace? workspace = null)
     {
@@ -34,9 +39,19 @@ public sealed class PathView : Control
     public static Func<Workspace, Func<bool, EditCommand>, string, Task<bool>>? RiskyEdit { get; set; }
 
     /// <summary>The picked point, or -1.</summary>
-    public int Selected { get; set { field = value; SelectionChanged?.Invoke(); InvalidateVisual(); } } = -1;
+    public int Selected { get; set { field = value; Picked.Clear(); if (value >= 0) Picked.Add(value); SelectionChanged?.Invoke(); InvalidateVisual(); } } = -1;
+
+    /// <summary>Every picked point (the one in <see cref="Selected"/> is always among them while a point is picked).</summary>
+    public HashSet<int> Picked { get; } = [];
 
     public event Action? SelectionChanged;
+
+    /// <summary>Shows the path at its fitted size and position again.</summary>
+    public void ResetView()
+    {
+        (_zoom, _pan) = (1, default);
+        InvalidateVisual();
+    }
 
     private string PathName => _path.Name.Content ?? "";
 
@@ -59,13 +74,13 @@ public sealed class PathView : Control
     public Point ToScreen(Point path)
     {
         var (box, scale) = Frame();
-        return new Point(12 + (path.X - box.X) * scale, 12 + (path.Y - box.Y) * scale);
+        return new Point(12 + _pan.X + (path.X - box.X) * scale * _zoom, 12 + _pan.Y + (path.Y - box.Y) * scale * _zoom);
     }
 
     public Point ToPath(Point screen)
     {
         var (box, scale) = Frame();
-        return new Point((screen.X - 12) / scale + box.X, (screen.Y - 12) / scale + box.Y);
+        return new Point((screen.X - 12 - _pan.X) / (scale * _zoom) + box.X, (screen.Y - 12 - _pan.Y) / (scale * _zoom) + box.Y);
     }
 
     private int PointAt(Point screen)
@@ -100,10 +115,26 @@ public sealed class PathView : Control
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
-        if (_workspace is null || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            if (e.GetCurrentPoint(this).Properties.IsMiddleButtonPressed || e.GetCurrentPoint(this).Properties.IsRightButtonPressed) _panFrom = e.GetPosition(this);
+            if (_panFrom is not null) e.Pointer.Capture(this);
+            return;
+        }
+
+        if (_workspace is null) return;
         Focus();
         var at = e.GetPosition(this);
         var hit = PointAt(at);
+        if (hit >= 0 && e.KeyModifiers.HasFlag(KeyModifiers.Control))
+        {
+            if (!Picked.Remove(hit)) Picked.Add(hit);
+            SelectionChanged?.Invoke();
+            InvalidateVisual();
+            e.Handled = true;
+            return;
+        }
+
         if (hit < 0)
         {
             var added = ToPath(at);
@@ -113,9 +144,10 @@ public sealed class PathView : Control
         }
         else
         {
-            Selected = hit;
+            if (!Picked.Contains(hit)) Selected = hit;
+            _dragIndex = hit;
             _frame = Frame();
-            _dragTo = ToPath(at);
+            _dragTo = _dragFrom = ToPath(at);
         }
 
         InvalidateVisual();
@@ -125,6 +157,14 @@ public sealed class PathView : Control
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
+        if (_panFrom is { } from)
+        {
+            var now = e.GetPosition(this);
+            (_pan, _panFrom) = (_pan + (now - from), now);
+            InvalidateVisual();
+            return;
+        }
+
         if (_dragTo is null) return;
         _dragTo = ToPath(e.GetPosition(this));
         InvalidateVisual();
@@ -133,17 +173,53 @@ public sealed class PathView : Control
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
+        if (_panFrom is not null)
+        {
+            _panFrom = null;
+            e.Pointer.Capture(null);
+            return;
+        }
+
         if (_dragTo is not { } to || _workspace is null) return;
         (_dragTo, _frame) = (null, null);
-        if (Selected >= 0 && Selected < _path.Points.Count && (Math.Round(to.X) != _path.Points[Selected].X || Math.Round(to.Y) != _path.Points[Selected].Y))
-            _workspace.Edit(new PathPointsCommand(PathName, PathPointsCommand.Move, Selected, (float)Math.Round(to.X), (float)Math.Round(to.Y)));
+        var index = _dragIndex;
+        if (Picked.Count > 1 && Picked.Contains(index))
+        {
+            var (dx, dy) = ((float)Math.Round(to.X - _dragFrom.X), (float)Math.Round(to.Y - _dragFrom.Y));
+            if (dx != 0 || dy != 0) _workspace.Edit(new PathEditCommand(PathName, PathEditCommand.Shift, [.. Picked.Order()], dx, dy));
+        }
+        else if (index >= 0 && index < _path.Points.Count && (Math.Round(to.X) != _path.Points[index].X || Math.Round(to.Y) != _path.Points[index].Y))
+        {
+            _workspace.Edit(new PathPointsCommand(PathName, PathPointsCommand.Move, index, (float)Math.Round(to.X), (float)Math.Round(to.Y)));
+        }
+
         InvalidateVisual();
+    }
+
+    protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
+    {
+        base.OnPointerWheelChanged(e);
+        var at = e.GetPosition(this);
+        var before = ToPath(at);
+        _zoom = Math.Clamp(_zoom * (e.Delta.Y > 0 ? 1.25 : 0.8), 0.1, 64);
+        var after = ToScreen(before);
+        _pan += at - after; // keep the point under the pointer where it was
+        InvalidateVisual();
+        e.Handled = true;
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
         if (e.Key != Key.Delete || _workspace is null || Selected < 0 || Selected >= _path.Points.Count) return;
+        if (Picked.Count > 1 && Picked.Count < _path.Points.Count)
+        {
+            _workspace.Edit(new PathEditCommand(PathName, PathEditCommand.Delete, [.. Picked.Order()]));
+            Selected = -1;
+            e.Handled = true;
+            return;
+        }
+
         var (name, at) = (PathName, Selected);
         _ = RiskyEdit?.Invoke(_workspace, force => new PathPointsCommand(name, PathPointsCommand.Delete, at, force: force), name) ?? Task.FromResult(_workspace.Edit(new PathPointsCommand(name, PathPointsCommand.Delete, at)));
         Selected = -1;
@@ -155,7 +231,12 @@ public sealed class PathView : Control
     {
         context.FillRectangle(G3MStudio.Theme.CanvasTheme.Bg, new Rect(Bounds.Size));
         var points = _path.Points.Select(p => new Point(p.X, p.Y)).ToList();
-        if (_dragTo is { } to && Selected >= 0 && Selected < points.Count) points[Selected] = to;
+        if (_dragTo is { } to && _dragIndex >= 0 && _dragIndex < points.Count)
+        {
+            var delta = to - _dragFrom;
+            if (Picked.Count > 1 && Picked.Contains(_dragIndex)) foreach (var i in Picked.Where(i => i < points.Count)) points[i] += delta;
+            else points[_dragIndex] = to;
+        }
         if (points.Count == 0) return;
         Point Map(Point p) => ToScreen(p);
         var line = new StreamGeometry();
@@ -177,7 +258,7 @@ public sealed class PathView : Control
         }
 
         context.DrawGeometry(null, new Pen(G3MStudio.Theme.CanvasTheme.Line, 2), line);
-        for (var i = 0; i < points.Count; i++) context.DrawEllipse(i == Selected ? Brushes.White : G3MStudio.Theme.CanvasTheme.Point, null, Map(points[i]), i == Selected ? 5 : 3, i == Selected ? 5 : 3);
+        for (var i = 0; i < points.Count; i++) context.DrawEllipse(Picked.Contains(i) ? Brushes.White : G3MStudio.Theme.CanvasTheme.Point, null, Map(points[i]), Picked.Contains(i) ? 5 : 3, Picked.Contains(i) ? 5 : 3);
     }
 }
 
@@ -208,7 +289,7 @@ public sealed class PathEditor : DockPanel
         _pointFields.Children.Add(Labelled("X", _x));
         _pointFields.Children.Add(Labelled("Y", _y));
         _pointFields.Children.Add(Labelled(Loc.Current["paths.speed"], _speed));
-        var side = new StackPanel { Width = 190, Margin = new Thickness(0, 0, 8, 0), Spacing = 4, Children = { _points, _pointFields, new Separator(), new TextBlock { Text = Loc.Current["paths.moveAll"], Classes = { "muted" } }, Labelled("X", _shiftX), Labelled("Y", _shiftY), moveAll } };
+        var side = new StackPanel { Width = 190, Margin = new Thickness(0, 0, 8, 0), Spacing = 4, Children = { _points, _pointFields, new Separator(), Operations(), new Separator(), new TextBlock { Text = Loc.Current["paths.moveAll"], Classes = { "muted" } }, Labelled("X", _shiftX), Labelled("Y", _shiftY), moveAll } };
         SetDock(side, Avalonia.Controls.Dock.Left);
         Children.Add(side);
         Children.Add(View);
@@ -231,6 +312,39 @@ public sealed class PathEditor : DockPanel
 
     public PathView View { get; }
 
+    private readonly CheckBox _closed = new() { Name = "PathClosed" };
+    private readonly CheckBox _smooth = new() { Name = "PathSmooth" };
+
+    // Reverse, mirror and flip work on the picked points, or on all of them when none is picked.
+    private StackPanel Operations()
+    {
+        _closed.Content = Loc.Current["editors.path.closed"];
+        _smooth.Content = Loc.Current["editors.path.smooth"];
+        _closed.IsCheckedChanged += (_, _) => SetFlag(PathEditCommand.Closed, _closed);
+        _smooth.IsCheckedChanged += (_, _) => SetFlag(PathEditCommand.Smooth, _smooth);
+        var panel = new StackPanel { Spacing = 4 };
+        foreach (var (name, key, operation) in new[] { ("PathReverse", "editors.path.reverse", PathEditCommand.Reverse), ("PathMirror", "editors.path.mirror", PathEditCommand.FlipX), ("PathFlip", "editors.path.flip", PathEditCommand.FlipY) })
+        {
+            var button = new Button { Name = name, Content = Loc.Current[key], IsEnabled = _workspace is not null };
+            button.Click += (_, _) => _workspace?.Edit(new PathEditCommand(_path.Name.Content ?? "", operation, [.. View.Picked.Order()]));
+            panel.Children.Add(button);
+        }
+
+        var reset = new Button { Name = "PathResetView", Content = Loc.Current["editors.path.resetView"] };
+        reset.Click += (_, _) => View.ResetView();
+        panel.Children.Add(reset);
+        panel.Children.Add(_closed);
+        panel.Children.Add(_smooth);
+        return panel;
+    }
+
+    private void SetFlag(string operation, CheckBox box)
+    {
+        if (_building || _workspace is null) return;
+        var on = box.IsChecked == true;
+        if (on != (operation == PathEditCommand.Closed ? _path.IsClosed : _path.IsSmooth)) _workspace.Edit(new PathEditCommand(_path.Name.Content ?? "", operation, [], on ? 1 : 0));
+    }
+
     private static DockPanel Labelled(string text, Control box)
     {
         var label = new TextBlock { Text = text, MinWidth = 70, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) };
@@ -251,6 +365,8 @@ public sealed class PathEditor : DockPanel
         _building = true;
         _points.ItemsSource = _path.Points.Select((p, i) => string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{i + 1}  {p.X:0.##}, {p.Y:0.##}")).ToList();
         _points.SelectedIndex = View.Selected < _path.Points.Count ? View.Selected : -1;
+        (_closed.IsChecked, _smooth.IsChecked) = (_path.IsClosed, _path.IsSmooth);
+        _closed.IsEnabled = _smooth.IsEnabled = _workspace is not null;
         _building = false;
         Show();
     }

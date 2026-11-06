@@ -10,7 +10,7 @@ namespace G3MStudio.Editor;
 /// The events of an object above its properties: each event with the code entries it runs as links that open the code, a button to remove it,
 /// and a row that adds an event of any type with an empty code entry. Every change is one undoable step.
 /// </summary>
-public sealed class ObjectEventsView : StackPanel
+public sealed partial class ObjectEventsView : StackPanel
 {
     private readonly GameMakerGameObject _object;
     private readonly Action<string> _open;
@@ -27,6 +27,7 @@ public sealed class ObjectEventsView : StackPanel
         if (workspace is not null)
         {
             Children.Add(AddRow(workspace));
+            Children.Add(ParentRow(workspace));
             Children.Add(_message);
         }
 
@@ -78,9 +79,9 @@ public sealed class ObjectEventsView : StackPanel
                 var row = new DockPanel();
                 if (_workspace is not null)
                 {
-                    var remove = RemoveButton(kind, subtype);
-                    DockPanel.SetDock(remove, Avalonia.Controls.Dock.Right);
-                    row.Children.Add(remove);
+                    var tools = EventTools(kind, subtype);
+                    DockPanel.SetDock(tools, Avalonia.Controls.Dock.Right);
+                    row.Children.Add(tools);
                 }
 
                 var codes = evt.Actions.Select(a => a.CodeId?.Name?.Content).OfType<string>().ToList();

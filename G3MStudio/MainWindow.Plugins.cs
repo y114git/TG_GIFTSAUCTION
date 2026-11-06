@@ -61,6 +61,16 @@ public sealed partial class MainWindow
         if (Workspaces.Current is { } workspace) new RoomOrderWindow(workspace).Show(this);
     }
 
+    public void ShowTextureGroups()
+    {
+        if (Workspaces.Current is { } workspace) new GroupsWindow(workspace, false).Show(this);
+    }
+
+    public void ShowAudioGroups()
+    {
+        if (Workspaces.Current is { } workspace) new GroupsWindow(workspace, true).Show(this);
+    }
+
     public void ShowDisassembly()
     {
         var key = (Docking.ActiveTabId is { } id ? Docking.Tabs.Get(id)?.Key : null) ?? Explorer.SelectedKey;

@@ -81,7 +81,7 @@ public sealed partial class MainWindow
             var resource = ResourceTypes.Find(workspace.Data, tab.Key);
             Control? header = resource switch
             {
-                GameMakerSprite sprite => RememberFrames(tab.Id, new SpriteFramesView(sprite, _textures, workspace.History)),
+                GameMakerSprite sprite => new StackPanel { Children = { RememberFrames(tab.Id, new SpriteFramesView(sprite, _textures, workspace.History)), new SpriteToolsView(sprite, _textures, workspace) } },
                 GameMakerRoom room => RememberRoom(tab.Id, new RoomPreview(room, _textures, workspace, ShowCreationOrder, ShowCreationCode, ShowInstanceCreationCode), tab.Key),
                 GameMakerSound sound => new SoundPlayerView(sound, UrlOpener),
                 GameMakerGeneralInfo => new EntryScriptsView(workspace, OpenEntry),
@@ -94,7 +94,7 @@ public sealed partial class MainWindow
                 GameMakerPath path => new PathEditor(path, workspace),
                 GameMakerParticleSystem system => new StackPanel { Spacing = 8, Children = { new ParticlePreviewView(system), new ParticleEmittersView(system, workspace) } },
                 GameMakerSequence sequence => SequencePlayerView.Tab(sequence, _textures, workspace),
-                GameMakerAnimationCurve curve => new AnimationCurveView(curve),
+                GameMakerAnimationCurve curve => new CurveEditor(curve, workspace),
                 GameMakerShader shader => new ShaderSourceView(shader, workspace),
                 GameMakerTimeline timeline => new TimelineStepsView(timeline, workspace, OpenEntry),
                 GameMakerEmbeddedTexture page => new TexturePagePreview(page, _textures, workspace.History, workspace.Data.TexturePageItems),

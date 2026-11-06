@@ -62,7 +62,9 @@ public sealed class SequencePlayerView : StackPanel
         var timeline = new SequenceTimelineView(sequence, workspace);
         player.FrameChanged += frame => timeline.Playhead = frame;
         timeline.PlayheadRequested += frame => player.Frame = frame;
-        return new StackPanel { Spacing = 8, Children = { player, timeline, new SequenceTracksView(sequence, workspace) } };
+        var message = new TextBlock { Name = "SequenceMessage", Classes = { "muted" } };
+        timeline.Refused += text => message.Text = text;
+        return new StackPanel { Spacing = 8, Children = { player, timeline, message, new SequenceTracksView(sequence, workspace) } };
     }
 
     /// <summary>Raised when the playhead moves, so the timeline can draw it.</summary>

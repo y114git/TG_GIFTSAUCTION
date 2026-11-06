@@ -22,6 +22,10 @@ internal sealed class FakeShell : IShell
     public void ExportPage() { }
     public void ReplacePage() { }
     public void ShowRoomOrder() { }
+
+    public void ShowTextureGroups() { }
+
+    public void ShowAudioGroups() { }
     public void ShowHexView() { }
     public void NewResource(string type) { }
     public void DuplicateResource() { }

@@ -116,3 +116,11 @@ Only decisions that change the design or need the owner. Everything else buildab
 - Q84: A turned instance is scaled along the room axes by the handles. GameMaker scales along the instance's own axes. Decision taken: simple version first; say if turned instances need the exact behaviour.
 - Q85: Rotation is stored and shown counter-clockwise in degrees as GameMaker does; the rotate handle snaps to 15 degrees with Shift or when grid snap is on.
 - Q86: A tile paste puts the block down with its top-left cell at the clicked cell and leaves empty cells of the block as they are. GameMaker may clear them. Decision taken: empty cells keep what is under them.
+## Other editors questions (2026-11-06, answered by picking GameMaker behavior)
+
+- Collision shapes: Ellipse and Diamond are baked into the mask bits and stored with the precise type, because the data file has no shape field. Reopening shows them as Precise.
+- Bezier handles of animation curve points: read as offsets from the point (the file stores four floats per point with no unit). If GameMaker stores absolute positions, the handles draw in the wrong place; check against a curve made in GameMaker.
+- Tile animation padding: a tile with fewer frames than the frames-per-tile count of the tile set repeats its last frame. GameMaker may expect another fill; check against a tile set with an animation.
+- Duplicate event takes the next free subtype of the same type, because an object holds one event per type and subtype.
+- Event order inside a type is stored in the file; Studio lets it move, though the runner may ignore the order.
+- A parent that would make a loop is refused (GameMaker refuses too).

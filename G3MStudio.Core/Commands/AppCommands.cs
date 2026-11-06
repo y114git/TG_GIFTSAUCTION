@@ -195,6 +195,12 @@ public interface IShell
     /// <summary>Opens the window that orders the rooms of the game.</summary>
     void ShowRoomOrder();
 
+    /// <summary>Opens the dialog that lists texture groups with their members and moves resources between them.</summary>
+    void ShowTextureGroups();
+
+    /// <summary>Opens the dialog that lists audio groups with their sounds and moves sounds between them.</summary>
+    void ShowAudioGroups();
+
     /// <summary>Opens the hex view of the data file as it is on disk.</summary>
     void ShowHexView();
 
@@ -269,7 +275,7 @@ public static class AppCommands
         ("menu.room", ["room.play", "-", "room.creationCode", "room.creationOrder", "room.exportTiles", "room.importTiles", "room.savePng"]),
         ("menu.run", ["run.game", "run.withRuntime", "run.stop"]),
         ("menu.mods", ["mods.createPatch", "mods.applyPatch", "mods.applyMod", "mods.mergePatches", "mods.validatePatch", "mods.compareFiles", "mods.exportMod"]),
-        ("menu.tools", ["tools.plugins", "tools.strings", "tools.roomOrder", "tools.hexView", "tools.offsetMap", "tools.writeDebugData", "tools.disassemble", "tools.runScript", "tools.runCommand", "-", "tools.repackTextures", "tools.exportPage", "tools.replacePage"]),
+        ("menu.tools", ["tools.plugins", "tools.strings", "tools.roomOrder", "tools.textureGroups", "tools.audioGroups", "tools.hexView", "tools.offsetMap", "tools.writeDebugData", "tools.disassemble", "tools.runScript", "tools.runCommand", "-", "tools.repackTextures", "tools.exportPage", "tools.replacePage"]),
         ("menu.window", ["tabs.close", "tabs.closeOthers", "tabs.closeAll", "tabs.reopen", "-", "tabs.next", "tabs.previous", "tabs.back", "tabs.forward", "-", "tabs.pin", "tabs.keepOpen", "tabs.splitRight", "-", "window.layout.studio", "window.layout.code", "window.layout.canvas", "window.layout.reset", "window.layout.saved"]),
         ("menu.help", ["help.gettingStarted", "help.tour", "help.documentation", "help.checkUpdates", "help.openDataFolder", "-", "help.about"]),
     ];
@@ -400,6 +406,8 @@ public static class AppCommands
         Add("tools.plugins", null, shell.ShowPlugins);
         Add("tools.strings", null, shell.ShowStrings, WorkspaceOpen);
         Add("tools.roomOrder", null, shell.ShowRoomOrder, WorkspaceOpen);
+        Add("tools.textureGroups", null, shell.ShowTextureGroups, WorkspaceOpen);
+        Add("tools.audioGroups", null, shell.ShowAudioGroups, WorkspaceOpen);
         Add("tools.hexView", null, shell.ShowHexView, WorkspaceOpen);
         Add("tools.offsetMap", null, shell.WriteOffsetMap, WorkspaceOpen);
         Add("tools.writeDebugData", null, shell.WriteDebugData, WorkspaceOpen);

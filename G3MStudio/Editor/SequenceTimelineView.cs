@@ -15,7 +15,7 @@ namespace G3MStudio.Editor;
 /// a bar from its key to its key plus its length. With a workspace a bar can be dragged to another frame, which is one undoable edit of its key.
 /// Lengths, adding and removing keyframes and their values are edited in the property list of the track.
 /// </summary>
-public sealed class SequenceTimelineView : Control
+public sealed partial class SequenceTimelineView : Control
 {
     private const double LabelWidth = 170, RowHeight = 22, RulerHeight = 24, MaxFrames = 10_000_000;
 
@@ -141,6 +141,12 @@ public sealed class SequenceTimelineView : Control
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
+        if (e.GetCurrentPoint(this).Properties.IsRightButtonPressed)
+        {
+            ShowMenu(e.GetPosition(this));
+            return;
+        }
+
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
         var at = e.GetPosition(this);
         if (at.Y < RulerHeight && at.X >= LabelWidth)
@@ -175,7 +181,7 @@ public sealed class SequenceTimelineView : Control
         if (_drag is not { } drag) return;
         _drag = null;
         e.Pointer.Capture(null);
-        _ = Move(drag.Row, drag.Frame, (int)Math.Round(drag.Offset / Scale));
+        _ = Move(drag.Row, drag.Frame, SnappedDelta(drag.Row, drag.Frame, drag.Offset / Scale));
         InvalidateVisual();
     }
 
