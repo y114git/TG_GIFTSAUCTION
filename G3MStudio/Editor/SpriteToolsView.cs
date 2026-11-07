@@ -9,8 +9,8 @@ using G3MStudio.Rooms;
 namespace G3MStudio.Editor;
 
 /// <summary>
-/// The sprite tools under the frame strip: a canvas with the draggable origin, collision box and nine-slice guides, an origin preset list,
-/// the collision mask section (mode, shape, tolerance, box) and the nine-slice section. Every change is one undoable command.
+/// The sprite tools panel: the origin preset list, the collision mask section (mode, shape, tolerance, box) and the nine-slice section.
+/// <see cref="Canvas"/> is the one picture with the draggable origin, box and guides; <see cref="SpriteEditorView"/> places it. Every change is one undoable command.
 /// </summary>
 public sealed class SpriteToolsView : StackPanel
 {
@@ -46,18 +46,17 @@ public sealed class SpriteToolsView : StackPanel
         (_sprite, _workspace) = (sprite, workspace);
         Name = "SpriteTools";
         Spacing = 6;
-        Margin = new Thickness(8);
+        Margin = new Thickness(8, 0, 8, 8);
         Canvas = new SpriteCanvas(sprite, textures);
         _preset.ItemsSource = PresetKeys.Select(k => Loc.Current[k]).ToList();
         _mode.ItemsSource = ModeKeys.Select(k => Loc.Current[k]).ToList();
         _shape.ItemsSource = ShapeKeys.Select(k => Loc.Current[k]).ToList();
         _frame.Maximum = Math.Max(0, sprite.Textures.Count - 1);
-        Children.Add(Row(Label("editors.frame"), _frame, Label("editors.origin.title"), _preset));
-        Children.Add(Canvas);
-        Children.Add(Row(Label("editors.mask.title"), _mode, _shape, Label("editors.mask.tolerance"), _tolerance));
-        Children.Add(Row(Label("editors.mask.box"), _bounds[0], _bounds[1], _bounds[2], _bounds[3]));
-        Children.Add(Row(_sliceOn, _edges[0], _edges[1], _edges[2], _edges[3]));
-        Children.Add(Row([.. _tiles]));
+        var slice = _sprite.V3NineSlice;
+        Children.Add(Row(Label("editors.frame"), _frame));
+        Children.Add(Section("editors.origin.title", true, Row(_preset)));
+        Children.Add(Section("editors.mask.title", true, Row(_mode, _shape, Label("editors.mask.tolerance"), _tolerance), Row([Label("editors.mask.box"), .. _bounds])));
+        Children.Add(Section("editors.slice.enabled", slice?.Enabled == true, Row([_sliceOn, .. _edges]), Row([.. _tiles])));
         Wire();
         Show();
         Ready = Canvas.ShowFrameAsync(0);
@@ -69,19 +68,29 @@ public sealed class SpriteToolsView : StackPanel
 
     public SpriteCanvas Canvas { get; }
 
+    /// <summary>Shows a frame on the canvas and in the frame box.</summary>
+    public void ShowFrame(int frame) => _frame.Value = frame;
+
     public Task Ready { get; }
 
-    private static NumericUpDown Box(string name, int min, int max) => new() { Name = name, FormatString = "0", Minimum = min, Maximum = max, Width = 90 };
+    private static NumericUpDown Box(string name, int min, int max) => new() { Name = name, FormatString = "0", Minimum = min, Maximum = max, Width = 96 };
 
     private static TextBlock Label(string key) => new() { Text = Loc.Current[key], VerticalAlignment = VerticalAlignment.Center };
 
-    private static StackPanel Row(params Control[] items) => Build(items);
-
-    private static StackPanel Build(Control[] items)
+    // A row that wraps onto the next line when the panel is narrow.
+    private static WrapPanel Row(params Control[] items)
     {
-        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+        var row = new WrapPanel { ItemSpacing = 6, LineSpacing = 4 };
+        foreach (var item in items) item.VerticalAlignment = VerticalAlignment.Center;
         row.Children.AddRange(items);
         return row;
+    }
+
+    private static Expander Section(string titleKey, bool open, params Control[] rows)
+    {
+        var body = new StackPanel { Spacing = 4 };
+        body.Children.AddRange(rows);
+        return new Expander { Header = Loc.Current[titleKey], IsExpanded = open, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, Content = body };
     }
 
     private void Wire()

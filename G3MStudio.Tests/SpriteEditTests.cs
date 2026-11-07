@@ -1,3 +1,4 @@
+using Avalonia.VisualTree;
 using Avalonia.LogicalTree;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Models;
@@ -149,6 +150,46 @@ public sealed class SpriteEditTests
             workspace.Undo();
             workspace.Undo();
             Assert.Equal(0, sprite.OriginX);
+        });
+    }
+
+    [Theory]
+    [InlineData(1000, 700)]
+    [InlineData(700, 600)]
+    public async Task TheSpriteTabKeepsOneBigCanvasAndNothingOutsideTheTab(int width, int height)
+    {
+        using var dir = new TempDir();
+        string file;
+        using (var data = TestData.Create(0))
+        {
+            NewSprite(data);
+            file = TestData.Write(dir.File("data.win"), data);
+        }
+
+        var userData = new UserData(dir.File("user"));
+        var service = new WorkspaceService(userData, RecentFiles.Load(userData));
+        using var workspace = await service.OpenAsync(file, cancellationToken: TestContext.Current.CancellationToken);
+        var sprite = workspace.Data.Sprites.First(x => x.Name.Content == "spr_edit");
+        await HeadlessApp.Run(async () =>
+        {
+            using var textures = new TextureBitmaps();
+            var editor = new SpriteEditorView(sprite, textures, workspace);
+            var tab = new PropertyGridTab(workspace, "sprites", "spr_edit", editor);
+            var window = new Avalonia.Controls.Window { Content = tab, Width = width, Height = height };
+            window.Show();
+            await editor.Tools.Ready;
+            Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+            var host = Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(editor).OfType<Avalonia.Controls.ScrollViewer>().Single(v => v.Name == "SpriteCanvasHost");
+            Assert.True(host.Bounds.Height >= 240, $"canvas host {host.Bounds.Height}");
+            Assert.Equal(width > SpriteEditorView.WideWidth, editor.IsWide);
+            var area = new Avalonia.Rect(0, 0, tab.Bounds.Width, tab.Bounds.Height);
+            foreach (var control in Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(editor).OfType<Avalonia.Controls.Control>().Where(c => c.IsVisible && c.Bounds.Width > 0 && !c.GetVisualAncestors().OfType<Avalonia.Controls.Primitives.ScrollBar>().Any() && c is not Avalonia.Controls.Primitives.ScrollBar && !c.GetVisualAncestors().OfType<Avalonia.Controls.Viewbox>().Any()))
+            {
+                var origin = Avalonia.VisualExtensions.TranslatePoint(control, default, tab);
+                Assert.True(origin is { } p && p.X >= -0.5 && p.X + control.Bounds.Width <= area.Width + 0.5, $"{control.GetType().Name} {control.Name} at {origin} width {control.Bounds.Width}");
+            }
+
+            window.Close();
         });
     }
 }

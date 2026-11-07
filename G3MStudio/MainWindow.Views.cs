@@ -1,3 +1,4 @@
+using Avalonia.Threading;
 using Avalonia.Controls;
 using Avalonia.Media;
 using G3MStudio.Core.Workspace;
@@ -46,7 +47,10 @@ public sealed partial class MainWindow
     {
         view.PlaceSource = () => Explorer.SelectedKey;
         if (_savedRooms?.GetValueOrDefault(key) is { } saved) _ = view.RestoreViewAsync(saved);
-        return _roomViews[tabId] = view;
+        _roomViews[tabId] = view;
+        // The tab is made while it is being shown, after the Inspector looked for its layers: look again once the view is registered.
+        Dispatcher.UIThread.Post(ShowInInspector, DispatcherPriority.Loaded);
+        return view;
     }
 
     /// <summary>The canvas views of the open room tabs, by resource key.</summary>
@@ -70,7 +74,11 @@ public sealed partial class MainWindow
         foreach (var id in views.Keys.Where(id => !open.Contains(id)).ToList()) views.Remove(id);
     }
 
-    private SpriteFramesView RememberFrames(string tabId, SpriteFramesView view) => _frameViews[tabId] = view;
+    private SpriteEditorView RememberEditor(string tabId, SpriteEditorView view)
+    {
+        _frameViews[tabId] = view.Frames;
+        return view;
+    }
 
     private Control? CreateEditor(TabInfo tab)
     {
@@ -81,7 +89,7 @@ public sealed partial class MainWindow
             var resource = ResourceTypes.Find(workspace.Data, tab.Key);
             Control? header = resource switch
             {
-                GameMakerSprite sprite => new StackPanel { Children = { RememberFrames(tab.Id, new SpriteFramesView(sprite, _textures, workspace.History)), new SpriteToolsView(sprite, _textures, workspace) } },
+                GameMakerSprite sprite => RememberEditor(tab.Id, new SpriteEditorView(sprite, _textures, workspace)),
                 GameMakerRoom room => RememberRoom(tab.Id, new RoomPreview(room, _textures, workspace, ShowCreationOrder, ShowCreationCode, ShowInstanceCreationCode), tab.Key),
                 GameMakerSound sound => new SoundPlayerView(sound, UrlOpener),
                 GameMakerGeneralInfo => new EntryScriptsView(workspace, OpenEntry),

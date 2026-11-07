@@ -19,9 +19,9 @@ namespace G3MStudio.Editor;
 /// </summary>
 public sealed class SpriteFramesView : ScrollViewer
 {
-    private const double MaxSide = 160;
+    private const double MaxSide = 56;
 
-    private readonly StackPanel _strip = new() { Orientation = Orientation.Horizontal, Spacing = 8, Margin = new Thickness(8) };
+    private readonly StackPanel _strip = new() { Orientation = Orientation.Horizontal, Spacing = 4, Margin = new Thickness(8, 0, 8, 4) };
 
     private readonly GameMakerSprite _sprite;
     private readonly TextureBitmaps _textures;
@@ -42,7 +42,7 @@ public sealed class SpriteFramesView : ScrollViewer
         // GameMaker's playback speed is frames per second, or frames per game frame at an assumed 30 game frames per second.
         var fps = G3MStudio.Core.Workspace.SpriteGif.FramesPerSecond(_sprite);
         _playback.Interval = TimeSpan.FromSeconds(1 / fps);
-        _playback.Tick += (_, _) => Show((Current + 1) % Math.Max(1, _sprite.Textures.Count));
+        _playback.Tick += (_, _) => Choose((Current + 1) % Math.Max(1, _sprite.Textures.Count));
         _play.Content = Loc.Current["sprites.play"];
         _play.IsCheckedChanged += (_, _) =>
         {
@@ -71,6 +71,15 @@ public sealed class SpriteFramesView : ScrollViewer
 
     /// <summary>The frame shown by playback, outlined in the strip.</summary>
     public int Current { get; private set; }
+
+    /// <summary>The frame to show on the canvas changed: playback stepped or a thumbnail was clicked.</summary>
+    public event Action<int>? FrameChosen;
+
+    private void Choose(int frame)
+    {
+        Show(frame);
+        FrameChosen?.Invoke(frame);
+    }
 
     private void Show(int frame)
     {
@@ -103,6 +112,7 @@ public sealed class SpriteFramesView : ScrollViewer
     private async Task RefillAsync()
     {
         _strip.Children.Clear();
+        _strip.IsVisible = _sprite.Textures.Count > 1; // a single frame is the canvas itself
         _markers.Clear(); // the crosshairs of the frames that were just removed
         for (var i = 0; i < _sprite.Textures.Count; i++) _strip.Children.Add(EmptyFrame(i));
         _shown = [.. Enumerable.Range(0, _sprite.Textures.Count).Select(i => PageImage(_sprite, i))];
@@ -126,7 +136,7 @@ public sealed class SpriteFramesView : ScrollViewer
             image.HorizontalAlignment = HorizontalAlignment.Center;
             image.VerticalAlignment = VerticalAlignment.Center;
             var frame = new StackPanel { Spacing = 2, Children = { new Border { Width = MaxSide, Height = MaxSide, Child = new Grid { Children = { image, Marker(image, scale) } } }, new TextBlock { Text = $"{i}  {item.SourceWidth}x{item.SourceHeight}", Classes = { "muted" } } } };
-            frame.PointerPressed += (_, _) => SelectedFrame = index;
+            frame.PointerPressed += (_, _) => { SelectedFrame = index; Choose(index); };
             if (_strip.Children.Count > i) _strip.Children[i] = frame;
             Show(Current);
         }

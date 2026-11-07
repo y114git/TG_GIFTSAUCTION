@@ -33,8 +33,8 @@ public sealed class PropertyGridTab : DockPanel
     {
         (_workspace, _type, _name, _prefix) = (workspace, type, name, subPath);
         // The sprite strip and the room canvas bring their own inset; every other header gets the same one so nothing touches the tab edge.
-        if (header is not (null or SpriteFramesView or RoomPreview) && header.Margin == default) header.Margin = new Thickness(8, 8, 8, 0);
-        if (header is SpriteFramesView sprite)
+        if (header is not (null or SpriteFramesView or SpriteEditorView or RoomPreview) && header.Margin == default) header.Margin = new Thickness(8, 8, 8, 0);
+        if ((header is SpriteEditorView editor ? editor.Frames : header as SpriteFramesView) is { } sprite)
         {
             _sprite = sprite;
             sprite.OriginLockChanged += () => Fill();
@@ -47,11 +47,11 @@ public sealed class PropertyGridTab : DockPanel
         body.Children.Add(_filter);
         body.Children.Add(_message);
         body.Children.Add(new ScrollViewer { Content = _rows });
-        if (header is RoomPreview or StackPanel)
+        if (header is RoomPreview or StackPanel or SpriteEditorView)
         {
             // A room, sequence or font editor is tall: the splitter lets the canvas and the properties share the tab at any window size.
-            var tall = header is RoomPreview || type == "fonts"; // a font's glyph list, kerning and glyph fields need most of the tab
-            var top = new RowDefinition(tall ? new GridLength(3, GridUnitType.Star) : GridLength.Auto) { MinHeight = tall ? 200 : 0 };
+            var tall = header is RoomPreview or SpriteEditorView || type == "fonts"; // a font's glyph list, kerning and glyph fields need most of the tab
+            var top = new RowDefinition(tall ? new GridLength(header is RoomPreview ? 5 : 3, GridUnitType.Star) : GridLength.Auto) { MinHeight = tall ? 200 : 0 };
             var split = new Grid { RowDefinitions = { top, new RowDefinition(GridLength.Auto), new RowDefinition(2, GridUnitType.Star) { MinHeight = 120 } } };
             var splitter = new GridSplitter { Height = 5, HorizontalAlignment = HorizontalAlignment.Stretch, ResizeDirection = GridResizeDirection.Rows, IsVisible = tall };
             // A stacked header takes the room its content needs, at most 60% of the tab, and scrolls beyond that.

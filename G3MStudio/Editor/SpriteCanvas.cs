@@ -34,12 +34,28 @@ public sealed class SpriteCanvas : Control
         (_sprite, _textures) = (sprite, textures);
         Name = "SpriteCanvas";
         Zoom = Math.Clamp(256 / (int)Math.Max(1, Math.Max(sprite.Width, sprite.Height)), 1, 16);
-        Width = (_sprite.Width * Zoom) + 1;
-        Height = (_sprite.Height * Zoom) + 1;
+        Resize();
         HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left;
+        VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top;
     }
 
-    public int Zoom { get; }
+    private void Resize()
+    {
+        Width = (_sprite.Width * Zoom) + 1;
+        Height = (_sprite.Height * Zoom) + 1;
+    }
+
+    /// <summary>Whole-number magnification, 1 to 32.</summary>
+    public int Zoom
+    {
+        get;
+        set
+        {
+            field = Math.Clamp(value, 1, 32);
+            Resize();
+            InvalidateVisual();
+        }
+    }
 
     public int Frame { get; private set; }
 
