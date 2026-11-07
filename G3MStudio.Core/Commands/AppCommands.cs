@@ -248,6 +248,9 @@ public interface IShell
 
     /// <summary>Runs a code editor command (an id of <see cref="AppCommands.CodeCommands"/>) on the code tab in front.</summary>
     void CodeCommand(string id);
+
+    /// <summary>Runs an image editor command (an id of <see cref="AppCommands.ImageCommands"/>) on the image tab in front.</summary>
+    void ImageCommand(string id);
 }
 
 public static partial class AppCommands
@@ -276,6 +279,7 @@ public static partial class AppCommands
         ("menu.sprite", ["edit.editImage", "edit.paintFrame", "edit.replaceFrame", "edit.duplicateFrame", "edit.removeFrame", "-", "edit.recalculateMask", "edit.importMask", "edit.exportMask", "edit.exportGif"]),
         ("menu.sound", ["edit.editAudio", "edit.replaceAudio", "edit.exportAudio", "edit.exportAllAudio"]),
         ("menu.room", ["room.play", "-", "room.creationCode", "room.creationOrder", "room.exportTiles", "room.importTiles", "room.savePng"]),
+        ("menu.image", [.. ImageCommands.SelectMany(c => ImageMenuBreaks.Contains(c.Id) ? new[] { "-", c.Id } : [c.Id])]),
         ("menu.code", [.. CodeCommands.Select(c => c.Id)]),
         ("menu.run", ["run.game", "run.withRuntime", "run.stop"]),
         ("menu.mods", ["mods.createPatch", "mods.applyPatch", "mods.applyMod", "mods.mergePatches", "mods.validatePatch", "mods.compareFiles", "mods.exportMod"]),
@@ -302,6 +306,7 @@ public static partial class AppCommands
         AddEditAndMods(registry, shell);
         AddViewAndTools(registry, shell);
         foreach (var (id, shortcut) in CodeCommands) registry.Add(new Command(id, shortcut, () => shell.CodeCommand(id), CodeTab));
+        foreach (var (id, shortcut) in ImageCommands) registry.Add(new Command(id, shortcut, () => shell.ImageCommand(id), ImageTab));
         return registry;
     }
 

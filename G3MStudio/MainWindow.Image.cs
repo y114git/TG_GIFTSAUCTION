@@ -30,11 +30,17 @@ public sealed partial class MainWindow
         if (workspace.Data.Sprites.FirstOrDefault(s => s.Name.Content == sprite) is not { Textures.Count: > 0 })
             return new TextBlock { Text = Loc.Current["image.noFrames"], Classes = { "muted" } };
 #pragma warning disable CA2000 // the view owns its session and disposes it
-        var view = new ImageEditorView(new WorkspaceImageSession(workspace, sprite), _imageFrame);
+        var view = new ImageEditorView(new WorkspaceImageSession(workspace, sprite), _imageFrame, Workspaces.Settings.Current.Image) { Bindings = id => Registry.Find(id)?.Shortcut };
 #pragma warning restore CA2000
         view.Canvas.Edited += _ => Docking.KeepOpen(tab.Id);
         _imageViews[tab.Id] = view;
         return view;
+    }
+
+    /// <summary>Runs an image editor command on the image tab in front.</summary>
+    public void ImageCommand(string id)
+    {
+        if (Docking.ActiveTabId is { } tab && _imageViews.TryGetValue(tab, out var view)) view.Run(id);
     }
 
     private void DisposeImage(string tabId)

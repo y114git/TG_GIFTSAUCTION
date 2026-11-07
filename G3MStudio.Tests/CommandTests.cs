@@ -134,6 +134,7 @@ internal sealed class FakeShell : IShell
     public void KeepTabOpen() { }
     public void SplitRight() { }
     public void CodeCommand(string id) { }
+    public void ImageCommand(string id) { }
 }
 
 public sealed class CommandTests
@@ -155,6 +156,7 @@ public sealed class CommandTests
         window.Registry.SetContext(AppCommands.SpriteTab, true);
         window.Registry.SetContext(AppCommands.RoomTab, true);
         window.Registry.SetContext(AppCommands.CodeTab, true);
+        window.Registry.SetContext(AppCommands.ImageTab, true);
         window.Registry.SetContext(AppCommands.ProjectOn, true);
         window.Registry.SetContext(AppCommands.ProjectOff, true);
         return window;

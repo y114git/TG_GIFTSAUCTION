@@ -132,7 +132,7 @@ public sealed partial class MainWindow
     private void SaveView()
     {
         if (_restoring || _viewPath is null) return;
-        var state = Docking.Capture(Explorer.SelectedKey) with { Rooms = RoomViewStates() };
+        var state = Docking.Capture(Explorer.SelectedKey) with { Rooms = RoomViewStates(), Layers = Workspaces.Current is { } open ? LayerStore.Of(open.Data).Export() : null };
         var text = System.Text.Json.JsonSerializer.Serialize(state);
         if (text == _viewSaved) return;
         _viewSaved = text;

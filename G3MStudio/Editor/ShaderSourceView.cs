@@ -1,3 +1,4 @@
+using G3MStudio.Theme;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -47,7 +48,7 @@ public sealed class ShaderSourceView : TabControl
             }
 
             page.Children.Add(box);
-            Items.Add(new TabItem { Header = title, Content = page, FontSize = 12, Padding = new Thickness(8, 4) }); // snug, so the six tabs stay on one row
+            Items.Add(new TabItem { Header = title, Content = page, Padding = new Thickness(8, 4) }.TextSize("FontSize.Small")); // snug, so the six tabs stay on one row
         }
     }
 

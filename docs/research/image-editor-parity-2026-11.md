@@ -16,7 +16,7 @@ Status words: done (works as GameMaker's does), partial (works, with the limit n
 | GameMaker feature | Studio | Status | Reference |
 | --- | --- | --- | --- |
 | Options bar: Size slider and spinner | Spinner 1 to 256 and brush presets; no slider | partial | ImageEditorView.Panels.cs `Options` |
-| Options bar: Smooth | Not built. Pixel art tools only set exact pixels; anti-aliased strokes are a different engine (Q72) | missing | |
+| Options bar: Smooth | Check box and size slider; anti-aliased pencil, eraser, line, shapes, polygon, curve (OI-368) | done | ImageEditorView.Panels.cs `Options`, PixelBuffer.Smooth.cs |
 | Options bar: tool options (tolerance, fill style, contiguous) | Tolerance, contiguous, outline/filled/both, round or square brush | done | Panels.cs |
 | Frame strip: add, duplicate, play | Previous, next, duplicate (Ctrl+D), remove, play; no thumbnails | partial | Panels.cs `BuildFrames` |
 | Frame strip: add a blank frame | Only duplicate (FrameListCommand has no blank add) | missing | |
@@ -34,8 +34,8 @@ Status words: done (works as GameMaker's does), partial (works, with the limit n
 | Colours: colour picker with ARGB and HSV | Hex box with optional alpha only | partial | |
 | Colours: edit palette, import and export, copy between sprites | Palette is fixed. Needs a place in the sprite to store it | missing | |
 | Toolbox with icons, tool tips with key | 15 tools, path icons, tip with key | done | ImageTool.cs |
-| Layers panel: add, delete, folders, order | Not possible: a data file stores one flat bitmap per frame, so layers would have to be flattened on every edit and could not be read back | missing (by design) | design/editors/image-editor.md, intro |
-| Layer opacity, visibility, lock, merge, blend modes | Same reason as layers | missing (by design) | |
+| Layers panel: add, delete, folders, order | Add, duplicate, delete, move, merge down; no folders. Stacks live beside the data file, the file holds the flat result (OI-370) | partial | ImageEditorView.Layers.cs, LayerStore.cs |
+| Layer opacity, visibility, lock, merge, blend modes | All built; blend modes normal, multiply, screen, overlay, add | done | LayerSet.cs |
 | Zoom toolbar: zoom in and out, 1:1, fit | Done; wheel zooms to the cursor | done | ImageCanvas.cs |
 | Grid toggle (G), grid colour, cell size | Pixel grid at 6x and more, cell grid every 16 pixels; cell size and colour are not editable in the UI | partial | `GridCell` |
 | Grid snap (Ctrl+G) | Not built | missing | |
@@ -50,7 +50,7 @@ Status words: done (works as GameMaker's does), partial (works, with the limit n
 | GameMaker tool | Studio | Status | Reference |
 | --- | --- | --- | --- |
 | Pencil (D) with size and shape | Square or round, size 1 to 256, symmetry; Shift draws a line from the last point, Ctrl picks | done | `PixelBuffer.Stamp`, `ImageCanvas.Input.cs` |
-| Pencil: smoothing, pressure, spacing | Not built; no tablet input in Avalonia headless, and stamps are exact | missing | |
+| Pencil: smoothing | Smooth option (anti-aliasing) built; pressure and spacing are not | partial | |
 | Eraser (E) | Sets alpha to 0 | done | |
 | Fill (F) with alpha tolerance | Tolerance 0 to 255 on all channels, contiguous or global, scanline fill | done | PixelBuffer.Fill.cs |
 | Colour Replace (V) | Every pixel near the clicked colour becomes the primary colour | done | `PixelBuffer.Replace` |
@@ -61,7 +61,7 @@ Status words: done (works as GameMaker's does), partial (works, with the limit n
 | Ellipse (C, Shift+C filled) | Same options as the rectangle | done | `PixelBuffer.Ellipse` |
 | Polygon (P, Shift+P filled) | Click points, Enter or double click closes, Escape cancels | done | |
 | Spline and Arc (A) | One Bezier curve through 3 or 4 control points; the spline iteration count is fixed | partial | `PixelBuffer.Curve` |
-| Text tool (T) | Not built. Needs a font rasteriser that gives the same pixels on every platform; recorded as Q73 | missing | |
+| Text tool (T) | Text box and size in the options bar, click to stamp; Avalonia draws the glyphs, the pixels go into the edit (OI-369) | done | TextRaster.cs |
 | Eye dropper (O, and I) | Single pixel, left to primary, right to secondary | done | |
 | Eye dropper: 3 x 3 average | Not built | missing | |
 | Rectangle selection (S) | Drag; Escape clears | done | `PixelSelection.Rectangle` |
@@ -95,14 +95,14 @@ Status words: done (works as GameMaker's does), partial (works, with the limit n
 | Outline | One pixel outline in the primary colour | done | |
 | Dither | Ordered Bayer 4 x 4 to 2 to 16 levels | done | |
 | Effects plugins | Not built | missing | |
-| Layer blend modes | See layers | missing (by design) | |
+| Layer blend modes | See layers | done | |
 | Import frame, import strip, convert to frames, export PNG | Existing Replace Frame and GIF export only | missing | |
 | Resize all frames, reverse frames, auto trim all frames | Not built | missing | |
 | Undo and redo depth | Tab: the workspace history, unlimited, one step per mouse action. Window: unlimited local steps | done | `ImageSession.cs` |
 
 ## Keys (as built)
 
-GameMaker's file `Hotkeys/ImageEditorHotkeys` gives the tool keys. The task list asked for B, G, I, M as well, so those are accepted too.
+Every key is a command (`img.*`) and can be rebound in Settings > Keyboard shortcuts; the table shows the defaults. I and B are no longer extra keys (Q88). GameMaker's file `Hotkeys/ImageEditorHotkeys` gives the tool keys. The task list asked for B, G, I, M as well, so those are accepted too.
 
 | Key | Action |
 | --- | --- |
@@ -147,8 +147,7 @@ The test is `ImageEditCommandTests.BigPicturesStayUnderTheBudgetForFillLineAndSe
 
 ## Not done and why
 
-- Layers and blend modes: no storage in the data file.
-- Text, smoothing, pressure: need a rasteriser or tablet input that is the same on every platform.
+- Pen pressure and stroke spacing: need tablet input.
 - Frame list work (blank add, reorder, all-frames operations, import strip): needs new frame commands; a follow-up on top of `FrameListCommand`.
 - Texture page item editing ("Edit Item", UTMT-TEX-02) and tile set images: `ImageEditCommand` addresses a sprite frame only.
 - Palette management, reference image, custom brushes, split canvas.

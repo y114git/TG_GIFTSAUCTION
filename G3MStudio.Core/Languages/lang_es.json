@@ -34,8 +34,12 @@
       },
       "view": {
         "panel": "Paneles"
+      },
+      "img": {
+        "tool": "Herramientas"
       }
-    }
+    },
+    "image": "Imagen"
   },
   "cmd": {
     "code": {
@@ -113,8 +117,8 @@
       "replaceFrame": "Reemplazar fotograma del sprite...",
       "paintFrame": "Pintar fotograma...",
       "editImage": "Editar imagen...",
-            "editAudio": "Editar audio...",
-"replaceAudio": "Reemplazar audio...",
+      "editAudio": "Editar audio...",
+      "replaceAudio": "Reemplazar audio...",
       "exportAudio": "Exportar audio...",
       "duplicateFrame": "Duplicar fotograma del sprite",
       "removeFrame": "Quitar fotograma del sprite",
@@ -203,6 +207,82 @@
       "repackTextures": "Reempaquetar páginas de texturas...",
       "exportPage": "Exportar página de texturas...",
       "replacePage": "Reemplazar página de texturas..."
+    },
+    "img": {
+      "brushBigger": "Imagen: Pincel más grande",
+      "brushSmaller": "Imagen: Pincel más pequeño",
+      "swapColours": "Imagen: Intercambiar color principal y secundario",
+      "smooth": "Imagen: Dibujo suavizado",
+      "zoomIn": "Imagen: Acercar",
+      "zoomOut": "Imagen: Alejar",
+      "zoomActual": "Imagen: Tamaño real (1:1)",
+      "layerAdd": "Imagen: Capa nueva",
+      "layerDelete": "Imagen: Eliminar capa",
+      "layerDuplicate": "Imagen: Duplicar capa",
+      "layerUp": "Imagen: Subir capa",
+      "layerDown": "Imagen: Bajar capa",
+      "layerMergeDown": "Imagen: Combinar capa hacia abajo",
+      "layerVisible": "Imagen: Mostrar u ocultar capa",
+      "layerLock": "Imagen: Bloquear o desbloquear capa",
+      "tool": {
+        "pencil": "Imagen: Lápiz",
+        "eraser": "Imagen: Borrador",
+        "replace": "Imagen: Reemplazar color",
+        "remove": "Imagen: Quitar color",
+        "fill": "Imagen: Relleno",
+        "line": "Imagen: Línea",
+        "rectangle": "Imagen: Rectángulo",
+        "rectangleFilled": "Imagen: Rectángulo (Relleno)",
+        "ellipse": "Imagen: Elipse",
+        "ellipseFilled": "Imagen: Elipse (Relleno)",
+        "polygon": "Imagen: Polígono",
+        "polygonFilled": "Imagen: Polígono (Relleno)",
+        "curve": "Imagen: Curva",
+        "text": "Imagen: Texto",
+        "picker": "Imagen: Cuentagotas",
+        "select": "Imagen: Selección rectangular",
+        "lasso": "Imagen: Selección libre",
+        "wand": "Imagen: Varita mágica",
+        "move": "Imagen: Mover selección"
+      },
+      "grid": "Imagen: Cuadrícula",
+      "symmetryH": "Imagen: Espejo izquierda-derecha",
+      "symmetryV": "Imagen: Espejo arriba-abajo",
+      "tiles": "Imagen: Vista en mosaico",
+      "onion": "Imagen: Papel cebolla",
+      "zoomFit": "Imagen: Ajustar",
+      "previousFrame": "Imagen: Anterior",
+      "nextFrame": "Imagen: Siguiente",
+      "duplicateFrame": "Imagen: Duplicar fotograma",
+      "removeFrame": "Imagen: Quitar fotograma",
+      "play": "Imagen: Reproducir",
+      "selectAll": "Imagen: Seleccionar todo",
+      "selectNone": "Imagen: No seleccionar nada",
+      "invertSelection": "Imagen: Invertir selección",
+      "expandSelection": "Imagen: Expandir o contraer selección...",
+      "copy": "Imagen: Copiar",
+      "cut": "Imagen: Cortar",
+      "paste": "Imagen: Pegar",
+      "clear": "Imagen: Borrar",
+      "fillSelection": "Imagen: Rellenar selección",
+      "strokeSelection": "Imagen: Trazar selección...",
+      "flipH": "Imagen: Voltear horizontalmente",
+      "flipV": "Imagen: Voltear verticalmente",
+      "rotateCw": "Imagen: Girar 90 grados a la derecha",
+      "rotateCcw": "Imagen: Girar 90 grados a la izquierda",
+      "rotate": "Imagen: Girar por ángulo...",
+      "scale": "Imagen: Escalar...",
+      "skew": "Imagen: Sesgar...",
+      "adjust": "Imagen: Tono, saturación, brillo, contraste...",
+      "invertColours": "Imagen: Invertir colores",
+      "posterize": "Imagen: Posterizar...",
+      "greyscale": "Imagen: Escala de grises...",
+      "dither": "Imagen: Tramado...",
+      "outline": "Imagen: Contorno con el color principal",
+      "blur": "Imagen: Desenfoque...",
+      "resize": "Imagen: Cambiar tamaño del lienzo...",
+      "crop": "Imagen: Recortar a la selección",
+      "trim": "Imagen: Recortar al contenido"
     }
   },
   "palette": {
@@ -225,7 +305,8 @@
     "unpin": "Desfijar",
     "clear": "Borrar abiertos recientemente"
   },
-  "explorer": { "noValue": "Ninguno",
+  "explorer": {
+    "noValue": "Ninguno",
     "filter": "Filtrar recursos...",
     "count": "{count} recursos",
     "matches": "{matches} de {total}",
@@ -281,7 +362,11 @@
       "filterEffects": "Efectos de filtro",
       "uiLayers": "Capas de interfaz",
       "data": "Datos"
-    }
+    },
+    "deleteManyTitle": "Eliminar recursos: {count}",
+    "deleteMany": "¿Eliminar estos recursos ({count})?\n{names}",
+    "deleteManyUses": "Lugares fuera de la selección que los usan: {count}. Esos usos se borran o se quitan:\n{places}",
+    "duplicatedMany": "Recursos copiados: {count}."
   },
   "project": {
     "state": {
@@ -429,7 +514,9 @@
     "notApplied": "el texto no compila",
     "showFailed": "No se pudo mostrar el código de «{entry}»: {reason}"
   },
-  "status": { "assetId": "ID {index}" },
+  "status": {
+    "assetId": "ID {index}"
+  },
   "notify": {
     "button": "Notificaciones ({count})"
   },
@@ -464,10 +551,21 @@
     "appearance": "Apariencia",
     "language": "Idioma",
     "scale": "Escala de la interfaz",
+    "scaleAuto": "Automático (según la pantalla)",
+    "scaleInfo": "En uso: {percent}%",
+    "density": "Densidad",
+    "densityName": { "Compact": "Compacta", "Comfortable": "Cómoda", "Spacious": "Espaciosa" },
     "fontFamily": "Familia de fuente (vacío usa la del tema)",
     "fontWeight": "Grosor de la fuente",
     "sizes": "Forma y tamaño",
     "size": {
+      "Control": { "Height": "Altura de los controles" },
+      "Tab": { "Height": "Altura de las pestañas" },
+      "Panel": { "Padding": "Margen interior de los paneles" },
+      "Icon": { "Size": "Tamaño de los iconos" },
+      "Scrollbar": { "Width": "Ancho de la barra de desplazamiento" },
+      "Tooltip": { "Size": "Tamaño del texto de las sugerencias" },
+      "CodeFont": "Tamaño del texto del código",
       "Radius": {
         "Control": "Radio de esquina de controles",
         "Panel": "Radio de esquina de paneles"
@@ -482,7 +580,8 @@
         "Scale": "Espaciado de controles"
       },
       "FontSize": {
-        "Body": "Tamaño del texto de la interfaz"
+        "Body": "Tamaño del texto de la interfaz",
+        "Editor": "Tamaño del texto de los editores"
       }
     },
     "files": "Archivos",
@@ -551,11 +650,23 @@
     "themeExport": "Exportar tema...",
     "themeImport": "Importar tema (G3MStudio, G3M)...",
     "themeBad": "No se usó el archivo de tema: {reason}",
-    "compact": "Densidad compacta (más en pantalla)",
     "memoryLimit": "Límite de memoria",
     "memoryNone": "Sin límite",
     "memoryCustom": "Personalizado",
-    "memoryNote": "Sin límite se usa la memoria necesaria, hasta toda la RAM libre. Si la memoria escasea, Studio libera cachés y va más lento en vez de cerrarse."
+    "memoryNote": "Sin límite se usa la memoria necesaria, hasta toda la RAM libre. Si la memoria escasea, Studio libera cachés y va más lento en vez de cerrarse.",
+    "image": "Editor de imágenes",
+    "imageBrushSize": "Tamaño de pincel por defecto",
+    "imageRound": "Pincel redondo por defecto",
+    "imageSmooth": "Dibujo suavizado por defecto",
+    "imageTolerance": "Tolerancia por defecto",
+    "imageContiguous": "Relleno contiguo por defecto",
+    "imageTextSize": "Tamaño y fuente del texto",
+    "imageGrid": "Mostrar la cuadrícula",
+    "imageGridCell": "Tamaño de celda y color de la cuadrícula (#RRGGBB, vacío para el tema)",
+    "imageOnion": "Fotogramas de papel cebolla y opacidad (porcentaje)",
+    "imageChecker": "Colores del tablero (claro, oscuro)",
+    "imageBackground": "Color de fondo del lienzo",
+    "imageHandle": "Tamaño de los tiradores (píxeles)"
   },
   "memory": {
     "status": "Memoria {used}",
@@ -620,12 +731,38 @@
     "badPattern": "Este patrón no es válido: {reason}",
     "timeout": "El patrón tarda demasiado en una línea. Hazlo más simple."
   },
-  "disassembly": { "assemble": "Ensamblar", "assembled": "Ensamblado.", "assembleFailed": "No se pudo ensamblar: {reason}", "title": "Desensamblado de {entry}", "loading": "Leyendo las instrucciones...", "failed": "No se pudieron leer las instrucciones: {reason}" },
-  "tileSet": {"findRooms": "Buscar salas que usan este tile"},
-  "textureItem": {"export": "Exportar PNG", "saved": "Guardado en {path}", "failed": "No se pudo guardar: {reason}"},
-  "entryScripts": {"globalInit": "Scripts al iniciar el juego", "gameEnd": "Scripts al terminar el juego", "add": "Añadir"},
-  "tilesets": { "info": "Tamaño de tesela: {width} x {height}. Columnas: {columns}. Teselas: {count}. Borde {borderX}, {borderY}. Separación {separationX}, {separationY}." },
-  "warnings": { "debuggerAskTitle": "Depurador", "debuggerAsk": "¿Activar la marca del depurador? El ejecutor normal puede bloquearse con ella.", "yyc": "Este juego se compiló con el YoYo Compiler: su código está en el ejecutable, así que no hay código que mostrar ni buscar.", "debugger": "El indicador del depurador de GameMaker está activado en este archivo. El ejecutor normal puede bloquearse.", "unknownTextures": "Texturas con un formato que no se puede mostrar: {count}. Se conservan tal cual al guardar.", "mayLoseData": "Partes de este archivo de datos que el lector no pudo interpretar: {count}. Al guardar se pueden perder." },
+  "disassembly": {
+    "assemble": "Ensamblar",
+    "assembled": "Ensamblado.",
+    "assembleFailed": "No se pudo ensamblar: {reason}",
+    "title": "Desensamblado de {entry}",
+    "loading": "Leyendo las instrucciones...",
+    "failed": "No se pudieron leer las instrucciones: {reason}"
+  },
+  "tileSet": {
+    "findRooms": "Buscar salas que usan este tile"
+  },
+  "textureItem": {
+    "export": "Exportar PNG",
+    "saved": "Guardado en {path}",
+    "failed": "No se pudo guardar: {reason}"
+  },
+  "entryScripts": {
+    "globalInit": "Scripts al iniciar el juego",
+    "gameEnd": "Scripts al terminar el juego",
+    "add": "Añadir"
+  },
+  "tilesets": {
+    "info": "Tamaño de tesela: {width} x {height}. Columnas: {columns}. Teselas: {count}. Borde {borderX}, {borderY}. Separación {separationX}, {separationY}."
+  },
+  "warnings": {
+    "debuggerAskTitle": "Depurador",
+    "debuggerAsk": "¿Activar la marca del depurador? El ejecutor normal puede bloquearse con ella.",
+    "yyc": "Este juego se compiló con el YoYo Compiler: su código está en el ejecutable, así que no hay código que mostrar ni buscar.",
+    "debugger": "El indicador del depurador de GameMaker está activado en este archivo. El ejecutor normal puede bloquearse.",
+    "unknownTextures": "Texturas con un formato que no se puede mostrar: {count}. Se conservan tal cual al guardar.",
+    "mayLoseData": "Partes de este archivo de datos que el lector no pudo interpretar: {count}. Al guardar se pueden perder."
+  },
   "usages": {
     "unrefSearching": "Buscando recursos que nada usa...",
     "unrefFound": "Recursos que no se usan en ningún sitio: {count}.",
@@ -848,18 +985,44 @@
     "back": "Atrás",
     "next": "Siguiente",
     "done": "Listo",
-    "explorer": { "title": "Encuentra lo que quieras", "text": "Aquí están todos los recursos del juego, agrupados por tipo. Pulsa Ctrl+P para ir a cualquier recurso por su nombre." },
-    "tabs": { "title": "Abre muchas cosas", "text": "Un clic muestra un recurso en una pestaña en cursiva. Edítalo o haz doble clic para conservarlo." },
-    "inspector": { "title": "Mira lo seleccionado", "text": "El Inspector muestra el tipo y el nombre del recurso seleccionado, en cuántos sitios se usa y las capas de la sala activa." },
-    "palette": { "title": "Todos los comandos se pueden buscar", "text": "Pulsa Ctrl+Shift+P para buscar cualquier comando. Los menús muestran los atajos." },
-    "problems": { "title": "Mira qué falló", "text": "Las advertencias y errores al cargar, guardar y compilar se reúnen aquí. Haz doble clic en uno para ir a él." },
-    "save": { "title": "Guardado seguro, pruebas rápidas", "text": "Guardar escribe un archivo nuevo y conserva una copia de seguridad. Ejecutar juego inicia el juego con tus cambios sin tocar el original." }
+    "explorer": {
+      "title": "Encuentra lo que quieras",
+      "text": "Aquí están todos los recursos del juego, agrupados por tipo. Pulsa Ctrl+P para ir a cualquier recurso por su nombre."
+    },
+    "tabs": {
+      "title": "Abre muchas cosas",
+      "text": "Un clic muestra un recurso en una pestaña en cursiva. Edítalo o haz doble clic para conservarlo."
+    },
+    "inspector": {
+      "title": "Mira lo seleccionado",
+      "text": "El Inspector muestra el tipo y el nombre del recurso seleccionado, en cuántos sitios se usa y las capas de la sala activa."
+    },
+    "palette": {
+      "title": "Todos los comandos se pueden buscar",
+      "text": "Pulsa Ctrl+Shift+P para buscar cualquier comando. Los menús muestran los atajos."
+    },
+    "problems": {
+      "title": "Mira qué falló",
+      "text": "Las advertencias y errores al cargar, guardar y compilar se reúnen aquí. Haz doble clic en uno para ir a él."
+    },
+    "save": {
+      "title": "Guardado seguro, pruebas rápidas",
+      "text": "Guardar escribe un archivo nuevo y conserva una copia de seguridad. Ejecutar juego inicia el juego con tus cambios sin tocar el original."
+    }
   },
   "particles": {
     "restart": "Reiniciar",
     "add": "Añadir emisor"
   },
-  "scripts": { "source": "¿Dónde está el script?", "sourceFile": "Elegir un archivo .csx", "sourceFolder": "Elegir de la carpeta Scripts junto al programa", "commandTitle": "Comando C#", "commandLabel": "Código C# para ejecutar sobre el archivo de datos actual", "pickFile": "El script pide un archivo", "pickFolder": "El script pide una carpeta", "pickSave": "El script pregunta dónde guardar",
+  "scripts": {
+    "source": "¿Dónde está el script?",
+    "sourceFile": "Elegir un archivo .csx",
+    "sourceFolder": "Elegir de la carpeta Scripts junto al programa",
+    "commandTitle": "Comando C#",
+    "commandLabel": "Código C# para ejecutar sobre el archivo de datos actual",
+    "pickFile": "El script pide un archivo",
+    "pickFolder": "El script pide una carpeta",
+    "pickSave": "El script pregunta dónde guardar",
     "pick": "Elige un script (.csx)",
     "title": "Ejecutar script",
     "confirm": "¿Ejecutar {name}?\n\nUn script puede cambiar cualquier cosa del archivo de datos y leer y escribir cualquier archivo de este equipo. El cambio no se puede deshacer; Revertir al guardado es la vuelta atrás. Ejecuta solo scripts de confianza.\n\nSe ejecutan scripts .csx al estilo de UndertaleModTool, pero aquí solo existe parte de las funciones de esa herramienta: Data, FilePath, ScriptPath, ScriptMessage, ScriptWarning, ScriptError y ScriptQuestion (respondida con sí). Los scripts que necesitan diálogos, las ayudas del descompilador o la interfaz se detienen con un error de compilación que nombra la función que falta.",
@@ -1021,7 +1184,8 @@
       "Select": "Selección rectangular",
       "Lasso": "Selección libre",
       "Wand": "Varita mágica",
-      "Move": "Mover selección"
+      "Move": "Mover selección",
+      "Text": "Texto"
     },
     "hint": {
       "Pencil": "Clic para pintar. Ctrl toma un color. El botón derecho pinta con el segundo color.",
@@ -1038,7 +1202,8 @@
       "Select": "Arrastra un rectángulo. Esc quita la selección.",
       "Lasso": "Arrastra alrededor de los píxeles para seleccionarlos.",
       "Wand": "Haz clic para seleccionar píxeles parecidos. Tolerancia y Contiguo están en la barra de opciones.",
-      "Move": "Arrastra para mover la selección (o toda la imagen). Las flechas mueven 1, Mayús 8."
+      "Move": "Arrastra para mover la selección (o toda la imagen). Las flechas mueven 1, Mayús 8.",
+      "Text": "Escribe el texto en la barra de opciones y haz clic para colocarlo con el color principal."
     },
     "style": {
       "Outline": "Contorno",
@@ -1122,6 +1287,23 @@
       "radius": "Radio",
       "anchorX": "Ancla X (0 a 2)",
       "anchorY": "Ancla Y (0 a 2)"
+    },
+    "smooth": "Suavizado",
+    "textLabel": "Texto",
+    "layers": "Capas",
+    "layerDuplicate": "Copiar",
+    "layerDelete": "Eliminar",
+    "layerMergeDown": "Combinar hacia abajo",
+    "layerName": "Capa {n}",
+    "layerCopy": "Copia de {name}",
+    "opacity": "Opacidad",
+    "blendMode": "Fusión",
+    "blend": {
+      "Normal": "Normal",
+      "Multiply": "Multiplicar",
+      "Screen": "Trama",
+      "Overlay": "Superponer",
+      "Add": "Sumar"
     }
   },
   "painter": {
@@ -1196,8 +1378,17 @@
     "ToolChromeControlDockString": "Acoplar",
     "ToolChromeControlAutoHideString": "Ocultar automáticamente"
   },
-  "debug": { "pick": "Qué contiene el texto fuente de cada entrada de código", "decompiled": "GML descompilado", "assembler": "Ensamblador, marcas en asignaciones, saltos y retornos", "fullAssembler": "Ensamblador, marcas en cada instrucción", "working": "Escribiendo datos de depuración...", "done": "Escrito {file}.", "failed": "No se escribieron los datos de depuración: {reason}" },
-  "hex": { "chunk": "Ir al fragmento",
+  "debug": {
+    "pick": "Qué contiene el texto fuente de cada entrada de código",
+    "decompiled": "GML descompilado",
+    "assembler": "Ensamblador, marcas en asignaciones, saltos y retornos",
+    "fullAssembler": "Ensamblador, marcas en cada instrucción",
+    "working": "Escribiendo datos de depuración...",
+    "done": "Escrito {file}.",
+    "failed": "No se escribieron los datos de depuración: {reason}"
+  },
+  "hex": {
+    "chunk": "Ir al fragmento",
     "offsetMapDone": "Escrito {file}.",
     "title": "Vista hexadecimal: {file}",
     "goTo": "Ir al desplazamiento (123 o 0x7B)",
@@ -1268,12 +1459,6 @@
   "empty": {
     "problems": "No hay problemas.",
     "output": "Aún no se ha informado de nada."
-  },
-  "explorer": {
-    "deleteManyTitle": "Eliminar recursos: {count}",
-    "deleteMany": "¿Eliminar estos recursos ({count})?\n{names}",
-    "deleteManyUses": "Lugares fuera de la selección que los usan: {count}. Esos usos se borran o se quitan:\n{places}",
-    "duplicatedMany": "Recursos copiados: {count}."
   },
   "copyTo": {
     "title": "Copiar a otro archivo de datos",

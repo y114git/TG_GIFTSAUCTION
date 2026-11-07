@@ -44,7 +44,7 @@ public static class ImageOps
     public const string Stroke = "stroke", Rect = "rect", Ellipse = "ellipse", Polygon = "polygon", Curve = "curve", Fill = "fill", Replace = "replace", Remove = "remove",
         FillSelection = "fillsel", StrokeSelection = "strokesel", Clear = "clear", Paste = "paste", Move = "move", Flip = "flip", Rotate90 = "rot90", Rotate = "rotate", Scale = "scale",
         Skew = "skew", Resize = "resize", Crop = "crop", Trim = "trim", Invert = "invert", Posterize = "posterize", Adjust = "adjust", Greyscale = "greyscale", Dither = "dither",
-        Outline = "outline", Blur = "blur";
+        Outline = "outline", Blur = "blur", Smooth = "smooth", Stamp = "stamp", Layer = "layer";
 
     public static void Run(ImageState state, ImageOp op)
     {
@@ -71,6 +71,7 @@ public static class ImageOps
             case Curve: picture.Curve(op.Points(3), op.Int(0), op.RequiredColour(2), op.Shape(1)); break;
             case Fill: picture.Fill(op.Points(1)[0].X, op.Points(1)[0].Y, op.RequiredColour(0), op.Int(2), op.Parts[3] == "1"); break;
             case Replace or Remove: ReplaceColour(picture, op); break;
+            case Smooth: picture.Smooth(op.Parts[0], op.Points(4), op.Colour(1), op.Colour(2), op.Number(3)); break;
             default: return false;
         }
 
@@ -111,6 +112,7 @@ public static class ImageOps
             case FillSelection or StrokeSelection: break;
             case Clear: picture.ClearSelected(state.Selection); break;
             case Paste: PasteStamp(state, op); break;
+            case Stamp: StampPixels(state.Picture, op); break;
             case Move: MoveSelected(state, op.Points(0)[0].X, op.Points(0)[0].Y); break;
             case Flip: Transform(state, p => op.Parts[0] == "h" ? p.FlippedHorizontally() : p.FlippedVertically()); break;
             case Rotate: Transform(state, p => p.Rotated(op.Number(0))); break;
@@ -119,6 +121,15 @@ public static class ImageOps
         }
 
         return true;
+    }
+
+    // Pixels made outside the core (text from the system fonts) travel inside the op, so the replay does not depend on the fonts of the machine.
+    private static void StampPixels(PixelBuffer picture, ImageOp op)
+    {
+        var (x, y) = op.Points(0)[0];
+        var (w, h) = op.Points(1)[0];
+        picture.Place(new PixelBuffer(w, h, Convert.FromBase64String(op.Parts[2])), x, y);
+        picture.MarkDirty(x, y, x + w - 1, y + h - 1);
     }
 
     private static void PasteStamp(ImageState state, ImageOp op)

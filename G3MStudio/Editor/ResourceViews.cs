@@ -13,15 +13,15 @@ namespace G3MStudio.Editor;
 /// <summary>The two-tone grid drawn behind pictures with transparent parts. One tiled brush fills the area, so the cost does not grow with its size.</summary>
 public sealed class Chequer : Control
 {
-    public static void Draw(DrawingContext context, Rect area, double cell)
+    public static void Draw(DrawingContext context, Rect area, double cell, IBrush? light = null, IBrush? dark = null)
     {
         var pair = 2 * cell;
         var tile = new DrawingGroup
         {
             Children =
             {
-                new GeometryDrawing { Brush = G3MStudio.Theme.CanvasTheme.Bg, Geometry = new RectangleGeometry(new Rect(0, 0, pair, pair)) },
-                new GeometryDrawing { Brush = G3MStudio.Theme.CanvasTheme.Stage, Geometry = new GeometryGroup { Children = { new RectangleGeometry(new Rect(0, 0, cell, cell)), new RectangleGeometry(new Rect(cell, cell, cell, cell)) } } },
+                new GeometryDrawing { Brush = light ?? G3MStudio.Theme.CanvasTheme.Bg, Geometry = new RectangleGeometry(new Rect(0, 0, pair, pair)) },
+                new GeometryDrawing { Brush = dark ?? G3MStudio.Theme.CanvasTheme.Stage, Geometry = new GeometryGroup { Children = { new RectangleGeometry(new Rect(0, 0, cell, cell)), new RectangleGeometry(new Rect(cell, cell, cell, cell)) } } },
             },
         };
         context.FillRectangle(new DrawingBrush(tile) { TileMode = TileMode.Tile, DestinationRect = new RelativeRect(0, 0, pair, pair, RelativeUnit.Absolute) }, area);

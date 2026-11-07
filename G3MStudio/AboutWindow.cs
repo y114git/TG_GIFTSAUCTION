@@ -1,3 +1,4 @@
+using G3MStudio.Theme;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Avalonia;
@@ -32,7 +33,7 @@ public sealed class AboutWindow : Window
             Spacing = 12,
             Children =
             {
-                new TextBlock { Text = Loc.Current["app.title"], FontSize = 20 },
+                new TextBlock { Text = Loc.Current["app.title"] }.TextSize("FontSize.Display"),
                 text,
                 new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { copy, close } },
             },

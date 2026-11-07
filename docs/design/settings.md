@@ -117,8 +117,10 @@ Every setting below is in the schema. Settings defined in an editor spec (for ex
 | `appearance.theme` | `G3M Default` (string) | U | Name of an installed theme (Color Theme..., Ctrl+K Ctrl+T); "Edit Theme..." opens the theme editor |
 | `appearance.backgroundImage` | `true` | U | The G3M background behind the side docks |
 | `appearance.transparencyGrid` | two colors, default `Grid.Dark` and `Grid.Light` | U | Checkerboard behind images (tokens in ux-standards 2) |
-| `ui.zoom` | `100%` (50 to 300) | U | Also Ctrl+= and Ctrl+- |
-| `ui.density` | `standard` or `compact` | U | ux-standards 1 |
+| `ui.zoom` | `Auto` (0), or 50 to 200 percent | U | Auto is computed from the screen (ux-standards 1). Also Ctrl+= and Ctrl+-; Ctrl+0 is Auto |
+| `ui.density` | `Compact`, `Comfortable` or `Spacious` (default `Comfortable`) | U | Sets the size tokens together; own sizes in `sizes` win (ux-standards 1) |
+| `sizes` | token to number | U | Control.Height, Row.Height, Tab.Height, Panel.Padding, Icon.Size, Scrollbar.Width, Tooltip.Size, FontSize.Body, FontSize.Editor, the radii and the border width |
+| `dialogSizes` | window type to width and height | U | Remembered when the user resizes a dialog |
 | `ui.reduceMotion` | `system`, `on`, `off` | U | ux-standards 5 |
 | `ui.breadcrumbs` | `true` | U | Breadcrumb row above editors |
 

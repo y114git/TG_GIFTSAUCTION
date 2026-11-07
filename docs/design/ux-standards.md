@@ -21,21 +21,32 @@ Spacing scale (px): 2, 4, 6, 8, 12, 16, 24. Nothing else. Use it for padding, ma
 | Dialog button gap | 8 |
 | Section gap on the start page and in Settings | 24 |
 
-Two densities, one setting (`ui.density`, default `standard`):
+Three densities, one setting (`ui.density`: Compact, Comfortable, Spacious; default Comfortable). A density sets the size tokens below together; a size the user changes by hand wins over it.
 
-| Element | Standard | Compact |
-| --- | --- | --- |
-| Pane control height | 24 | 22 |
-| Dialog control height | 28 | 24 |
-| Tree row | 24 | 22 |
-| List and table row | 24 | 22 |
-| Tab | 28 | 26 |
-| Title bar | 32 | 32 |
-| Status bar | 24 | 22 |
-| Icon in toolbars | 16 | 16 |
-| Scrollbar thickness | 10 (14 on hover) | 10 (14 on hover) |
+| Token (Settings > Appearance > Sizes) | Compact | Comfortable | Spacious |
+| --- | --- | --- | --- |
+| `Control.Height` (buttons, text boxes, combo boxes, number boxes) | 28 | 30 | 36 |
+| `Row.Height` (lists, trees) | 22 | 26 | 32 |
+| `Tab.Height` | 28 | 32 | 38 |
+| `Panel.Padding` | 8 | 12 | 16 |
+| `Icon.Size` | 14 | 16 | 20 |
+| `Scrollbar.Width` | 10 | 12 | 16 |
+| `FontSize.Body` (interface text; Caption, Small, Title and Display follow it) | 12 | 13 | 14 |
+| `FontSize.Editor` (text boxes) | 12 | 13 | 14 |
+| `Tooltip.Size` | 11 | 12 | 13 |
+| `Space.Scale` (padding of buttons, boxes, lists, menus) | 75% | 100% | 125% |
 
-Standard rows are 24 px, not the 22 px the token doc proposes, because WCAG 2.2 success criterion 2.5.8 asks for pointer targets of at least 24 x 24 px. Compact is opt-in and documented in Settings as below that minimum.
+The code text size (`CodeFontSize`) is its own setting and is listed with the sizes, as are `Radius.Control`, `Radius.Panel` and `Border.Width`.
+
+### Sizing rules
+
+1. Sizes come from tokens (`Tokens.axaml`, `ThemeSizes`), never from a number typed into a control. Fixed `Width`, `Height` and `FontSize` are for content that has a real size (a picture, a canvas, a column of known width). Text uses `FontSize.Caption`, `Small`, `Body`, `Title` or `Display` (in code: `TextSize("FontSize.Title")`).
+2. The spacing scale for gaps and margins is 4, 8, 12, 16 (`Space.1` to `Space.4`). The older scale above stays valid for existing screens and moves toward these four steps as screens are touched.
+3. Hit targets: no button, box, combo box or number box is lower than 28 px at 100%. `Control.Height` cannot be set under 28; a test walks the main window in every density.
+4. Interface scale: the default is Auto. It is computed from the primary screen (height in device-independent units against 1080, at half strength, rounded to 5, clamped to 80 to 200 percent): 1080p at 100% gives 100, 4K at 150% gives 115, 4K at 100% gives 150. Manual values run from 50 to 200. Ctrl+Plus and Ctrl+Minus step the manual value by 10; Ctrl+0 goes back to Auto. A change applies at once, so the page is its own preview.
+5. Dialogs scale with the interface, open at their own size or fit their content, never grow past 90% of the work area, and reopen at the size the user gave them (`dialogSizes` in settings.json, by window type).
+6. The main window opens at 85% of the work area, centered, when it has no saved place. The default docks take 22% (Explorer), 22% (Inspector) and 18% (bottom panel).
+7. Borders are 0 or 2 px; the border width token switches the theme as a whole between those looks.
 
 Hit targets: every icon button, tab close button, tree chevron, checkbox and splitter handle has a hit area of at least 24 x 24 px even when the drawn glyph is 16 px or the splitter line is 2 px. Splitters get a 6 px grab zone centred on the 2 px line.
 
@@ -263,7 +274,7 @@ A screen is not done until every line is true. This list is the test script for 
 6. Live regions announce: job finished, error added to Problems, notification shown, search result count.
 7. No information by colour alone (section 2 rule 1).
 8. Text scales to 200% (`ui.zoom`) without clipped text or lost controls; the layout reflows by collapsing docks. Minimum window size 960 x 600 at 100%.
-9. Pointer targets at least 24 x 24 px at standard density.
+9. Pointer targets at least 28 x 28 px for controls at 100% (24 x 24 px is the WCAG 2.2 minimum).
 10. Dragging has an alternative (section 3 rule 7). Pointer actions have single-pointer alternatives (no path-based gestures required).
 11. Previews that move can be paused (section 5).
 12. Focus is never hidden under a floating toolbar, toast or sticky header; floating elements shift or the view scrolls the focused control into view.

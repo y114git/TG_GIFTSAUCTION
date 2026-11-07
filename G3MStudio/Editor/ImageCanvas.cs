@@ -10,7 +10,7 @@ using G3MStudio.Core.Workspace;
 namespace G3MStudio.Editor;
 
 /// <summary>An edit the canvas made: the operations (already applied to the picture), the selection they ran under, and the picture they left.</summary>
-public sealed record ImageEdit(PixelSelection? Selection, IReadOnlyList<ImageOp> Ops, PixelBuffer After);
+public sealed record ImageEdit(PixelSelection? Selection, IReadOnlyList<ImageOp> Ops, PixelBuffer After, int Layer = -1);
 
 /// <summary>
 /// The drawing surface of the image editor. It keeps a transform of picture pixels to screen (zoom to the cursor, pan with space or the middle button),
@@ -21,6 +21,7 @@ public sealed partial class ImageCanvas : Control, IDisposable
 {
     private WriteableBitmap _bitmap;
     private PixelBuffer _shown;
+    private PixelBuffer _flat;
     private Point _origin = new(16, 16);
     private bool _space;
     private readonly Dictionary<PixelBuffer, WriteableBitmap> _onion = [];
@@ -29,6 +30,8 @@ public sealed partial class ImageCanvas : Control, IDisposable
     {
         State = state;
         _shown = state.Picture;
+        _flat = new PixelBuffer(1, 1);
+        Layers = LayerSet.OneLayer(state.Picture);
         _bitmap = NewBitmap(state.Picture);
         Focusable = true;
         ClipToBounds = true;
@@ -38,6 +41,29 @@ public sealed partial class ImageCanvas : Control, IDisposable
     }
 
     public ImageState State { get; }
+
+    /// <summary>The layers of the frame as they were read; the picture of <see cref="ActiveLayer"/> in it is replaced by <see cref="Picture"/>, which is being drawn on.</summary>
+    public LayerSet Layers { get; private set; }
+
+    public int ActiveLayer { get; private set; }
+
+    /// <summary>True while the active layer is locked: tools that change pixels do nothing.</summary>
+    public bool Locked { get; set; }
+
+    /// <summary>Anti-aliased brush, line and shapes.</summary>
+    public bool Smooth { get; set; }
+
+    public string TextFont { get; set; } = "";
+
+    public int HandleSize { get; set; } = 3;
+
+    public IBrush? GridBrush { get; set { field = value; InvalidateVisual(); } }
+
+    public IBrush? Backdrop { get; set { field = value; InvalidateVisual(); } }
+
+    public IBrush? ChequerLight { get; set { field = value; InvalidateVisual(); } }
+
+    public IBrush? ChequerDark { get; set { field = value; InvalidateVisual(); } }
 
     public PixelBuffer Picture => State.Picture;
 
@@ -94,7 +120,18 @@ public sealed partial class ImageCanvas : Control, IDisposable
 
     private static WriteableBitmap NewBitmap(PixelBuffer picture) => new(new PixelSize(picture.Width, picture.Height), new Vector(96, 96), PixelFormat.Rgba8888, AlphaFormat.Unpremul);
 
-    /// <summary>Uploads what changed since the last call: the whole picture after a new size, else only the dirty rectangle.</summary>
+    /// <summary>Shows a frame's layers, drawing on the given one. The picture to draw on is a copy of that layer.</summary>
+    public void SetLayers(LayerSet layers, int active)
+    {
+        Layers = layers;
+        ActiveLayer = Math.Clamp(active, 0, layers.Count - 1);
+        Locked = layers.Layers[ActiveLayer].Locked;
+        State.Picture = layers.Layers[ActiveLayer].Pixels.Copy();
+        Upload(true);
+        InvalidateVisual();
+    }
+
+    /// <summary>Uploads what changed since the last call: the whole picture after a new size, else only the dirty rectangle. With layers, that rectangle is composited first.</summary>
     public void Upload(bool all = false)
     {
         if (!ReferenceEquals(_shown, State.Picture))
@@ -108,8 +145,17 @@ public sealed partial class ImageCanvas : Control, IDisposable
         var area = _shown.TakeDirty();
         if (!all && area is null) return;
         var (x, y, w, h) = all ? (0, 0, _shown.Width, _shown.Height) : area ?? default;
+        var source = _shown;
+        if (!Layers.IsPlain && Layers.Width == _shown.Width && Layers.Height == _shown.Height)
+        {
+            if (_flat.Width != _shown.Width || _flat.Height != _shown.Height) (_flat, x, y, w, h) = (new PixelBuffer(_shown.Width, _shown.Height), 0, 0, _shown.Width, _shown.Height);
+            Layers.Composite(_flat, new Box(x, y, w, h), ActiveLayer, _shown);
+            _flat.TakeDirty();
+            source = _flat;
+        }
+
         using var frame = _bitmap.Lock();
-        for (var row = y; row < y + h; row++) Marshal.Copy(_shown.Data, (row * _shown.Width + x) * 4, frame.Address + row * frame.RowBytes + x * 4, w * 4);
+        for (var row = y; row < y + h; row++) Marshal.Copy(source.Data, (row * source.Width + x) * 4, frame.Address + row * frame.RowBytes + x * 4, w * 4);
     }
 
     /// <summary>Shows the changes made to the picture: uploads the dirty part, then redraws.</summary>

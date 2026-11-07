@@ -16,6 +16,7 @@ public static class HeadlessApp
     private static void FreshUserData()
     {
         MainWindow.UrlOpener = _ => true; // no test starts a browser
+        G3MStudio.Theme.DialogSizing.ScreenOverride = new G3MStudio.Core.Settings.ScreenInfo(1920, 1080, 1.0); // automatic scale = 100%
         Environment.SetEnvironmentVariable("G3MSTUDIO_DATA", Path.Combine(Path.GetTempPath(), "g3mstudio-tests", Guid.NewGuid().ToString("N")));
     }
 

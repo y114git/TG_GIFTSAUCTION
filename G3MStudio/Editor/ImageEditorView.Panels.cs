@@ -27,6 +27,13 @@ public sealed partial class ImageEditorView
     private readonly WrapPanel _recentPanel = new() { MaxWidth = 200 };
     private readonly NumericUpDown _size = new() { Name = "ImageSize", Minimum = 1, Maximum = 256, Value = 1, Increment = 1, FormatString = "0", Width = 100 };
     private readonly ComboBox _style = new() { Name = "ImageStyle", Width = 110 };
+    private readonly ToggleButton _round = new() { Name = "ImageRound" };
+    private readonly NumericUpDown _tolerance = new() { Name = "ImageTolerance", Minimum = 0, Maximum = 255, Value = 0, Increment = 5, FormatString = "0", Width = 100 };
+    private readonly CheckBox _contiguous = new() { Name = "ImageContiguous", IsChecked = true };
+    private readonly Slider _sizeSlider = new() { Name = "ImageSizeSlider", Minimum = 1, Maximum = 64, Value = 1, Width = 110, VerticalAlignment = VerticalAlignment.Center };
+    private readonly TextBox _text = new() { Name = "ImageText", Width = 140, MaxLength = 200 };
+    private readonly NumericUpDown _textSize = new() { Name = "ImageTextSize", Minimum = 4, Maximum = 256, Value = 16, Increment = 1, FormatString = "0", Width = 90 };
+    private ToggleButton _smoothToggle = new(), _gridToggle = new(), _mirrorX = new(), _mirrorY = new(), _tilesToggle = new(), _onionToggle = new(), _playToggle = new();
     private readonly StackPanel _frames = new() { Name = "ImageFrames", Width = 120, Spacing = 4, Margin = new Thickness(6) };
 
     private void BuildLayout()
@@ -35,7 +42,7 @@ public sealed partial class ImageEditorView
         var bottom = new DockPanel { Margin = new Thickness(8, 2), Children = { _status, _hint } };
         SetDock(top, Avalonia.Controls.Dock.Top);
         SetDock(bottom, Avalonia.Controls.Dock.Bottom);
-        var right = new ScrollViewer { Width = 232, Content = new StackPanel { Margin = new Thickness(6), Spacing = 6, Children = { Brushes(), Colours(), Toolbox() } } };
+        var right = new ScrollViewer { Width = 232, Content = new StackPanel { Margin = new Thickness(6), Spacing = 6, Children = { Brushes(), Colours(), Toolbox(), LayersPanel() } } };
         SetDock(right, Avalonia.Controls.Dock.Right);
         SetDock(_frames, Avalonia.Controls.Dock.Left);
         BuildFrames();
@@ -55,21 +62,29 @@ public sealed partial class ImageEditorView
 
     private WrapPanel Options()
     {
-        _size.ValueChanged += (_, e) => Canvas.BrushSize = (int)(e.NewValue ?? 1);
+        _size.ValueChanged += (_, e) =>
+        {
+            Canvas.BrushSize = (int)(e.NewValue ?? 1);
+            _sizeSlider.Value = Math.Min(_sizeSlider.Maximum, Canvas.BrushSize);
+        };
+        _sizeSlider.ValueChanged += (_, e) =>
+        {
+            if ((int)Math.Round(e.NewValue) != Canvas.BrushSize) _size.Value = (int)Math.Round(e.NewValue);
+        };
         foreach (var style in Enum.GetValues<ShapeStyle>()) _style.Items.Add(Loc.Current["image.style." + style]);
         _style.SelectedIndex = 0;
         _style.SelectionChanged += (_, _) => Canvas.Style = (ShapeStyle)Math.Max(0, _style.SelectedIndex);
-        var round = new ToggleButton { Name = "ImageRound", Content = Loc.Current["image.round"] };
-        round.IsCheckedChanged += (_, _) => Canvas.Shape = round.IsChecked == true ? BrushShape.Round : BrushShape.Square;
-        var tolerance = new NumericUpDown { Name = "ImageTolerance", Minimum = 0, Maximum = 255, Value = 0, Increment = 5, FormatString = "0", Width = 100 };
-        tolerance.ValueChanged += (_, e) => Canvas.Tolerance = (int)(e.NewValue ?? 0);
-        var contiguous = new CheckBox { Name = "ImageContiguous", Content = Loc.Current["image.contiguous"], IsChecked = true };
-        contiguous.IsCheckedChanged += (_, _) => Canvas.Contiguous = contiguous.IsChecked == true;
-        var mirrorX = Toggle("ImageMirrorX", "image.symmetryH", on => Canvas.Symmetry = on ? Canvas.Symmetry | SymmetryMode.Horizontal : Canvas.Symmetry & ~SymmetryMode.Horizontal);
-        var mirrorY = Toggle("ImageMirrorY", "image.symmetryV", on => Canvas.Symmetry = on ? Canvas.Symmetry | SymmetryMode.Vertical : Canvas.Symmetry & ~SymmetryMode.Vertical);
-        var grid = Toggle("ImageGrid", "image.grid", on => Canvas.ShowGrid = on, true);
-        var tiles = Toggle("ImageTiles", "image.tiles", on => Canvas.TilePreview = on);
-        var onion = Toggle("ImageOnion", "image.onion", on =>
+        _round.Content = Loc.Current["image.round"];
+        _round.IsCheckedChanged += (_, _) => Canvas.Shape = _round.IsChecked == true ? BrushShape.Round : BrushShape.Square;
+        _tolerance.ValueChanged += (_, e) => Canvas.Tolerance = (int)(e.NewValue ?? 0);
+        _contiguous.Content = Loc.Current["image.contiguous"];
+        _contiguous.IsCheckedChanged += (_, _) => Canvas.Contiguous = _contiguous.IsChecked == true;
+        _smoothToggle = Toggle("ImageSmooth", "image.smooth", on => Canvas.Smooth = on);
+        _mirrorX = Toggle("ImageMirrorX", "image.symmetryH", on => Canvas.Symmetry = on ? Canvas.Symmetry | SymmetryMode.Horizontal : Canvas.Symmetry & ~SymmetryMode.Horizontal);
+        _mirrorY = Toggle("ImageMirrorY", "image.symmetryV", on => Canvas.Symmetry = on ? Canvas.Symmetry | SymmetryMode.Vertical : Canvas.Symmetry & ~SymmetryMode.Vertical);
+        _gridToggle = Toggle("ImageGrid", "image.grid", on => Canvas.ShowGrid = on, true);
+        _tilesToggle = Toggle("ImageTiles", "image.tiles", on => Canvas.TilePreview = on);
+        _onionToggle = Toggle("ImageOnion", "image.onion", on =>
         {
             _onionOn = on;
             UpdateOnion();
@@ -80,7 +95,7 @@ public sealed partial class ImageEditorView
         _redoButton.Click += (_, _) => Redo();
         var zoom = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { Small("ImageZoomOut", "-", () => Canvas.ZoomBy(0.8)), Small("ImageZoomIn", "+", () => Canvas.ZoomBy(1.25)), Small("ImageFit", Loc.Current["image.fit"], Canvas.Fit), Small("ImageActual", "1:1", Canvas.ActualSize) } };
         var bar = new WrapPanel { Margin = new Thickness(6, 4) };
-        foreach (var item in new Control[] { Menus(), _undoButton, _redoButton, Label("image.sizeLabel"), _size, round, _style, Label("image.tolerance"), tolerance, contiguous, mirrorX, mirrorY, grid, tiles, onion, zoom })
+        foreach (var item in new Control[] { Menus(), _undoButton, _redoButton, Label("image.sizeLabel"), _size, _sizeSlider, _round, _smoothToggle, _style, Label("image.tolerance"), _tolerance, _contiguous, Label("image.textLabel"), _text, _textSize, _mirrorX, _mirrorY, _gridToggle, _tilesToggle, _onionToggle, zoom })
         {
             item.Margin = new Thickness(0, 0, 8, 2);
             item.VerticalAlignment = VerticalAlignment.Center;
@@ -183,8 +198,8 @@ public sealed partial class ImageEditorView
         var panel = new WrapPanel { Name = "ImageToolbox" };
         foreach (var tool in ImageTools.All)
         {
-            var button = new ToggleButton { Name = "Tool_" + tool, Width = 44, Height = 40, Margin = new Thickness(1), Padding = new Thickness(0), Content = new PathIcon { Data = Geometry.Parse(ImageTools.Icon(tool)), Width = 20, Height = 20 } };
-            ToolTip.SetTip(button, $"{Loc.Current["image.tool." + tool]} ({ImageTools.KeyOf(tool)})");
+            var button = new ToggleButton { Name = "Tool_" + tool, Width = 44, Height = 40, Margin = new Thickness(1), Padding = new Thickness(0), Content = new PathIcon { Data = Geometry.Parse(ImageTools.Icon(tool)) } };
+            ToolTip.SetTip(button, Tip(Loc.Current["image.tool." + tool], ImageTools.CommandOf(tool)));
             button.Click += (_, _) =>
             {
                 SetTool(tool);
@@ -201,7 +216,7 @@ public sealed partial class ImageEditorView
 
     private void BuildFrames()
     {
-        var play = new ToggleButton { Name = "ImagePlay", Content = Loc.Current["image.play"] };
+        var play = _playToggle = new ToggleButton { Name = "ImagePlay", Content = Loc.Current["image.play"] };
         play.IsCheckedChanged += (_, _) =>
         {
             if (play.IsChecked == true && _session.FrameCount > 1) _play.Start();

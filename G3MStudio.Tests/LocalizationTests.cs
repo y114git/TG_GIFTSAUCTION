@@ -83,11 +83,11 @@ public sealed partial class LocalizationTests
         var triggers = Enum.GetNames<Core.Projects.Trigger>().Select(n => "project.trigger." + n);
         var types = ResourceTypes.All.Select(t => "explorer.type." + t.Key).Append("explorer.type." + ExplorerModel.DataGroup).Append("explorer.type.backgrounds");
         var tools = Enum.GetNames<Rooms.RoomTool>().Select(n => "rooms.tool." + n).Concat(TourWindow.Steps.SelectMany(s => new[] { "tour." + s.Key + ".title", "tour." + s.Key + ".text" }));
-        var painterKeys = Enum.GetNames<Editor.ImageTool>().SelectMany(n => new[] { "image.tool." + n, "image.hint." + n }).Concat(Enum.GetNames<Editor.ShapeStyle>().Select(n => "image.style." + n)).Concat(Enum.GetNames<Core.Workspace.BrushShape>().Select(n => "image.shape." + n));
+        var painterKeys = Enum.GetNames<Editor.ImageTool>().SelectMany(n => new[] { "image.tool." + n, "image.hint." + n }).Concat(Enum.GetNames<Editor.ShapeStyle>().Select(n => "image.style." + n)).Concat(Enum.GetNames<Core.Workspace.BrushShape>().Select(n => "image.shape." + n)).Concat(Enum.GetNames<Core.Workspace.LayerBlend>().Select(n => "image.blend." + n));
         var searchKeys = G3MStudio.Editor.SearchPanelTexts.Keys;
         var dockKeys = G3MStudio.Docking.DockTexts.Keys.Select(k => "dock." + k);
         var layerKeys = LayerKeyParts.Select(k => "rooms." + k).Concat(Enum.GetNames<Core.Plugins.PluginState>().Select(n => "plugins.state." + n));
-        var submenus = AppCommands.Menus.SelectMany(m => m.Ids).Where(id => id.Split('.').Length > 2).Select(id => "menu.sub." + string.Join('.', id.Split('.')[..2])).Concat(ThemeColors.Editable.Select(k => "colors." + k)).Concat(ThemeColors.Groups.Select(g => g.Group)).Concat(ThemeSizes.All.Select(a => "settings.size." + a.Key));
+        var submenus = AppCommands.Menus.SelectMany(m => m.Ids).Where(id => id.Split('.').Length > 2).Select(id => "menu.sub." + string.Join('.', id.Split('.')[..2])).Concat(ThemeColors.Editable.Select(k => "colors." + k)).Concat(ThemeColors.Groups.Select(g => g.Group)).Concat(ThemeSizes.All.Select(a => "settings.size." + a.Key)).Concat(["settings.size.CodeFont"]).Concat(UiSizing.Densities.Select(d => "settings.densityName." + d));
         var used = literals.Concat(derived).Concat(submenus).Concat(triggers).Concat(types).Concat(tools).Concat(painterKeys).Concat(searchKeys).Concat(dockKeys).Concat(layerKeys).ToHashSet();
 
         Assert.True(english.IsSubsetOf(used), $"unused keys: {string.Join(", ", english.Except(used))}");

@@ -40,11 +40,14 @@ public sealed record AppSettings
     /// <summary>A font weight name, or empty for the theme weight.</summary>
     public string FontWeight { get; init; } = "";
 
-    /// <summary>Percent, 50 to 200 (<c>ui.zoom</c>).</summary>
-    public int UiScale { get; init; } = 100;
+    /// <summary>Percent, 50 to 200; 0 means automatic from the screen (<c>ui.zoom</c>).</summary>
+    public int UiScale { get; init; }
 
     /// <summary>Decompiler settings changed by the user, setting name to its value (<c>decompiler</c>); a missing name keeps the library's default. See DecompilerOptions.</summary>
     public IReadOnlyDictionary<string, string> Decompiler { get; init; } = new Dictionary<string, string>();
+
+    /// <summary>Defaults of the image editor (<see cref="ImageOptions"/>).</summary>
+    public ImageOptions Image { get; init; } = new();
 
     public string Language { get; init; } = "en";
 
@@ -75,8 +78,8 @@ public sealed record AppSettings
     /// <summary>Shortcuts changed by the user, command id to gesture; an empty gesture means the command has none (<c>keybindings</c>).</summary>
     public IReadOnlyDictionary<string, string> Shortcuts { get; init; } = new Dictionary<string, string>();
 
-    /// <summary>Tighter rows, buttons and boxes, for more on screen.</summary>
-    public bool CompactDensity { get; init; }
+    /// <summary>Compact, Comfortable or Spacious: sets the control, row and tab heights, spacing and text sizes together; own sizes win over it.</summary>
+    public string Density { get; init; } = UiSizing.Comfortable;
 
     /// <summary>Layouts the user saved, name to the dock layout as JSON (Window > Layout > Saved Layouts).</summary>
     public IReadOnlyDictionary<string, string> SavedLayouts { get; init; } = new Dictionary<string, string>();
@@ -125,6 +128,9 @@ public sealed record AppSettings
     /// <summary>Advanced: any theme token to a value of its own kind, written in settings.json (see ThemeOverrides); unknown tokens are ignored when applied.</summary>
     public IReadOnlyDictionary<string, string> Overrides { get; init; } = new Dictionary<string, string>();
 
+    /// <summary>Dialog sizes the user gave by resizing, window type name to size; the dialog opens at that size again.</summary>
+    public IReadOnlyDictionary<string, DialogSize> DialogSizes { get; init; } = new Dictionary<string, DialogSize>();
+
     internal AppSettings Clamped()
     {
         var project = Project ?? new(); // a hand-edited file may hold null
@@ -138,9 +144,12 @@ public sealed record AppSettings
             Sizes = ThemeSizes.Clamp(Sizes),
             Overrides = (Overrides ?? new Dictionary<string, string>()).Where(p => !string.IsNullOrWhiteSpace(p.Key) && p.Value is not null).ToDictionary(),
             BackupCount = Math.Clamp(BackupCount, 1, 3),
-            UiScale = Math.Clamp(UiScale, 50, 200),
+            UiScale = UiScale <= 0 ? 0 : Math.Clamp(UiScale, UiSizing.MinManual, UiSizing.MaxScale),
+            Density = UiSizing.NormalDensity(Density),
+            DialogSizes = (DialogSizes ?? new Dictionary<string, DialogSize>()).Where(p => p.Value is not null).ToDictionary(p => p.Key, p => new DialogSize(Math.Clamp(p.Value.Width, 200, 10000), Math.Clamp(p.Value.Height, 100, 10000))),
             MemoryLimitMb = MemoryLimitMb <= 0 ? 0 : Math.Clamp(MemoryLimitMb, 256, 1_048_576),
             CodeFontSize = Math.Clamp(CodeFontSize, 8, 32),
+            Image = (Image ?? new()).Clamped(),
             Project = project with { AutoSaveSeconds = Math.Clamp(project.AutoSaveSeconds, 1, 3600), AutoSyncSeconds = Math.Clamp(project.AutoSyncSeconds, 1, 3600) },
         };
     }
@@ -261,6 +270,9 @@ public sealed class SettingsStore : IDisposable
 
 /// <summary>Position and size of the main window in device pixels, and whether it was maximized; the numbers are those of the normal window.</summary>
 public sealed record WindowPlacement(int X, int Y, int Width, int Height, bool Maximized);
+
+/// <summary>The size of a dialog window in device-independent units, remembered by window type.</summary>
+public sealed record DialogSize(int Width, int Height);
 
 /// <summary>What Studio does where it would refuse a risky action: refuse, warn and let the owner go on, or go on without asking.</summary>
 public enum RiskChoice

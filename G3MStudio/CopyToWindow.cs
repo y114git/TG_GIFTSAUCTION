@@ -1,3 +1,4 @@
+using G3MStudio.Theme;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -17,7 +18,7 @@ public sealed class CopyToWindow : Window
     private readonly CheckBox _dependencies = new() { Name = "CopyDependencies", Content = Loc.Current["copyTo.deps"], IsChecked = true };
     private readonly ComboBox _mode = new() { Name = "CopyDefaultMode", SelectedIndex = 0 };
     private readonly ListBox _list = new() { Name = "CopyPlanList", MaxHeight = 320, MinHeight = 120 };
-    private readonly TextBlock _notes = new() { Name = "CopyNotes", TextWrapping = TextWrapping.Wrap, FontSize = 12 };
+    private readonly TextBlock _notes = new TextBlock { Name = "CopyNotes", TextWrapping = TextWrapping.Wrap }.TextSize("FontSize.Small");
     private readonly Button _ok = new() { Name = "CopyOk", Content = Loc.Current["copyTo.ok"], IsEnabled = false };
     private readonly Dictionary<string, CollisionMode> _overrides = [];
     private int _version;

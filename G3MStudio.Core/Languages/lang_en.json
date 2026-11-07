@@ -34,8 +34,12 @@
       },
       "view": {
         "panel": "Panels"
+      },
+      "img": {
+        "tool": "Tools"
       }
-    }
+    },
+    "image": "Image"
   },
   "cmd": {
     "code": {
@@ -113,8 +117,8 @@
       "replaceFrame": "Replace Sprite Frame...",
       "paintFrame": "Paint Frame...",
       "editImage": "Edit Image...",
-            "editAudio": "Edit Audio...",
-"replaceAudio": "Replace Audio...",
+      "editAudio": "Edit Audio...",
+      "replaceAudio": "Replace Audio...",
       "exportAudio": "Export Audio...",
       "duplicateFrame": "Duplicate Sprite Frame",
       "removeFrame": "Remove Sprite Frame",
@@ -203,6 +207,82 @@
       "repackTextures": "Repack Texture Pages...",
       "exportPage": "Export Texture Page...",
       "replacePage": "Replace Texture Page..."
+    },
+    "img": {
+      "brushBigger": "Image: Bigger brush",
+      "brushSmaller": "Image: Smaller brush",
+      "swapColours": "Image: Swap primary and secondary colour",
+      "smooth": "Image: Smooth drawing",
+      "zoomIn": "Image: Zoom in",
+      "zoomOut": "Image: Zoom out",
+      "zoomActual": "Image: Actual size (1:1)",
+      "layerAdd": "Image: New layer",
+      "layerDelete": "Image: Delete layer",
+      "layerDuplicate": "Image: Duplicate layer",
+      "layerUp": "Image: Move layer up",
+      "layerDown": "Image: Move layer down",
+      "layerMergeDown": "Image: Merge layer down",
+      "layerVisible": "Image: Show or hide layer",
+      "layerLock": "Image: Lock or unlock layer",
+      "tool": {
+        "pencil": "Image: Pencil",
+        "eraser": "Image: Eraser",
+        "replace": "Image: Replace colour",
+        "remove": "Image: Remove colour",
+        "fill": "Image: Fill",
+        "line": "Image: Line",
+        "rectangle": "Image: Rectangle",
+        "rectangleFilled": "Image: Rectangle (Filled)",
+        "ellipse": "Image: Ellipse",
+        "ellipseFilled": "Image: Ellipse (Filled)",
+        "polygon": "Image: Polygon",
+        "polygonFilled": "Image: Polygon (Filled)",
+        "curve": "Image: Curve",
+        "text": "Image: Text",
+        "picker": "Image: Colour picker",
+        "select": "Image: Rectangle select",
+        "lasso": "Image: Lasso select",
+        "wand": "Image: Magic wand",
+        "move": "Image: Move selection"
+      },
+      "grid": "Image: Grid",
+      "symmetryH": "Image: Mirror left-right",
+      "symmetryV": "Image: Mirror top-bottom",
+      "tiles": "Image: Tile preview",
+      "onion": "Image: Onion skin",
+      "zoomFit": "Image: Fit",
+      "previousFrame": "Image: Previous",
+      "nextFrame": "Image: Next",
+      "duplicateFrame": "Image: Duplicate frame",
+      "removeFrame": "Image: Remove frame",
+      "play": "Image: Play",
+      "selectAll": "Image: Select all",
+      "selectNone": "Image: Select none",
+      "invertSelection": "Image: Invert selection",
+      "expandSelection": "Image: Expand or shrink selection...",
+      "copy": "Image: Copy",
+      "cut": "Image: Cut",
+      "paste": "Image: Paste",
+      "clear": "Image: Clear",
+      "fillSelection": "Image: Fill selection",
+      "strokeSelection": "Image: Stroke selection...",
+      "flipH": "Image: Flip horizontally",
+      "flipV": "Image: Flip vertically",
+      "rotateCw": "Image: Rotate 90 degrees clockwise",
+      "rotateCcw": "Image: Rotate 90 degrees anticlockwise",
+      "rotate": "Image: Rotate by angle...",
+      "scale": "Image: Scale...",
+      "skew": "Image: Skew...",
+      "adjust": "Image: Hue, saturation, brightness, contrast...",
+      "invertColours": "Image: Invert colours",
+      "posterize": "Image: Posterize...",
+      "greyscale": "Image: Greyscale...",
+      "dither": "Image: Dither...",
+      "outline": "Image: Outline with primary colour",
+      "blur": "Image: Blur...",
+      "resize": "Image: Resize canvas...",
+      "crop": "Image: Crop to selection",
+      "trim": "Image: Trim to content"
     }
   },
   "palette": {
@@ -225,7 +305,8 @@
     "unpin": "Unpin",
     "clear": "Clear Recently Opened"
   },
-  "explorer": { "noValue": "None",
+  "explorer": {
+    "noValue": "None",
     "filter": "Filter resources...",
     "count": "{count} resources",
     "matches": "{matches} of {total}",
@@ -281,7 +362,11 @@
       "filterEffects": "Filter Effects",
       "uiLayers": "UI Layers",
       "data": "Data"
-    }
+    },
+    "deleteManyTitle": "Delete resources: {count}",
+    "deleteMany": "Delete these resources ({count})?\n{names}",
+    "deleteManyUses": "Places outside the selection that use them: {count}. Those uses are cleared or removed:\n{places}",
+    "duplicatedMany": "Resources copied: {count}."
   },
   "project": {
     "state": {
@@ -429,7 +514,9 @@
     "notApplied": "the text does not compile",
     "showFailed": "Could not show the code of '{entry}': {reason}"
   },
-  "status": { "assetId": "ID {index}" },
+  "status": {
+    "assetId": "ID {index}"
+  },
   "notify": {
     "button": "Notifications ({count})"
   },
@@ -464,10 +551,21 @@
     "appearance": "Appearance",
     "language": "Language",
     "scale": "Interface scale",
+    "scaleAuto": "Auto (from the screen)",
+    "scaleInfo": "In use: {percent}%",
+    "density": "Density",
+    "densityName": { "Compact": "Compact", "Comfortable": "Comfortable", "Spacious": "Spacious" },
     "fontFamily": "Font family (empty uses the theme font)",
     "fontWeight": "Font weight",
     "sizes": "Shape and size",
     "size": {
+      "Control": { "Height": "Control height" },
+      "Tab": { "Height": "Tab height" },
+      "Panel": { "Padding": "Panel padding" },
+      "Icon": { "Size": "Icon size" },
+      "Scrollbar": { "Width": "Scrollbar width" },
+      "Tooltip": { "Size": "Tooltip text size" },
+      "CodeFont": "Code text size",
       "Radius": {
         "Control": "Corner radius of controls",
         "Panel": "Corner radius of panels"
@@ -482,7 +580,8 @@
         "Scale": "Spacing of controls"
       },
       "FontSize": {
-        "Body": "Interface text size"
+        "Body": "Interface text size",
+        "Editor": "Editor text size"
       }
     },
     "files": "Files",
@@ -551,11 +650,23 @@
     "themeExport": "Export theme...",
     "themeImport": "Import theme (G3MStudio, G3M)...",
     "themeBad": "The theme file was not used: {reason}",
-    "compact": "Compact density (more on screen)",
     "memoryLimit": "Memory limit",
     "memoryNone": "No limit",
     "memoryCustom": "Custom",
-    "memoryNote": "No limit uses as much memory as needed, up to all free RAM. When memory runs low, Studio frees caches and slows down instead of crashing."
+    "memoryNote": "No limit uses as much memory as needed, up to all free RAM. When memory runs low, Studio frees caches and slows down instead of crashing.",
+    "image": "Image editor",
+    "imageBrushSize": "Default brush size",
+    "imageRound": "Round brush by default",
+    "imageSmooth": "Smooth drawing by default",
+    "imageTolerance": "Default tolerance",
+    "imageContiguous": "Contiguous fill by default",
+    "imageTextSize": "Text size and font",
+    "imageGrid": "Show the grid",
+    "imageGridCell": "Grid cell size and colour (#RRGGBB, empty for the theme)",
+    "imageOnion": "Onion skin frames and opacity (percent)",
+    "imageChecker": "Checkerboard colours (light, dark)",
+    "imageBackground": "Canvas background colour",
+    "imageHandle": "Handle size (pixels)"
   },
   "memory": {
     "status": "Memory {used}",
@@ -620,12 +731,38 @@
     "badPattern": "This pattern is not valid: {reason}",
     "timeout": "The pattern takes too long on a line. Make it simpler."
   },
-  "disassembly": { "assemble": "Assemble", "assembled": "Assembled.", "assembleFailed": "Could not assemble: {reason}", "title": "Disassembly of {entry}", "loading": "Reading the instructions...", "failed": "Could not read the instructions: {reason}" },
-  "tileSet": {"findRooms": "Find rooms using this tile"},
-  "textureItem": {"export": "Export PNG", "saved": "Saved to {path}", "failed": "Could not save: {reason}"},
-  "entryScripts": {"globalInit": "Scripts run when the game starts", "gameEnd": "Scripts run when the game ends", "add": "Add"},
-  "tilesets": { "info": "Tile size: {width} x {height}. Columns: {columns}. Tiles: {count}. Border {borderX}, {borderY}. Separation {separationX}, {separationY}." },
-  "warnings": { "debuggerAskTitle": "Debugger", "debuggerAsk": "Turn the debugger flag on? The normal runner can hang on a game with it.", "yyc": "This game was built with the YoYo Compiler: its code is in the executable, so there is no code to show or search.", "debugger": "The GameMaker debugger flag is on in this file. The normal runner can hang on it.", "unknownTextures": "Textures in a format that cannot be shown: {count}. They are kept as they are when you save.", "mayLoseData": "Parts of this data file the reader could not model: {count}. Saving may lose them." },
+  "disassembly": {
+    "assemble": "Assemble",
+    "assembled": "Assembled.",
+    "assembleFailed": "Could not assemble: {reason}",
+    "title": "Disassembly of {entry}",
+    "loading": "Reading the instructions...",
+    "failed": "Could not read the instructions: {reason}"
+  },
+  "tileSet": {
+    "findRooms": "Find rooms using this tile"
+  },
+  "textureItem": {
+    "export": "Export PNG",
+    "saved": "Saved to {path}",
+    "failed": "Could not save: {reason}"
+  },
+  "entryScripts": {
+    "globalInit": "Scripts run when the game starts",
+    "gameEnd": "Scripts run when the game ends",
+    "add": "Add"
+  },
+  "tilesets": {
+    "info": "Tile size: {width} x {height}. Columns: {columns}. Tiles: {count}. Border {borderX}, {borderY}. Separation {separationX}, {separationY}."
+  },
+  "warnings": {
+    "debuggerAskTitle": "Debugger",
+    "debuggerAsk": "Turn the debugger flag on? The normal runner can hang on a game with it.",
+    "yyc": "This game was built with the YoYo Compiler: its code is in the executable, so there is no code to show or search.",
+    "debugger": "The GameMaker debugger flag is on in this file. The normal runner can hang on it.",
+    "unknownTextures": "Textures in a format that cannot be shown: {count}. They are kept as they are when you save.",
+    "mayLoseData": "Parts of this data file the reader could not model: {count}. Saving may lose them."
+  },
   "usages": {
     "unrefSearching": "Looking for assets nothing uses...",
     "unrefFound": "Assets that are not used anywhere: {count}.",
@@ -848,18 +985,44 @@
     "back": "Back",
     "next": "Next",
     "done": "Done",
-    "explorer": { "title": "Find anything", "text": "Every resource of the game is here, grouped by type. Press Ctrl+P to jump to any resource by name." },
-    "tabs": { "title": "Open many things", "text": "A single click previews a resource in an italic tab. Edit it or double-click to keep it." },
-    "inspector": { "title": "See what is selected", "text": "The Inspector shows the type and name of the selected resource, how many places use it, and the layers of the room in front." },
-    "palette": { "title": "Every command is searchable", "text": "Press Ctrl+Shift+P to search every command. The menus show the shortcuts." },
-    "problems": { "title": "See what went wrong", "text": "Warnings and errors from loading, saving and compiling collect here. Double-click one to jump to it." },
-    "save": { "title": "Safe saving, quick testing", "text": "Save writes a new file and keeps a backup. Run Game starts the game with your changes without touching the original." }
+    "explorer": {
+      "title": "Find anything",
+      "text": "Every resource of the game is here, grouped by type. Press Ctrl+P to jump to any resource by name."
+    },
+    "tabs": {
+      "title": "Open many things",
+      "text": "A single click previews a resource in an italic tab. Edit it or double-click to keep it."
+    },
+    "inspector": {
+      "title": "See what is selected",
+      "text": "The Inspector shows the type and name of the selected resource, how many places use it, and the layers of the room in front."
+    },
+    "palette": {
+      "title": "Every command is searchable",
+      "text": "Press Ctrl+Shift+P to search every command. The menus show the shortcuts."
+    },
+    "problems": {
+      "title": "See what went wrong",
+      "text": "Warnings and errors from loading, saving and compiling collect here. Double-click one to jump to it."
+    },
+    "save": {
+      "title": "Safe saving, quick testing",
+      "text": "Save writes a new file and keeps a backup. Run Game starts the game with your changes without touching the original."
+    }
   },
   "particles": {
     "restart": "Restart",
     "add": "Add emitter"
   },
-  "scripts": { "source": "Where is the script?", "sourceFile": "Pick a .csx file", "sourceFolder": "Choose from the Scripts folder next to the program", "commandTitle": "C# command", "commandLabel": "C# code to run on the current data file", "pickFile": "The script asks for a file", "pickFolder": "The script asks for a folder", "pickSave": "The script asks where to save",
+  "scripts": {
+    "source": "Where is the script?",
+    "sourceFile": "Pick a .csx file",
+    "sourceFolder": "Choose from the Scripts folder next to the program",
+    "commandTitle": "C# command",
+    "commandLabel": "C# code to run on the current data file",
+    "pickFile": "The script asks for a file",
+    "pickFolder": "The script asks for a folder",
+    "pickSave": "The script asks where to save",
     "pick": "Choose a script (.csx)",
     "title": "Run script",
     "confirm": "Run {name}?\n\nA script can change anything in the data file and can read and write any file on this computer. The change cannot be undone; Revert to Saved is the way back. Only run scripts you trust.\n\nThis runs UndertaleModTool-style .csx scripts, but only part of that tool's functions exist here: Data, FilePath, ScriptPath, ScriptMessage, ScriptWarning, ScriptError and ScriptQuestion (answered yes). Scripts that need dialogs, the decompiler helpers or the UI stop with a compile error that names the missing function.",
@@ -1021,7 +1184,8 @@
       "Select": "Rectangle select",
       "Lasso": "Lasso select",
       "Wand": "Magic wand",
-      "Move": "Move selection"
+      "Move": "Move selection",
+      "Text": "Text"
     },
     "hint": {
       "Pencil": "Click to paint. Ctrl picks a colour. Right button paints the second colour.",
@@ -1038,7 +1202,8 @@
       "Select": "Drag a rectangle. Escape clears the selection.",
       "Lasso": "Drag around the pixels to select.",
       "Wand": "Click to select similar pixels. Tolerance and Contiguous are in the options bar.",
-      "Move": "Drag to move the selection (or the whole picture). Arrow keys nudge by 1, Shift by 8."
+      "Move": "Drag to move the selection (or the whole picture). Arrow keys nudge by 1, Shift by 8.",
+      "Text": "Type the text in the options bar, then click to place it in the primary colour."
     },
     "style": {
       "Outline": "Outline",
@@ -1122,6 +1287,23 @@
       "radius": "Radius",
       "anchorX": "Anchor X (0 to 2)",
       "anchorY": "Anchor Y (0 to 2)"
+    },
+    "smooth": "Smooth",
+    "textLabel": "Text",
+    "layers": "Layers",
+    "layerDuplicate": "Copy",
+    "layerDelete": "Delete",
+    "layerMergeDown": "Merge down",
+    "layerName": "Layer {n}",
+    "layerCopy": "{name} copy",
+    "opacity": "Opacity",
+    "blendMode": "Blend",
+    "blend": {
+      "Normal": "Normal",
+      "Multiply": "Multiply",
+      "Screen": "Screen",
+      "Overlay": "Overlay",
+      "Add": "Add"
     }
   },
   "painter": {
@@ -1196,8 +1378,17 @@
     "ToolChromeControlDockString": "Dock",
     "ToolChromeControlAutoHideString": "Auto hide"
   },
-  "debug": { "pick": "What the source text of each code entry holds", "decompiled": "Decompiled GML", "assembler": "Assembler, marks at stores, jumps and returns", "fullAssembler": "Assembler, marks at every instruction", "working": "Writing debug data...", "done": "Written {file}.", "failed": "Debug data not written: {reason}" },
-  "hex": { "chunk": "Go to chunk",
+  "debug": {
+    "pick": "What the source text of each code entry holds",
+    "decompiled": "Decompiled GML",
+    "assembler": "Assembler, marks at stores, jumps and returns",
+    "fullAssembler": "Assembler, marks at every instruction",
+    "working": "Writing debug data...",
+    "done": "Written {file}.",
+    "failed": "Debug data not written: {reason}"
+  },
+  "hex": {
+    "chunk": "Go to chunk",
     "offsetMapDone": "Written {file}.",
     "title": "Hex view: {file}",
     "goTo": "Go to offset (123 or 0x7B)",
@@ -1268,12 +1459,6 @@
   "empty": {
     "problems": "No problems.",
     "output": "Nothing has been reported yet."
-  },
-  "explorer": {
-    "deleteManyTitle": "Delete resources: {count}",
-    "deleteMany": "Delete these resources ({count})?\n{names}",
-    "deleteManyUses": "Places outside the selection that use them: {count}. Those uses are cleared or removed:\n{places}",
-    "duplicatedMany": "Resources copied: {count}."
   },
   "copyTo": {
     "title": "Copy to Other Data File",

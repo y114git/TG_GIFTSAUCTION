@@ -29,6 +29,7 @@ public partial class MainWindow
         }
 
         Fonts.LoadAll();
+        DialogSizing.Hook(Workspaces.Settings);
         _appliedProject = Workspaces.Settings.Current.Project;
         Workspaces.Settings.Changed += ApplySettings;
         Editor.EditorOptions.ZoomRequested += ZoomCode;
@@ -50,14 +51,13 @@ public partial class MainWindow
     {
         var s = Workspaces.Settings.Current;
         if (s.Language != Loc.Current.Language && Loc.Current.Languages.ContainsKey(s.Language)) Loc.Current.SetLanguage(s.Language);
-        Classes.Set("compact", s.CompactDensity);
         Editor.UiMotion.Set(s.ReduceMotion);
-        ZoomFactor = s.UiScale / 100.0;
+        ZoomFactor = UiSizing.Effective(s.UiScale, DialogSizing.ScreenOf(this)) / 100.0;
         ZoomHost.LayoutTransform = new ScaleTransform(ZoomFactor, ZoomFactor);
         if (s.FontFamily.Length > 0) FontFamily = Fonts.Resolve(s.FontFamily) ?? new FontFamily(s.FontFamily); else ClearValue(FontFamilyProperty);
         if (Enum.TryParse<FontWeight>(s.FontWeight, out var weight)) FontWeight = weight; else ClearValue(FontWeightProperty);
         ApplyColors(s.Colors);
-        ApplySizes(s.Sizes);
+        ApplySizes(s.Sizes, s.Density);
         ApplyOverrides(s.Overrides);
         G3MStudio.Theme.FluentForwards.Apply();
         ApplyDecompiler(s.Decompiler);
@@ -110,16 +110,16 @@ public partial class MainWindow
     }
 
     /// <summary>Puts the user's sizes over the theme: corner radii, the border width and the type scale.</summary>
-    private static void ApplySizes(IReadOnlyDictionary<string, int> sizes)
+    private static void ApplySizes(IReadOnlyDictionary<string, int> sizes, string density)
     {
         if (Application.Current?.Resources is not { } resources) return;
-        ScalePadding(resources, sizes);
+        ScalePadding(resources, ThemeSizes.Value(sizes, density, "Space.Scale"));
         foreach (var (key, _, _, _) in ThemeSizes.All.Where(a => a.Key != "Space.Scale"))
         {
-            // Only a size the user changed is put over the theme, so a settings change that leaves sizes alone does not touch (and re-measure) every control.
-            foreach (var (token, size) in ThemeSizes.Expand(key, ThemeSizes.Value(sizes, key)))
+            // Only a size that differs from the theme is put over it, so a settings change that leaves sizes alone does not touch (and re-measure) every control.
+            foreach (var (token, size) in ThemeSizes.Expand(key, ThemeSizes.Value(sizes, density, key)))
             {
-                if (!sizes.ContainsKey(key))
+                if (ThemeSizes.IsDefault(sizes, density, key))
                 {
                     resources.Remove(token);
                     continue;
@@ -127,7 +127,7 @@ public partial class MainWindow
 
                 resources[token] = token switch
                 {
-                    "Border.Width" => new Thickness(size),
+                    "Border.Width" or "Panel.Padding" => new Thickness(size),
                     _ when token.StartsWith("Radius.", StringComparison.Ordinal) => new CornerRadius(size),
                     _ => size,
                 };
@@ -139,7 +139,7 @@ public partial class MainWindow
     private static readonly Dictionary<string, Thickness> PaddingDefaults = [];
 
     /// <summary>The spacing size scales the padding Fluent gives buttons, boxes, combo boxes and menu items; without the size the theme's own padding is back.</summary>
-    private static void ScalePadding(IResourceDictionary resources, IReadOnlyDictionary<string, int> sizes)
+    private static void ScalePadding(IResourceDictionary resources, int percent)
     {
         if (Application.Current is not { } app) return;
         foreach (var key in PaddingKeys)
@@ -151,7 +151,7 @@ public partial class MainWindow
                 PaddingDefaults[key] = d = own;
             }
 
-            if (!sizes.TryGetValue("Space.Scale", out var percent))
+            if (percent == 100)
             {
                 resources.Remove(key);
                 continue;
@@ -186,7 +186,7 @@ public partial class MainWindow
 
     public void ShowSettings()
     {
-        SettingsHost.Child = new SettingsPage(Workspaces.Settings, Workspaces.Projects.Registry, Registry, Fonts, CloseSettings) { Name = "SettingsPage" };
+        SettingsHost.Child = new SettingsPage(Workspaces.Settings, Workspaces.Projects.Registry, Registry, Fonts, CloseSettings, () => DialogSizing.ScreenOf(this)) { Name = "SettingsPage" };
         SettingsHost.IsVisible = true;
     }
 
@@ -238,12 +238,23 @@ public sealed partial class MainWindow
         SizeChanged += (_, _) => { if (WindowState == WindowState.Normal) _normalSize = PixelSize.FromSize(ClientSize, DesktopScaling); };
         _normalPosition = Position;
         _normalSize = PixelSize.FromSize(ClientSize, DesktopScaling);
-        if (Workspaces.Settings.Current is not { RememberWindow: true, Window: { } saved }) return;
+        if (Workspaces.Settings.Current is not { RememberWindow: true, Window: { } saved }) { UseDefaultSize(); return; }
         var corner = new PixelPoint(saved.X + 40, saved.Y + 40);
-        if (!Screens.All.Any(screen => screen.WorkingArea.Contains(corner))) return;
+        if (!Screens.All.Any(screen => screen.WorkingArea.Contains(corner))) { UseDefaultSize(); return; }
         Position = new PixelPoint(saved.X, saved.Y);
         if (saved.Width > 300 && saved.Height > 200) ClientSize = new Size(saved.Width / DesktopScaling, saved.Height / DesktopScaling);
         if (saved.Maximized) WindowState = WindowState.Maximized;
+    }
+
+    /// <summary>A first start (or a lost screen) opens at 85% of the work area, centered, so the same layout fits a laptop and a 4K screen.</summary>
+    private void UseDefaultSize()
+    {
+        if (Width != 1100 || Height != 700) return; // the size in MainWindow.axaml; a size set since then stands
+        if ((Screens.ScreenFromWindow(this) ?? Screens.Primary) is not { } screen) return;
+        var area = screen.WorkingArea;
+        var (width, height) = UiSizing.WindowSize(area.Width, area.Height, screen.Scaling);
+        (Width, Height) = (width, height);
+        Position = new PixelPoint(area.X + (int)((area.Width - width * screen.Scaling) / 2), area.Y + (int)((area.Height - height * screen.Scaling) / 2));
     }
 
     private void SaveWindowPlacement()

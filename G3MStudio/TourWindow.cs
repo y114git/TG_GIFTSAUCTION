@@ -1,3 +1,4 @@
+using G3MStudio.Theme;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using G3MStudio.Localization;
@@ -18,7 +19,7 @@ public sealed class TourWindow : Window
     ];
 
     private readonly TextBlock _count = new() { Name = "TourCount", Classes = { "muted" } };
-    private readonly TextBlock _title = new() { Name = "TourTitle", FontSize = 18 };
+    private readonly TextBlock _title = new TextBlock { Name = "TourTitle" }.TextSize("FontSize.Title");
     private readonly TextBlock _text = new() { Name = "TourText", TextWrapping = Avalonia.Media.TextWrapping.Wrap };
     private readonly Button _back = new() { Name = "TourBack" };
     private readonly Button _next = new() { Name = "TourNext", Classes = { "primary" } };

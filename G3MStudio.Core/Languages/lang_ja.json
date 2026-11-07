@@ -34,8 +34,12 @@
       },
       "view": {
         "panel": "パネル"
+      },
+      "img": {
+        "tool": "ツール"
       }
-    }
+    },
+    "image": "画像"
   },
   "cmd": {
     "code": {
@@ -113,8 +117,8 @@
       "replaceFrame": "スプライトのフレームを置換...",
       "paintFrame": "フレームを描画...",
       "editImage": "画像を編集...",
-            "editAudio": "オーディオを編集...",
-"replaceAudio": "オーディオを置き換え...",
+      "editAudio": "オーディオを編集...",
+      "replaceAudio": "オーディオを置き換え...",
       "exportAudio": "オーディオをエクスポート...",
       "duplicateFrame": "スプライトのフレームを複製",
       "removeFrame": "スプライトのフレームを削除",
@@ -203,6 +207,82 @@
       "repackTextures": "テクスチャページを再パック...",
       "exportPage": "テクスチャページをエクスポート...",
       "replacePage": "テクスチャページを置き換え..."
+    },
+    "img": {
+      "brushBigger": "画像: ブラシを大きく",
+      "brushSmaller": "画像: ブラシを小さく",
+      "swapColours": "画像: メインカラーとサブカラーを入れ替え",
+      "smooth": "画像: スムーズ描画",
+      "zoomIn": "画像: 拡大",
+      "zoomOut": "画像: 縮小",
+      "zoomActual": "画像: 実寸 (1:1)",
+      "layerAdd": "画像: 新規レイヤー",
+      "layerDelete": "画像: レイヤーを削除",
+      "layerDuplicate": "画像: レイヤーを複製",
+      "layerUp": "画像: レイヤーを上へ",
+      "layerDown": "画像: レイヤーを下へ",
+      "layerMergeDown": "画像: レイヤーを下と結合",
+      "layerVisible": "画像: レイヤーの表示切り替え",
+      "layerLock": "画像: レイヤーのロック切り替え",
+      "tool": {
+        "pencil": "画像: 鉛筆",
+        "eraser": "画像: 消しゴム",
+        "replace": "画像: 色を置換",
+        "remove": "画像: 色を削除",
+        "fill": "画像: 塗りつぶし",
+        "line": "画像: 直線",
+        "rectangle": "画像: 長方形",
+        "rectangleFilled": "画像: 長方形 (塗りつぶし)",
+        "ellipse": "画像: 楕円",
+        "ellipseFilled": "画像: 楕円 (塗りつぶし)",
+        "polygon": "画像: 多角形",
+        "polygonFilled": "画像: 多角形 (塗りつぶし)",
+        "curve": "画像: 曲線",
+        "text": "画像: テキスト",
+        "picker": "画像: スポイト",
+        "select": "画像: 矩形選択",
+        "lasso": "画像: 投げ縄選択",
+        "wand": "画像: 自動選択",
+        "move": "画像: 選択範囲を移動"
+      },
+      "grid": "画像: グリッド",
+      "symmetryH": "画像: 左右ミラー",
+      "symmetryV": "画像: 上下ミラー",
+      "tiles": "画像: タイル表示",
+      "onion": "画像: オニオンスキン",
+      "zoomFit": "画像: 全体表示",
+      "previousFrame": "画像: 前へ",
+      "nextFrame": "画像: 次へ",
+      "duplicateFrame": "画像: フレームを複製",
+      "removeFrame": "画像: フレームを削除",
+      "play": "画像: 再生",
+      "selectAll": "画像: すべて選択",
+      "selectNone": "画像: 選択解除",
+      "invertSelection": "画像: 選択範囲を反転",
+      "expandSelection": "画像: 選択範囲を拡大または縮小...",
+      "copy": "画像: コピー",
+      "cut": "画像: 切り取り",
+      "paste": "画像: 貼り付け",
+      "clear": "画像: 消去",
+      "fillSelection": "画像: 選択範囲を塗りつぶす",
+      "strokeSelection": "画像: 選択範囲を縁取り...",
+      "flipH": "画像: 左右反転",
+      "flipV": "画像: 上下反転",
+      "rotateCw": "画像: 時計回りに90度回転",
+      "rotateCcw": "画像: 反時計回りに90度回転",
+      "rotate": "画像: 角度を指定して回転...",
+      "scale": "画像: 拡大縮小...",
+      "skew": "画像: 傾斜...",
+      "adjust": "画像: 色相・彩度・明るさ・コントラスト...",
+      "invertColours": "画像: 色を反転",
+      "posterize": "画像: ポスタリゼーション...",
+      "greyscale": "画像: グレースケール...",
+      "dither": "画像: ディザ...",
+      "outline": "画像: メインカラーで縁取り",
+      "blur": "画像: ぼかし...",
+      "resize": "画像: キャンバスサイズを変更...",
+      "crop": "画像: 選択範囲に合わせて切り抜き",
+      "trim": "画像: 内容に合わせてトリミング"
     }
   },
   "palette": {
@@ -225,7 +305,8 @@
     "unpin": "固定を解除",
     "clear": "最近開いた項目を消去"
   },
-  "explorer": { "noValue": "なし",
+  "explorer": {
+    "noValue": "なし",
     "filter": "リソースを絞り込み...",
     "count": "{count} 件のリソース",
     "matches": "{total} 件中 {matches} 件",
@@ -281,7 +362,11 @@
       "filterEffects": "フィルターエフェクト",
       "uiLayers": "UIレイヤー",
       "data": "データ"
-    }
+    },
+    "deleteManyTitle": "{count} 件のリソースを削除",
+    "deleteMany": "この {count} 件のリソースを削除しますか?\n{names}",
+    "deleteManyUses": "選択外の {count} 箇所が使用しています。これらの使用はクリアまたは削除されます:\n{places}",
+    "duplicatedMany": "{count} 件のリソースをコピーしました。"
   },
   "project": {
     "state": {
@@ -429,7 +514,9 @@
     "notApplied": "テキストがコンパイルできません",
     "showFailed": "「{entry}」のコードを表示できませんでした: {reason}"
   },
-  "status": { "assetId": "ID {index}" },
+  "status": {
+    "assetId": "ID {index}"
+  },
   "notify": {
     "button": "通知 ({count})"
   },
@@ -464,10 +551,21 @@
     "appearance": "外観",
     "language": "言語",
     "scale": "インターフェイスの拡大率",
+    "scaleAuto": "自動（画面に合わせる）",
+    "scaleInfo": "使用中: {percent}%",
+    "density": "密度",
+    "densityName": { "Compact": "コンパクト", "Comfortable": "標準", "Spacious": "ゆったり" },
     "fontFamily": "フォントファミリー (空欄ならテーマのフォント)",
     "fontWeight": "フォントの太さ",
     "sizes": "形とサイズ",
     "size": {
+      "Control": { "Height": "コントロールの高さ" },
+      "Tab": { "Height": "タブの高さ" },
+      "Panel": { "Padding": "パネルの余白" },
+      "Icon": { "Size": "アイコンのサイズ" },
+      "Scrollbar": { "Width": "スクロールバーの幅" },
+      "Tooltip": { "Size": "ツールチップの文字サイズ" },
+      "CodeFont": "コードの文字サイズ",
       "Radius": {
         "Control": "コントロールの角丸",
         "Panel": "パネルの角丸"
@@ -482,7 +580,8 @@
         "Scale": "コントロールの余白"
       },
       "FontSize": {
-        "Body": "インターフェースの文字サイズ"
+        "Body": "インターフェースの文字サイズ",
+        "Editor": "エディターの文字サイズ"
       }
     },
     "files": "ファイル",
@@ -551,11 +650,23 @@
     "themeExport": "テーマをエクスポート...",
     "themeImport": "テーマをインポート (G3MStudio, G3M)...",
     "themeBad": "テーマファイルを使えませんでした: {reason}",
-    "compact": "コンパクト表示（画面に多く表示）",
     "memoryLimit": "メモリ上限",
     "memoryNone": "上限なし",
     "memoryCustom": "指定",
-    "memoryNote": "上限なしでは、空きメモリの範囲で必要なだけ使います。メモリが少なくなると、Studio はキャッシュを解放し、落ちずに速度を落として動作します。"
+    "memoryNote": "上限なしでは、空きメモリの範囲で必要なだけ使います。メモリが少なくなると、Studio はキャッシュを解放し、落ちずに速度を落として動作します。",
+    "image": "画像エディター",
+    "imageBrushSize": "既定のブラシサイズ",
+    "imageRound": "既定で丸ブラシ",
+    "imageSmooth": "既定でスムーズ描画",
+    "imageTolerance": "既定の許容値",
+    "imageContiguous": "既定で隣接のみ塗る",
+    "imageTextSize": "テキストのサイズとフォント",
+    "imageGrid": "グリッドを表示",
+    "imageGridCell": "グリッドのセルサイズと色 (#RRGGBB、空欄でテーマ)",
+    "imageOnion": "オニオンスキンのフレーム数と不透明度 (パーセント)",
+    "imageChecker": "市松模様の色 (明、暗)",
+    "imageBackground": "キャンバスの背景色",
+    "imageHandle": "ハンドルのサイズ (ピクセル)"
   },
   "memory": {
     "status": "メモリ {used}",
@@ -620,12 +731,38 @@
     "badPattern": "このパターンは無効です: {reason}",
     "timeout": "このパターンは 1 行の処理に時間がかかりすぎます。もっと単純にしてください。"
   },
-  "disassembly": { "assemble": "アセンブル", "assembled": "アセンブルしました。", "assembleFailed": "アセンブルできませんでした: {reason}", "title": "{entry} の逆アセンブル", "loading": "命令を読み込み中...", "failed": "命令を読み込めませんでした: {reason}" },
-  "tileSet": {"findRooms": "このタイルを使う部屋を探す"},
-  "textureItem": {"export": "PNGで書き出し", "saved": "{path} に保存しました", "failed": "保存できませんでした: {reason}"},
-  "entryScripts": {"globalInit": "ゲーム開始時のスクリプト", "gameEnd": "ゲーム終了時のスクリプト", "add": "追加"},
-  "tilesets": { "info": "タイル {width} x {height}、{columns} 列、{count} 個。枠 {borderX}, {borderY}。間隔 {separationX}, {separationY}。" },
-  "warnings": { "debuggerAskTitle": "デバッガー", "debuggerAsk": "デバッガーフラグを有効にしますか？ 通常のランナーでは固まることがあります。", "yyc": "このゲームは YoYo Compiler でビルドされています。コードは実行ファイルの中にあるため、表示も検索もできません。", "debugger": "このファイルでは GameMaker のデバッガーフラグが有効です。通常のランナーが固まることがあります。", "unknownTextures": "表示できない形式のテクスチャが {count} 個あります。保存してもそのまま残ります。", "mayLoseData": "このデータファイルの {count} 件の部分を読み取れませんでした。保存すると失われる可能性があります。" },
+  "disassembly": {
+    "assemble": "アセンブル",
+    "assembled": "アセンブルしました。",
+    "assembleFailed": "アセンブルできませんでした: {reason}",
+    "title": "{entry} の逆アセンブル",
+    "loading": "命令を読み込み中...",
+    "failed": "命令を読み込めませんでした: {reason}"
+  },
+  "tileSet": {
+    "findRooms": "このタイルを使う部屋を探す"
+  },
+  "textureItem": {
+    "export": "PNGで書き出し",
+    "saved": "{path} に保存しました",
+    "failed": "保存できませんでした: {reason}"
+  },
+  "entryScripts": {
+    "globalInit": "ゲーム開始時のスクリプト",
+    "gameEnd": "ゲーム終了時のスクリプト",
+    "add": "追加"
+  },
+  "tilesets": {
+    "info": "タイル {width} x {height}、{columns} 列、{count} 個。枠 {borderX}, {borderY}。間隔 {separationX}, {separationY}。"
+  },
+  "warnings": {
+    "debuggerAskTitle": "デバッガー",
+    "debuggerAsk": "デバッガーフラグを有効にしますか？ 通常のランナーでは固まることがあります。",
+    "yyc": "このゲームは YoYo Compiler でビルドされています。コードは実行ファイルの中にあるため、表示も検索もできません。",
+    "debugger": "このファイルでは GameMaker のデバッガーフラグが有効です。通常のランナーが固まることがあります。",
+    "unknownTextures": "表示できない形式のテクスチャが {count} 個あります。保存してもそのまま残ります。",
+    "mayLoseData": "このデータファイルの {count} 件の部分を読み取れませんでした。保存すると失われる可能性があります。"
+  },
   "usages": {
     "unrefSearching": "どこからも使われていないアセットを検索中...",
     "unrefFound": "どこからも使われていないアセットが {count} 件あります。",
@@ -848,18 +985,44 @@
     "back": "戻る",
     "next": "次へ",
     "done": "完了",
-    "explorer": { "title": "何でも探せます", "text": "ゲームのすべてのリソースが種類別にここに並びます。Ctrl+P で名前を指定して移動できます。" },
-    "tabs": { "title": "たくさん開けます", "text": "リソースをクリックすると斜体のタブでプレビューされます。編集するかダブルクリックすると残ります。" },
-    "inspector": { "title": "選択中の内容を確認", "text": "インスペクターには、選択中のリソースの種類と名前、使われている箇所の数、手前のルームのレイヤーが表示されます。" },
-    "palette": { "title": "すべてのコマンドを検索", "text": "Ctrl+Shift+P ですべてのコマンドを検索できます。メニューにはショートカットが表示されます。" },
-    "problems": { "title": "問題を確認", "text": "読み込み、保存、コンパイルの警告とエラーがここに集まります。ダブルクリックでその場所へ移動します。" },
-    "save": { "title": "安全な保存と手早いテスト", "text": "保存は新しいファイルを書き出し、バックアップを残します。ゲームを実行は、元のファイルに触れずに変更を反映して起動します。" }
+    "explorer": {
+      "title": "何でも探せます",
+      "text": "ゲームのすべてのリソースが種類別にここに並びます。Ctrl+P で名前を指定して移動できます。"
+    },
+    "tabs": {
+      "title": "たくさん開けます",
+      "text": "リソースをクリックすると斜体のタブでプレビューされます。編集するかダブルクリックすると残ります。"
+    },
+    "inspector": {
+      "title": "選択中の内容を確認",
+      "text": "インスペクターには、選択中のリソースの種類と名前、使われている箇所の数、手前のルームのレイヤーが表示されます。"
+    },
+    "palette": {
+      "title": "すべてのコマンドを検索",
+      "text": "Ctrl+Shift+P ですべてのコマンドを検索できます。メニューにはショートカットが表示されます。"
+    },
+    "problems": {
+      "title": "問題を確認",
+      "text": "読み込み、保存、コンパイルの警告とエラーがここに集まります。ダブルクリックでその場所へ移動します。"
+    },
+    "save": {
+      "title": "安全な保存と手早いテスト",
+      "text": "保存は新しいファイルを書き出し、バックアップを残します。ゲームを実行は、元のファイルに触れずに変更を反映して起動します。"
+    }
   },
   "particles": {
     "restart": "最初から再生",
     "add": "エミッターを追加"
   },
-  "scripts": { "source": "スクリプトはどこにありますか。", "sourceFile": ".csx ファイルを選ぶ", "sourceFolder": "プログラムの隣の Scripts フォルダーから選ぶ", "commandTitle": "C# コマンド", "commandLabel": "開いているデータファイルに対して実行する C# コード", "pickFile": "スクリプトがファイルを求めています", "pickFolder": "スクリプトがフォルダーを求めています", "pickSave": "スクリプトが保存先を尋ねています",
+  "scripts": {
+    "source": "スクリプトはどこにありますか。",
+    "sourceFile": ".csx ファイルを選ぶ",
+    "sourceFolder": "プログラムの隣の Scripts フォルダーから選ぶ",
+    "commandTitle": "C# コマンド",
+    "commandLabel": "開いているデータファイルに対して実行する C# コード",
+    "pickFile": "スクリプトがファイルを求めています",
+    "pickFolder": "スクリプトがフォルダーを求めています",
+    "pickSave": "スクリプトが保存先を尋ねています",
     "pick": "スクリプト (.csx) を選んでください",
     "title": "スクリプトの実行",
     "confirm": "{name} を実行しますか？\n\nスクリプトはデータファイルのあらゆる内容を変更でき、このコンピューター上の任意のファイルを読み書きできます。変更は元に戻せません。戻すには「保存済みに戻す」を使います。信頼できるスクリプトだけを実行してください。\n\nUndertaleModTool 形式の .csx スクリプトを実行しますが、そのツールの機能の一部しかありません: Data、FilePath、ScriptPath、ScriptMessage、ScriptWarning、ScriptError、ScriptQuestion（常に「はい」）。ダイアログ、デコンパイラ補助、UI が必要なスクリプトは、足りない関数名を示すコンパイルエラーで止まります。",
@@ -1021,7 +1184,8 @@
       "Select": "矩形選択",
       "Lasso": "投げ縄選択",
       "Wand": "自動選択",
-      "Move": "選択範囲を移動"
+      "Move": "選択範囲を移動",
+      "Text": "テキスト"
     },
     "hint": {
       "Pencil": "クリックで描画。Ctrlで色を取得。右ボタンは2番目の色で描画します。",
@@ -1038,7 +1202,8 @@
       "Select": "ドラッグして矩形を選択。Escapeで解除します。",
       "Lasso": "選択するピクセルの周りをドラッグします。",
       "Wand": "クリックで似たピクセルを選択します。許容値と連続はオプションバーにあります。",
-      "Move": "ドラッグで選択範囲（または画像全体）を移動。矢印キーで1、Shiftで8ずつ動かします。"
+      "Move": "ドラッグで選択範囲（または画像全体）を移動。矢印キーで1、Shiftで8ずつ動かします。",
+      "Text": "オプションバーに文字を入力し、クリックしてメインカラーで配置します。"
     },
     "style": {
       "Outline": "輪郭",
@@ -1122,6 +1287,23 @@
       "radius": "半径",
       "anchorX": "アンカーX (0〜2)",
       "anchorY": "アンカーY (0〜2)"
+    },
+    "smooth": "スムージング",
+    "textLabel": "テキスト",
+    "layers": "レイヤー",
+    "layerDuplicate": "複製",
+    "layerDelete": "削除",
+    "layerMergeDown": "下と結合",
+    "layerName": "レイヤー {n}",
+    "layerCopy": "{name} のコピー",
+    "opacity": "不透明度",
+    "blendMode": "描画モード",
+    "blend": {
+      "Normal": "通常",
+      "Multiply": "乗算",
+      "Screen": "スクリーン",
+      "Overlay": "オーバーレイ",
+      "Add": "加算"
     }
   },
   "painter": {
@@ -1196,8 +1378,17 @@
     "ToolChromeControlDockString": "ドック",
     "ToolChromeControlAutoHideString": "自動的に隠す"
   },
-  "debug": { "pick": "各コードエントリのソーステキストの内容", "decompiled": "逆コンパイルした GML", "assembler": "アセンブラ（代入・ジャンプ・戻りに印）", "fullAssembler": "アセンブラ（全命令に印）", "working": "デバッグデータを書き出しています...", "done": "{file} を書き出しました。", "failed": "デバッグデータを書き出せませんでした: {reason}" },
-  "hex": { "chunk": "チャンクへ移動",
+  "debug": {
+    "pick": "各コードエントリのソーステキストの内容",
+    "decompiled": "逆コンパイルした GML",
+    "assembler": "アセンブラ（代入・ジャンプ・戻りに印）",
+    "fullAssembler": "アセンブラ（全命令に印）",
+    "working": "デバッグデータを書き出しています...",
+    "done": "{file} を書き出しました。",
+    "failed": "デバッグデータを書き出せませんでした: {reason}"
+  },
+  "hex": {
+    "chunk": "チャンクへ移動",
     "offsetMapDone": "{file} を書き出しました。",
     "title": "16進ビュー: {file}",
     "goTo": "オフセットへ移動 (123 または 0x7B)",
@@ -1268,12 +1459,6 @@
   "empty": {
     "problems": "問題はありません。",
     "output": "まだ報告はありません。"
-  },
-  "explorer": {
-    "deleteManyTitle": "{count} 件のリソースを削除",
-    "deleteMany": "この {count} 件のリソースを削除しますか?\n{names}",
-    "deleteManyUses": "選択外の {count} 箇所が使用しています。これらの使用はクリアまたは削除されます:\n{places}",
-    "duplicatedMany": "{count} 件のリソースをコピーしました。"
   },
   "copyTo": {
     "title": "別のデータファイルにコピー",

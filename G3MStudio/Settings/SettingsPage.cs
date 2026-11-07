@@ -1,3 +1,4 @@
+using G3MStudio.Theme;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
@@ -25,12 +26,14 @@ public sealed partial class SettingsPage : UserControl
     private string _themeMessage = "";
     private string _search = "";
     private readonly Action _close;
+    private readonly Func<ScreenInfo> _screen;
     private bool _building;
     private int _section;
 
-    public SettingsPage(SettingsStore store, ProjectRegistry registry, CommandRegistry commands, UserFonts userFonts, Action close)
+    public SettingsPage(SettingsStore store, ProjectRegistry registry, CommandRegistry commands, UserFonts userFonts, Action close, Func<ScreenInfo>? screen = null)
     {
         (_store, _registry, _commands, _userFonts, _close) = (store, registry, commands, userFonts, close);
+        _screen = screen ?? (() => default);
         Content = Build();
         // The labels follow the language; the page is built again when it changes.
         void Rebuild(object? _, System.ComponentModel.PropertyChangedEventArgs e)
@@ -42,7 +45,7 @@ public sealed partial class SettingsPage : UserControl
         DetachedFromVisualTree += (_, _) => Loc.Current.PropertyChanged -= Rebuild;
     }
 
-    private static TextBlock Heading(string key) => new() { Text = Loc.Current[key], FontSize = 16, Margin = new Thickness(0, 12, 0, 0), Classes = { "accent" } };
+    private static TextBlock Heading(string key) => new TextBlock { Text = Loc.Current[key], Margin = new Thickness(0, 12, 0, 0), Classes = { "accent" } }.TextSize("FontSize.Title");
 
     private static StackPanel Row(string labelKey, params Control[] controls)
     {
@@ -106,9 +109,10 @@ public sealed partial class SettingsPage : UserControl
         var d = new AppSettings();
         Func<AppSettings, AppSettings>[] resets =
         [
-            x => x with { UiScale = d.UiScale, FontFamily = d.FontFamily, FontWeight = d.FontWeight, CompactDensity = d.CompactDensity, ReduceMotion = d.ReduceMotion, ShowNullEntries = d.ShowNullEntries, Sizes = d.Sizes },
+            x => x with { UiScale = d.UiScale, FontFamily = d.FontFamily, FontWeight = d.FontWeight, Density = d.Density, ReduceMotion = d.ReduceMotion, ShowNullEntries = d.ShowNullEntries, Sizes = d.Sizes },
             x => x with { Colors = d.Colors },
             x => x with { CodeFontSize = d.CodeFontSize, CodeFontFamily = d.CodeFontFamily, CodeWordWrap = d.CodeWordWrap, CodeLineNumbers = d.CodeLineNumbers, CodeAutoComplete = d.CodeAutoComplete, CodeIndentGuides = d.CodeIndentGuides },
+            x => x with { Image = d.Image },
             x => x with { RoomGridOverride = d.RoomGridOverride, RoomGridWidth = d.RoomGridWidth, RoomGridHeight = d.RoomGridHeight },
             x => x with { Decompiler = d.Decompiler },
             x => x with { BackupCount = d.BackupCount, AskOnClose = d.AskOnClose, RememberWindow = d.RememberWindow },
@@ -127,7 +131,7 @@ public sealed partial class SettingsPage : UserControl
         };
         DockPanel.SetDock(restore, Avalonia.Controls.Dock.Right);
 
-        return new DockPanel { Children = { close, restore, new TextBlock { Text = Loc.Current["settings.title"], FontSize = 20, Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center } } };
+        return new DockPanel { Children = { close, restore, new TextBlock { Text = Loc.Current["settings.title"], Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center }.TextSize("FontSize.Display") } };
     }
 
     private DockPanel Build()
@@ -138,7 +142,7 @@ public sealed partial class SettingsPage : UserControl
         var page = new StackPanel { MaxWidth = 640, HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(24), Spacing = 10, Children = { Header(), search } };
         Control[] sections =
         [
-            .. AppearanceSection(s), .. ColorsSection(), .. EditorSection(s), .. RoomsSection(s), .. DecompilerSection(s), .. FilesSection(s),
+            .. AppearanceSection(s), .. ColorsSection(), .. EditorSection(s), .. ImageSection(s), .. RoomsSection(s), .. DecompilerSection(s), .. FilesSection(s),
             .. ProjectsSection(s), .. RunSection(s), .. AdvancedSection(), .. PrivacySection(s), .. ShortcutsSection(),
         ];
         page.Children.AddRange(sections);

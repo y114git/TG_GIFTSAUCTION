@@ -1,3 +1,4 @@
+using G3MStudio.Theme;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using G3MStudio.Localization;
@@ -53,7 +54,7 @@ public sealed class OnboardingWindow : Window
             Spacing = 12,
             Children =
             {
-                new TextBlock { FontSize = 20 }.Tr(TextBlock.TextProperty, "onboarding.heading"),
+                new TextBlock().TextSize("FontSize.Display").Tr(TextBlock.TextProperty, "onboarding.heading"),
                 new TextBlock { TextWrapping = Avalonia.Media.TextWrapping.Wrap }.Tr(TextBlock.TextProperty, "onboarding.body"),
                 new TextBlock { Classes = { "accent" } }.Tr(TextBlock.TextProperty, "onboarding.language"),
                 _languages,

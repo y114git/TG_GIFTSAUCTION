@@ -1,3 +1,4 @@
+using G3MStudio.Theme;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
@@ -14,7 +15,7 @@ public sealed class RenameWindow : Window
     private readonly TextBox _name = new() { Name = "NewName" };
     private readonly TextBlock _error = new() { Name = "Error", TextWrapping = Avalonia.Media.TextWrapping.Wrap };
 
-    private readonly TextBlock _preview = new() { Name = "Preview", TextWrapping = Avalonia.Media.TextWrapping.Wrap, FontSize = 12, Foreground = (Avalonia.Media.IBrush?)Avalonia.Application.Current?.FindResource("Text.Muted") };
+    private readonly TextBlock _preview = new TextBlock { Name = "Preview", TextWrapping = Avalonia.Media.TextWrapping.Wrap, Foreground = (Avalonia.Media.IBrush?)Avalonia.Application.Current?.FindResource("Text.Muted") }.TextSize("FontSize.Small");
     private int _previewVersion;
 
     // preview (optional) says what the typed name would change; it runs off the UI thread a moment after typing stops, and a null result clears the text.

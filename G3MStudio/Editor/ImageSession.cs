@@ -9,6 +9,15 @@ public abstract class ImageSession
 
     public abstract PixelBuffer Read(int frame);
 
+    /// <summary>True when the session keeps layers (a document tab does; the painter window works on one flat picture).</summary>
+    public virtual bool SupportsLayers => false;
+
+    /// <summary>The layers of a frame; one layer holding the picture when the session has none.</summary>
+    public virtual LayerSet ReadLayers(int frame) => LayerSet.OneLayer(Read(frame));
+
+    /// <summary>Runs one layer operation as an undoable edit; false when the session has no layers.</summary>
+    public virtual bool CommitLayers(int frame, ImageOp op) => false;
+
     /// <summary>Takes an edit the canvas already applied to its picture.</summary>
     public abstract void Commit(int frame, ImageEdit edit);
 
@@ -49,12 +58,27 @@ public sealed class WorkspaceImageSession : ImageSession, IDisposable
         using (_workspace.Lock.Read()) return FramePicture.Read(_workspace.Data, _sprite, frame);
     }
 
-    public override void Commit(int frame, ImageEdit edit)
+    public override bool SupportsLayers => true;
+
+    public override LayerSet ReadLayers(int frame)
+    {
+        using (_workspace.Lock.Read()) return LayerStore.Of(_workspace.Data).Read(_workspace.Data, _sprite, frame);
+    }
+
+    public override bool CommitLayers(int frame, ImageOp op)
+    {
+        Commit(new ImageEditCommand(_sprite, frame, null, [op]));
+        return true;
+    }
+
+    public override void Commit(int frame, ImageEdit edit) => Commit(new ImageEditCommand(_sprite, frame, edit.Selection, edit.Ops, edit.After, edit.Layer));
+
+    private void Commit(ImageEditCommand command)
     {
         _own = true;
         try
         {
-            _workspace.Edit(new ImageEditCommand(_sprite, frame, edit.Selection, edit.Ops, edit.After));
+            _workspace.Edit(command);
         }
         finally
         {
@@ -74,7 +98,8 @@ public sealed class WorkspaceImageSession : ImageSession, IDisposable
 
     private void OnHistoryChanged()
     {
-        if (!_own) OnChanged();
+        // The history raises this while the workspace is locked for writing, and reading the frame needs the read lock, so the reload waits until the lock is free.
+        if (!_own) Avalonia.Threading.Dispatcher.UIThread.Post(OnChanged);
     }
 
     public void Dispose() => _workspace.History.Changed -= OnHistoryChanged;

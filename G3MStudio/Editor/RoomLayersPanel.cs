@@ -222,7 +222,7 @@ public sealed class RoomLayersPanel : DockPanel
 
     private static ToggleButton IconToggle(string icon, string tip, bool on, Layer layer)
     {
-        var button = new ToggleButton { IsChecked = on, Tag = layer, Padding = new Avalonia.Thickness(4), Background = Avalonia.Media.Brushes.Transparent, Content = new PathIcon { Data = Avalonia.Media.Geometry.Parse(icon), Width = 14, Height = 14 } };
+        var button = new ToggleButton { IsChecked = on, Tag = layer, Padding = new Avalonia.Thickness(4), Background = Avalonia.Media.Brushes.Transparent, Content = new PathIcon { Data = Avalonia.Media.Geometry.Parse(icon) } };
         ToolTip.SetTip(button, Loc.Current[tip]);
         return button;
     }

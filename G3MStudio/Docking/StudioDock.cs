@@ -11,6 +11,7 @@ using Dock.Model.Avalonia.Json;
 using Dock.Model.Controls;
 using Dock.Model.Core;
 using G3MStudio.Core.Workspace;
+using G3MStudio.Core.Settings;
 
 namespace G3MStudio.Docking;
 
@@ -397,7 +398,7 @@ public sealed class StudioDock
                 Id = "Middle",
                 Orientation = Orientation.Horizontal,
                 VisibleDockables = CreateList<IDockable>(
-                    Tools("LeftDock", Alignment.Left, code ? 0.18 : canvas ? 0.13 : 0.2, Panel("Explorer"), Panel("Search")),
+                    Tools("LeftDock", Alignment.Left, code ? 0.18 : canvas ? 0.13 : UiSizing.ExplorerShare, Panel("Explorer"), Panel("Search")),
                     new ProportionalDockSplitter(),
                     editors,
                     new ProportionalDockSplitter(),
@@ -407,7 +408,7 @@ public sealed class StudioDock
             {
                 Id = "Main",
                 Orientation = Orientation.Vertical,
-                VisibleDockables = CreateList<IDockable>(middle, new ProportionalDockSplitter(), code ? Tools("BottomDock", Alignment.Bottom, 0.22, Panel("Problems"), Panel("Output"), Panel("Usages"), Panel("History"), Panel("Git")) : Tools("BottomDock", Alignment.Bottom, canvas ? 0.1 : 0.16, Panel("History"), Panel("Git"), Panel("Problems"), Panel("Output"), Panel("Usages"))),
+                VisibleDockables = CreateList<IDockable>(middle, new ProportionalDockSplitter(), code ? Tools("BottomDock", Alignment.Bottom, 0.22, Panel("Problems"), Panel("Output"), Panel("Usages"), Panel("History"), Panel("Git")) : Tools("BottomDock", Alignment.Bottom, canvas ? 0.1 : UiSizing.BottomShare, Panel("History"), Panel("Git"), Panel("Problems"), Panel("Output"), Panel("Usages"))),
             };
             var root = CreateRootDock();
             root.Id = "Root";

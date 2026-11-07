@@ -14,10 +14,10 @@ public sealed partial class ImageCanvas
 
     public override void Render(DrawingContext context)
     {
-        context.FillRectangle(CanvasTheme.Bg, new Rect(Bounds.Size));
+        context.FillRectangle(Backdrop ?? CanvasTheme.Bg, new Rect(Bounds.Size));
         var area = PictureRect;
         if (TilePreview) DrawTiles(context, area);
-        Chequer.Draw(context, area, Math.Max(Zoom, 8));
+        Chequer.Draw(context, area, Math.Max(Zoom, 8), ChequerLight, ChequerDark);
         DrawOnion(context, area);
         context.DrawImage(_bitmap, new Rect(0, 0, Picture.Width, Picture.Height), area);
         if (ShowGrid) DrawGrid(context, area);
@@ -57,8 +57,9 @@ public sealed partial class ImageCanvas
         if (visible.Width <= 0 || visible.Height <= 0) return;
         var (x0, x1) = (Math.Max(0, (int)Math.Floor((visible.Left - area.X) / Zoom)), Math.Min(Picture.Width, (int)Math.Ceiling((visible.Right - area.X) / Zoom)));
         var (y0, y1) = (Math.Max(0, (int)Math.Floor((visible.Top - area.Y) / Zoom)), Math.Min(Picture.Height, (int)Math.Ceiling((visible.Bottom - area.Y) / Zoom)));
-        var fine = new Pen(CanvasTheme.Soft(CanvasTheme.Guide, 0.25), 1);
-        var coarse = new Pen(CanvasTheme.Soft(CanvasTheme.Guide, 0.7), 1);
+        var guide = GridBrush ?? CanvasTheme.Guide;
+        var fine = new Pen(CanvasTheme.Soft(guide, 0.25), 1);
+        var coarse = new Pen(CanvasTheme.Soft(guide, 0.7), 1);
         for (var x = x0; x <= x1; x++)
         {
             var big = GridCell > 0 && x % GridCell == 0;
@@ -162,6 +163,6 @@ public sealed partial class ImageCanvas
     private void DrawPath(DrawingContext context, Pen pen, List<(int X, int Y)> points)
     {
         for (var i = 1; i < points.Count; i++) context.DrawLine(pen, Centre(points[i - 1]), Centre(points[i]));
-        foreach (var point in points) context.DrawEllipse(CanvasTheme.Point, null, Centre(point), 3, 3);
+        foreach (var point in points) context.DrawEllipse(CanvasTheme.Point, null, Centre(point), HandleSize, HandleSize);
     }
 }

@@ -34,8 +34,12 @@
       },
       "view": {
         "panel": "面板"
+      },
+      "img": {
+        "tool": "工具"
       }
-    }
+    },
+    "image": "图像"
   },
   "cmd": {
     "code": {
@@ -113,8 +117,8 @@
       "replaceFrame": "替换精灵帧...",
       "paintFrame": "绘制帧...",
       "editImage": "编辑图像...",
-            "editAudio": "编辑音频...",
-"replaceAudio": "替换音频...",
+      "editAudio": "编辑音频...",
+      "replaceAudio": "替换音频...",
       "exportAudio": "导出音频...",
       "duplicateFrame": "复制精灵帧",
       "removeFrame": "删除精灵帧",
@@ -203,6 +207,82 @@
       "repackTextures": "重新打包纹理页...",
       "exportPage": "导出纹理页...",
       "replacePage": "替换纹理页..."
+    },
+    "img": {
+      "brushBigger": "图像: 增大画笔",
+      "brushSmaller": "图像: 减小画笔",
+      "swapColours": "图像: 交换主色和辅助色",
+      "smooth": "图像: 平滑绘制",
+      "zoomIn": "图像: 放大",
+      "zoomOut": "图像: 缩小",
+      "zoomActual": "图像: 实际大小 (1:1)",
+      "layerAdd": "图像: 新建图层",
+      "layerDelete": "图像: 删除图层",
+      "layerDuplicate": "图像: 复制图层",
+      "layerUp": "图像: 上移图层",
+      "layerDown": "图像: 下移图层",
+      "layerMergeDown": "图像: 向下合并图层",
+      "layerVisible": "图像: 显示或隐藏图层",
+      "layerLock": "图像: 锁定或解锁图层",
+      "tool": {
+        "pencil": "图像: 铅笔",
+        "eraser": "图像: 橡皮擦",
+        "replace": "图像: 替换颜色",
+        "remove": "图像: 移除颜色",
+        "fill": "图像: 填充",
+        "line": "图像: 直线",
+        "rectangle": "图像: 矩形",
+        "rectangleFilled": "图像: 矩形 (填充)",
+        "ellipse": "图像: 椭圆",
+        "ellipseFilled": "图像: 椭圆 (填充)",
+        "polygon": "图像: 多边形",
+        "polygonFilled": "图像: 多边形 (填充)",
+        "curve": "图像: 曲线",
+        "text": "图像: 文字",
+        "picker": "图像: 取色器",
+        "select": "图像: 矩形选择",
+        "lasso": "图像: 套索选择",
+        "wand": "图像: 魔棒",
+        "move": "图像: 移动选区"
+      },
+      "grid": "图像: 网格",
+      "symmetryH": "图像: 左右镜像",
+      "symmetryV": "图像: 上下镜像",
+      "tiles": "图像: 平铺预览",
+      "onion": "图像: 洋葱皮",
+      "zoomFit": "图像: 适应",
+      "previousFrame": "图像: 上一帧",
+      "nextFrame": "图像: 下一帧",
+      "duplicateFrame": "图像: 复制帧",
+      "removeFrame": "图像: 删除帧",
+      "play": "图像: 播放",
+      "selectAll": "图像: 全选",
+      "selectNone": "图像: 取消选择",
+      "invertSelection": "图像: 反选",
+      "expandSelection": "图像: 扩展或收缩选区...",
+      "copy": "图像: 复制",
+      "cut": "图像: 剪切",
+      "paste": "图像: 粘贴",
+      "clear": "图像: 清除",
+      "fillSelection": "图像: 填充选区",
+      "strokeSelection": "图像: 描边选区...",
+      "flipH": "图像: 水平翻转",
+      "flipV": "图像: 垂直翻转",
+      "rotateCw": "图像: 顺时针旋转 90 度",
+      "rotateCcw": "图像: 逆时针旋转 90 度",
+      "rotate": "图像: 按角度旋转...",
+      "scale": "图像: 缩放...",
+      "skew": "图像: 倾斜...",
+      "adjust": "图像: 色相、饱和度、亮度、对比度...",
+      "invertColours": "图像: 反相",
+      "posterize": "图像: 色调分离...",
+      "greyscale": "图像: 灰度...",
+      "dither": "图像: 抖动...",
+      "outline": "图像: 用主色描边",
+      "blur": "图像: 模糊...",
+      "resize": "图像: 调整画布大小...",
+      "crop": "图像: 裁剪到选区",
+      "trim": "图像: 裁剪到内容"
     }
   },
   "palette": {
@@ -225,7 +305,8 @@
     "unpin": "取消固定",
     "clear": "清除最近打开的项目"
   },
-  "explorer": { "noValue": "无",
+  "explorer": {
+    "noValue": "无",
     "filter": "筛选资源...",
     "count": "{count} 个资源",
     "matches": "{total} 个中的 {matches} 个",
@@ -281,7 +362,11 @@
       "filterEffects": "滤镜效果",
       "uiLayers": "UI 图层",
       "data": "数据"
-    }
+    },
+    "deleteManyTitle": "删除 {count} 个资源",
+    "deleteMany": "要删除这 {count} 个资源吗？\n{names}",
+    "deleteManyUses": "所选内容之外有 {count} 处在使用它们；这些引用将被清除或移除：\n{places}",
+    "duplicatedMany": "已复制 {count} 个资源。"
   },
   "project": {
     "state": {
@@ -429,7 +514,9 @@
     "notApplied": "文本无法编译",
     "showFailed": "无法显示“{entry}”的代码：{reason}"
   },
-  "status": { "assetId": "ID {index}" },
+  "status": {
+    "assetId": "ID {index}"
+  },
   "notify": {
     "button": "通知 ({count})"
   },
@@ -464,10 +551,21 @@
     "appearance": "外观",
     "language": "语言",
     "scale": "界面缩放",
+    "scaleAuto": "自动（按屏幕）",
+    "scaleInfo": "当前：{percent}%",
+    "density": "密度",
+    "densityName": { "Compact": "紧凑", "Comfortable": "舒适", "Spacious": "宽松" },
     "fontFamily": "字体系列（留空则使用主题字体）",
     "fontWeight": "字重",
     "sizes": "形状和大小",
     "size": {
+      "Control": { "Height": "控件高度" },
+      "Tab": { "Height": "标签页高度" },
+      "Panel": { "Padding": "面板内边距" },
+      "Icon": { "Size": "图标大小" },
+      "Scrollbar": { "Width": "滚动条宽度" },
+      "Tooltip": { "Size": "提示文字大小" },
+      "CodeFont": "代码文字大小",
       "Radius": {
         "Control": "控件圆角",
         "Panel": "面板圆角"
@@ -482,7 +580,8 @@
         "Scale": "控件间距"
       },
       "FontSize": {
-        "Body": "界面文字大小"
+        "Body": "界面文字大小",
+        "Editor": "编辑器文字大小"
       }
     },
     "files": "文件",
@@ -551,11 +650,23 @@
     "themeExport": "导出主题...",
     "themeImport": "导入主题 (G3MStudio, G3M)...",
     "themeBad": "未能使用主题文件：{reason}",
-    "compact": "紧凑密度（屏幕显示更多）",
     "memoryLimit": "内存上限",
     "memoryNone": "无上限",
     "memoryCustom": "自定义",
-    "memoryNote": "无上限时按需使用内存，最多用到全部空闲内存。内存不足时，Studio 会释放缓存并放慢速度，而不是崩溃。"
+    "memoryNote": "无上限时按需使用内存，最多用到全部空闲内存。内存不足时，Studio 会释放缓存并放慢速度，而不是崩溃。",
+    "image": "图像编辑器",
+    "imageBrushSize": "默认画笔大小",
+    "imageRound": "默认圆形画笔",
+    "imageSmooth": "默认平滑绘制",
+    "imageTolerance": "默认容差",
+    "imageContiguous": "默认仅填充相邻区域",
+    "imageTextSize": "文字大小和字体",
+    "imageGrid": "显示网格",
+    "imageGridCell": "网格单元大小和颜色 (#RRGGBB，留空为主题色)",
+    "imageOnion": "洋葱皮帧数和不透明度 (百分比)",
+    "imageChecker": "棋盘格颜色 (浅色、深色)",
+    "imageBackground": "画布背景色",
+    "imageHandle": "控制点大小 (像素)"
   },
   "memory": {
     "status": "内存 {used}",
@@ -620,12 +731,38 @@
     "badPattern": "此模式无效：{reason}",
     "timeout": "此模式在某一行上耗时过长。请简化它。"
   },
-  "disassembly": { "assemble": "汇编", "assembled": "已汇编。", "assembleFailed": "无法汇编：{reason}", "title": "{entry} 的反汇编", "loading": "正在读取指令...", "failed": "无法读取指令: {reason}" },
-  "tileSet": {"findRooms": "查找使用此图块的房间"},
-  "textureItem": {"export": "导出 PNG", "saved": "已保存到 {path}", "failed": "无法保存：{reason}"},
-  "entryScripts": {"globalInit": "游戏开始时运行的脚本", "gameEnd": "游戏结束时运行的脚本", "add": "添加"},
-  "tilesets": { "info": "图块 {width} x {height}，{columns} 列，共 {count} 个。边框 {borderX}, {borderY}。间距 {separationX}, {separationY}。" },
-  "warnings": { "debuggerAskTitle": "调试器", "debuggerAsk": "要开启调试器标志吗？普通运行器可能因此卡住。", "yyc": "此游戏由 YoYo 编译器构建：代码在可执行文件中，因此没有可显示或搜索的代码。", "debugger": "此文件中启用了 GameMaker 调试器标志。普通运行器可能会卡住。", "unknownTextures": "有 {count} 个纹理使用了无法显示的格式。保存时会原样保留。", "mayLoseData": "无法解析此数据文件中的 {count} 个部分。保存时可能会丢失。" },
+  "disassembly": {
+    "assemble": "汇编",
+    "assembled": "已汇编。",
+    "assembleFailed": "无法汇编：{reason}",
+    "title": "{entry} 的反汇编",
+    "loading": "正在读取指令...",
+    "failed": "无法读取指令: {reason}"
+  },
+  "tileSet": {
+    "findRooms": "查找使用此图块的房间"
+  },
+  "textureItem": {
+    "export": "导出 PNG",
+    "saved": "已保存到 {path}",
+    "failed": "无法保存：{reason}"
+  },
+  "entryScripts": {
+    "globalInit": "游戏开始时运行的脚本",
+    "gameEnd": "游戏结束时运行的脚本",
+    "add": "添加"
+  },
+  "tilesets": {
+    "info": "图块 {width} x {height}，{columns} 列，共 {count} 个。边框 {borderX}, {borderY}。间距 {separationX}, {separationY}。"
+  },
+  "warnings": {
+    "debuggerAskTitle": "调试器",
+    "debuggerAsk": "要开启调试器标志吗？普通运行器可能因此卡住。",
+    "yyc": "此游戏由 YoYo 编译器构建：代码在可执行文件中，因此没有可显示或搜索的代码。",
+    "debugger": "此文件中启用了 GameMaker 调试器标志。普通运行器可能会卡住。",
+    "unknownTextures": "有 {count} 个纹理使用了无法显示的格式。保存时会原样保留。",
+    "mayLoseData": "无法解析此数据文件中的 {count} 个部分。保存时可能会丢失。"
+  },
   "usages": {
     "unrefSearching": "正在查找没有被使用的资源...",
     "unrefFound": "有 {count} 个资源没有被任何地方使用。",
@@ -848,18 +985,44 @@
     "back": "上一步",
     "next": "下一步",
     "done": "完成",
-    "explorer": { "title": "查找任何内容", "text": "游戏的所有资源按类型分组显示在这里。按 Ctrl+P 可按名称跳转到任意资源。" },
-    "tabs": { "title": "同时打开多个", "text": "单击会在斜体标签页中预览资源。编辑它或双击即可保留。" },
-    "inspector": { "title": "查看所选内容", "text": "检查器显示所选资源的类型和名称、被多少处使用，以及最前面房间的图层。" },
-    "palette": { "title": "所有命令都可搜索", "text": "按 Ctrl+Shift+P 搜索任意命令。菜单中会显示快捷键。" },
-    "problems": { "title": "查看出了什么问题", "text": "加载、保存和编译时的警告与错误都会汇集在这里。双击即可跳转到对应位置。" },
-    "save": { "title": "安全保存，快速测试", "text": "保存会写入新文件并保留备份。运行游戏会带着您的更改启动游戏，不会改动原文件。" }
+    "explorer": {
+      "title": "查找任何内容",
+      "text": "游戏的所有资源按类型分组显示在这里。按 Ctrl+P 可按名称跳转到任意资源。"
+    },
+    "tabs": {
+      "title": "同时打开多个",
+      "text": "单击会在斜体标签页中预览资源。编辑它或双击即可保留。"
+    },
+    "inspector": {
+      "title": "查看所选内容",
+      "text": "检查器显示所选资源的类型和名称、被多少处使用，以及最前面房间的图层。"
+    },
+    "palette": {
+      "title": "所有命令都可搜索",
+      "text": "按 Ctrl+Shift+P 搜索任意命令。菜单中会显示快捷键。"
+    },
+    "problems": {
+      "title": "查看出了什么问题",
+      "text": "加载、保存和编译时的警告与错误都会汇集在这里。双击即可跳转到对应位置。"
+    },
+    "save": {
+      "title": "安全保存，快速测试",
+      "text": "保存会写入新文件并保留备份。运行游戏会带着您的更改启动游戏，不会改动原文件。"
+    }
   },
   "particles": {
     "restart": "重新开始",
     "add": "添加发射器"
   },
-  "scripts": { "source": "脚本在哪里？", "sourceFile": "选择 .csx 文件", "sourceFolder": "从程序旁的 Scripts 文件夹中选择", "commandTitle": "C# 命令", "commandLabel": "对已打开的数据文件运行的 C# 代码", "pickFile": "脚本请求选择文件", "pickFolder": "脚本请求选择文件夹", "pickSave": "脚本询问保存位置",
+  "scripts": {
+    "source": "脚本在哪里？",
+    "sourceFile": "选择 .csx 文件",
+    "sourceFolder": "从程序旁的 Scripts 文件夹中选择",
+    "commandTitle": "C# 命令",
+    "commandLabel": "对已打开的数据文件运行的 C# 代码",
+    "pickFile": "脚本请求选择文件",
+    "pickFolder": "脚本请求选择文件夹",
+    "pickSave": "脚本询问保存位置",
     "pick": "选择脚本 (.csx)",
     "title": "运行脚本",
     "confirm": "运行 {name}？\n\n脚本可以更改数据文件中的任何内容，也可以读写这台电脑上的任何文件。更改无法撤销，可用“还原为已保存”恢复。只运行你信任的脚本。\n\n这里运行 UndertaleModTool 风格的 .csx 脚本，但只提供该工具的一部分函数：Data、FilePath、ScriptPath、ScriptMessage、ScriptWarning、ScriptError 和 ScriptQuestion（一律回答“是”）。需要对话框、反编译助手或界面的脚本会因编译错误而停止，错误会指出缺少的函数。",
@@ -1021,7 +1184,8 @@
       "Select": "矩形选择",
       "Lasso": "套索选择",
       "Wand": "魔棒",
-      "Move": "移动选区"
+      "Move": "移动选区",
+      "Text": "文字"
     },
     "hint": {
       "Pencil": "单击绘制。Ctrl 取色。右键使用第二种颜色。",
@@ -1038,7 +1202,8 @@
       "Select": "拖动选择矩形。Esc 取消选择。",
       "Lasso": "围绕像素拖动以选择。",
       "Wand": "单击选择相近像素。容差和连续在选项栏中。",
-      "Move": "拖动移动选区（或整幅图片）。方向键移动 1，Shift 移动 8。"
+      "Move": "拖动移动选区（或整幅图片）。方向键移动 1，Shift 移动 8。",
+      "Text": "在选项栏输入文字，然后单击以用主色放置。"
     },
     "style": {
       "Outline": "轮廓",
@@ -1122,6 +1287,23 @@
       "radius": "半径",
       "anchorX": "锚点 X (0 到 2)",
       "anchorY": "锚点 Y (0 到 2)"
+    },
+    "smooth": "平滑",
+    "textLabel": "文字",
+    "layers": "图层",
+    "layerDuplicate": "复制",
+    "layerDelete": "删除",
+    "layerMergeDown": "向下合并",
+    "layerName": "图层 {n}",
+    "layerCopy": "{name} 副本",
+    "opacity": "不透明度",
+    "blendMode": "混合",
+    "blend": {
+      "Normal": "正常",
+      "Multiply": "正片叠底",
+      "Screen": "滤色",
+      "Overlay": "叠加",
+      "Add": "相加"
     }
   },
   "painter": {
@@ -1196,8 +1378,17 @@
     "ToolChromeControlDockString": "停靠",
     "ToolChromeControlAutoHideString": "自动隐藏"
   },
-  "debug": { "pick": "每个代码条目的源文本内容", "decompiled": "反编译的 GML", "assembler": "汇编，在赋值、跳转和返回处标记", "fullAssembler": "汇编，每条指令都标记", "working": "正在写出调试数据...", "done": "已写出 {file}。", "failed": "未能写出调试数据：{reason}" },
-  "hex": { "chunk": "转到区块",
+  "debug": {
+    "pick": "每个代码条目的源文本内容",
+    "decompiled": "反编译的 GML",
+    "assembler": "汇编，在赋值、跳转和返回处标记",
+    "fullAssembler": "汇编，每条指令都标记",
+    "working": "正在写出调试数据...",
+    "done": "已写出 {file}。",
+    "failed": "未能写出调试数据：{reason}"
+  },
+  "hex": {
+    "chunk": "转到区块",
     "offsetMapDone": "已写出 {file}。",
     "title": "十六进制视图：{file}",
     "goTo": "转到偏移量（123 或 0x7B）",
@@ -1268,12 +1459,6 @@
   "empty": {
     "problems": "没有问题。",
     "output": "尚无任何报告。"
-  },
-  "explorer": {
-    "deleteManyTitle": "删除 {count} 个资源",
-    "deleteMany": "要删除这 {count} 个资源吗？\n{names}",
-    "deleteManyUses": "所选内容之外有 {count} 处在使用它们；这些引用将被清除或移除：\n{places}",
-    "duplicatedMany": "已复制 {count} 个资源。"
   },
   "copyTo": {
     "title": "复制到其他数据文件",

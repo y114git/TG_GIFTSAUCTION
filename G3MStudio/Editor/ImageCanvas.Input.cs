@@ -15,6 +15,7 @@ public sealed partial class ImageCanvas
     private PixelSelection? _before;
     private (int X, int Y)? _strokeEnd;
     private readonly List<(int X, int Y)> _points = [];
+    private SmoothBrush? _brush;
 
     private Rgba Colour => _secondary ? Secondary : Primary;
 
@@ -49,8 +50,11 @@ public sealed partial class ImageCanvas
 
     private void PickAt((int X, int Y) cell) => PickAt(cell.X, cell.Y);
 
+    public event Action<(int X, int Y), Rgba>? TextRequested;
+
     private void Begin((int X, int Y) cell, int clicks)
     {
+        if (Locked && Tool is not (ImageTool.Picker or ImageTool.Select or ImageTool.Lasso or ImageTool.Wand)) return;
         _before = State.Selection?.Copy();
         (_start, _last) = (cell, cell);
         switch (Tool)
@@ -59,6 +63,7 @@ public sealed partial class ImageCanvas
             case ImageTool.Fill: Run(new ImageOp(ImageOps.Fill, ImageOp.Format(Colour), ImageOp.Format([cell]), ImageOp.Format(Tolerance), Contiguous ? "1" : "0")); break;
             case ImageTool.Replace: Run(new ImageOp(ImageOps.Replace, ImageOp.Format([cell]), ImageOp.Format(Colour), ImageOp.Format(Tolerance))); break;
             case ImageTool.Remove: Run(new ImageOp(ImageOps.Remove, ImageOp.Format([cell]), ImageOp.Format(Tolerance))); break;
+            case ImageTool.Text: TextRequested?.Invoke(cell, Colour); break;
             case ImageTool.Wand: SetSelection(PixelSelection.Wand(Picture, cell.X, cell.Y, Tolerance, Contiguous)); break;
             case ImageTool.Pencil or ImageTool.Eraser: BeginStroke(cell); break;
             case ImageTool.Polygon or ImageTool.Curve: AddPoint(cell, clicks); break;
@@ -72,6 +77,7 @@ public sealed partial class ImageCanvas
     {
         _drawing = true;
         _points.Clear();
+        _brush = Smooth ? new SmoothBrush(Picture, StrokeColour, BrushSize) : null;
         // Shift draws a straight line from where the last stroke ended.
         if (_modifiers.HasFlag(KeyModifiers.Shift) && _strokeEnd is { } from)
         {
@@ -88,7 +94,8 @@ public sealed partial class ImageCanvas
         Picture.Clip = State.Selection;
         foreach (var copy in Core.Workspace.Symmetry.Copies([from, to], Picture.Width, Picture.Height, Symmetry))
         {
-            if (from == to) Picture.Stamp(copy[0].X, copy[0].Y, BrushSize, StrokeColour, Shape);
+            if (_brush is { } brush) brush.Segment(copy[0].X + 0.5, copy[0].Y + 0.5, copy[1].X + 0.5, copy[1].Y + 0.5);
+            else if (from == to) Picture.Stamp(copy[0].X, copy[0].Y, BrushSize, StrokeColour, Shape);
             else Picture.Line(copy[0].X, copy[0].Y, copy[1].X, copy[1].Y, BrushSize, StrokeColour, Shape);
         }
 
@@ -150,7 +157,8 @@ public sealed partial class ImageCanvas
         {
             case ImageTool.Pencil or ImageTool.Eraser:
                 _strokeEnd = _points[^1];
-                Emit([StrokeOp(_points)]);
+                _brush = null;
+                Emit(StrokeOps(_points));
                 break;
             case ImageTool.Line: Run(StrokeOps([_start, end])); break;
             case ImageTool.Rectangle or ImageTool.Ellipse: RunShape(Corners(_start, end)); break;
@@ -162,7 +170,7 @@ public sealed partial class ImageCanvas
         _points.Clear();
     }
 
-    private ImageOp StrokeOp(IReadOnlyList<(int X, int Y)> points) => new(ImageOps.Stroke, ImageOp.Format(BrushSize), Shape == BrushShape.Round ? "1" : "0", ImageOp.Format(StrokeColour), ImageOp.Format(points));
+    private ImageOp StrokeOp(IReadOnlyList<(int X, int Y)> points) => Smooth ? new ImageOp(ImageOps.Smooth, "line", ImageOp.Format(StrokeColour), "-", ImageOp.Format(BrushSize), ImageOp.Format(points)) : new(ImageOps.Stroke, ImageOp.Format(BrushSize), Shape == BrushShape.Round ? "1" : "0", ImageOp.Format(StrokeColour), ImageOp.Format(points));
 
     private ImageOp[] StrokeOps(IReadOnlyList<(int X, int Y)> points) => [.. Core.Workspace.Symmetry.Copies(points, Picture.Width, Picture.Height, Symmetry).Select(StrokeOp)];
 
@@ -180,7 +188,9 @@ public sealed partial class ImageCanvas
     {
         var (outline, fill) = StyleColours();
         var kind = Tool == ImageTool.Rectangle ? ImageOps.Rect : ImageOps.Ellipse;
-        Run([.. Core.Workspace.Symmetry.Copies([box.A, box.B], Picture.Width, Picture.Height, Symmetry).Select(c => new ImageOp(kind, ImageOp.Format(outline), ImageOp.Format(fill), ImageOp.Format(BrushSize), ImageOp.Format(c)))]);
+        Run([.. Core.Workspace.Symmetry.Copies([box.A, box.B], Picture.Width, Picture.Height, Symmetry).Select(c => Smooth
+            ? new ImageOp(ImageOps.Smooth, kind, ImageOp.Format(outline), ImageOp.Format(fill), ImageOp.Format(BrushSize), ImageOp.Format(c))
+            : new ImageOp(kind, ImageOp.Format(outline), ImageOp.Format(fill), ImageOp.Format(BrushSize), ImageOp.Format(c)))]);
     }
 
     private void AddPoint((int X, int Y) cell, int clicks)
@@ -198,12 +208,16 @@ public sealed partial class ImageCanvas
         _points.Clear();
         if (Tool == ImageTool.Curve)
         {
-            Run([.. Core.Workspace.Symmetry.Copies(points, Picture.Width, Picture.Height, Symmetry).Select(c => new ImageOp(ImageOps.Curve, ImageOp.Format(BrushSize), Shape == BrushShape.Round ? "1" : "0", ImageOp.Format(Colour), ImageOp.Format(c)))]);
+            Run([.. Core.Workspace.Symmetry.Copies(points, Picture.Width, Picture.Height, Symmetry).Select(c => Smooth
+                ? new ImageOp(ImageOps.Smooth, ImageOps.Curve, ImageOp.Format(Colour), "-", ImageOp.Format(BrushSize), ImageOp.Format(c))
+                : new ImageOp(ImageOps.Curve, ImageOp.Format(BrushSize), Shape == BrushShape.Round ? "1" : "0", ImageOp.Format(Colour), ImageOp.Format(c)))]);
             return;
         }
 
         var (outline, fill) = StyleColours();
-        Run([.. Core.Workspace.Symmetry.Copies(points, Picture.Width, Picture.Height, Symmetry).Select(c => new ImageOp(ImageOps.Polygon, ImageOp.Format(outline), ImageOp.Format(fill), ImageOp.Format(BrushSize), Shape == BrushShape.Round ? "1" : "0", ImageOp.Format(c)))]);
+        Run([.. Core.Workspace.Symmetry.Copies(points, Picture.Width, Picture.Height, Symmetry).Select(c => Smooth
+            ? new ImageOp(ImageOps.Smooth, ImageOps.Polygon, ImageOp.Format(outline), ImageOp.Format(fill), ImageOp.Format(BrushSize), ImageOp.Format(c))
+            : new ImageOp(ImageOps.Polygon, ImageOp.Format(outline), ImageOp.Format(fill), ImageOp.Format(BrushSize), Shape == BrushShape.Round ? "1" : "0", ImageOp.Format(c)))]);
     }
 
     public void CancelPoints()
@@ -216,6 +230,7 @@ public sealed partial class ImageCanvas
     /// <summary>Runs the operations on the picture, shows the result and reports the edit.</summary>
     public void Run(params ImageOp[] ops)
     {
+        if (Locked) return;
         var selection = State.Selection?.Copy();
         foreach (var op in ops) ImageOps.Run(State, op);
         _outline = null;
@@ -227,7 +242,7 @@ public sealed partial class ImageCanvas
     private void Emit(IReadOnlyList<ImageOp> ops, PixelSelection? selection = null)
     {
         Refresh();
-        Edited?.Invoke(new ImageEdit(selection ?? _before, ops, Picture.Copy()));
+        Edited?.Invoke(new ImageEdit(selection ?? _before, ops, Picture.Copy(), ActiveLayer));
     }
 
     protected override void OnPointerExited(PointerEventArgs e)

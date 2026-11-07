@@ -49,7 +49,20 @@
   <CornerRadius x:Key="Radius.Panel">6</CornerRadius>
   <CornerRadius x:Key="Radius.Window">7</CornerRadius>
 
-  <x:Double x:Key="Row.Height">24</x:Double>
+  <x:Double x:Key="Row.Height">26</x:Double>
+  <!-- Sizes: the Comfortable density; Settings > Appearance > Sizes and the density presets put their values over these (ThemeSizes). -->
+  <x:Double x:Key="Control.Height">30</x:Double>
+  <x:Double x:Key="Tab.Height">32</x:Double>
+  <x:Double x:Key="Icon.Size">16</x:Double>
+  <x:Double x:Key="Scrollbar.Width">12</x:Double>
+  <x:Double x:Key="Tooltip.Size">12</x:Double>
+  <x:Double x:Key="FontSize.Editor">13</x:Double>
+  <Thickness x:Key="Panel.Padding">12</Thickness>
+  <!-- The spacing scale: gaps and margins use these steps only. -->
+  <x:Double x:Key="Space.1">4</x:Double>
+  <x:Double x:Key="Space.2">8</x:Double>
+  <x:Double x:Key="Space.3">12</x:Double>
+  <x:Double x:Key="Space.4">16</x:Double>
   <x:Double x:Key="FontSize.Caption">11</x:Double>
   <x:Double x:Key="FontSize.Small">12</x:Double>
   <x:Double x:Key="FontSize.Body">13</x:Double>

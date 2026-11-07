@@ -34,8 +34,12 @@
       },
       "view": {
         "panel": "패널"
+      },
+      "img": {
+        "tool": "도구"
       }
-    }
+    },
+    "image": "이미지"
   },
   "cmd": {
     "code": {
@@ -113,8 +117,8 @@
       "replaceFrame": "스프라이트 프레임 바꾸기...",
       "paintFrame": "프레임 그리기...",
       "editImage": "이미지 편집...",
-            "editAudio": "오디오 편집...",
-"replaceAudio": "오디오 바꾸기...",
+      "editAudio": "오디오 편집...",
+      "replaceAudio": "오디오 바꾸기...",
       "exportAudio": "오디오 내보내기...",
       "duplicateFrame": "스프라이트 프레임 복제",
       "removeFrame": "스프라이트 프레임 제거",
@@ -203,6 +207,82 @@
       "repackTextures": "텍스처 페이지 다시 패킹...",
       "exportPage": "텍스처 페이지 내보내기...",
       "replacePage": "텍스처 페이지 바꾸기..."
+    },
+    "img": {
+      "brushBigger": "이미지: 브러시 크게",
+      "brushSmaller": "이미지: 브러시 작게",
+      "swapColours": "이미지: 기본색과 보조색 바꾸기",
+      "smooth": "이미지: 부드러운 그리기",
+      "zoomIn": "이미지: 확대",
+      "zoomOut": "이미지: 축소",
+      "zoomActual": "이미지: 실제 크기 (1:1)",
+      "layerAdd": "이미지: 새 레이어",
+      "layerDelete": "이미지: 레이어 삭제",
+      "layerDuplicate": "이미지: 레이어 복제",
+      "layerUp": "이미지: 레이어 위로",
+      "layerDown": "이미지: 레이어 아래로",
+      "layerMergeDown": "이미지: 레이어를 아래와 병합",
+      "layerVisible": "이미지: 레이어 표시 전환",
+      "layerLock": "이미지: 레이어 잠금 전환",
+      "tool": {
+        "pencil": "이미지: 연필",
+        "eraser": "이미지: 지우개",
+        "replace": "이미지: 색 바꾸기",
+        "remove": "이미지: 색 제거",
+        "fill": "이미지: 채우기",
+        "line": "이미지: 선",
+        "rectangle": "이미지: 사각형",
+        "rectangleFilled": "이미지: 사각형 (채움)",
+        "ellipse": "이미지: 타원",
+        "ellipseFilled": "이미지: 타원 (채움)",
+        "polygon": "이미지: 다각형",
+        "polygonFilled": "이미지: 다각형 (채움)",
+        "curve": "이미지: 곡선",
+        "text": "이미지: 텍스트",
+        "picker": "이미지: 스포이트",
+        "select": "이미지: 사각형 선택",
+        "lasso": "이미지: 올가미 선택",
+        "wand": "이미지: 마술봉",
+        "move": "이미지: 선택 이동"
+      },
+      "grid": "이미지: 격자",
+      "symmetryH": "이미지: 좌우 대칭",
+      "symmetryV": "이미지: 상하 대칭",
+      "tiles": "이미지: 타일 미리보기",
+      "onion": "이미지: 어니언 스킨",
+      "zoomFit": "이미지: 맞춤",
+      "previousFrame": "이미지: 이전",
+      "nextFrame": "이미지: 다음",
+      "duplicateFrame": "이미지: 프레임 복제",
+      "removeFrame": "이미지: 프레임 삭제",
+      "play": "이미지: 재생",
+      "selectAll": "이미지: 모두 선택",
+      "selectNone": "이미지: 선택 해제",
+      "invertSelection": "이미지: 선택 반전",
+      "expandSelection": "이미지: 선택 확장 또는 축소...",
+      "copy": "이미지: 복사",
+      "cut": "이미지: 잘라내기",
+      "paste": "이미지: 붙여넣기",
+      "clear": "이미지: 지우기",
+      "fillSelection": "이미지: 선택 영역 채우기",
+      "strokeSelection": "이미지: 선택 영역 테두리...",
+      "flipH": "이미지: 좌우 뒤집기",
+      "flipV": "이미지: 상하 뒤집기",
+      "rotateCw": "이미지: 시계 방향 90도 회전",
+      "rotateCcw": "이미지: 반시계 방향 90도 회전",
+      "rotate": "이미지: 각도로 회전...",
+      "scale": "이미지: 배율 조정...",
+      "skew": "이미지: 기울이기...",
+      "adjust": "이미지: 색조, 채도, 밝기, 대비...",
+      "invertColours": "이미지: 색 반전",
+      "posterize": "이미지: 포스터화...",
+      "greyscale": "이미지: 회색조...",
+      "dither": "이미지: 디더링...",
+      "outline": "이미지: 주 색으로 윤곽선",
+      "blur": "이미지: 흐림...",
+      "resize": "이미지: 캔버스 크기 변경...",
+      "crop": "이미지: 선택 영역으로 자르기",
+      "trim": "이미지: 내용에 맞게 다듬기"
     }
   },
   "palette": {
@@ -225,7 +305,8 @@
     "unpin": "고정 해제",
     "clear": "최근 연 항목 지우기"
   },
-  "explorer": { "noValue": "없음",
+  "explorer": {
+    "noValue": "없음",
     "filter": "리소스 필터...",
     "count": "리소스 {count}개",
     "matches": "{total}개 중 {matches}개",
@@ -281,7 +362,11 @@
       "filterEffects": "필터 효과",
       "uiLayers": "UI 레이어",
       "data": "데이터"
-    }
+    },
+    "deleteManyTitle": "리소스 {count}개 삭제",
+    "deleteMany": "리소스 {count}개를 삭제할까요?\n{names}",
+    "deleteManyUses": "선택 밖의 {count}곳에서 사용 중입니다. 해당 사용은 지워지거나 제거됩니다:\n{places}",
+    "duplicatedMany": "리소스 {count}개를 복사했습니다."
   },
   "project": {
     "state": {
@@ -429,7 +514,9 @@
     "notApplied": "텍스트가 컴파일되지 않습니다",
     "showFailed": "'{entry}'의 코드를 표시할 수 없습니다: {reason}"
   },
-  "status": { "assetId": "ID {index}" },
+  "status": {
+    "assetId": "ID {index}"
+  },
   "notify": {
     "button": "알림 ({count})"
   },
@@ -464,10 +551,21 @@
     "appearance": "모양",
     "language": "언어",
     "scale": "인터페이스 배율",
+    "scaleAuto": "자동(화면에 맞춤)",
+    "scaleInfo": "사용 중: {percent}%",
+    "density": "밀도",
+    "densityName": { "Compact": "촘촘하게", "Comfortable": "보통", "Spacious": "넓게" },
     "fontFamily": "글꼴 모음(비워 두면 테마 글꼴)",
     "fontWeight": "글꼴 두께",
     "sizes": "모양과 크기",
     "size": {
+      "Control": { "Height": "컨트롤 높이" },
+      "Tab": { "Height": "탭 높이" },
+      "Panel": { "Padding": "패널 여백" },
+      "Icon": { "Size": "아이콘 크기" },
+      "Scrollbar": { "Width": "스크롤바 너비" },
+      "Tooltip": { "Size": "툴팁 글자 크기" },
+      "CodeFont": "코드 글자 크기",
       "Radius": {
         "Control": "컨트롤 모서리 둥글기",
         "Panel": "패널 모서리 둥글기"
@@ -482,7 +580,8 @@
         "Scale": "컨트롤 여백"
       },
       "FontSize": {
-        "Body": "인터페이스 글꼴 크기"
+        "Body": "인터페이스 글꼴 크기",
+        "Editor": "편집기 글자 크기"
       }
     },
     "files": "파일",
@@ -551,11 +650,23 @@
     "themeExport": "테마 내보내기...",
     "themeImport": "테마 가져오기 (G3MStudio, G3M)...",
     "themeBad": "테마 파일을 사용하지 못했습니다: {reason}",
-    "compact": "조밀한 배치 (화면에 더 많이 표시)",
     "memoryLimit": "메모리 한도",
     "memoryNone": "한도 없음",
     "memoryCustom": "직접 입력",
-    "memoryNote": "한도가 없으면 남은 RAM 전체까지 필요한 만큼 사용합니다. 메모리가 부족하면 Studio는 캐시를 비우고 느려지더라도 종료되지 않고 계속 작동합니다."
+    "memoryNote": "한도가 없으면 남은 RAM 전체까지 필요한 만큼 사용합니다. 메모리가 부족하면 Studio는 캐시를 비우고 느려지더라도 종료되지 않고 계속 작동합니다.",
+    "image": "이미지 편집기",
+    "imageBrushSize": "기본 브러시 크기",
+    "imageRound": "기본 둥근 브러시",
+    "imageSmooth": "기본 부드러운 그리기",
+    "imageTolerance": "기본 허용 오차",
+    "imageContiguous": "기본 인접 영역만 채우기",
+    "imageTextSize": "텍스트 크기와 글꼴",
+    "imageGrid": "격자 표시",
+    "imageGridCell": "격자 칸 크기와 색 (#RRGGBB, 비우면 테마)",
+    "imageOnion": "어니언 스킨 프레임 수와 불투명도 (퍼센트)",
+    "imageChecker": "체크무늬 색 (밝은 색, 어두운 색)",
+    "imageBackground": "캔버스 배경색",
+    "imageHandle": "핸들 크기 (픽셀)"
   },
   "memory": {
     "status": "메모리 {used}",
@@ -620,12 +731,38 @@
     "badPattern": "이 패턴은 올바르지 않습니다: {reason}",
     "timeout": "이 패턴은 한 줄에서 너무 오래 걸립니다. 더 단순하게 만드세요."
   },
-  "disassembly": { "assemble": "어셈블", "assembled": "어셈블했습니다.", "assembleFailed": "어셈블하지 못했습니다: {reason}", "title": "{entry} 디스어셈블리", "loading": "명령어를 읽는 중...", "failed": "명령어를 읽지 못했습니다: {reason}" },
-  "tileSet": {"findRooms": "이 타일을 쓰는 방 찾기"},
-  "textureItem": {"export": "PNG로 내보내기", "saved": "{path}에 저장했습니다", "failed": "저장하지 못했습니다: {reason}"},
-  "entryScripts": {"globalInit": "게임 시작 시 스크립트", "gameEnd": "게임 종료 시 스크립트", "add": "추가"},
-  "tilesets": { "info": "타일 {width} x {height}, {columns}열, {count}개. 테두리 {borderX}, {borderY}. 간격 {separationX}, {separationY}." },
-  "warnings": { "debuggerAskTitle": "디버거", "debuggerAsk": "디버거 플래그를 켤까요? 일반 러너가 멈출 수 있습니다.", "yyc": "이 게임은 YoYo 컴파일러로 빌드되었습니다. 코드가 실행 파일 안에 있어 표시하거나 검색할 코드가 없습니다.", "debugger": "이 파일에는 GameMaker 디버거 플래그가 켜져 있습니다. 일반 러너가 멈출 수 있습니다.", "unknownTextures": "표시할 수 없는 형식의 텍스처가 {count}개 있습니다. 저장해도 그대로 유지됩니다.", "mayLoseData": "이 데이터 파일의 {count}개 부분을 읽지 못했습니다. 저장하면 사라질 수 있습니다." },
+  "disassembly": {
+    "assemble": "어셈블",
+    "assembled": "어셈블했습니다.",
+    "assembleFailed": "어셈블하지 못했습니다: {reason}",
+    "title": "{entry} 디스어셈블리",
+    "loading": "명령어를 읽는 중...",
+    "failed": "명령어를 읽지 못했습니다: {reason}"
+  },
+  "tileSet": {
+    "findRooms": "이 타일을 쓰는 방 찾기"
+  },
+  "textureItem": {
+    "export": "PNG로 내보내기",
+    "saved": "{path}에 저장했습니다",
+    "failed": "저장하지 못했습니다: {reason}"
+  },
+  "entryScripts": {
+    "globalInit": "게임 시작 시 스크립트",
+    "gameEnd": "게임 종료 시 스크립트",
+    "add": "추가"
+  },
+  "tilesets": {
+    "info": "타일 {width} x {height}, {columns}열, {count}개. 테두리 {borderX}, {borderY}. 간격 {separationX}, {separationY}."
+  },
+  "warnings": {
+    "debuggerAskTitle": "디버거",
+    "debuggerAsk": "디버거 플래그를 켤까요? 일반 러너가 멈출 수 있습니다.",
+    "yyc": "이 게임은 YoYo 컴파일러로 빌드되었습니다. 코드가 실행 파일 안에 있어 표시하거나 검색할 코드가 없습니다.",
+    "debugger": "이 파일에는 GameMaker 디버거 플래그가 켜져 있습니다. 일반 러너가 멈출 수 있습니다.",
+    "unknownTextures": "표시할 수 없는 형식의 텍스처가 {count}개 있습니다. 저장해도 그대로 유지됩니다.",
+    "mayLoseData": "이 데이터 파일의 {count}개 부분을 읽지 못했습니다. 저장하면 사라질 수 있습니다."
+  },
   "usages": {
     "unrefSearching": "어디에서도 쓰이지 않는 에셋을 찾는 중...",
     "unrefFound": "어디에서도 쓰이지 않는 에셋이 {count}개 있습니다.",
@@ -848,18 +985,44 @@
     "back": "뒤로",
     "next": "다음",
     "done": "완료",
-    "explorer": { "title": "무엇이든 찾기", "text": "게임의 모든 리소스가 종류별로 여기에 있습니다. Ctrl+P를 누르면 이름으로 바로 이동합니다." },
-    "tabs": { "title": "여러 개 열기", "text": "리소스를 한 번 클릭하면 기울임 탭으로 미리 봅니다. 편집하거나 두 번 클릭하면 유지됩니다." },
-    "inspector": { "title": "선택한 항목 보기", "text": "인스펙터는 선택한 리소스의 종류와 이름, 사용되는 곳의 수, 맨 앞 룸의 레이어를 보여 줍니다." },
-    "palette": { "title": "모든 명령 검색", "text": "Ctrl+Shift+P를 누르면 모든 명령을 검색합니다. 메뉴에 단축키가 표시됩니다." },
-    "problems": { "title": "무엇이 잘못됐는지 보기", "text": "불러오기, 저장, 컴파일 중의 경고와 오류가 여기에 모입니다. 두 번 클릭하면 해당 위치로 이동합니다." },
-    "save": { "title": "안전한 저장, 빠른 테스트", "text": "저장은 새 파일을 쓰고 백업을 남깁니다. 게임 실행은 원본을 건드리지 않고 변경 내용으로 게임을 시작합니다." }
+    "explorer": {
+      "title": "무엇이든 찾기",
+      "text": "게임의 모든 리소스가 종류별로 여기에 있습니다. Ctrl+P를 누르면 이름으로 바로 이동합니다."
+    },
+    "tabs": {
+      "title": "여러 개 열기",
+      "text": "리소스를 한 번 클릭하면 기울임 탭으로 미리 봅니다. 편집하거나 두 번 클릭하면 유지됩니다."
+    },
+    "inspector": {
+      "title": "선택한 항목 보기",
+      "text": "인스펙터는 선택한 리소스의 종류와 이름, 사용되는 곳의 수, 맨 앞 룸의 레이어를 보여 줍니다."
+    },
+    "palette": {
+      "title": "모든 명령 검색",
+      "text": "Ctrl+Shift+P를 누르면 모든 명령을 검색합니다. 메뉴에 단축키가 표시됩니다."
+    },
+    "problems": {
+      "title": "무엇이 잘못됐는지 보기",
+      "text": "불러오기, 저장, 컴파일 중의 경고와 오류가 여기에 모입니다. 두 번 클릭하면 해당 위치로 이동합니다."
+    },
+    "save": {
+      "title": "안전한 저장, 빠른 테스트",
+      "text": "저장은 새 파일을 쓰고 백업을 남깁니다. 게임 실행은 원본을 건드리지 않고 변경 내용으로 게임을 시작합니다."
+    }
   },
   "particles": {
     "restart": "다시 시작",
     "add": "이미터 추가"
   },
-  "scripts": { "source": "스크립트가 어디에 있습니까?", "sourceFile": ".csx 파일 선택", "sourceFolder": "프로그램 옆 Scripts 폴더에서 선택", "commandTitle": "C# 명령", "commandLabel": "열린 데이터 파일에 실행할 C# 코드", "pickFile": "스크립트가 파일을 요청합니다", "pickFolder": "스크립트가 폴더를 요청합니다", "pickSave": "스크립트가 저장 위치를 묻습니다",
+  "scripts": {
+    "source": "스크립트가 어디에 있습니까?",
+    "sourceFile": ".csx 파일 선택",
+    "sourceFolder": "프로그램 옆 Scripts 폴더에서 선택",
+    "commandTitle": "C# 명령",
+    "commandLabel": "열린 데이터 파일에 실행할 C# 코드",
+    "pickFile": "스크립트가 파일을 요청합니다",
+    "pickFolder": "스크립트가 폴더를 요청합니다",
+    "pickSave": "스크립트가 저장 위치를 묻습니다",
     "pick": "스크립트(.csx)를 고르세요",
     "title": "스크립트 실행",
     "confirm": "{name}을(를) 실행할까요?\n\n스크립트는 데이터 파일의 무엇이든 바꿀 수 있고 이 컴퓨터의 모든 파일을 읽고 쓸 수 있습니다. 변경은 되돌릴 수 없으며, 저장본으로 되돌리기로 복구합니다. 신뢰하는 스크립트만 실행하세요.\n\nUndertaleModTool 방식의 .csx 스크립트를 실행하지만, 그 도구의 기능 중 일부만 있습니다: Data, FilePath, ScriptPath, ScriptMessage, ScriptWarning, ScriptError, ScriptQuestion(항상 예). 대화상자, 디컴파일러 도우미, UI가 필요한 스크립트는 없는 함수 이름을 알려 주는 컴파일 오류로 멈춥니다.",
@@ -1021,7 +1184,8 @@
       "Select": "사각형 선택",
       "Lasso": "올가미 선택",
       "Wand": "마술봉",
-      "Move": "선택 이동"
+      "Move": "선택 이동",
+      "Text": "텍스트"
     },
     "hint": {
       "Pencil": "클릭하여 그립니다. Ctrl은 색을 가져옵니다. 오른쪽 버튼은 보조 색으로 그립니다.",
@@ -1038,7 +1202,8 @@
       "Select": "끌어서 사각형을 선택합니다. Escape로 해제합니다.",
       "Lasso": "선택할 픽셀 주위를 끌어서 둘러쌉니다.",
       "Wand": "클릭하여 비슷한 픽셀을 선택합니다. 허용치와 인접은 옵션 바에 있습니다.",
-      "Move": "끌어서 선택 영역(또는 전체 그림)을 이동합니다. 화살표 키는 1, Shift는 8씩 이동합니다."
+      "Move": "끌어서 선택 영역(또는 전체 그림)을 이동합니다. 화살표 키는 1, Shift는 8씩 이동합니다.",
+      "Text": "옵션 막대에 글자를 입력한 뒤 클릭하면 기본 색으로 배치합니다."
     },
     "style": {
       "Outline": "윤곽",
@@ -1122,6 +1287,23 @@
       "radius": "반지름",
       "anchorX": "앵커 X (0~2)",
       "anchorY": "앵커 Y (0~2)"
+    },
+    "smooth": "부드럽게",
+    "textLabel": "텍스트",
+    "layers": "레이어",
+    "layerDuplicate": "복제",
+    "layerDelete": "삭제",
+    "layerMergeDown": "아래와 병합",
+    "layerName": "레이어 {n}",
+    "layerCopy": "{name} 복사본",
+    "opacity": "불투명도",
+    "blendMode": "혼합",
+    "blend": {
+      "Normal": "일반",
+      "Multiply": "곱하기",
+      "Screen": "스크린",
+      "Overlay": "오버레이",
+      "Add": "더하기"
     }
   },
   "painter": {
@@ -1196,8 +1378,17 @@
     "ToolChromeControlDockString": "도킹",
     "ToolChromeControlAutoHideString": "자동 숨김"
   },
-  "debug": { "pick": "각 코드 항목의 소스 텍스트 내용", "decompiled": "디컴파일된 GML", "assembler": "어셈블러(대입, 점프, 반환에 표시)", "fullAssembler": "어셈블러(모든 명령에 표시)", "working": "디버그 데이터를 쓰는 중...", "done": "{file}을(를) 썼습니다.", "failed": "디버그 데이터를 쓰지 못했습니다: {reason}" },
-  "hex": { "chunk": "청크로 이동",
+  "debug": {
+    "pick": "각 코드 항목의 소스 텍스트 내용",
+    "decompiled": "디컴파일된 GML",
+    "assembler": "어셈블러(대입, 점프, 반환에 표시)",
+    "fullAssembler": "어셈블러(모든 명령에 표시)",
+    "working": "디버그 데이터를 쓰는 중...",
+    "done": "{file}을(를) 썼습니다.",
+    "failed": "디버그 데이터를 쓰지 못했습니다: {reason}"
+  },
+  "hex": {
+    "chunk": "청크로 이동",
     "offsetMapDone": "{file}을(를) 썼습니다.",
     "title": "16진수 뷰: {file}",
     "goTo": "오프셋으로 이동 (123 또는 0x7B)",
@@ -1268,12 +1459,6 @@
   "empty": {
     "problems": "문제가 없습니다.",
     "output": "아직 보고된 내용이 없습니다."
-  },
-  "explorer": {
-    "deleteManyTitle": "리소스 {count}개 삭제",
-    "deleteMany": "리소스 {count}개를 삭제할까요?\n{names}",
-    "deleteManyUses": "선택 밖의 {count}곳에서 사용 중입니다. 해당 사용은 지워지거나 제거됩니다:\n{places}",
-    "duplicatedMany": "리소스 {count}개를 복사했습니다."
   },
   "copyTo": {
     "title": "다른 데이터 파일로 복사",

@@ -136,6 +136,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
         Registry?.SetContext(AppCommands.SpriteTab, active is not null && _frameViews.ContainsKey(active));
         Registry?.SetContext(AppCommands.RoomTab, active is not null && _roomViews.ContainsKey(active));
         Registry?.SetContext(AppCommands.CodeTab, active is not null && _codeTabs.ContainsKey(active));
+        Registry?.SetContext(AppCommands.ImageTab, active is not null && _imageViews.ContainsKey(active));
         if (active is not null && Docking.Tabs.Get(active)?.Key is { } activeKey && activeKey != Explorer.SelectedKey) Explorer.Select(activeKey);
         ShowInInspector();
     }
@@ -230,6 +231,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
             if (workspace is not null && _views.Load(workspace.Path) is { } saved)
             {
                 _savedRooms = saved.Rooms;
+                LayerStore.Of(workspace.Data).Import(saved.Layers);
                 Docking.Restore(saved, tab => ResourceTypes.Find(workspace.Data, tab.Key) is not null);
                 Explorer.Select(saved.Selected);
             }
@@ -262,7 +264,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         if (Settings.ShortcutsEditor.Capturing) return; // the Settings page is waiting for keys to assign
-        if (Shortcuts.Match(Registry, e) is { } command)
+        if (Shortcuts.Match(Registry, e) is { } command && !(command.Id.StartsWith("img.", StringComparison.Ordinal) && e.Source is TextBox or NumericUpDown))
         {
             Registry.Execute(command.Id);
             e.Handled = true;
@@ -281,8 +283,8 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
     public void Zoom(int step)
     {
         // Rounded so repeated steps do not drift (0.1 is not exact in binary).
-        var factor = step == 0 ? 1 : Math.Round(Math.Clamp(ZoomFactor + step * ZoomStep, MinZoom, MaxZoom), 2);
-        Workspaces.Settings.Update(s => s with { UiScale = (int)Math.Round(factor * 100) });
+        var factor = Math.Round(Math.Clamp(ZoomFactor + step * ZoomStep, MinZoom, MaxZoom), 2);
+        Workspaces.Settings.Update(s => s with { UiScale = step == 0 ? 0 : (int)Math.Round(factor * 100) }); // Ctrl+0 returns to the automatic scale
         ApplySettings();
     }
 

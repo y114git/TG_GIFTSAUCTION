@@ -53,7 +53,7 @@ public sealed class ImageEditorViewTests
             try
             {
                 view.Canvas.Focus();
-                foreach (var (key, shift, tool) in new[] { (Key.E, RawInputModifiers.None, ImageTool.Eraser), (Key.F, RawInputModifiers.None, ImageTool.Fill), (Key.L, RawInputModifiers.None, ImageTool.Line), (Key.R, RawInputModifiers.Shift, ImageTool.Rectangle), (Key.C, RawInputModifiers.None, ImageTool.Ellipse), (Key.W, RawInputModifiers.None, ImageTool.Wand), (Key.I, RawInputModifiers.None, ImageTool.Picker), (Key.D, RawInputModifiers.None, ImageTool.Pencil) })
+                foreach (var (key, shift, tool) in new[] { (Key.E, RawInputModifiers.None, ImageTool.Eraser), (Key.F, RawInputModifiers.None, ImageTool.Fill), (Key.L, RawInputModifiers.None, ImageTool.Line), (Key.R, RawInputModifiers.Shift, ImageTool.Rectangle), (Key.C, RawInputModifiers.None, ImageTool.Ellipse), (Key.W, RawInputModifiers.None, ImageTool.Wand), (Key.O, RawInputModifiers.None, ImageTool.Picker), (Key.D, RawInputModifiers.None, ImageTool.Pencil) })
                 {
                     window.KeyPress(key, shift, PhysicalKey.None, null);
                     Assert.Equal(tool, view.Tool);

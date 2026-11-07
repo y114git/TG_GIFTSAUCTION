@@ -157,8 +157,8 @@ public sealed class EditorTabs
 }
 
 /// <summary>What is restored when a data file is reopened: the dock layout text, the tabs and the Explorer selection.</summary>
-/// <summary>Rooms maps a room tab's resource key to its zoom, left and top (the view of the canvas).</summary>
-public sealed record ViewState(string Dock, List<TabInfo> Tabs, string? Selected = null, Dictionary<string, double[]>? Rooms = null);
+/// <summary>Rooms maps a room tab's resource key to its zoom, left and top (the view of the canvas). Layers holds the layer stacks of sprite frames (see <see cref="LayerStore"/>).</summary>
+public sealed record ViewState(string Dock, List<TabInfo> Tabs, string? Selected = null, Dictionary<string, double[]>? Rooms = null, Dictionary<string, string>? Layers = null);
 
 /// <summary>Per data file view state in the user data folder, keyed like the journal (OI-073).</summary>
 public sealed class ViewStateStore(UserData userData)

@@ -1,13 +1,11 @@
-using Avalonia.Input;
-
 namespace G3MStudio.Editor;
 
-public enum ImageTool { Pencil, Eraser, Replace, Remove, Fill, Line, Rectangle, Ellipse, Polygon, Curve, Picker, Select, Lasso, Wand, Move }
+public enum ImageTool { Pencil, Eraser, Replace, Remove, Fill, Line, Rectangle, Ellipse, Polygon, Curve, Text, Picker, Select, Lasso, Wand, Move }
 
 /// <summary>How a closed shape is drawn: only its outline, only its inside, or both.</summary>
 public enum ShapeStyle { Outline, Filled, Both }
 
-/// <summary>Tool keys as GameMaker's image editor has them (Hotkeys/ImageEditorHotkeys). A shifted shape key picks the filled style.</summary>
+/// <summary>The tools of the image editor with their icons. Their keys are commands ("img.tool.*", see AppCommands.ImageCommands), so they can be rebound.</summary>
 public static class ImageTools
 {
     public static readonly IReadOnlyList<ImageTool> All = Enum.GetValues<ImageTool>();
@@ -25,6 +23,7 @@ public static class ImageTools
         ImageTool.Ellipse => "M12 4c5 0 9 3 9 8s-4 8-9 8-9-3-9-8 4-8 9-8zm0 2c-4 0-7 2-7 6s3 6 7 6 7-2 7-6-3-6-7-6z",
         ImageTool.Polygon => "M12 2l9 7-3 12H6L3 9zM12 5L6 9l2 9h8l2-9z",
         ImageTool.Curve => "M3 20C3 8 9 4 21 4v2C10 6 5 10 5 20z",
+        ImageTool.Text => "M5 4h14v4h-2V6h-4v12h2v2H9v-2h2V6H7v2H5z",
         ImageTool.Picker => "M20 4l-3-1-4 4-1-1-2 2 1 1-7 7v3h3l7-7 1 1 2-2-1-1 4-4zM6 19v-1l7-7 1 1-7 7z",
         ImageTool.Select => "M3 3h4v2H5v2H3zM10 3h4v2h-4zM17 3h4v4h-2V5h-2zM3 10h2v4H3zM19 10h2v4h-2zM3 17h2v2h2v2H3zM10 19h4v2h-4zM17 19h2v-2h2v4h-4z",
         ImageTool.Lasso => "M12 3C6 3 2 6 2 10s4 7 10 7c1 0 2 0 3-.3L19 21l1-2-3-3c3-1 5-3 5-6 0-4-4-7-10-7z",
@@ -32,25 +31,6 @@ public static class ImageTools
         _ => "M12 2l4 4h-3v5h5V8l4 4-4 4v-3h-5v5h3l-4 4-4-4h3v-5H6v3l-4-4 4-4v3h5V6H8z",
     };
 
-    public static Key KeyOf(ImageTool tool) => tool switch
-    {
-        ImageTool.Pencil => Key.D,
-        ImageTool.Eraser => Key.E,
-        ImageTool.Replace => Key.V,
-        ImageTool.Remove => Key.H,
-        ImageTool.Fill => Key.F,
-        ImageTool.Line => Key.L,
-        ImageTool.Rectangle => Key.R,
-        ImageTool.Ellipse => Key.C,
-        ImageTool.Polygon => Key.P,
-        ImageTool.Curve => Key.A,
-        ImageTool.Picker => Key.O,
-        ImageTool.Select => Key.S,
-        ImageTool.Wand => Key.W,
-        ImageTool.Move => Key.M,
-        _ => Key.Q,
-    };
-
-    /// <summary>The tool a key chooses (I also picks a colour, as the task's shortcut list has it), or null.</summary>
-    public static ImageTool? FromKey(Key key, bool shift) => key == Key.I ? ImageTool.Picker : key == Key.B ? ImageTool.Pencil : All.Cast<ImageTool?>().FirstOrDefault(t => t is { } tool && KeyOf(tool) == key && (!shift || tool is ImageTool.Rectangle or ImageTool.Ellipse or ImageTool.Polygon));
+    /// <summary>The command that chooses a tool, such as "img.tool.pencil".</summary>
+    public static string CommandOf(ImageTool tool) => "img.tool." + char.ToLowerInvariant(tool.ToString()[0]) + tool.ToString()[1..];
 }

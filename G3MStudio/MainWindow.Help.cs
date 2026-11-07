@@ -129,6 +129,7 @@ public sealed partial class MainWindow
         switch (FocusManager?.GetFocusedElement())
         {
             case TextBox box: box.SelectAll(); break;
+            case Control control when control.FindAncestorOfType<ImageEditorView>() is { } image: image.Run("img.selectAll"); break;
             case Control control when control.FindAncestorOfType<CodeEditorTab>() is { } tab: tab.Editor.SelectAll(); break;
         }
     }

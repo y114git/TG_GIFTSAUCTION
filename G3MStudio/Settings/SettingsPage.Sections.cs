@@ -35,30 +35,63 @@ public sealed partial class SettingsPage
 
         var reduce = new CheckBox { Name = "ReduceMotion", Tag = Loc.Current["settings.reduceMotion"], Content = Loc.Current["settings.reduceMotion"], IsChecked = s.ReduceMotion };
         reduce.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { ReduceMotion = reduce.IsChecked == true }); };
-        var compact = new CheckBox { Name = "CompactDensity", Tag = Loc.Current["settings.compact"], Content = Loc.Current["settings.compact"], IsChecked = s.CompactDensity };
-        compact.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { CompactDensity = compact.IsChecked == true }); };
 
         var sizePanel = new StackPanel { Spacing = 10, Tag = Loc.Current["settings.sizes"] };
         sizePanel.Children.Add(new TextBlock { Text = Loc.Current["settings.sizes"], Classes = { "muted" }, Margin = new Thickness(0, 8, 0, 0) });
         foreach (var (sizeKey, min, max, _) in ThemeSizes.All)
         {
             var key = sizeKey;
-            sizePanel.Children.Add(Row("settings.size." + key, Number("Size_" + key, min, max, 1, ThemeSizes.Value(s.Sizes, key), (x, n) => x with { Sizes = new Dictionary<string, int>(x.Sizes) { [key] = n } }), new TextBlock { Text = key == "Space.Scale" ? "%" : "px", VerticalAlignment = VerticalAlignment.Center }));
+            sizePanel.Children.Add(Row("settings.size." + key, Number("Size_" + key, min, max, 1, ThemeSizes.Value(s.Sizes, s.Density, key), (x, n) => x with { Sizes = new Dictionary<string, int>(x.Sizes) { [key] = n } }), new TextBlock { Text = key == "Space.Scale" ? "%" : "px", VerticalAlignment = VerticalAlignment.Center }));
         }
 
         return
         [
             Heading("settings.appearance"),
             Row("settings.language", language),
-            Row("settings.scale", Number("UiScale", 50, 200, 10, s.UiScale, (x, n) => x with { UiScale = n }), new TextBlock { Text = "%", VerticalAlignment = VerticalAlignment.Center }),
+            .. ScaleRows(s),
+            DensityRow(s),
             Row("settings.fontFamily", family),
             Row("settings.fontWeight", weight),
             sizePanel,
-            compact,
             reduce,
             showNulls,
             FontFiles(),
         ];
+    }
+
+    /// <summary>The interface scale: Auto (computed from the screen) or a percent. Either applies to the window at once, so the page itself is the preview.</summary>
+    private Control[] ScaleRows(AppSettings s)
+    {
+        var screen = _screen();
+        var auto = UiSizing.AutoScale(screen);
+        var box = Number("UiScale", UiSizing.MinManual, UiSizing.MaxScale, 10, s.UiScale == 0 ? auto : s.UiScale, (x, n) => x with { UiScale = n });
+        box.IsEnabled = s.UiScale != 0;
+        var check = new CheckBox { Name = "UiScaleAuto", Content = Loc.Current["settings.scaleAuto"], IsChecked = s.UiScale == 0 };
+        var info = new TextBlock { Name = "UiScaleInfo", Classes = { "muted" }, Text = ScaleInfo(s.UiScale, screen) };
+        check.IsCheckedChanged += (_, _) =>
+        {
+            if (_building) return;
+            var on = check.IsChecked == true;
+            box.IsEnabled = !on;
+            _store.Update(x => x with { UiScale = on ? 0 : (int)(box.Value ?? auto) });
+            info.Text = ScaleInfo(_store.Current.UiScale, screen);
+        };
+        box.ValueChanged += (_, _) => info.Text = ScaleInfo(_store.Current.UiScale, screen);
+        return [Row("settings.scale", box, new TextBlock { Text = "%", VerticalAlignment = VerticalAlignment.Center }, check), info];
+    }
+
+    private static string ScaleInfo(int uiScale, ScreenInfo screen) => Loc.Current.Format("settings.scaleInfo", ("percent", UiSizing.Effective(uiScale, screen)));
+
+    private StackPanel DensityRow(AppSettings s)
+    {
+        var density = new ComboBox { Name = "Density", ItemsSource = UiSizing.Densities.Select(d => Loc.Current["settings.densityName." + d]).ToList(), SelectedIndex = Array.IndexOf(UiSizing.Densities, UiSizing.NormalDensity(s.Density)), MinWidth = 240 };
+        density.SelectionChanged += (_, _) =>
+        {
+            if (_building || density.SelectedIndex < 0) return;
+            _store.Update(x => x with { Density = UiSizing.Densities[density.SelectedIndex] });
+            Content = Build(); // the size boxes below show the values of the new density
+        };
+        return Row("settings.density", density);
     }
 
     private Control[] ColorsSection()
