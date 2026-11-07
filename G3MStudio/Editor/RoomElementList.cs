@@ -21,7 +21,7 @@ public sealed class RoomElementList : ListBox
     {
         _room = room;
         Name = "RoomElements";
-        Height = 110;
+        Height = 76;
         SelectionMode = SelectionMode.Multiple;
         SelectionChanged += (_, _) =>
         {

@@ -11,6 +11,7 @@
     "recovered": "已恢复 {count} 项未保存的编辑"
   },
   "menu": {
+    "code": "代码",
     "plugins": "插件",
     "file": "文件",
     "edit": "编辑",
@@ -37,6 +38,25 @@
     }
   },
   "cmd": {
+    "code": {
+      "goToDefinition": "转到定义",
+      "peekDefinition": "速览定义",
+      "parameterHints": "参数提示",
+      "quickFix": "快速修复",
+      "insertSnippet": "插入代码片段",
+      "toggleComment": "切换行注释",
+      "blockComment": "切换块注释",
+      "duplicateLine": "复制行",
+      "moveLineUp": "上移一行",
+      "moveLineDown": "下移一行",
+      "toggleBookmark": "切换书签",
+      "nextBookmark": "下一个书签",
+      "previousBookmark": "上一个书签",
+      "nextProblem": "下一个问题",
+      "previousProblem": "上一个问题",
+      "outline": "转到文件中的符号",
+      "toggleDiff": "显示与原始代码的差异"
+    },
     "window": {
       "layout": {
         "studio": "Studio 布局",
@@ -358,7 +378,25 @@
     "more": "……另有 {count} 项"
   },
   "code": {
+    "outlineButton": "大纲",
+    "outlineEmpty": "没有函数、枚举或区域",
+    "hover": {
+      "local": "局部"
+    },
+    "fix": {
+      "rename": "改为 '{name}'",
+      "declareLocal": "将 '{name}' 声明为局部变量",
+      "declareGlobal": "将 '{name}' 改为全局变量",
+      "commentLine": "注释掉此行",
+      "none": "此处没有快速修复"
+    },
+    "diff": {
+      "title": "与打开此标签页时的代码相比：新增 {added} 行，删除 {removed} 行"
+    },
     "menu": {
+      "peekDefinition": "速览定义",
+      "rename": "重命名符号",
+      "quickFix": "快速修复...",
       "goToDefinition": "转到定义",
       "findUsages": "查找用法",
       "copyName": "复制名称",
@@ -374,6 +412,10 @@
     "fallbackAssembly": "反编译失败：{reason}。正在显示汇编。",
     "fallbackParent": "反编译失败：{reason}。正在显示父脚本 {parent}，只读。",
     "rename": {
+      "title": "重命名符号",
+      "none": "没有可重命名的内容。",
+      "count": "此代码中将更改 {count} 处。仍可重命名。",
+      "across": "{entries} 个代码条目中将更改 {uses} 处使用和 {strings} 个字符串。",
       "invalid": "新名称不是有效的 GML 名称。",
       "same": "新名称与旧名称相同。",
       "member": "这是其他实例的成员。只会更改此代码条目。",
@@ -415,6 +457,7 @@
     "placeholder": "输入资源或代码名称 (spr: obj: scr: ...)"
   },
   "settings": {
+    "codeIndentGuides": "显示缩进参考线",
     "title": "设置",
     "close": "关闭",
     "default": "默认",

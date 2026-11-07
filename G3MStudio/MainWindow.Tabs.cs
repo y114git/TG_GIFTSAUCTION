@@ -1,7 +1,9 @@
 using Avalonia.Input.Platform;
+using Avalonia.VisualTree;
 using Avalonia.Threading;
 using G3MStudio.Core.Notifications;
 using G3MStudio.Core.Workspace;
+using G3MStudio.Editor;
 using G3MStudio.Localization;
 
 namespace G3MStudio;
@@ -56,8 +58,21 @@ public sealed partial class MainWindow
     public void Rename()
     {
         if (Workspaces.Current is null) return;
+        // In a code editor F2 renames the name under the caret; elsewhere the selected resource.
+        if (FocusManager?.GetFocusedElement() is Avalonia.Controls.Control focused && focused.FindAncestorOfType<CodeEditorTab>() is { } code)
+        {
+            code.RenameSymbol();
+            return;
+        }
+
         var key = Explorer.SelectedKey ?? (Docking.ActiveTabId is { } id ? Docking.Tabs.Get(id)?.Key : null);
-        if (key is null || ResourceTypes.SplitKey(key) is not var (type, name) || type == "general") return;
+        if (key is null || ResourceTypes.SplitKey(key) is not var (type, name)) return;
+        AskRenameResource(type, name);
+    }
+
+    private void AskRenameResource(string type, string name)
+    {
+        if (type == "general") return;
         _ = new RenameWindow(name, newName => ApplyRename(type, name, newName), preview: RenamePreviewText(type, name)).AskAsync(this);
     }
 

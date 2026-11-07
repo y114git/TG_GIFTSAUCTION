@@ -11,6 +11,7 @@
     "recovered": "저장되지 않은 편집 {count}개를 복구했습니다"
   },
   "menu": {
+    "code": "코드",
     "plugins": "플러그인",
     "file": "파일",
     "edit": "편집",
@@ -37,6 +38,25 @@
     }
   },
   "cmd": {
+    "code": {
+      "goToDefinition": "정의로 이동",
+      "peekDefinition": "정의 미리 보기",
+      "parameterHints": "매개변수 도움말",
+      "quickFix": "빠른 수정",
+      "insertSnippet": "스니펫 삽입",
+      "toggleComment": "줄 주석 전환",
+      "blockComment": "블록 주석 전환",
+      "duplicateLine": "줄 복제",
+      "moveLineUp": "줄 위로 이동",
+      "moveLineDown": "줄 아래로 이동",
+      "toggleBookmark": "책갈피 전환",
+      "nextBookmark": "다음 책갈피",
+      "previousBookmark": "이전 책갈피",
+      "nextProblem": "다음 문제",
+      "previousProblem": "이전 문제",
+      "outline": "파일의 기호로 이동",
+      "toggleDiff": "원본과의 변경 사항 보기"
+    },
     "window": {
       "layout": {
         "studio": "Studio 레이아웃",
@@ -358,7 +378,25 @@
     "more": "... 외 {count}개"
   },
   "code": {
+    "outlineButton": "개요",
+    "outlineEmpty": "함수, 열거형, 영역 없음",
+    "hover": {
+      "local": "지역"
+    },
+    "fix": {
+      "rename": "'{name}'(으)로 변경",
+      "declareLocal": "'{name}'을(를) 지역 변수로 선언",
+      "declareGlobal": "'{name}'을(를) 전역 변수로 만들기",
+      "commentLine": "이 줄을 주석 처리",
+      "none": "여기에는 빠른 수정이 없습니다"
+    },
+    "diff": {
+      "title": "탭을 열었을 때의 코드와 비교: {added}줄 추가, {removed}줄 삭제"
+    },
     "menu": {
+      "peekDefinition": "정의 미리 보기",
+      "rename": "기호 이름 바꾸기",
+      "quickFix": "빠른 수정...",
       "goToDefinition": "정의로 이동",
       "findUsages": "사용처 찾기",
       "copyName": "이름 복사",
@@ -374,6 +412,10 @@
     "fallbackAssembly": "디컴파일러 실패: {reason}. 어셈블리를 표시합니다.",
     "fallbackParent": "디컴파일러 실패: {reason}. 상위 스크립트 {parent}을(를) 표시합니다. 읽기 전용입니다.",
     "rename": {
+      "title": "기호 이름 바꾸기",
+      "none": "바꿀 항목이 없습니다.",
+      "count": "이 코드의 {count}곳이 바뀝니다. 계속할 수 있습니다.",
+      "across": "코드 항목 {entries}개에서 사용 {uses}곳, 문자열 {strings}곳이 바뀝니다.",
       "invalid": "새 이름은 올바른 GML 이름이 아닙니다.",
       "same": "새 이름이 기존 이름과 같습니다.",
       "member": "다른 인스턴스의 멤버입니다. 이 코드 항목만 바뀝니다.",
@@ -415,6 +457,7 @@
     "placeholder": "리소스 또는 코드 이름 입력 (spr: obj: scr: ...)"
   },
   "settings": {
+    "codeIndentGuides": "들여쓰기 안내선 표시",
     "title": "설정",
     "close": "닫기",
     "default": "기본값",

@@ -135,6 +135,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
         var active = Docking.ActiveTabId;
         Registry?.SetContext(AppCommands.SpriteTab, active is not null && _frameViews.ContainsKey(active));
         Registry?.SetContext(AppCommands.RoomTab, active is not null && _roomViews.ContainsKey(active));
+        Registry?.SetContext(AppCommands.CodeTab, active is not null && _codeTabs.ContainsKey(active));
         if (active is not null && Docking.Tabs.Get(active)?.Key is { } activeKey && activeKey != Explorer.SelectedKey) Explorer.Select(activeKey);
         ShowInInspector();
     }

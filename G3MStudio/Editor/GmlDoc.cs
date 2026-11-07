@@ -10,6 +10,7 @@ public sealed class GmlDoc
 {
     private readonly Lazy<Dictionary<int, int>> _pairs;
     private readonly Lazy<Dictionary<string, List<int>>> _byName;
+    private readonly Lazy<(int Offset, (byte R, byte G, byte B) Color)[]> _colors;
 
     private GmlDoc(string text, IReadOnlyList<GmlToken> tokens)
     {
@@ -17,6 +18,7 @@ public sealed class GmlDoc
         Tokens = tokens;
         _pairs = new Lazy<Dictionary<int, int>>(BuildPairs);
         _byName = new Lazy<Dictionary<string, List<int>>>(BuildNames);
+        _colors = new Lazy<(int Offset, (byte R, byte G, byte B) Color)[]>(BuildColors);
     }
 
     public string Text { get; }
@@ -68,6 +70,40 @@ public sealed class GmlDoc
 
     /// <summary>Token indexes of every identifier with the name, in text order.</summary>
     public IReadOnlyList<int> Named(string name) => _byName.Value.TryGetValue(name, out var found) ? found : [];
+
+    /// <summary>The colour literals of the text (hex numbers, #RRGGBB and c_ names) with the offset of each, in text order.</summary>
+    public IReadOnlyList<(int Offset, (byte R, byte G, byte B) Color)> Colors => _colors.Value;
+
+    /// <summary>Index into <see cref="Colors"/> of the first colour at or after the offset, or -1.</summary>
+    public int NextColor(int offset)
+    {
+        var all = _colors.Value;
+        int low = 0, high = all.Length;
+        while (low < high)
+        {
+            var mid = (low + high) / 2;
+            if (all[mid].Offset < offset) low = mid + 1; else high = mid;
+        }
+
+        return low < all.Length ? low : -1;
+    }
+
+    private (int Offset, (byte R, byte G, byte B) Color)[] BuildColors()
+    {
+        var found = new List<(int, (byte, byte, byte))>();
+        for (var i = 0; i < Tokens.Count; i++)
+        {
+            var kind = Tokens[i].Kind;
+            if (kind is not (GmlTokenKind.Number or GmlTokenKind.Preprocessor or GmlTokenKind.Identifier or GmlTokenKind.Unknown)) continue;
+            var first = Text[Start(i)];
+            if (first is not ('$' or '0' or '#' or 'c')) continue;
+            // #RRGGBB that starts with a digit is split into pieces by the tokenizer, so a lone # is read from the text.
+            var literal = kind == GmlTokenKind.Unknown && first == '#' && Start(i) + 7 <= Text.Length ? Text.Substring(Start(i), 7) : Slice(i);
+            if (GmlColors.Parse(literal, kind == GmlTokenKind.Unknown ? GmlTokenKind.Preprocessor : kind) is { } color) found.Add((Start(i), color));
+        }
+
+        return [.. found];
+    }
 
     private Dictionary<int, int> BuildPairs()
     {

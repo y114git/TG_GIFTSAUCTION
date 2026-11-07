@@ -11,6 +11,7 @@
     "recovered": "Ediciones sin guardar recuperadas: {count}"
   },
   "menu": {
+    "code": "Código",
     "plugins": "Complementos",
     "file": "Archivo",
     "edit": "Edición",
@@ -37,6 +38,25 @@
     }
   },
   "cmd": {
+    "code": {
+      "goToDefinition": "Ir a la definición",
+      "peekDefinition": "Ver definición",
+      "parameterHints": "Ayuda de parámetros",
+      "quickFix": "Corrección rápida",
+      "insertSnippet": "Insertar fragmento",
+      "toggleComment": "Alternar comentario de línea",
+      "blockComment": "Alternar comentario de bloque",
+      "duplicateLine": "Duplicar línea",
+      "moveLineUp": "Mover línea arriba",
+      "moveLineDown": "Mover línea abajo",
+      "toggleBookmark": "Alternar marcador",
+      "nextBookmark": "Marcador siguiente",
+      "previousBookmark": "Marcador anterior",
+      "nextProblem": "Problema siguiente",
+      "previousProblem": "Problema anterior",
+      "outline": "Ir a símbolo del archivo",
+      "toggleDiff": "Mostrar cambios respecto al original"
+    },
     "window": {
       "layout": {
         "studio": "Diseño Studio",
@@ -358,7 +378,25 @@
     "more": "... y {count} más"
   },
   "code": {
+    "outlineButton": "Esquema",
+    "outlineEmpty": "Sin funciones, enums ni regiones",
+    "hover": {
+      "local": "local"
+    },
+    "fix": {
+      "rename": "Cambiar a '{name}'",
+      "declareLocal": "Declarar '{name}' como variable local",
+      "declareGlobal": "Convertir '{name}' en variable global",
+      "commentLine": "Comentar esta línea",
+      "none": "No hay correcciones rápidas aquí"
+    },
+    "diff": {
+      "title": "Cambios respecto al código al abrir esta pestaña: {added} añadidas, {removed} quitadas"
+    },
     "menu": {
+      "peekDefinition": "Ver definición",
+      "rename": "Cambiar nombre del símbolo",
+      "quickFix": "Corrección rápida...",
       "goToDefinition": "Ir a la definición",
       "findUsages": "Buscar usos",
       "copyName": "Copiar nombre",
@@ -374,6 +412,10 @@
     "fallbackAssembly": "El descompilador falló: {reason}. Se muestra el ensamblador.",
     "fallbackParent": "El descompilador falló: {reason}. Se muestra el script padre {parent}. Solo lectura.",
     "rename": {
+      "title": "Cambiar nombre del símbolo",
+      "none": "No hay nada que renombrar.",
+      "count": "Cambiarán {count} lugares de este código. Aún puede renombrar.",
+      "across": "Cambiarán {uses} usos y {strings} cadenas en {entries} entradas de código.",
       "invalid": "El nuevo nombre no es un nombre GML válido.",
       "same": "El nuevo nombre es igual al anterior.",
       "member": "Es un miembro de otra instancia. Solo cambia esta entrada de código.",
@@ -415,6 +457,7 @@
     "placeholder": "Escribe el nombre de un recurso o código (spr: obj: scr: ...)"
   },
   "settings": {
+    "codeIndentGuides": "Mostrar guías de sangría",
     "title": "Configuración",
     "close": "Cerrar",
     "default": "Predeterminado",

@@ -30,6 +30,20 @@ public static class GmlSymbols
         return found;
     }
 
+    /// <summary>String literals that are exactly the name, as spans of the whole literal including its quotes (variable_instance_get(id, "hp")).</summary>
+    public static IReadOnlyList<(int Start, int End)> StringReferences(GmlDoc doc, string name)
+    {
+        var found = new List<(int, int)>();
+        for (var i = 0; i < doc.Tokens.Count; i++)
+        {
+            if (doc.Tokens[i].Kind != GmlTokenKind.String) continue;
+            var literal = doc.Slice(i);
+            if (literal.Length == name.Length + 2 && literal[0] == '"' && literal[^1] == '"' && literal.AsSpan(1, name.Length).SequenceEqual(name)) found.Add((doc.Start(i), doc.End(i)));
+        }
+
+        return found;
+    }
+
     private static bool IsGlobalMember(GmlDoc doc, int token) => token > 1 && doc.IsPunct(token - 1, '.') && doc.Slice(token - 2) == "global";
 
     /// <summary>The token where a local, argument or global of the entry is declared, or -1 for a name that is declared nowhere in the text.</summary>

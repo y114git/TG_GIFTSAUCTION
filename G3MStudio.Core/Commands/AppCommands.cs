@@ -245,9 +245,12 @@ public interface IShell
     void KeepTabOpen();
 
     void SplitRight();
+
+    /// <summary>Runs a code editor command (an id of <see cref="AppCommands.CodeCommands"/>) on the code tab in front.</summary>
+    void CodeCommand(string id);
 }
 
-public static class AppCommands
+public static partial class AppCommands
 {
     public const string WorkspaceOpen = "workspaceOpen";
 
@@ -273,6 +276,7 @@ public static class AppCommands
         ("menu.sprite", ["edit.editImage", "edit.paintFrame", "edit.replaceFrame", "edit.duplicateFrame", "edit.removeFrame", "-", "edit.recalculateMask", "edit.importMask", "edit.exportMask", "edit.exportGif"]),
         ("menu.sound", ["edit.editAudio", "edit.replaceAudio", "edit.exportAudio", "edit.exportAllAudio"]),
         ("menu.room", ["room.play", "-", "room.creationCode", "room.creationOrder", "room.exportTiles", "room.importTiles", "room.savePng"]),
+        ("menu.code", [.. CodeCommands.Select(c => c.Id)]),
         ("menu.run", ["run.game", "run.withRuntime", "run.stop"]),
         ("menu.mods", ["mods.createPatch", "mods.applyPatch", "mods.applyMod", "mods.mergePatches", "mods.validatePatch", "mods.compareFiles", "mods.exportMod"]),
         ("menu.tools", ["tools.plugins", "tools.strings", "tools.roomOrder", "tools.textureGroups", "tools.audioGroups", "tools.hexView", "tools.offsetMap", "tools.writeDebugData", "tools.disassemble", "tools.runScript", "tools.runCommand", "-", "tools.repackTextures", "tools.exportPage", "tools.replacePage"]),
@@ -297,6 +301,7 @@ public static class AppCommands
         AddFileAndRun(registry, shell);
         AddEditAndMods(registry, shell);
         AddViewAndTools(registry, shell);
+        foreach (var (id, shortcut) in CodeCommands) registry.Add(new Command(id, shortcut, () => shell.CodeCommand(id), CodeTab));
         return registry;
     }
 

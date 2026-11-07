@@ -11,6 +11,7 @@
     "recovered": "已復原 {count} 項未儲存的編輯"
   },
   "menu": {
+    "code": "程式碼",
     "plugins": "外掛",
     "file": "檔案",
     "edit": "編輯",
@@ -37,6 +38,25 @@
     }
   },
   "cmd": {
+    "code": {
+      "goToDefinition": "跳至定義",
+      "peekDefinition": "預覽定義",
+      "parameterHints": "參數提示",
+      "quickFix": "快速修正",
+      "insertSnippet": "插入程式碼片段",
+      "toggleComment": "切換行註解",
+      "blockComment": "切換區塊註解",
+      "duplicateLine": "複製行",
+      "moveLineUp": "上移一行",
+      "moveLineDown": "下移一行",
+      "toggleBookmark": "切換書籤",
+      "nextBookmark": "下一個書籤",
+      "previousBookmark": "上一個書籤",
+      "nextProblem": "下一個問題",
+      "previousProblem": "上一個問題",
+      "outline": "跳至檔案中的符號",
+      "toggleDiff": "顯示與原始程式碼的差異"
+    },
     "window": {
       "layout": {
         "studio": "Studio 版面配置",
@@ -358,7 +378,25 @@
     "more": "……另有 {count} 項"
   },
   "code": {
+    "outlineButton": "大綱",
+    "outlineEmpty": "沒有函式、列舉或區域",
+    "hover": {
+      "local": "區域"
+    },
+    "fix": {
+      "rename": "改為 '{name}'",
+      "declareLocal": "將 '{name}' 宣告為區域變數",
+      "declareGlobal": "將 '{name}' 改為全域變數",
+      "commentLine": "將此行註解掉",
+      "none": "此處沒有快速修正"
+    },
+    "diff": {
+      "title": "與開啟此分頁時的程式碼相比：新增 {added} 行，刪除 {removed} 行"
+    },
     "menu": {
+      "peekDefinition": "預覽定義",
+      "rename": "重新命名符號",
+      "quickFix": "快速修正...",
       "goToDefinition": "跳至定義",
       "findUsages": "尋找用法",
       "copyName": "複製名稱",
@@ -374,6 +412,10 @@
     "fallbackAssembly": "反編譯失敗：{reason}。正在顯示組合語言。",
     "fallbackParent": "反編譯失敗：{reason}。正在顯示父指令碼 {parent}，唯讀。",
     "rename": {
+      "title": "重新命名符號",
+      "none": "沒有可重新命名的內容。",
+      "count": "此程式碼中將變更 {count} 處。仍可重新命名。",
+      "across": "{entries} 個程式碼項目中將變更 {uses} 處使用與 {strings} 個字串。",
       "invalid": "新名稱不是有效的 GML 名稱。",
       "same": "新名稱與舊名稱相同。",
       "member": "這是其他實例的成員。只會變更此程式碼項目。",
@@ -415,6 +457,7 @@
     "placeholder": "輸入資源或程式碼名稱 (spr: obj: scr: ...)"
   },
   "settings": {
+    "codeIndentGuides": "顯示縮排參考線",
     "title": "設定",
     "close": "關閉",
     "default": "預設",

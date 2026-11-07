@@ -113,6 +113,9 @@ public sealed record AppSettings
     /// <summary>The completion list opens while typing in code; Ctrl+Space opens it either way.</summary>
     public bool CodeAutoComplete { get; init; } = true;
 
+    /// <summary>Thin vertical lines at each indent level of the code text.</summary>
+    public bool CodeIndentGuides { get; init; } = true;
+
     /// <summary>Colors changed by the user, <see cref="ThemeColors.Editable"/> key to #RRGGBB; a missing key keeps the theme color.</summary>
     public IReadOnlyDictionary<string, string> Colors { get; init; } = new Dictionary<string, string>();
 

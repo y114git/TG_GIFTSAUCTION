@@ -108,6 +108,9 @@ Only decisions that change the design or need the owner. Everything else buildab
 - Rename collision: warn, then allow (GameMaker refuses). Revisit if modders report broken code.
 - Auto close quotes: not after a letter, so apostrophes in comments stay single.
 - Colour literals: `$BBGGRR` and `0xBBGGRR` are read as GameMaker does (blue first); six digits only.
+- Original for the change view: the code when the tab opened (the data file keeps no second copy of the original code). Revisit if a mod workflow needs the code of the file on disk.
+- Rename across all code also renames string literals that are exactly the name (GameMaker's rename does not). They are counted in the preview.
+- F2 in a code editor renames the symbol under the caret; the resource rename keeps F2 elsewhere, so no second command was added.
 
 ## Room editor questions (2026-11-06, answered by the implementation, change on request)
 - Q81: UI layers (flex panels) have no place in the room chunk of the data file, so Add Layer lists no UI kind. Instance, Tiles, Assets, Background, Path and Effect are the kinds the file stores. Decision taken: leave UI layers out until G3MLib reads the UILR chunk.

@@ -24,7 +24,6 @@ public sealed class GmlColorizer : DocumentColorizingTransformer
     private readonly Func<string, IBrush?> _resolve;
     private readonly Dictionary<GmlTokenKind, IBrush> _brushes = [];
     private readonly Dictionary<string, IBrush> _nameBrushes = [];
-    private IReadOnlyList<GmlToken> _tokens = [];
     private Dictionary<int, string> _scopes = [];
 
     public GmlColorizer(Func<string, IBrush?> brush)
@@ -35,6 +34,9 @@ public sealed class GmlColorizer : DocumentColorizingTransformer
 
     /// <summary>Tells what a name stands for: one of <see cref="Names"/>, or null for a name that is just a name (a local variable).</summary>
     public Func<string, string?>? Classifier { get; set; }
+
+    // The tokens of the last Tokenize call, for the other features that read the same text.
+    public IReadOnlyList<GmlToken> Tokens { get; private set; } = [];
 
     /// <summary>Looks the brushes up again, after the user changed a color.</summary>
     public void Reload()
@@ -49,9 +51,9 @@ public sealed class GmlColorizer : DocumentColorizingTransformer
 
     public void Tokenize(string text, bool gms2OrLater = true)
     {
-        _tokens = GmlTokenizer.Tokenize(text, gms2OrLater);
-        _scopes = GmlScopes.Find(text, _tokens);
-        Foldings = BraceFoldings(text, _tokens);
+        Tokens = GmlTokenizer.Tokenize(text, gms2OrLater);
+        _scopes = GmlScopes.Find(text, Tokens);
+        Foldings = BraceFoldings(text, Tokens);
     }
 
     /// <summary>The { } blocks of the last tokenized text that span more than one line, in offset order. Braces inside strings and comments are not tokens of their own.</summary>
@@ -78,25 +80,25 @@ public sealed class GmlColorizer : DocumentColorizingTransformer
 
     protected override void ColorizeLine(DocumentLine line)
     {
-        int low = 0, high = _tokens.Count;
+        int low = 0, high = Tokens.Count;
         while (low < high)
         {
             var mid = (low + high) / 2;
-            if (_tokens[mid].Span.EndOffset <= line.Offset) low = mid + 1; else high = mid;
+            if (Tokens[mid].Span.EndOffset <= line.Offset) low = mid + 1; else high = mid;
         }
-        for (var i = low; i < _tokens.Count && _tokens[i].Span.StartOffset < line.EndOffset; i++)
+        for (var i = low; i < Tokens.Count && Tokens[i].Span.StartOffset < line.EndOffset; i++)
         {
             var brush = BrushOf(i);
             if (brush is null) continue;
-            var start = Math.Max(_tokens[i].Span.StartOffset, line.Offset);
-            var end = Math.Min(_tokens[i].Span.EndOffset, line.EndOffset);
+            var start = Math.Max(Tokens[i].Span.StartOffset, line.Offset);
+            var end = Math.Min(Tokens[i].Span.EndOffset, line.EndOffset);
             if (end > start) ChangeLinePart(start, end, element => element.TextRunProperties.SetForegroundBrush(brush));
         }
     }
 
     private IBrush? BrushOf(int index)
     {
-        var token = _tokens[index];
+        var token = Tokens[index];
         if (token.Kind == GmlTokenKind.Identifier)
         {
             if (_scopes.TryGetValue(index, out var scope) && _nameBrushes.TryGetValue(scope, out var scoped)) return scoped;

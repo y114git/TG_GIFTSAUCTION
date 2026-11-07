@@ -11,6 +11,7 @@
     "recovered": "未保存の編集を {count} 件復元しました"
   },
   "menu": {
+    "code": "コード",
     "plugins": "プラグイン",
     "file": "ファイル",
     "edit": "編集",
@@ -37,6 +38,25 @@
     }
   },
   "cmd": {
+    "code": {
+      "goToDefinition": "定義へ移動",
+      "peekDefinition": "定義をここに表示",
+      "parameterHints": "パラメーターのヒント",
+      "quickFix": "クイックフィックス",
+      "insertSnippet": "スニペットを挿入",
+      "toggleComment": "行コメントを切り替え",
+      "blockComment": "ブロックコメントを切り替え",
+      "duplicateLine": "行を複製",
+      "moveLineUp": "行を上に移動",
+      "moveLineDown": "行を下に移動",
+      "toggleBookmark": "ブックマークを切り替え",
+      "nextBookmark": "次のブックマーク",
+      "previousBookmark": "前のブックマーク",
+      "nextProblem": "次の問題",
+      "previousProblem": "前の問題",
+      "outline": "ファイル内のシンボルへ移動",
+      "toggleDiff": "元のコードとの差分を表示"
+    },
     "window": {
       "layout": {
         "studio": "Studio レイアウト",
@@ -358,7 +378,25 @@
     "more": "... ほか {count} 件"
   },
   "code": {
+    "outlineButton": "アウトライン",
+    "outlineEmpty": "関数、列挙型、リージョンはありません",
+    "hover": {
+      "local": "ローカル"
+    },
+    "fix": {
+      "rename": "'{name}' に変更",
+      "declareLocal": "'{name}' をローカル変数として宣言",
+      "declareGlobal": "'{name}' をグローバル変数にする",
+      "commentLine": "この行をコメントアウト",
+      "none": "ここにクイックフィックスはありません"
+    },
+    "diff": {
+      "title": "このタブを開いた時点からの変更: 追加 {added}、削除 {removed}"
+    },
     "menu": {
+      "peekDefinition": "定義をここに表示",
+      "rename": "シンボルの名前を変更",
+      "quickFix": "クイックフィックス...",
       "goToDefinition": "定義へ移動",
       "findUsages": "使用箇所を検索",
       "copyName": "名前をコピー",
@@ -374,6 +412,10 @@
     "fallbackAssembly": "デコンパイラが失敗しました: {reason}。アセンブリを表示しています。",
     "fallbackParent": "デコンパイラが失敗しました: {reason}。親スクリプト {parent} を表示しています。読み取り専用です。",
     "rename": {
+      "title": "シンボルの名前を変更",
+      "none": "変更する箇所がありません。",
+      "count": "このコードの {count} か所が変更されます。続行できます。",
+      "across": "{entries} 件のコードで、使用 {uses} か所、文字列 {strings} か所が変更されます。",
       "invalid": "新しい名前は有効なGML名ではありません。",
       "same": "新しい名前は元の名前と同じです。",
       "member": "他のインスタンスのメンバーです。このコードエントリのみ変更されます。",
@@ -415,6 +457,7 @@
     "placeholder": "リソース名またはコード名を入力 (spr: obj: scr: ...)"
   },
   "settings": {
+    "codeIndentGuides": "インデントガイドを表示",
     "title": "設定",
     "close": "閉じる",
     "default": "既定",

@@ -8,44 +8,38 @@ Speed rule: one `GmlDoc` (tokens, bracket pairs, name index) is built per text v
 
 | Feature | State | Where |
 | --- | --- | --- |
-| Hover: function signature | partial: built-in names show `name(argument0, [argument1])` from the compiler list; no descriptions or parameter names (no documentation source in the library) | `CodeEditorTab.Intel.cs`, `GmlNames.SignatureOf` |
-| Hover: assets and variables | partial: kind and name (Function, Asset, Variable, Constant); no thumbnail yet | `CodeEditorTab.Intel.cs` |
-| Hover: enum and macro values | missing | |
-| Hover: colour literals | done: `#RRGGBB $BBGGRR` text for hex and `c_` names | `GmlColors` |
-| Signature help while typing | logic done (call and argument index, optional and variadic labels); no popup yet | `GmlSignatures` |
-| Go to definition F12, Ctrl+click | done for scripts and resources; not for locals | `CodeEditorTab.cs` `InstallGoTo` |
-| Go to definition of a local or argument | logic done (`GmlSymbols.DeclarationOf`); not bound to a key | `GmlSymbols` |
-| Peek definition | missing | |
-| Find references Shift+F12 | done for resources (context menu and Shift+F12 open the Usages panel); not for functions and variables of the code | `GmlUsages`, Usages panel |
-| Rename symbol with preview | logic done, with collision warnings that allow going on; no dialog yet | `GmlSymbols.PlanRename` |
-| Rename across all code and strings | missing | |
-| Context menu | done: Go to Definition, Find Usages, Copy Name, Toggle Comment, Cut, Copy, Paste | `BuildMenu` |
-| Breadcrumb / outline / function list | logic done (functions, enums, macros, regions, breadcrumb of the caret); no panel yet | `GmlStructure.Outline`, `Around` |
+| Hover: function signature | done: own functions show real parameter names (defaults optional), built-in ones show `argument0` style names from the compiler list; no descriptions (the library has no documentation text) | `CodeEditorTab.Intel.cs`, `GmlSignatures`, `GmlNames.SignatureOf` |
+| Hover: assets, variables, locals | done: kind and name, locals show their declaration line, sprites and other resources show a picture when the Explorer can make one | `HoverTextAt`, `ThumbnailLoader` |
+| Hover: macro and enum | done: the `#macro` line or the enum head | `HoverText` |
+| Hover: colour literals | done | `GmlColors` |
+| Hover: compile problems | done: the compiler message at the squiggle | `HoverTextAt` |
+| Signature help while typing | done: popup under the caret on `(` and `,`, Ctrl+Shift+Space, active parameter in bold | `UpdateSignatureHint`, `GmlSignatures` |
+| Go to definition F12, Ctrl+click | done: locals, parameters, functions of the same text, scripts and resources | `GoToDefinition` |
+| Peek definition Alt+F12 | done: a read only popup with the declaration or the first 40 lines of the script | `PeekAsync` |
+| Find usages Shift+F12 | done: a resource name lists the resource's usages, any other name lists the places it is used in all code, with the line | `ShowNameUsagesAsync`, `CodeScan` |
+| Rename symbol (F2) | done: a local or parameter in this text, a resource through the resource rename, any other name in all code and in strings that equal it, with a preview; collisions warn and can be ignored | `RenameSymbol`, `CodeRename`, `CodeRenameDialog` |
+| Context menu | done: Go to Definition, Peek, Find Usages, Rename, Quick Fix, Copy Name, Toggle Comment, Cut, Copy, Paste | `BuildMenu` |
+| Breadcrumb, outline, function list | done: breadcrumb of the caret and an Outline list of functions, enums, macros and regions; Ctrl+Shift+O | `GmlStructure`, `ShowOutline` |
 | Code folding | done: braces, regions, block comments | `GmlStructure.Foldings` |
-| Bracket matching and highlight | done | `BracketRenderer` |
-| Matching word highlight | missing | |
-| Multi-cursor | missing (AvaloniaEdit has none) | |
-| Duplicate, move line | done (Shift+Alt+Down, Alt+Up, Alt+Down), one undo step | `GmlLineEdits` |
-| Delete line | missing | |
+| Bracket matching and highlight | done | `HighlightRenderer` |
+| Matching word highlight | done | `HighlightRenderer` |
+| Multi-cursor | not possible: AvaloniaEdit has no multiple carets | |
+| Duplicate, move line | done (Shift+Alt+Down, Alt+Up, Alt+Down) | `GmlLineEdits` |
 | Toggle line and block comment | done (Ctrl+/, Shift+Alt+A) | `GmlLineEdits` |
-| Snippets and templates | missing | |
-| Colour preview swatch | logic done; swatch not drawn | `GmlColors` |
-| Ctrl+click jump to resource | done | `InstallGoTo` |
-| Inline errors, squiggles, Problems | partial: compile errors go to Problems; no squiggles | `Apply` |
-| Quick fixes | missing | |
-| Find and replace in a file | done (AvaloniaEdit search panel) | `ShowFind` |
-| Find across all code | done (Search panel) | `CodeSearch` |
-| Bookmarks | missing | |
-| Minimap | missing | |
-| Diff against original | logic done (`LineDiff`); no view | `LineDiff` |
-| Clickable asset references with thumbnail | partial: Ctrl+click opens; no thumbnail | |
-| Local variable and argument hints | partial: locals and parameters are coloured (`GmlScopes.Declarations`) | `GmlScopes` |
-| Indentation guides | missing | |
-| Word wrap | missing | |
-| Font ligatures | missing | |
-| Auto close brackets and quotes, step over | done | `GmlLineEdits.ClosingFor`, `StepsOver` |
-| Format on paste | missing | |
-| Linked editing | missing | |
+| Snippets | done: 12 templates, Ctrl+J, indentation follows the line | `GmlSnippets` |
+| Colour preview | done: a swatch before hex literals, `#RRGGBB` and `c_` names | `ColorSwatchGenerator` |
+| Inline errors, squiggles, Problems | done for compile errors of Apply (squiggle, hover, Problems panel, F8 and Shift+F8); no background check while typing | `SquiggleRenderer` |
+| Quick fixes Ctrl+. | done: change a misspelt name to a known one, declare as local or global, comment out a line with a problem | `GmlQuickFixes` |
+| Find and replace | done (editor panel and the Search panel across all code) | `CodeSearch` |
+| Bookmarks | done: gutter dot, Ctrl+F2, Alt+F2, Ctrl+Shift+F2; they follow edits; not kept after the tab closes | `BookmarkMargin` |
+| Minimap | not possible: AvaloniaEdit has none | |
+| Diff against original | done: Show Changes Against Original lists added and removed lines against the code when the tab opened | `LineDiff`, `CodeEditorTab.Diff.cs` |
+| Indentation guides | done, option in Settings | `IndentGuideRenderer` |
+| Word wrap | done, option in Settings | `EditorOptions` |
+| Auto close brackets and quotes, step over | done | `GmlLineEdits` |
+| Font ligatures | not done | |
+| Format on paste | not done | |
+| Linked editing | not done | |
 | Completion | done (names, 2 letters) | `GmlCompletion` |
 
 ## UTMT extras
@@ -53,13 +47,16 @@ Speed rule: one `GmlDoc` (tokens, bracket pairs, name index) is built per text v
 | Feature | State | Where |
 | --- | --- | --- |
 | Assembly view | done: separate window, editable, Apply assembles | `DisassemblyWindow` |
-| Assembly beside the source | partial: button opens the window; no embedded split | `CodeEditorTab.Fallback.cs` |
+| Assembly when the decompiler fails | done: banner, Retry, assembly beside, parent script of a 2.3 child entry | `CodeLoader` |
 | Decompiler settings | done | settings page |
-| Jump from assembly line to source | missing | |
-| Show code references of an asset | done (Find Usages) | `UsageSearch` |
-| Decompile failure fallback | done: assembly with a banner, Retry, parent script for 2.3 child entries (read only), message wraps, selectable, Copy Details | `CodeLoader`, `CodeEditorTab.Fallback.cs` |
+| Jump from assembly line to source | not done | |
+| Show code references of an asset | done | `UsageSearch` |
 | Number to asset name | done | `NumberAssets` |
+
+## Commands
+
+Every code command is in the command registry (menu Code, command palette, Settings > Keyboard Shortcuts, rebindable). Defaults: F12 go to definition, Alt+F12 peek, Ctrl+Shift+Space parameter hints, Ctrl+. quick fix, Ctrl+J snippet, Ctrl+/ line comment, Shift+Alt+A block comment, Shift+Alt+Down duplicate line, Alt+Up and Alt+Down move line, Ctrl+F2 bookmark, Alt+F2 next bookmark, Ctrl+Shift+F2 previous bookmark, F8 and Shift+F8 problems, Ctrl+Shift+O outline. F2 renames the name under the caret when the focus is in a code editor, Shift+F12 is Find Usages.
 
 ## Not done and why
 
-Multi-cursor and minimap need AvaloniaEdit features it does not have. Hover thumbnails, the rename dialog with preview, signature popup, outline panel, colour swatches, bookmarks, diff view, peek and quick fixes are the next steps; their logic is in place and tested.
+Multi-cursor and minimap need features AvaloniaEdit does not have. Font ligatures, format on paste, linked editing and the jump from an assembly line to the source are left. The squiggles show only the errors of the last Apply; a background syntax check while typing needs a compile entry point that does not touch the model.

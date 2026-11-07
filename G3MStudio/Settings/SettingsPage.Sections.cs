@@ -84,6 +84,9 @@ public sealed partial class SettingsPage
         var codeComplete = new CheckBox { Name = "CodeAutoComplete", Tag = Loc.Current["settings.codeAutoComplete"], Content = Loc.Current["settings.codeAutoComplete"], IsChecked = s.CodeAutoComplete };
         codeComplete.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { CodeAutoComplete = codeComplete.IsChecked == true }); };
 
+        var codeGuides = new CheckBox { Name = "CodeIndentGuides", Tag = Loc.Current["settings.codeIndentGuides"], Content = Loc.Current["settings.codeIndentGuides"], IsChecked = s.CodeIndentGuides };
+        codeGuides.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { CodeIndentGuides = codeGuides.IsChecked == true }); };
+
         return
         [
             Heading("settings.editor"),
@@ -92,6 +95,7 @@ public sealed partial class SettingsPage
             codeWrap,
             codeNumbers,
             codeComplete,
+            codeGuides,
         ];
     }
 

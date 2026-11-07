@@ -15,6 +15,9 @@ public static class EditorOptions
     /// <summary>The completion list opens while typing; Ctrl+Space opens it either way.</summary>
     public static bool AutoComplete { get; private set; } = true;
 
+    /// <summary>Thin vertical lines at each indent level.</summary>
+    public static bool IndentGuides { get; private set; } = true;
+
     /// <summary>The font the user chose for code, or null for the theme's code font.</summary>
     public static FontFamily? Family { get; private set; }
 
@@ -31,10 +34,10 @@ public static class EditorOptions
     /// <summary>Asks every open code view to apply the options again, after a theme color changed.</summary>
     public static void Refresh() => Changed?.Invoke();
 
-    public static void Set(int fontSize, bool wordWrap, bool lineNumbers, FontFamily? family = null, bool autoComplete = true)
+    public static void Set(int fontSize, bool wordWrap, bool lineNumbers, FontFamily? family = null, bool autoComplete = true, bool indentGuides = true)
     {
-        if ((fontSize, wordWrap, lineNumbers, family, autoComplete) == (FontSize, WordWrap, LineNumbers, Family, AutoComplete)) return;
-        (FontSize, WordWrap, LineNumbers, Family, AutoComplete) = (fontSize, wordWrap, lineNumbers, family, autoComplete);
+        if ((fontSize, wordWrap, lineNumbers, family, autoComplete, indentGuides) == (FontSize, WordWrap, LineNumbers, Family, AutoComplete, IndentGuides)) return;
+        (FontSize, WordWrap, LineNumbers, Family, AutoComplete, IndentGuides) = (fontSize, wordWrap, lineNumbers, family, autoComplete, indentGuides);
         Changed?.Invoke();
     }
 

@@ -11,6 +11,7 @@
     "recovered": "Unsaved edits recovered: {count}"
   },
   "menu": {
+    "code": "Code",
     "plugins": "Plugins",
     "file": "File",
     "edit": "Edit",
@@ -37,6 +38,25 @@
     }
   },
   "cmd": {
+    "code": {
+      "goToDefinition": "Go to Definition",
+      "peekDefinition": "Peek Definition",
+      "parameterHints": "Parameter Hints",
+      "quickFix": "Quick Fix",
+      "insertSnippet": "Insert Snippet",
+      "toggleComment": "Toggle Line Comment",
+      "blockComment": "Toggle Block Comment",
+      "duplicateLine": "Duplicate Line",
+      "moveLineUp": "Move Line Up",
+      "moveLineDown": "Move Line Down",
+      "toggleBookmark": "Toggle Bookmark",
+      "nextBookmark": "Next Bookmark",
+      "previousBookmark": "Previous Bookmark",
+      "nextProblem": "Next Problem",
+      "previousProblem": "Previous Problem",
+      "outline": "Go to Symbol in File",
+      "toggleDiff": "Show Changes Against Original"
+    },
     "window": {
       "layout": {
         "studio": "Studio Layout",
@@ -358,7 +378,25 @@
     "more": "... and {count} more"
   },
   "code": {
+    "outlineButton": "Outline",
+    "outlineEmpty": "No functions, enums or regions",
+    "hover": {
+      "local": "local"
+    },
+    "fix": {
+      "rename": "Change to '{name}'",
+      "declareLocal": "Declare '{name}' as a local variable",
+      "declareGlobal": "Make '{name}' a global variable",
+      "commentLine": "Comment out this line",
+      "none": "No quick fixes here"
+    },
+    "diff": {
+      "title": "Changes against the code when this tab opened: {added} added, {removed} removed"
+    },
     "menu": {
+      "peekDefinition": "Peek Definition",
+      "rename": "Rename Symbol",
+      "quickFix": "Quick Fix...",
       "goToDefinition": "Go to Definition",
       "findUsages": "Find Usages",
       "copyName": "Copy Name",
@@ -374,6 +412,10 @@
     "fallbackAssembly": "Decompiler failed: {reason}. Showing assembly.",
     "fallbackParent": "Decompiler failed: {reason}. Showing the parent script {parent}. Read only.",
     "rename": {
+      "title": "Rename Symbol",
+      "none": "Nothing to rename.",
+      "count": "{count} places in this code will change. You can still rename.",
+      "across": "{uses} uses and {strings} strings in {entries} code entries will change.",
       "invalid": "The new name is not a valid GML name.",
       "same": "The new name is the same as the old one.",
       "member": "This is a member of another instance. Only this code entry changes.",
@@ -415,6 +457,7 @@
     "placeholder": "Type a resource or code name (spr: obj: scr: ...)"
   },
   "settings": {
+    "codeIndentGuides": "Show indentation guides",
     "title": "Settings",
     "close": "Close",
     "default": "Default",

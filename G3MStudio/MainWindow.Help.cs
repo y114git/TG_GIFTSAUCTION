@@ -40,6 +40,13 @@ public sealed partial class MainWindow
     public void FindUsages()
     {
         // The same target as the Inspector: the tab in front, else the Explorer selection.
+        // In a code editor the name under the caret is searched: a resource, or a variable or function used in code.
+        if (ActiveCodeTab is { } code && Workspaces.Current is { } open && GmlNames.WordAt(code.Text, code.Editor.CaretOffset) is { } word)
+        {
+            _ = ShowNameUsagesAsync(open, word);
+            return;
+        }
+
         var key = (Docking.ActiveTabId is { } id ? Docking.Tabs.Get(id)?.Key : null) ?? Explorer.SelectedKey;
         if (Workspaces.Current is not { } workspace || key is null || ResourceTypes.SplitKey(key) is not var (type, name) || !ApplyCodeEditors()) return;
         Docking.ShowPanel("Usages");
@@ -111,7 +118,7 @@ public sealed partial class MainWindow
 
     private void OpenUsage(UsageHit hit)
     {
-        if (hit.OwnerType == "code") OpenCodeAt(hit.OwnerName, 1, 1);
+        if (hit.OwnerType == "code") OpenCodeAt(hit.OwnerName, LineOf(hit.Where), 1);
         else if (hit.OwnerType is { } type) Docking.OpenTab("resource", ResourceTypes.KeyOf(type, hit.OwnerName), false);
     }
 

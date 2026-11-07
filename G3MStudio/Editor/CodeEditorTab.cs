@@ -70,6 +70,8 @@ public sealed partial class CodeEditorTab : DockPanel
         SetDock(bar, Avalonia.Controls.Dock.Top);
         Children.Add(bar);
         Children.Add(BuildBanner());
+        Children.Add(Crumbs);
+        Children.Add(DiffPanel());
         Children.Add(Editor);
         Editor.TextChanged += (_, _) =>
         {
@@ -99,11 +101,7 @@ public sealed partial class CodeEditorTab : DockPanel
 
     private void InstallGoTo(Workspace workspace)
     {
-        var definitions = GmlNames.Definitions(workspace);
-        void GoTo(int offset)
-        {
-            if (GmlNames.WordAt(Editor.Text, offset) is { } word && definitions(word) is { } key) GoToRequested?.Invoke(key);
-        }
+        void GoTo(int offset) => GoToDefinition(offset);
 
         Editor.TextArea.KeyDown += (_, e) =>
         {
@@ -174,7 +172,13 @@ public sealed partial class CodeEditorTab : DockPanel
         }
         catch (InvalidOperationException e)
         {
-            if (e is CodeCompileException compile) _workspace.Problems.Set(Entry, compile.Diagnostics);
+            if (e is CodeCompileException compile)
+            {
+                _workspace.Problems.Set(Entry, compile.Diagnostics);
+                _problemsVersion = _textVersion;
+                RedrawOverlays();
+            }
+
             Show(e.Message, true);
             return false;
         }
@@ -237,6 +241,7 @@ public sealed partial class CodeEditorTab : DockPanel
 
             (_shown, Mode) = (load, load.Mode);
             _applied = load.Text;
+            _original ??= load.Text;
             Editor.IsReadOnly = load.Mode == CodeMode.Parent;
             Show("", false);
             ShowFallback(load);
@@ -269,8 +274,12 @@ public sealed partial class CodeEditorTab : DockPanel
     private void Retokenize()
     {
         _retokenize.Stop();
-        _colorizer.Tokenize(Editor.Text);
-        _folding.UpdateFoldings(GmlStructure.Foldings(Doc), -1);
+        var text = Editor.Text;
+        _colorizer.Tokenize(text);
+        (_doc, _docVersion) = (GmlDoc.FromTokens(text, _colorizer.Tokens), _textVersion);
+        _folding.UpdateFoldings(GmlStructure.Foldings(_doc), -1);
+        UpdateBreadcrumb();
+        RefreshDiff();
         Editor.TextArea.TextView.Redraw();
     }
 

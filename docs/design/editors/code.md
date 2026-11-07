@@ -86,18 +86,11 @@ Undo inside the text uses the text editor's own history until Apply. Apply adds 
 | Switch Decompiled and Disassembly | `code.toggleView` | F4 | F4 |
 | Show Disassembly Beside Decompiled | `code.sideBySide` | None | None |
 | Rename Symbol | `code.rename` | F2 | F2 |
-| Quick Fix | `code.quickFix` | Ctrl+. | Cmd+. |
 | Trigger Suggestions | `code.suggest` | Ctrl+Space | Control+Space |
-| Parameter Hints | `code.parameterHints` | Ctrl+Shift+Space | Cmd+Shift+Space |
 | Fold | `code.fold` | Ctrl+Shift+[ | Cmd+Option+[ |
 | Unfold | `code.unfold` | Ctrl+Shift+] | Cmd+Option+] |
 | Fold All | `code.foldAll` | Ctrl+K Ctrl+0 | Cmd+K Cmd+0 |
 | Unfold All | `code.unfoldAll` | Ctrl+K Ctrl+J | Cmd+K Cmd+J |
-| Toggle Line Comment | `code.toggleComment` | Ctrl+/ | Cmd+/ |
-| Toggle Block Comment | `code.blockComment` | Shift+Alt+A | Shift+Option+A |
-| Duplicate Line | `code.duplicateLine` | Shift+Alt+Down | Shift+Option+Down |
-| Move Line Up | `code.moveLineUp` | Alt+Up | Option+Up |
-| Move Line Down | `code.moveLineDown` | Alt+Down | Option+Down |
 | Join Lines | `code.joinLines` | None | None |
 | Add Next Occurrence | `code.selectNext` | Ctrl+D | Cmd+D |
 | Select All Occurrences | `code.selectAllOccurrences` | Ctrl+Shift+L | Cmd+Shift+L |
@@ -113,6 +106,23 @@ Undo inside the text uses the text editor's own history until Apply. Apply adds 
 | Import Code From File... | `code.importCode` | None | None |
 | Revert to Original Code | `code.revertCode` | None | None |
 | Open Definition in New Tab | `code.openInNewTab` | None | None |
+| Go to Definition | `code.goToDefinition` | F12 | F12 |
+| Peek Definition | `code.peekDefinition` | Alt+F12 | Option+F12 |
+| Parameter Hints | `code.parameterHints` | Ctrl+Shift+Space | Cmd+Shift+Space |
+| Quick Fix | `code.quickFix` | Ctrl+. | Cmd+. |
+| Insert Snippet | `code.insertSnippet` | Ctrl+J | Cmd+J |
+| Toggle Line Comment | `code.toggleComment` | Ctrl+/ | Cmd+/ |
+| Toggle Block Comment | `code.blockComment` | Shift+Alt+A | Shift+Option+A |
+| Duplicate Line | `code.duplicateLine` | Shift+Alt+Down | Shift+Option+Down |
+| Move Line Up | `code.moveLineUp` | Alt+Up | Option+Up |
+| Move Line Down | `code.moveLineDown` | Alt+Down | Option+Down |
+| Toggle Bookmark | `code.toggleBookmark` | Ctrl+F2 | Cmd+F2 |
+| Next Bookmark | `code.nextBookmark` | Alt+F2 | Option+F2 |
+| Previous Bookmark | `code.previousBookmark` | Ctrl+Shift+F2 | Cmd+Shift+F2 |
+| Next Problem | `code.nextProblem` | F8 | F8 |
+| Previous Problem | `code.previousProblem` | Shift+F8 | Shift+F8 |
+| Go to Symbol in File | `code.outline` | Ctrl+Shift+O | Cmd+Shift+O |
+| Show Changes Against Original | `code.toggleDiff` | None | None |
 
 Context menu: Go to Definition, Peek Definition, Find Usages, Show Resources With This Number (on a number), Rename Symbol, Quick Fix, Cut, Copy, Paste, Insert (UUID, MD5, SHA1, SHA256, Base64 encode and decode), Convert Case, Fold, Copy as Disassembly.
 
