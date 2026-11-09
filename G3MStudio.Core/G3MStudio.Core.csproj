@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- the generated P/Invoke stubs of LibraryImport -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="G3MLib" Version="1.1.2" />
+    <PackageReference Include="NVorbis" Version="0.10.5" />
+    <PackageReference Include="NLayer" Version="3.0.1" />
+    <PackageReference Include="OggVorbisEncoder" Version="1.2.2" />
+    <EmbeddedResource Include="Languages\*.json" />
+    <EmbeddedResource Include="Resources\gml-reference.json" LogicalName="G3MStudio.Core.Resources.gml-reference.json" />
+    <EmbeddedResource Include="Resources\gml-reference.*.json" LogicalName="G3MStudio.Core.Resources.%(Filename)%(Extension)" WithCulture="false" />
+    <InternalsVisibleTo Include="G3MStudio.Tests" />
+  </ItemGroup>
+
+</Project>

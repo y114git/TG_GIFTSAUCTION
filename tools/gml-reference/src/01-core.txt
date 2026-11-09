@@ -1,0 +1,134 @@
+# Source of the GML reference. Original short descriptions; names and argument counts are checked against the compiler tables.
+# @group code|manual folder|category shown
+# function line: name|group|summary|params (name:Type:meaning;?optional:Type:meaning;...rest:Type:meaning)|returns|flags (D = deprecated)
+@group var|Variable_Functions|Variables
+@group arr|Variable_Functions|Arrays
+@group str|Strings|Strings
+@group num|Maths_And_Numbers/Number_Functions|Maths: Numbers
+@group ang|Maths_And_Numbers/Angles_And_Distance|Maths: Angles and distance
+@group dat|Maths_And_Numbers/Date_And_Time|Maths: Date and time
+@group mat|Maths_And_Numbers/Matrix_Functions|Maths: Matrices
+@group ggc|General_Game_Control|Game control
+variable_instance_exists|var|Tells whether an instance has a variable of that name.|id:Id.Instance:the instance;name:String:variable name|Bool
+variable_instance_get|var|Reads a variable of an instance by name.|id:Id.Instance:the instance;name:String:variable name|Any
+variable_instance_set|var|Writes a variable of an instance by name.|id:Id.Instance:the instance;name:String:variable name;value:Any:new value|Undefined
+variable_instance_get_names|var|Lists the variable names of an instance.|id:Id.Instance:the instance|Array
+variable_instance_names_count|var|Counts the variables of an instance.|id:Id.Instance:the instance|Real
+variable_global_exists|var|Tells whether a global variable of that name exists.|name:String:variable name|Bool
+variable_global_get|var|Reads a global variable by name.|name:String:variable name|Any
+variable_global_set|var|Writes a global variable by name.|name:String:variable name;value:Any:new value|Undefined
+variable_struct_exists|var|Tells whether a struct has a member of that name.|struct:Struct:the struct;name:String:member name|Bool
+variable_struct_get|var|Reads a struct member by name.|struct:Struct:the struct;name:String:member name|Any
+variable_struct_set|var|Writes a struct member by name, creating it when missing.|struct:Struct:the struct;name:String:member name;value:Any:new value|Undefined
+variable_struct_remove|var|Removes a member from a struct.|struct:Struct:the struct;name:String:member name|Undefined
+variable_struct_get_names|var|Lists the member names of a struct.|struct:Struct:the struct|Array
+variable_struct_names_count|var|Counts the members of a struct.|struct:Struct:the struct|Real
+variable_clone|var|Copies an array or struct, optionally with nested ones.|value:Any:array or struct;?depth:Real:levels to copy|Any
+struct_foreach|var|Calls a function for every member of a struct.|struct:Struct:the struct;function:Function:called with name and value|Undefined
+typeof|var|Names the type of a value as text.|value:Any:the value|String
+instanceof|var|Names the constructor a struct was made with.|struct:Struct:the struct|String
+is_instanceof|var|Tells whether a struct derives from a constructor.|struct:Struct:the struct;constructor:Function:constructor to test|Bool
+static_get|var|Returns the static struct of a function or constructor.|function:Function:function or constructor|Struct
+static_set|var|Replaces the static struct of a function or constructor.|function:Function:function or constructor;struct:Struct:new static struct|Undefined
+method|var|Binds a function to an instance or struct, giving a method.|scope:Any:instance or struct to bind;function:Function:function to bind|Function
+method_get_self|var|Returns the instance or struct a method is bound to.|method:Function:the method|Any
+method_get_index|var|Returns the script function a method wraps.|method:Function:the method|Function
+method_call|var|Calls a method with an array of arguments.|method:Function:the method;?args:Array:arguments;?offset:Real:first argument to use;?count:Real:how many arguments|Any
+script_execute|var|Runs a script with the given arguments.|script:Function:script to run;...args:Any:arguments|Any
+script_execute_ext|var|Runs a script with arguments from an array.|script:Function:script to run;?args:Array:arguments;?offset:Real:first argument to use;?count:Real:how many arguments|Any
+is_string|var|Tells whether a value is a string.|value:Any:the value|Bool
+is_real|var|Tells whether a value is a real number.|value:Any:the value|Bool
+is_numeric|var|Tells whether a value is a number or a bool.|value:Any:the value|Bool
+is_bool|var|Tells whether a value is a bool.|value:Any:the value|Bool
+is_array|var|Tells whether a value is an array.|value:Any:the value|Bool
+is_struct|var|Tells whether a value is a struct.|value:Any:the value|Bool
+is_method|var|Tells whether a value is a method.|value:Any:the value|Bool
+is_callable|var|Tells whether a value can be called.|value:Any:the value|Bool
+is_ptr|var|Tells whether a value is a pointer.|value:Any:the value|Bool
+is_int32|var|Tells whether a value is a 32 bit integer.|value:Any:the value|Bool
+is_int64|var|Tells whether a value is a 64 bit integer.|value:Any:the value|Bool
+is_undefined|var|Tells whether a value is undefined.|value:Any:the value|Bool
+is_nan|var|Tells whether a real is not a number.|value:Real:the number|Bool
+is_infinity|var|Tells whether a real is infinite.|value:Real:the number|Bool
+is_handle|var|Tells whether a value is a reference handle.|value:Any:the value|Bool
+bool|var|Converts a value to a bool.|value:Any:the value|Bool
+real|var|Converts a string or value to a real number.|value:Any:the value|Real
+int64|var|Converts a value to a 64 bit integer.|value:Any:the value|Int64
+ptr|var|Makes a pointer from a number.|value:Real:the number|Pointer
+handle_parse|var|Turns the text of a handle back into a handle.|string:String:handle text|Any
+ref_create|var|Makes a reference to a variable of an instance or struct.|scope:Any:instance or struct;name:String:variable name;?index:Real:array index|Reference
+array_create|arr|Makes an array of a given size.|size:Real:number of elements;?value:Any:value for each element|Array
+array_length|arr|Returns the number of elements of an array.|array:Array:the array|Real
+array_resize|arr|Changes the size of an array.|array:Array:the array;size:Real:new size|Undefined
+array_push|arr|Appends values to the end of an array.|array:Array:the array;...value:Any:values to append|Undefined
+array_pop|arr|Removes and returns the last element.|array:Array:the array|Any
+array_insert|arr|Inserts values at an index.|array:Array:the array;index:Real:position;...value:Any:values to insert|Undefined
+array_delete|arr|Removes elements from an array.|array:Array:the array;index:Real:first element;number:Real:how many|Undefined
+array_copy|arr|Copies elements from one array to another.|dest:Array:target;dest_index:Real:first target slot;src:Array:source;src_index:Real:first source element;length:Real:how many|Undefined
+array_equals|arr|Compares two arrays element by element.|a:Array:first array;b:Array:second array|Bool
+array_get|arr|Reads an element by index.|array:Array:the array;index:Real:position|Any
+array_set|arr|Writes an element by index.|array:Array:the array;index:Real:position;value:Any:new value|Undefined
+array_sort|arr|Sorts an array in place.|array:Array:the array;ascending_or_function:Any:true, false or a compare function|Undefined
+array_reverse|arr|Returns a reversed copy.|array:Array:the array;?offset:Real:first element;?length:Real:how many|Array
+array_shuffle|arr|Returns a shuffled copy.|array:Array:the array;?offset:Real:first element;?length:Real:how many|Array
+array_concat|arr|Joins arrays into a new one.|...array:Array:arrays to join|Array
+array_contains|arr|Tells whether a value is in an array.|array:Array:the array;value:Any:value to find;?offset:Real:first element;?length:Real:how many|Bool
+array_get_index|arr|Finds the index of a value, or -1.|array:Array:the array;value:Any:value to find;?offset:Real:first element;?length:Real:how many|Real
+array_find_index|arr|Finds the first element a function accepts, or -1.|array:Array:the array;function:Function:test called per element;?offset:Real:first element;?length:Real:how many|Real
+array_foreach|arr|Calls a function for each element.|array:Array:the array;function:Function:called with value and index;?offset:Real:first element;?length:Real:how many|Undefined
+array_map|arr|Returns a new array of function results.|array:Array:the array;function:Function:called per element;?offset:Real:first element;?length:Real:how many|Array
+array_filter|arr|Returns the elements a function accepts.|array:Array:the array;function:Function:test called per element;?offset:Real:first element;?length:Real:how many|Array
+array_reduce|arr|Folds an array into one value.|array:Array:the array;function:Function:called with result and element;?init:Any:start value;?offset:Real:first element;?length:Real:how many|Any
+array_any|arr|Tells whether any element passes a test.|array:Array:the array;function:Function:test called per element;?offset:Real:first element;?length:Real:how many|Bool
+array_all|arr|Tells whether every element passes a test.|array:Array:the array;function:Function:test called per element;?offset:Real:first element;?length:Real:how many|Bool
+array_unique|arr|Returns the distinct elements.|array:Array:the array;?offset:Real:first element;?length:Real:how many|Array
+array_sum|arr|Adds up the numbers of an array.|array:Array:the array;?offset:Real:first element;?length:Real:how many|Real
+array_create_ext|arr|Makes an array filled by a function.|size:Real:number of elements;function:Function:called with the index|Array
+string|str|Converts a value to text.|value:Any:the value|String
+string_length|str|Counts the characters of a string.|string:String:the text|Real
+string_char_at|str|Returns the character at a position (first is 1).|string:String:the text;index:Real:position|String
+string_byte_at|str|Returns the byte value at a position.|string:String:the text;index:Real:position|Real
+string_byte_length|str|Counts the bytes of a string.|string:String:the text|Real
+string_copy|str|Returns part of a string (first character is 1).|string:String:the text;index:Real:start;count:Real:length|String
+string_pos|str|Finds the first place a substring occurs, or 0.|substr:String:text to find;string:String:text to search|Real
+string_pos_ext|str|Like string_pos, starting at a position.|substr:String:text to find;string:String:text to search;startpos:Real:first position to search|Real
+string_last_pos|str|Finds the last place a substring occurs, or 0.|substr:String:text to find;string:String:text to search|Real
+string_count|str|Counts how often a substring occurs.|substr:String:text to find;string:String:text to search|Real
+string_delete|str|Returns a string with characters removed.|string:String:the text;index:Real:start;count:Real:how many|String
+string_insert|str|Returns a string with text inserted.|substr:String:text to insert;string:String:the text;index:Real:position|String
+string_replace|str|Replaces the first match of a substring.|string:String:the text;substr:String:text to find;newstr:String:replacement|String
+string_replace_all|str|Replaces every match of a substring.|string:String:the text;substr:String:text to find;newstr:String:replacement|String
+string_upper|str|Returns the string in upper case.|string:String:the text|String
+string_lower|str|Returns the string in lower case.|string:String:the text|String
+string_repeat|str|Repeats a string several times.|string:String:the text;count:Real:repeats|String
+string_letters|str|Keeps only the letters of a string.|string:String:the text|String
+string_digits|str|Keeps only the digits of a string.|string:String:the text|String
+string_lettersdigits|str|Keeps only letters and digits.|string:String:the text|String
+string_format|str|Formats a number with a total width and decimals.|val:Real:the number;total:Real:minimum characters;dec:Real:decimals|String
+string_trim|str|Removes white space or given characters at both ends.|string:String:the text;?substrings:Array:characters to remove|String
+string_split|str|Splits a string into an array at a delimiter.|string:String:the text;delimiter:String:separator;?remove_empty:Bool:drop empty parts;?limit:Real:most splits|Array
+string_join|str|Joins strings with a separator.|delimiter:String:separator;...value:Any:values to join|String
+string_concat|str|Joins values into one string.|...value:Any:values to join|String
+string_ext|str|Fills {0} {1} placeholders of a template.|string:String:template;values:Array:replacement values|String
+string_starts_with|str|Tells whether a string begins with a prefix.|string:String:the text;substr:String:prefix|Bool
+string_ends_with|str|Tells whether a string ends with a suffix.|string:String:the text;substr:String:suffix|Bool
+string_width|str|Width of a string in pixels with the current font.|string:String:the text|Real
+string_height|str|Height of a string in pixels with the current font.|string:String:the text|Real
+string_width_ext|str|Width of a string wrapped at a width.|string:String:the text;sep:Real:line spacing;w:Real:wrap width|Real
+string_height_ext|str|Height of a string wrapped at a width.|string:String:the text;sep:Real:line spacing;w:Real:wrap width|Real
+chr|str|Returns the character of a code point.|code:Real:Unicode value|String
+ord|str|Returns the code point of the first character.|char:String:the character|Real
+ansi_char|str|Returns the character of an ANSI code.|code:Real:ANSI value|String
+string_ord_at|str|Returns the code point at a position.|string:String:the text;index:Real:position|Real
+string_hash_to_newline|str|Turns # into new lines for old code.|string:String:the text|String|D
+string_foreach|str|Calls a function for each character.|string:String:the text;function:Function:called with character and position;?pos:Real:first position;?length:Real:how many|Undefined
+base64_encode|str|Encodes a string as base64.|string:String:the text|String
+base64_decode|str|Decodes a base64 string.|string:String:encoded text|String
+md5_string_utf8|str|MD5 hash of a string, as hex text.|string:String:the text|String
+md5_string_unicode|str|MD5 hash of the UTF-16 form of a string.|string:String:the text|String
+sha1_string_utf8|str|SHA1 hash of a string, as hex text.|string:String:the text|String
+sha1_string_unicode|str|SHA1 hash of the UTF-16 form of a string.|string:String:the text|String
+json_encode|str|Turns a ds_map into JSON text.|map:Id.DsMap:the map|String
+json_decode|str|Turns JSON text into a ds_map.|string:String:JSON text|Id.DsMap
+json_stringify|str|Turns a struct or array into JSON text.|value:Any:struct or array;?pretty:Bool:indent the output|String
+json_parse|str|Turns JSON text into structs and arrays.|string:String:JSON text;?filter:Function:called for each value;?inplace:Bool:reuse the source|Any

@@ -1,0 +1,224 @@
+using G3MStudio.Core.Workspace;
+
+namespace G3MStudio.Tests;
+
+public sealed class ModsTests
+{
+    [Fact]
+    public async Task ThePatchCommandsCreateValidateAndApplyAPatchOnFiles()
+    {
+        using var dir = new TempDir();
+        var original = TestData.WriteSample(dir, "original.win", 2, true);
+        var modified = TestData.WriteSample(dir, "modified.win", 3, true);
+        var patch = dir.File("mod.g3mpatch");
+        var patched = dir.File("patched.win");
+        var answers = new Queue<string>([original, patch]);
+        await HeadlessApp.Run(async () =>
+        {
+            var window = TabsWorkspaceTests.NewWindow(dir);
+            try
+            {
+                window.Workspaces.Settings.Update(x => x with { ModBaseEnabled = false }); // these tests pick the original by hand
+                await window.OpenAsync(modified);
+                window.FilePicker = (_, _) => Task.FromResult<string?>(answers.Dequeue());
+                await window.CreatePatchAsync();
+                Assert.True(File.Exists(patch), string.Join("; ", window.Notifications.Active.Select(n => n.Text)));
+
+                answers.Enqueue(patch);
+                await window.ValidatePatchAsync();
+                Assert.Contains(window.Notifications.Active, n => n.Text.Contains("valid patch", StringComparison.Ordinal));
+
+                await window.CloseWorkspaceAsync();
+                foreach (var next in new[] { original, patch, patched }) answers.Enqueue(next);
+                await window.ApplyPatchAsync();
+                Assert.True(File.Exists(patched), string.Join("; ", window.Notifications.Active.Select(n => n.Text)));
+                using var patchedData = await G3MLib.DataFile.GameMakerIO.ReadAsync(patched, cancellationToken: TestContext.Current.CancellationToken);
+                Assert.Equal(3, patchedData.GameObjects.Count);
+
+                // The output may not overwrite the file the patch is applied to.
+                foreach (var next in new[] { original, patch, original }) answers.Enqueue(next);
+                await window.ApplyPatchAsync();
+                Assert.Contains(window.Notifications.Active, n => n.Text.Contains("different file", StringComparison.Ordinal));
+            }
+            finally { window.Close(); }
+        });
+    }
+
+    [Fact]
+    public async Task ApplyModTakesTheMatchingPatchOfAModZipAndWritesANewFile()
+    {
+        using var dir = new TempDir();
+        var original = TestData.WriteSample(dir, "data.win", 2, true);
+        var modified = TestData.WriteSample(dir, "modified.win", 3, true);
+        var patch = dir.File("mod.g3mpatch");
+        var modZip = dir.File("demo.zip");
+        var result = dir.File("result.win");
+        await HeadlessApp.Run(async () =>
+        {
+            var window = TabsWorkspaceTests.NewWindow(dir);
+            try
+            {
+                window.Workspaces.Settings.Update(x => x with { ModBaseEnabled = false }); // these tests pick the original by hand
+                var answers = new Queue<string>([original, patch]);
+                await window.OpenAsync(modified);
+                window.FilePicker = (_, _) => Task.FromResult<string?>(answers.Dequeue());
+                await window.CreatePatchAsync(); // a real patch from original to modified
+                await window.CloseWorkspaceAsync();
+                ModPackage.Write(modZip, patch, "Demo mod", "undertale", "data.win");
+
+                window.Confirmer = (_, _) => Task.FromResult(true);
+                foreach (var next in new[] { original, result }) answers.Enqueue(next); // the data file to patch, then the output
+                await window.ApplyModAsync(modZip);
+                Assert.True(File.Exists(result), string.Join("; ", window.Notifications.Active.Select(n => n.Text)));
+                using var patched = await G3MLib.DataFile.GameMakerIO.ReadAsync(result, cancellationToken: TestContext.Current.CancellationToken);
+                Assert.Equal(3, patched.GameObjects.Count);
+                Assert.Contains(window.Notifications.Active, n => n.ActionLabel == "Open");
+
+                // A mod with no patch for the data file picked only says so.
+                var other = TestData.WriteSample(dir, "other.win", 2, true);
+                answers.Enqueue(other);
+                await window.ApplyModAsync(modZip);
+                Assert.Contains(window.Notifications.Active, n => n.Text.Contains("no patch for other.win", StringComparison.Ordinal));
+            }
+            finally { window.Close(); }
+        });
+    }
+
+    [Fact]
+    public async Task APatchOrAModCanBeAppliedToTheOpenFileInMemory()
+    {
+        using var dir = new TempDir();
+        var original = TestData.WriteSample(dir, "data.win", 2, true);
+        var modified = TestData.WriteSample(dir, "modified.win", 3, true);
+        var patch = dir.File("mod.g3mpatch");
+        var modZip = dir.File("demo.zip");
+        await HeadlessApp.Run(async () =>
+        {
+            var window = TabsWorkspaceTests.NewWindow(dir);
+            try
+            {
+                window.Workspaces.Settings.Update(x => x with { ModBaseEnabled = false }); // these tests pick the original by hand
+                var answers = new Queue<string>([original, patch]);
+                await window.OpenAsync(modified);
+                window.FilePicker = (_, _) => Task.FromResult<string?>(answers.Dequeue());
+                await window.CreatePatchAsync();
+                await window.CloseWorkspaceAsync();
+                ModPackage.Write(modZip, patch, "Demo mod", "undertale", "data.win");
+                window.Confirmer = (_, _) => Task.FromResult(true);
+
+                await window.OpenAsync(original);
+                answers.Enqueue(patch);
+                await window.ApplyPatchAsync(null, true);
+                Assert.Equal(3, window.Workspaces.Current!.Data.GameObjects.Count);
+                Assert.True(window.Workspaces.Current.History.IsDirty);
+                Assert.Equal(original, window.Workspaces.Current.Path); // the file on disk is not touched
+                using (var onDisk = await G3MLib.DataFile.GameMakerIO.ReadAsync(original, cancellationToken: TestContext.Current.CancellationToken)) Assert.Equal(2, onDisk.GameObjects.Count);
+
+                // With unsaved changes the mod waits for a yes (a no changes nothing; risky actions set to refuse show the plain refusal); after Revert to Saved it applies the same way.
+                window.Confirmer = (_, _) => Task.FromResult(false);
+                await window.ApplyModAsync(modZip, true);
+                Assert.Equal(1, window.Workspaces.Current.History.BulkChanges); // the patch from before; a no added nothing
+                window.Workspaces.Settings.Update(x => x with { AskRiskyActions = false });
+                await window.ApplyModOpenAsync(modZip);
+                Assert.Contains(window.Notifications.Active, n => n.Text.Contains("unsaved", StringComparison.OrdinalIgnoreCase));
+                window.Workspaces.Settings.Update(x => x with { AskRiskyActions = true });
+                window.Confirmer = (_, _) => Task.FromResult(true);
+                await window.RevertAsync();
+                await window.ApplyModOpenAsync(modZip);
+                Assert.Equal(3, window.Workspaces.Current!.Data.GameObjects.Count);
+            }
+            finally { window.Close(); }
+        });
+    }
+
+    [Fact]
+    public async Task TwoPatchesFromTheSameOriginalMergeIntoOne()
+    {
+        using var dir = new TempDir();
+        var original = TestData.WriteSample(dir, "original.win", 2, true);
+        var first = TestData.WriteSample(dir, "first.win", 3, true);
+        var second = TestData.WriteSample(dir, "second.win", 4, true);
+        var merged = dir.File("merged.g3mpatch");
+        await HeadlessApp.Run(async () =>
+        {
+            var window = TabsWorkspaceTests.NewWindow(dir);
+            try
+            {
+                var patches = new List<string>();
+                foreach (var (modified, name) in new[] { (first, "a.g3mpatch"), (second, "b.g3mpatch") })
+                {
+                    var result = await G3MLib.Modding.Patching.PatchService.CreatePatchAsync(original, modified, dir.File(name), cancellationToken: TestContext.Current.CancellationToken);
+                    Assert.True(result.Success, result.Error);
+                    patches.Add(dir.File(name));
+                }
+
+                window.FilePicker = (_, _) => Task.FromResult<string?>(Path.GetFileName(original) == "original.win" ? merged : null);
+                window.FilesPicker = _ => Task.FromResult<IReadOnlyList<string>>(patches);
+                await window.OpenAsync(original);
+                await window.MergePatchesAsync();
+                Assert.Contains(window.Notifications.Active, n => n.Text.Contains("Merged patch saved", StringComparison.Ordinal) || n.Text.Contains("failed", StringComparison.Ordinal));
+                Assert.True(File.Exists(merged), string.Join("; ", window.Notifications.Active.Select(n => n.Text)));
+            }
+            finally { window.Close(); }
+        });
+    }
+
+    [Fact]
+    public async Task TheSideBySideWindowSavesTheReportOfTwoDataFiles()
+    {
+        using var dir = new TempDir();
+        var original = TestData.WriteSample(dir, "original.win", 2, true);
+        var changed = TestData.WriteSample(dir, "changed.win", 3, true);
+        var report = dir.File("report.txt");
+        var ct = TestContext.Current.CancellationToken;
+        await HeadlessApp.Run(async () =>
+        {
+            var window = TabsWorkspaceTests.NewWindow(dir);
+            try
+            {
+                window.FilePicker = (_, _) => Task.FromResult<string?>(report);
+                using var left = await window.Workspaces.OpenDetachedAsync(original, null, ct);
+                using var right = await window.Workspaces.OpenDetachedAsync(changed, null, ct);
+                await window.SaveDiffReportAsync(left, right);
+                Assert.True(File.Exists(report), string.Join("; ", window.Notifications.Active.Select(n => n.Text)));
+                Assert.Contains(window.Notifications.Active, n => n.Text.Contains("Differences:", StringComparison.Ordinal));
+            }
+            finally { window.Close(); }
+        });
+    }
+
+    [Fact]
+    public async Task TheModZipHoldsAPatchAndAConfigThatPointsAtIt()
+    {
+        using var dir = new TempDir();
+        var original = TestData.WriteSample(dir, "original.win", 2, true);
+        var modified = TestData.WriteSample(dir, "modified.win", 3, true);
+        var zip = dir.File("mod.zip");
+        var answers = new Queue<string>([original, zip]);
+        await HeadlessApp.Run(async () =>
+        {
+            var window = TabsWorkspaceTests.NewWindow(dir);
+            try
+            {
+                window.Workspaces.Settings.Update(x => x with { ModBaseEnabled = false }); // these tests pick the original by hand
+                await window.OpenAsync(modified);
+                window.FilePicker = (_, _) => Task.FromResult<string?>(answers.Dequeue());
+                await window.ExportModAsync();
+                await using var archive = await System.IO.Compression.ZipFile.OpenReadAsync(zip, TestContext.Current.CancellationToken);
+                Assert.NotNull(archive.GetEntry("mod.g3mpatch"));
+                using var reader = new StreamReader(await archive.GetEntry("mod_config.json")!.OpenAsync(TestContext.Current.CancellationToken));
+                var config = System.Text.Json.JsonDocument.Parse(await reader.ReadToEndAsync(TestContext.Current.CancellationToken)).RootElement;
+                Assert.Equal("2.0.0", config.GetProperty("config_version").GetString());
+                Assert.Equal("patch", config.GetProperty("files")[0].GetProperty("type").GetString());
+            }
+            finally { window.Close(); }
+        });
+    }
+
+    [Fact]
+    public void ModIdsAreLowercaseWordsThatStartWithALetter()
+    {
+        Assert.Equal("my_cool_mod", ModPackage.MakeId("My Cool Mod!"));
+        Assert.Equal("mod_1st", ModPackage.MakeId("1st"));
+    }
+}

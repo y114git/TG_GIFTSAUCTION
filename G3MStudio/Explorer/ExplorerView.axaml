@@ -1,0 +1,50 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:G3MStudio.Localization"
+             xmlns:local="using:G3MStudio.Explorer"
+             xmlns:ws="using:G3MStudio.Core.Workspace"
+             x:Class="G3MStudio.Explorer.ExplorerView">
+  <DockPanel>
+    <TextBlock Name="Header" DockPanel.Dock="Top" Margin="8,6" TextTrimming="CharacterEllipsis" />
+    <DockPanel DockPanel.Dock="Top" Margin="8,0,8,6">
+      <Button Name="FilterOptions" DockPanel.Dock="Right" Margin="4,0,0,0" Content="&#x25BE;" />
+      <Button Name="ViewToggle" DockPanel.Dock="Right" Margin="4,0,0,0" />
+      <TextBox Name="FilterBox" PlaceholderText="{loc:Tr explorer.filter}" />
+    </DockPanel>
+    <ScrollViewer Name="BreadcrumbScroll" DockPanel.Dock="Top" Margin="8,0,8,6" IsVisible="False" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+      <StackPanel Name="Breadcrumb" Orientation="Horizontal" Spacing="2" />
+    </ScrollViewer>
+    <Border DockPanel.Dock="Bottom" Background="{DynamicResource Bg.Raised}" BorderBrush="{DynamicResource Border.Subtle}" BorderThickness="0,2,0,0" Padding="8,2">
+      <StackPanel Spacing="4">
+        <TextBlock Name="Footer" Classes="muted" FontSize="{DynamicResource FontSize.Caption}" TextTrimming="CharacterEllipsis" />
+        <DockPanel>
+          <ToggleButton Name="ThumbToggle" DockPanel.Dock="Left" Margin="0,0,8,0" Padding="6,0" Content="{loc:Tr explorer.thumbnails}" />
+          <Slider Name="ZoomSlider" Minimum="50" Maximum="250" Value="100" ToolTip.Tip="{loc:Tr explorer.zoom}" />
+        </DockPanel>
+      </StackPanel>
+    </Border>
+    <Grid>
+      <ListBox Name="List" Background="{DynamicResource Bg.Surface}">
+        <ListBox.Styles>
+          <Style Selector="ListBoxItem" x:DataType="ws:ExplorerRow">
+            <Setter Property="MinHeight" Value="{DynamicResource Row.Height}" />
+            <Setter Property="Padding" Value="4,0" />
+            <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}" />
+          </Style>
+        </ListBox.Styles>
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="ws:ExplorerRow">
+            <Grid MinHeight="{DynamicResource Row.Height}" ColumnDefinitions="Auto,Auto,Auto,*,Auto" Margin="{Binding Depth, Converter={x:Static local:ExplorerView.Indent}}">
+              <TextBlock Grid.Column="0" Width="16" Text="{Binding Chevron}" Classes="muted" VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" Text="&#x25CF;" Foreground="{Binding Colour, Converter={x:Static local:ExplorerView.ColourBrush}}" IsVisible="{Binding Colour, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" VerticalAlignment="Center" Margin="0,0,4,0" />
+              <Image Name="Thumb" Grid.Column="2" IsVisible="False" Stretch="Uniform" Margin="0,0,6,0" />
+              <TextBlock Grid.Column="3" Text="{Binding Text}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+              <TextBlock Grid.Column="4" Text="{Binding Count}" Classes="muted" VerticalAlignment="Center" IsVisible="{Binding HasCount}" />
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+      <TextBlock Name="NoMatch" Classes="muted" IsVisible="False" Margin="12" TextWrapping="Wrap" VerticalAlignment="Top" />
+    </Grid>
+  </DockPanel>
+</UserControl>

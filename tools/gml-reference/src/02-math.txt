@@ -1,0 +1,117 @@
+@group rnd|Maths_And_Numbers/Number_Functions|Maths: Random
+abs|num|Absolute value.|n:Real:the number|Real
+sign|num|Returns -1, 0 or 1 for the sign of a number.|n:Real:the number|Real
+round|num|Rounds to the nearest integer (halves to even).|n:Real:the number|Real
+floor|num|Rounds down.|n:Real:the number|Real
+ceil|num|Rounds up.|n:Real:the number|Real
+frac|num|Fractional part of a number.|n:Real:the number|Real
+sqrt|num|Square root.|n:Real:the number, not negative|Real
+sqr|num|Square of a number.|n:Real:the number|Real
+power|num|Raises a number to a power.|x:Real:base;n:Real:exponent|Real
+exp|num|e raised to a power.|n:Real:exponent|Real
+ln|num|Natural logarithm.|n:Real:the number|Real
+log2|num|Base 2 logarithm.|n:Real:the number|Real
+log10|num|Base 10 logarithm.|n:Real:the number|Real
+logn|num|Logarithm to a given base.|n:Real:base;val:Real:the number|Real
+min|num|Smallest of the values.|...val:Real:numbers to compare|Real
+max|num|Largest of the values.|...val:Real:numbers to compare|Real
+mean|num|Average of the values.|...val:Real:numbers|Real
+median|num|Middle value of the values.|...val:Real:numbers|Real
+clamp|num|Limits a number to a range.|val:Real:the number;min:Real:lowest;max:Real:highest|Real
+lerp|num|Blends two numbers by an amount (0 to 1).|a:Real:start;b:Real:end;amt:Real:blend amount|Real
+sin|num|Sine of an angle in radians.|rad:Real:angle|Real
+cos|num|Cosine of an angle in radians.|rad:Real:angle|Real
+tan|num|Tangent of an angle in radians.|rad:Real:angle|Real
+arcsin|num|Arc sine, result in radians.|val:Real:value from -1 to 1|Real
+arccos|num|Arc cosine, result in radians.|val:Real:value from -1 to 1|Real
+arctan|num|Arc tangent, result in radians.|val:Real:the value|Real
+arctan2|num|Angle of a vector in radians.|y:Real:y part;x:Real:x part|Real
+dsin|num|Sine of an angle in degrees.|deg:Real:angle|Real
+dcos|num|Cosine of an angle in degrees.|deg:Real:angle|Real
+dtan|num|Tangent of an angle in degrees.|deg:Real:angle|Real
+darcsin|num|Arc sine in degrees.|val:Real:value from -1 to 1|Real
+darccos|num|Arc cosine in degrees.|val:Real:value from -1 to 1|Real
+darctan|num|Arc tangent in degrees.|val:Real:the value|Real
+darctan2|num|Angle of a vector in degrees.|y:Real:y part;x:Real:x part|Real
+degtorad|num|Converts degrees to radians.|deg:Real:angle|Real
+radtodeg|num|Converts radians to degrees.|rad:Real:angle|Real
+int64|num|Converts a value to a 64 bit integer.|value:Any:the value|Int64
+number_format|num|Formats a number as text.|n:Real:the number|String|D
+random|rnd|Random real from 0 up to, not including, a limit.|n:Real:upper limit|Real
+random_range|rnd|Random real between two values.|n1:Real:lower;n2:Real:upper|Real
+irandom|rnd|Random integer from 0 up to and including a limit.|n:Real:upper limit|Real
+irandom_range|rnd|Random integer between two values, both included.|n1:Real:lower;n2:Real:upper|Real
+choose|rnd|Picks one of its arguments at random.|...val:Any:the choices|Any
+randomise|rnd|Seeds the generator with a random seed.||Undefined
+randomize|rnd|Seeds the generator with a random seed.||Undefined
+random_set_seed|rnd|Sets the seed of the generator.|seed:Real:the seed|Undefined
+random_get_seed|rnd|Reads the seed of the generator.||Real
+perlin_noise|rnd|Perlin noise value for a point.|x:Real:x;y:Real:y|Real
+point_direction|ang|Angle from one point to another, in degrees.|x1:Real:from x;y1:Real:from y;x2:Real:to x;y2:Real:to y|Real
+point_distance|ang|Distance between two points.|x1:Real:first x;y1:Real:first y;x2:Real:second x;y2:Real:second y|Real
+point_distance_3d|ang|Distance between two points in 3D.|x1:Real:first x;y1:Real:first y;z1:Real:first z;x2:Real:second x;y2:Real:second y;z2:Real:second z|Real
+lengthdir_x|ang|X part of a vector given length and direction.|len:Real:length;dir:Real:direction in degrees|Real
+lengthdir_y|ang|Y part of a vector given length and direction.|len:Real:length;dir:Real:direction in degrees|Real
+angle_difference|ang|Signed difference between two angles, -180 to 180.|src:Real:angle;dest:Real:angle to reach|Real
+dot_product|ang|Dot product of two 2D vectors.|x1:Real:first x;y1:Real:first y;x2:Real:second x;y2:Real:second y|Real
+dot_product_3d|ang|Dot product of two 3D vectors.|x1:Real:first x;y1:Real:first y;z1:Real:first z;x2:Real:second x;y2:Real:second y;z2:Real:second z|Real
+dot_product_normalised|ang|Dot product of two normalised 2D vectors.|x1:Real:first x;y1:Real:first y;x2:Real:second x;y2:Real:second y|Real
+current_time|dat|Milliseconds since the game started.||Real|V
+current_year|dat|Current year.||Real|V
+current_month|dat|Current month, 1 to 12.||Real|V
+current_day|dat|Current day of the month.||Real|V
+current_weekday|dat|Current day of the week, 0 is Sunday.||Real|V
+current_hour|dat|Current hour.||Real|V
+current_minute|dat|Current minute.||Real|V
+current_second|dat|Current second.||Real|V
+date_current_datetime|dat|The current date and time.||Real
+date_create_datetime|dat|Builds a datetime from its parts.|year:Real:year;month:Real:month;day:Real:day;hour:Real:hour;minute:Real:minute;second:Real:second|Real
+date_get_year|dat|Year of a datetime.|date:Real:datetime|Real
+date_get_month|dat|Month of a datetime.|date:Real:datetime|Real
+date_get_day|dat|Day of a datetime.|date:Real:datetime|Real
+date_get_hour|dat|Hour of a datetime.|date:Real:datetime|Real
+date_get_minute|dat|Minute of a datetime.|date:Real:datetime|Real
+date_get_second|dat|Second of a datetime.|date:Real:datetime|Real
+date_get_weekday|dat|Day of the week of a datetime.|date:Real:datetime|Real
+date_inc_day|dat|Adds days to a datetime.|date:Real:datetime;amount:Real:days|Real
+date_inc_hour|dat|Adds hours to a datetime.|date:Real:datetime;amount:Real:hours|Real
+date_inc_minute|dat|Adds minutes to a datetime.|date:Real:datetime;amount:Real:minutes|Real
+date_inc_second|dat|Adds seconds to a datetime.|date:Real:datetime;amount:Real:seconds|Real
+date_inc_month|dat|Adds months to a datetime.|date:Real:datetime;amount:Real:months|Real
+date_inc_year|dat|Adds years to a datetime.|date:Real:datetime;amount:Real:years|Real
+date_compare_datetime|dat|Compares two datetimes (-1, 0, 1).|a:Real:first;b:Real:second|Real
+date_datetime_string|dat|Datetime as text.|date:Real:datetime|String
+date_date_string|dat|Date part as text.|date:Real:datetime|String
+date_time_string|dat|Time part as text.|date:Real:datetime|String
+date_days_in_month|dat|Number of days in the month of a datetime.|date:Real:datetime|Real
+date_leap_year|dat|Tells whether the year of a datetime is a leap year.|date:Real:datetime|Bool
+date_day_span|dat|Days between two datetimes.|a:Real:first;b:Real:second|Real
+date_second_span|dat|Seconds between two datetimes.|a:Real:first;b:Real:second|Real
+matrix_build|mat|Builds a matrix from position, rotation and scale.|x:Real:x;y:Real:y;z:Real:z;xrot:Real:x rotation;yrot:Real:y rotation;zrot:Real:z rotation;xscale:Real:x scale;yscale:Real:y scale;zscale:Real:z scale|Array
+matrix_build_identity|mat|Makes an identity matrix.||Array
+matrix_build_lookat|mat|Builds a view matrix.|xfrom:Real:eye x;yfrom:Real:eye y;zfrom:Real:eye z;xto:Real:target x;yto:Real:target y;zto:Real:target z;xup:Real:up x;yup:Real:up y;zup:Real:up z|Array
+matrix_build_projection_ortho|mat|Builds an orthographic projection matrix.|w:Real:width;h:Real:height;znear:Real:near plane;zfar:Real:far plane|Array
+matrix_build_projection_perspective|mat|Builds a perspective projection matrix.|w:Real:width;h:Real:height;znear:Real:near plane;zfar:Real:far plane|Array
+matrix_build_projection_perspective_fov|mat|Builds a perspective matrix from a field of view.|fov_y:Real:vertical field of view;aspect:Real:aspect ratio;znear:Real:near plane;zfar:Real:far plane|Array
+matrix_multiply|mat|Multiplies two matrices.|matrix1:Array:first;matrix2:Array:second|Array
+matrix_get|mat|Reads the current world, view or projection matrix.|type:Constant.MatrixType:matrix to read|Array
+matrix_set|mat|Sets the world, view or projection matrix.|type:Constant.MatrixType:matrix to set;matrix:Array:the matrix|Undefined
+matrix_transform_vertex|mat|Transforms a point by a matrix.|matrix:Array:the matrix;x:Real:x;y:Real:y;z:Real:z|Array
+game_end|ggc|Ends the game.|?return_code:Real:process exit code|Undefined
+game_restart|ggc|Restarts the game from the first room.||Undefined
+game_set_speed|ggc|Sets the game speed in frames or microseconds.|value:Real:speed;type:Constant.GameSpeed:unit|Undefined
+game_get_speed|ggc|Reads the game speed.|type:Constant.GameSpeed:unit|Real
+game_load|ggc|Loads a saved game state.|filename:String:save file|Bool|D
+game_save|ggc|Saves the game state to a file.|filename:String:save file|Undefined|D
+game_load_buffer|ggc|Loads a saved game state from a buffer.|buffer:Id.Buffer:source buffer|Bool|D
+game_save_buffer|ggc|Saves the game state to a buffer.|buffer:Id.Buffer:target buffer|Undefined|D
+game_change|ggc|Switches to another game package.|working_directory:String:folder;launch_parameters:String:arguments|Undefined
+show_debug_message|ggc|Writes a message to the output.|value:Any:what to print|Undefined
+show_message|ggc|Shows a message box.|string:String:the message|Undefined
+show_question|ggc|Shows a yes or no box.|string:String:the question|Bool
+show_error|ggc|Shows an error box, optionally ending the game.|string:String:the message;abort:Bool:end the game|Undefined
+get_integer|ggc|Asks for a number in a dialog.|string:String:prompt;default:Real:preset value|Real
+get_string|ggc|Asks for text in a dialog.|string:String:prompt;default:String:preset text|String
+get_open_filename|ggc|Shows an open file dialog.|filter:String:file filter;fname:String:preset name|String
+get_save_filename|ggc|Shows a save file dialog.|filter:String:file filter;fname:String:preset name|String
+debug_event|ggc|Sends a named event to the debugger.|string:String:event name|Undefined

@@ -1,0 +1,185 @@
+# Functions the data file lists but the first pass left with argument0 style hints. Same format as the files before; a group with an empty folder has no manual page link.
+@group phy||Physics
+@group dsx|Data_Structures|Data structures
+# dates
+date_compare_date|dat|Compares the day parts of two datetimes: -1, 0 or 1.|date1:Real:first datetime;date2:Real:second datetime|Real
+date_compare_time|dat|Compares the time parts of two datetimes: -1, 0 or 1.|date1:Real:first datetime;date2:Real:second datetime|Real
+date_date_of|dat|Keeps the day of a datetime and drops its time.|date:Real:datetime|Real
+date_time_of|dat|Keeps the time of a datetime and drops its day.|date:Real:datetime|Real
+date_days_in_year|dat|Number of days in the year of a datetime.|date:Real:datetime|Real
+date_get_day_of_year|dat|Day number inside the year, from 1.|date:Real:datetime|Real
+date_get_week|dat|Week number inside the year.|date:Real:datetime|Real
+date_inc_week|dat|Adds weeks to a datetime.|date:Real:datetime;amount:Real:weeks|Real
+date_is_today|dat|Tells whether a datetime falls on the current day.|date:Real:datetime|Bool
+date_hour_span|dat|Hours between two datetimes.|date1:Real:first datetime;date2:Real:second datetime|Real
+date_minute_span|dat|Minutes between two datetimes.|date1:Real:first datetime;date2:Real:second datetime|Real
+date_month_span|dat|Months between two datetimes.|date1:Real:first datetime;date2:Real:second datetime|Real
+date_week_span|dat|Weeks between two datetimes.|date1:Real:first datetime;date2:Real:second datetime|Real
+date_year_span|dat|Years between two datetimes.|date1:Real:first datetime;date2:Real:second datetime|Real
+date_get_timezone|dat|Time zone used by the date functions.||Constant.TimeZone
+date_set_timezone|dat|Chooses the time zone used by the date functions.|timezone:Constant.TimeZone:time zone|Undefined
+date_valid_datetime|dat|Tells whether the parts make a real date and time.|year:Real:year;month:Real:month;day:Real:day;hour:Real:hour;minute:Real:minute;second:Real:second|Bool
+# grids
+ds_grid_add|dsg|Adds a number to one cell.|id:Id.DsGrid:the grid;x:Real:column;y:Real:row;value:Any:value to add|Undefined
+ds_grid_multiply|dsg|Multiplies one cell by a number.|id:Id.DsGrid:the grid;x:Real:column;y:Real:row;value:Real:factor|Undefined
+ds_grid_add_region|dsg|Adds a number to every cell of a rectangle.|id:Id.DsGrid:the grid;x1:Real:left column;y1:Real:top row;x2:Real:right column;y2:Real:bottom row;value:Any:value to add|Undefined
+ds_grid_multiply_region|dsg|Multiplies every cell of a rectangle by a number.|id:Id.DsGrid:the grid;x1:Real:left column;y1:Real:top row;x2:Real:right column;y2:Real:bottom row;value:Real:factor|Undefined
+ds_grid_set_region|dsg|Sets every cell of a rectangle to a value.|id:Id.DsGrid:the grid;x1:Real:left column;y1:Real:top row;x2:Real:right column;y2:Real:bottom row;value:Any:value|Undefined
+ds_grid_copy|dsg|Copies the contents of another grid into this one.|id:Id.DsGrid:target grid;source:Id.DsGrid:grid to copy|Undefined
+ds_grid_get_max|dsg|Largest value in a rectangle.|id:Id.DsGrid:the grid;x1:Real:left column;y1:Real:top row;x2:Real:right column;y2:Real:bottom row|Real
+ds_grid_get_min|dsg|Smallest value in a rectangle.|id:Id.DsGrid:the grid;x1:Real:left column;y1:Real:top row;x2:Real:right column;y2:Real:bottom row|Real
+ds_grid_get_mean|dsg|Mean of the values in a rectangle.|id:Id.DsGrid:the grid;x1:Real:left column;y1:Real:top row;x2:Real:right column;y2:Real:bottom row|Real
+ds_grid_get_sum|dsg|Sum of the values in a rectangle.|id:Id.DsGrid:the grid;x1:Real:left column;y1:Real:top row;x2:Real:right column;y2:Real:bottom row|Real
+ds_grid_value_exists|dsg|Tells whether a rectangle holds a value.|id:Id.DsGrid:the grid;x1:Real:left column;y1:Real:top row;x2:Real:right column;y2:Real:bottom row;value:Any:value to look for|Bool
+ds_grid_value_x|dsg|Column of the first cell in a rectangle that holds a value.|id:Id.DsGrid:the grid;x1:Real:left column;y1:Real:top row;x2:Real:right column;y2:Real:bottom row;value:Any:value to look for|Real
+ds_grid_value_y|dsg|Row of the first cell in a rectangle that holds a value.|id:Id.DsGrid:the grid;x1:Real:left column;y1:Real:top row;x2:Real:right column;y2:Real:bottom row;value:Any:value to look for|Real
+ds_grid_shuffle|dsg|Mixes the cells in random order.|id:Id.DsGrid:the grid|Undefined
+ds_grid_sort|dsg|Sorts the rows by the values of one column.|id:Id.DsGrid:the grid;column:Real:column to sort by;ascending:Bool:smallest first|Undefined
+ds_grid_write|dsg|Encodes a grid as a string.|id:Id.DsGrid:the grid|String
+# lists, maps, queues, stacks, priority queues
+ds_list_write|dsl|Encodes a list as a string.|id:Id.DsList:the list|String
+ds_list_mark_as_list|dsl|Marks an entry as holding a list, for encoding.|id:Id.DsList:the list;pos:Real:position|Undefined
+ds_list_mark_as_map|dsl|Marks an entry as holding a map, for encoding.|id:Id.DsList:the list;pos:Real:position|Undefined
+ds_map_copy|dsm|Copies the contents of another map into this one.|id:Id.DsMap:target map;source:Id.DsMap:map to copy|Undefined
+ds_map_add_list|dsm|Adds a key that holds a list.|id:Id.DsMap:the map;key:Any:key;value:Id.DsList:the list|Undefined
+ds_map_add_map|dsm|Adds a key that holds a map.|id:Id.DsMap:the map;key:Any:key;value:Id.DsMap:the map|Undefined
+ds_map_replace_list|dsm|Replaces a key with a list.|id:Id.DsMap:the map;key:Any:key;value:Id.DsList:the list|Undefined
+ds_map_replace_map|dsm|Replaces a key with a map.|id:Id.DsMap:the map;key:Any:key;value:Id.DsMap:the map|Undefined
+ds_map_find_last|dsm|Last key in key order.|id:Id.DsMap:the map|Any
+ds_map_find_previous|dsm|Key before another key in key order.|id:Id.DsMap:the map;key:Any:key|Any
+ds_map_write|dsm|Encodes a map as a string.|id:Id.DsMap:the map|String
+ds_queue_clear|dsq|Removes every value.|id:Id.DsQueue:the queue|Undefined
+ds_queue_copy|dsq|Copies the contents of another queue into this one.|id:Id.DsQueue:target queue;source:Id.DsQueue:queue to copy|Undefined
+ds_queue_tail|dsq|Value at the tail, without removing it.|id:Id.DsQueue:the queue|Any
+ds_queue_write|dsq|Encodes a queue as a string.|id:Id.DsQueue:the queue|String
+ds_stack_clear|dss|Removes every value.|id:Id.DsStack:the stack|Undefined
+ds_stack_copy|dss|Copies the contents of another stack into this one.|id:Id.DsStack:target stack;source:Id.DsStack:stack to copy|Undefined
+ds_stack_write|dss|Encodes a stack as a string.|id:Id.DsStack:the stack|String
+ds_priority_clear|dsp|Removes every value.|id:Id.DsPriority:the priority queue|Undefined
+ds_priority_copy|dsp|Copies the contents of another priority queue into this one.|id:Id.DsPriority:target queue;source:Id.DsPriority:queue to copy|Undefined
+ds_priority_change_priority|dsp|Gives a value another priority.|id:Id.DsPriority:the priority queue;value:Any:value;priority:Real:new priority|Undefined
+ds_priority_delete_value|dsp|Removes a value, whatever its priority.|id:Id.DsPriority:the priority queue;value:Any:value|Undefined
+ds_priority_find_max|dsp|Value with the highest priority, without removing it.|id:Id.DsPriority:the priority queue|Any
+ds_priority_find_min|dsp|Value with the lowest priority, without removing it.|id:Id.DsPriority:the priority queue|Any
+ds_priority_find_priority|dsp|Priority of a value.|id:Id.DsPriority:the priority queue;value:Any:value|Real
+ds_priority_write|dsp|Encodes a priority queue as a string.|id:Id.DsPriority:the priority queue|String
+ds_exists|dsx|Tells whether a data structure of a kind exists.|index:Real:structure id;type:Constant.DsType:kind of structure|Bool
+ds_set_precision|dsx|Sets how close two real numbers must be to count as equal in data structures.|precision:Real:tolerance|Undefined
+# audio
+audio_get_name|aud|Name of a sound or queue.|index:Id.Sound:sound|String
+audio_get_type|aud|Kind of an audio asset.|index:Id.Sound:sound|Constant.AudioType
+audio_channel_num|aud|Number of channels of a sound.|index:Id.Sound:sound|Real
+audio_get_master_gain|aud|Master volume of a listener.|listener_index:Real:listener|Real
+audio_set_master_gain|aud|Sets the master volume of a listener.|listener_index:Real:listener;gain:Real:volume|Undefined
+audio_get_listener_count|aud|Number of listeners.||Real
+audio_emitter_exists|aud|Tells whether an emitter exists.|emitter:Id.AudioEmitter:the emitter|Bool
+audio_emitter_falloff|aud|Sets the falloff distances of an emitter.|emitter:Id.AudioEmitter:the emitter;falloff_ref:Real:reference distance;falloff_max:Real:distance of silence;falloff_factor:Real:rolloff factor|Undefined
+audio_emitter_gain|aud|Sets the volume of an emitter.|emitter:Id.AudioEmitter:the emitter;gain:Real:volume|Undefined
+audio_emitter_pitch|aud|Sets the pitch of an emitter.|emitter:Id.AudioEmitter:the emitter;pitch:Real:pitch|Undefined
+audio_emitter_position|aud|Moves an emitter.|emitter:Id.AudioEmitter:the emitter;x:Real:x;y:Real:y;z:Real:z|Undefined
+audio_emitter_velocity|aud|Sets the velocity of an emitter.|emitter:Id.AudioEmitter:the emitter;vx:Real:x velocity;vy:Real:y velocity;vz:Real:z velocity|Undefined
+audio_emitter_get_gain|aud|Volume of an emitter.|emitter:Id.AudioEmitter:the emitter|Real
+audio_emitter_get_pitch|aud|Pitch of an emitter.|emitter:Id.AudioEmitter:the emitter|Real
+audio_emitter_get_x|aud|X position of an emitter.|emitter:Id.AudioEmitter:the emitter|Real
+audio_emitter_get_y|aud|Y position of an emitter.|emitter:Id.AudioEmitter:the emitter|Real
+audio_emitter_get_z|aud|Z position of an emitter.|emitter:Id.AudioEmitter:the emitter|Real
+audio_listener_orientation|aud|Sets the facing and up direction of the listener.|lookat_x:Real:facing x;lookat_y:Real:facing y;lookat_z:Real:facing z;up_x:Real:up x;up_y:Real:up y;up_z:Real:up z|Undefined
+audio_listener_velocity|aud|Sets the velocity of the listener.|vx:Real:x velocity;vy:Real:y velocity;vz:Real:z velocity|Undefined
+audio_listener_set_position|aud|Moves a listener.|listener_index:Real:listener;x:Real:x;y:Real:y;z:Real:z|Undefined
+audio_listener_set_velocity|aud|Sets the velocity of a listener.|listener_index:Real:listener;vx:Real:x velocity;vy:Real:y velocity;vz:Real:z velocity|Undefined
+audio_group_load_progress|aud|Load progress of an audio group, 0 to 100.|groupid:Real:audio group|Real
+audio_group_set_gain|aud|Sets the volume of an audio group, fading over a time.|groupid:Real:audio group;gain:Real:volume;time:Real:fade time in milliseconds|Undefined
+audio_group_stop_all|aud|Stops every sound of an audio group.|groupid:Real:audio group|Undefined
+audio_group_unload|aud|Unloads an audio group.|groupid:Real:audio group|Undefined
+audio_create_sync_group|aud|Makes a group of sounds that play in step.|looping:Bool:loop the group|Id.SyncGroup
+audio_destroy_sync_group|aud|Removes a sync group.|index:Id.SyncGroup:sync group|Undefined
+audio_play_in_sync_group|aud|Plays a sound as part of a sync group.|index:Id.SyncGroup:sync group;sound:Id.Sound:sound|Id.Sound
+audio_start_sync_group|aud|Starts a sync group.|index:Id.SyncGroup:sync group|Undefined
+audio_stop_sync_group|aud|Stops a sync group.|index:Id.SyncGroup:sync group|Undefined
+audio_pause_sync_group|aud|Pauses a sync group.|index:Id.SyncGroup:sync group|Undefined
+audio_resume_sync_group|aud|Resumes a sync group.|index:Id.SyncGroup:sync group|Undefined
+audio_sync_group_is_playing|aud|Tells whether a sync group plays.|index:Id.SyncGroup:sync group|Bool
+audio_sync_group_get_track_pos|aud|Play position of a sync group.|index:Id.SyncGroup:sync group|Real
+# paths
+path_append|pth|Adds the points of another path to the end.|path:Asset.GMPath:path;path2:Asset.GMPath:path to add|Undefined
+path_assign|pth|Copies another path into this one.|path:Asset.GMPath:target path;source:Asset.GMPath:path to copy|Undefined
+path_change_point|pth|Changes one point.|path:Asset.GMPath:path;n:Real:point index;x:Real:x;y:Real:y;speed:Real:speed percentage|Undefined
+path_clear_points|pth|Removes every point.|path:Asset.GMPath:path|Undefined
+path_delete|pth|Removes a path made at run time.|path:Asset.GMPath:path|Undefined
+path_delete_point|pth|Removes one point.|path:Asset.GMPath:path;n:Real:point index|Undefined
+path_duplicate|pth|Makes a copy of a path.|path:Asset.GMPath:path|Asset.GMPath
+path_exists|pth|Tells whether a path exists.|path:Asset.GMPath:path|Bool
+path_flip|pth|Mirrors a path left to right.|path:Asset.GMPath:path|Undefined
+path_mirror|pth|Mirrors a path top to bottom.|path:Asset.GMPath:path|Undefined
+path_reverse|pth|Reverses the order of the points.|path:Asset.GMPath:path|Undefined
+path_get_closed|pth|Tells whether a path is closed.|path:Asset.GMPath:path|Bool
+path_get_kind|pth|Tells whether a path is straight or smooth.|path:Asset.GMPath:path|Real
+path_get_name|pth|Name of a path.|path:Asset.GMPath:path|String
+path_get_point_speed|pth|Speed percentage of one point.|path:Asset.GMPath:path;n:Real:point index|Real
+path_get_point_x|pth|X of one point.|path:Asset.GMPath:path;n:Real:point index|Real
+path_get_point_y|pth|Y of one point.|path:Asset.GMPath:path;n:Real:point index|Real
+path_get_precision|pth|Precision of a smooth path.|path:Asset.GMPath:path|Real
+path_get_speed|pth|Speed percentage at a position on the path.|path:Asset.GMPath:path;pos:Real:position from 0 to 1|Real
+path_insert_point|pth|Inserts a point before another.|path:Asset.GMPath:path;n:Real:point index;x:Real:x;y:Real:y;speed:Real:speed percentage|Undefined
+path_rescale|pth|Scales a path.|path:Asset.GMPath:path;xscale:Real:horizontal scale;yscale:Real:vertical scale|Undefined
+path_rotate|pth|Rotates a path around its origin.|path:Asset.GMPath:path;angle:Real:degrees|Undefined
+path_set_closed|pth|Opens or closes a path.|path:Asset.GMPath:path;closed:Bool:closed|Undefined
+path_set_kind|pth|Makes a path straight or smooth.|path:Asset.GMPath:path;kind:Real:0 straight, 1 smooth|Undefined
+path_set_precision|pth|Sets the precision of a smooth path.|path:Asset.GMPath:path;precision:Real:precision from 1 to 8|Undefined
+path_shift|pth|Moves every point.|path:Asset.GMPath:path;xshift:Real:x offset;yshift:Real:y offset|Undefined
+# particles
+part_emitter_create|par|Makes an emitter in a particle system.|ps:Id.ParticleSystem:particle system|Id.ParticleEmitter
+part_emitter_destroy|par|Removes an emitter.|ps:Id.ParticleSystem:particle system;ind:Id.ParticleEmitter:emitter|Undefined
+part_emitter_destroy_all|par|Removes every emitter of a system.|ps:Id.ParticleSystem:particle system|Undefined
+part_emitter_exists|par|Tells whether an emitter exists.|ps:Id.ParticleSystem:particle system;ind:Id.ParticleEmitter:emitter|Bool
+part_emitter_clear|par|Stops an emitter from streaming.|ps:Id.ParticleSystem:particle system;ind:Id.ParticleEmitter:emitter|Undefined
+part_emitter_burst|par|Emits a number of particles at once.|ps:Id.ParticleSystem:particle system;ind:Id.ParticleEmitter:emitter;parttype:Id.ParticleType:particle type;number:Real:how many|Undefined
+part_emitter_stream|par|Emits particles every step.|ps:Id.ParticleSystem:particle system;ind:Id.ParticleEmitter:emitter;parttype:Id.ParticleType:particle type;number:Real:per step, negative for one in a number of steps|Undefined
+part_particles_count|par|Number of live particles in a system.|ps:Id.ParticleSystem:particle system|Real
+part_system_clear|par|Removes every particle of a system.|ind:Id.ParticleSystem:particle system|Undefined
+part_system_exists|par|Tells whether a particle system exists.|ind:Id.ParticleSystem:particle system|Bool
+part_system_draw_order|par|Chooses whether old particles draw below new ones.|ind:Id.ParticleSystem:particle system;oldtonew:Bool:old below new|Undefined
+part_type_exists|par|Tells whether a particle type exists.|ind:Id.ParticleType:particle type|Bool
+part_type_clear|par|Resets a particle type.|ind:Id.ParticleType:particle type|Undefined
+part_type_scale|par|Sets the scale of a particle type.|ind:Id.ParticleType:particle type;xscale:Real:horizontal scale;yscale:Real:vertical scale|Undefined
+part_type_step|par|Makes a type create other particles every step.|ind:Id.ParticleType:particle type;step_number:Real:how many;step_type:Id.ParticleType:type to create|Undefined
+part_type_death|par|Makes a type create other particles when it dies.|ind:Id.ParticleType:particle type;death_number:Real:how many;death_type:Id.ParticleType:type to create|Undefined
+part_type_color_mix|par|Colors a type with a random mix of two colors.|ind:Id.ParticleType:particle type;color1:Real:first color;color2:Real:second color|Undefined
+part_type_color_rgb|par|Colors a type with random red, green and blue ranges.|ind:Id.ParticleType:particle type;rmin:Real:red minimum;rmax:Real:red maximum;gmin:Real:green minimum;gmax:Real:green maximum;bmin:Real:blue minimum;bmax:Real:blue maximum|Undefined
+# physics
+physics_world_create|phy|Makes the physics world and sets the pixels per metre.|pixels_to_metres:Real:pixels per metre|Undefined
+physics_world_gravity|phy|Sets the gravity of the physics world.|gx:Real:horizontal gravity;gy:Real:vertical gravity|Undefined
+physics_world_update_speed|phy|Sets how many physics steps run per second.|speed:Real:steps per second|Undefined
+physics_world_update_iterations|phy|Sets the number of solver iterations per step.|iterations:Real:iterations|Undefined
+physics_pause_enable|phy|Pauses or resumes the physics world.|pause:Bool:pause|Undefined
+physics_draw_debug|phy|Draws the shapes of the physics world.||Undefined
+physics_test_overlap|phy|Tells whether the calling instance would overlap an object at a spot.|x:Real:x;y:Real:y;angle:Real:rotation;obj:Asset.GMObject:object to test|Bool
+physics_mass_properties|phy|Sets mass, center and inertia of the calling instance.|mass:Real:mass;local_centre_x:Real:center x;local_centre_y:Real:center y;inertia:Real:rotational inertia|Undefined
+physics_apply_force|phy|Pushes the calling instance with a force at a point.|xpos:Real:x of the point;ypos:Real:y of the point;xforce:Real:force along x;yforce:Real:force along y|Undefined
+physics_apply_impulse|phy|Gives the calling instance an impulse at a point.|xpos:Real:x of the point;ypos:Real:y of the point;ximpulse:Real:impulse along x;yimpulse:Real:impulse along y|Undefined
+physics_apply_local_force|phy|Pushes the calling instance with a force in its own axes.|xlocal:Real:local x of the point;ylocal:Real:local y of the point;xforce:Real:force along x;yforce:Real:force along y|Undefined
+physics_apply_local_impulse|phy|Gives the calling instance an impulse in its own axes.|xlocal:Real:local x of the point;ylocal:Real:local y of the point;ximpulse:Real:impulse along x;yimpulse:Real:impulse along y|Undefined
+physics_apply_torque|phy|Turns the calling instance with a torque.|torque:Real:torque|Undefined
+physics_apply_angular_impulse|phy|Gives the calling instance a turning impulse.|impulse:Real:impulse|Undefined
+physics_fixture_create|phy|Makes a fixture.||Id.Fixture
+physics_fixture_delete|phy|Removes a fixture.|fixture:Id.Fixture:fixture|Undefined
+physics_fixture_bind|phy|Attaches a fixture to the calling instance.|fixture:Id.Fixture:fixture;obj:Id.Instance:instance or object|Id.Fixture
+physics_fixture_set_box_shape|phy|Gives a fixture a box shape.|fixture:Id.Fixture:fixture;halfwidth:Real:half width;halfheight:Real:half height|Undefined
+physics_fixture_set_circle_shape|phy|Gives a fixture a circle shape.|fixture:Id.Fixture:fixture;radius:Real:radius|Undefined
+physics_fixture_set_polygon_shape|phy|Gives a fixture a polygon shape from its added points.|fixture:Id.Fixture:fixture|Undefined
+physics_fixture_set_chain_shape|phy|Gives a fixture a chain shape from its added points.|fixture:Id.Fixture:fixture;loop:Bool:close the chain|Undefined
+physics_fixture_add_point|phy|Adds a point to the shape of a fixture.|fixture:Id.Fixture:fixture;local_x:Real:x;local_y:Real:y|Undefined
+physics_fixture_set_density|phy|Sets the density of a fixture.|fixture:Id.Fixture:fixture;density:Real:density|Undefined
+physics_fixture_set_friction|phy|Sets the friction of a fixture.|fixture:Id.Fixture:fixture;friction:Real:friction|Undefined
+physics_fixture_set_restitution|phy|Sets the bounciness of a fixture.|fixture:Id.Fixture:fixture;restitution:Real:restitution|Undefined
+physics_fixture_set_linear_damping|phy|Sets how fast a fixture loses linear speed.|fixture:Id.Fixture:fixture;damping:Real:damping|Undefined
+physics_fixture_set_angular_damping|phy|Sets how fast a fixture loses turning speed.|fixture:Id.Fixture:fixture;damping:Real:damping|Undefined
+physics_fixture_set_sensor|phy|Makes a fixture detect contacts without reacting.|fixture:Id.Fixture:fixture;is_sensor:Bool:sensor|Undefined
+physics_fixture_set_collision_group|phy|Sets the collision group of a fixture.|fixture:Id.Fixture:fixture;group:Real:group|Undefined
+physics_fixture_set_awake|phy|Sets whether a fixture starts awake.|fixture:Id.Fixture:fixture;awake:Bool:awake|Undefined
+physics_fixture_set_kinematic|phy|Makes a fixture kinematic.|fixture:Id.Fixture:fixture|Undefined
+physics_remove_fixture|phy|Detaches a fixture from an instance.|id:Id.Instance:instance;fixture:Id.Fixture:fixture|Undefined
+physics_joint_delete|phy|Removes a joint.|joint:Id.Joint:joint|Undefined
+physics_joint_enable_motor|phy|Turns the motor of a joint on or off.|joint:Id.Joint:joint;motor:Bool:on or off|Undefined
+physics_joint_get_value|phy|Reads a joint setting.|joint:Id.Joint:joint;field:Constant.JointField:setting|Real
+physics_joint_set_value|phy|Changes a joint setting.|joint:Id.Joint:joint;field:Constant.JointField:setting;value:Real:value|Undefined
