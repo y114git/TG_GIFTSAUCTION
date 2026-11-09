@@ -43,6 +43,40 @@ public sealed class ImageEditorViewTests
     }
 
     [Fact]
+    public async Task TheModeMenuInUseIsMarkedUntilAToolIsChosen()
+    {
+        await HeadlessApp.Run(() =>
+        {
+            using var view = new ImageEditorView(new LocalImageSession(new PixelBuffer(8, 8)));
+            var window = new Window { Width = 1100, Height = 700, Content = view };
+            window.Show();
+            try
+            {
+                static bool On(DropDownButton m) => m.Classes.Contains("active");
+                var menus = view.GetVisualDescendants().OfType<StackPanel>().Single(p => p.Name == "ImageMenu").Children.OfType<DropDownButton>().ToList();
+                Assert.Equal(4, menus.Count);
+                Assert.All(menus, m => Assert.False(On(m)));
+                view.Run("img.flipH");
+                Assert.True(On(menus[1]));
+                Assert.False(On(menus[0]));
+                Assert.Contains("img.flipH", ((MenuFlyout)menus[1].Flyout!).Items.OfType<MenuItem>().Where(i => i.IsChecked).Select(i => i.Tag));
+                view.Run("img.crop");
+                Assert.True(On(menus[3]));
+                view.Run("img.tool.pencil");
+                Assert.All(menus, m => Assert.False(On(m)));
+                view.SetTool(ImageTool.Lasso);
+                Assert.True(On(menus[0]));
+            }
+            finally
+            {
+                window.Close();
+            }
+
+            return Task.CompletedTask;
+        });
+    }
+
+    [Fact]
     public async Task KeysChooseToolsAndShapeStylesLikeGameMaker()
     {
         await HeadlessApp.Run(() =>

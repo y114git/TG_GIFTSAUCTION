@@ -11,12 +11,35 @@ public sealed partial class ImageEditorView
 
     private MenuItem Item(string key, string id)
     {
-        var item = new MenuItem { Header = Loc.Current[key] };
+        var item = new MenuItem { Header = Loc.Current[key], Tag = id, ToggleType = MenuItemToggleType.Radio };
         item.Click += (_, _) => Run(id);
         return item;
     }
 
-    private static DropDownButton Group(string key, params MenuItem[] items) => new() { Content = Loc.Current[key], Flyout = new MenuFlyout { ItemsSource = items } };
+    /// <summary>The four mode menus (Selection, Transform, Adjust, Canvas), so the one in use can be marked.</summary>
+    private readonly List<DropDownButton> _modeMenus = [];
+
+    private DropDownButton Group(string key, params MenuItem[] items)
+    {
+        var button = new DropDownButton { Content = Loc.Current[key], Flyout = new MenuFlyout { ItemsSource = items }, Tag = items };
+        _modeMenus.Add(button);
+        return button;
+    }
+
+    /// <summary>The menu command run last; cleared when a tool is chosen. A menu holds one-shot commands, so "in use" means this, not a state of the picture.</summary>
+    private string? _lastMenuCommand;
+
+    /// <summary>Marks the menu in use: the one whose command ran last (that item checked), and Selection while a selection tool is the tool.</summary>
+    private void MarkMenus()
+    {
+        for (var i = 0; i < _modeMenus.Count; i++)
+        {
+            var items = (MenuItem[])_modeMenus[i].Tag!;
+            foreach (var item in items) item.IsChecked = _lastMenuCommand is not null && item.Tag as string == _lastMenuCommand;
+            var selecting = i == 0 && Tool is ImageTool.Select or ImageTool.Lasso or ImageTool.Wand or ImageTool.Move;
+            _modeMenus[i].Classes.Set("active", selecting || items.Any(item => item.IsChecked));
+        }
+    }
 
     /// <summary>The four command groups as drop-down buttons, so they match the other buttons of the bar (same height, border and hover).</summary>
     private StackPanel Menus()

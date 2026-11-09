@@ -217,6 +217,17 @@ public sealed class CommandTests
         window.Close();
     }
 
+    [Fact]
+    public void ImageEditorCommandsCarryTheirMenuPathInThePalette()
+    {
+        var registry = NewRegistry();
+        registry.SetContext(AppCommands.ImageTab, true);
+        var entries = MainWindow.CommandEntries(registry, Loc.Current).ToList();
+        Assert.Equal("Image > Selection > Copy", entries.Single(e => e.Key == "img.copy").Name);
+        Assert.Equal("Image > Tools > Pencil", entries.Single(e => e.Key == "img.tool.pencil").Name);
+        Assert.Equal(entries.Count, entries.Select(e => e.Name).Distinct().Count());
+    }
+
     // The command palette: Go To over the enabled commands, typed with the command prefix and the title.
     private static GoToWindow PaletteFor(MainWindow window, string title)
     {

@@ -66,6 +66,15 @@
   <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource Text.Accent}" />
   </Style>
+  <!-- A mode menu of the image editor is filled while it is the one in use (same fills as a selected row). -->
+  <Style Selector="DropDownButton.active">
+    <Setter Property="Background" Value="{DynamicResource Selection.Bg}" />
+    <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
+  </Style>
+  <Style Selector="DropDownButton.active /template/ ContentPresenter#PART_ContentPresenter, DropDownButton.active:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Selection.Bg}" />
+    <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
+  </Style>
   <!-- A preview tab shows its name in italics (design/shell.md 9.1). -->
   <Style Selector="dockc|DocumentTabStripItem">
     <Setter Property="FontStyle" Value="{Binding (docking:StudioDock.IsPreview), Converter={x:Static docking:StudioDock.ItalicWhenTrue}}" />

@@ -40,8 +40,17 @@ public sealed partial class MainWindow
 
     /// <summary>The enabled commands as Go To entries; the extra search text of a command that took over a removed duplicate's job is matched too.</summary>
     public static IEnumerable<GoToEntry> CommandEntries(CommandRegistry registry, Localizer loc) =>
-        registry.All.Where(registry.IsEnabled).Select(c => new GoToEntry(GoToKind.Command, c.Title ?? loc[AppCommands.TitleKey(c.Id)], c.Id, "", Shortcuts.Parse(c.Shortcut)?.ToString() ?? "",
+        registry.All.Where(registry.IsEnabled).Select(c => new GoToEntry(GoToKind.Command, c.Title ?? PaletteTitle(c.Id, loc), c.Id, "", Shortcuts.Parse(c.Shortcut)?.ToString() ?? "",
             AppCommands.PaletteAlt.TryGetValue(c.Id, out var alt) ? loc[alt] : ""));
+
+    /// <summary>The palette name of a command. The image editor's names repeat the main ones (Copy, Paste), so they carry their menu path: Image > Selection > Copy.</summary>
+    public static string PaletteTitle(string id, Localizer loc)
+    {
+        var title = loc[AppCommands.TitleKey(id)];
+        if (!id.StartsWith("img.", StringComparison.Ordinal)) return title;
+        var group = AppCommands.Submenu("menu.image", id);
+        return group is null ? $"{loc["menu.image"]} > {title}" : $"{loc["menu.image"]} > {loc["menu.sub." + group]} > {title}";
+    }
 
     private List<GoToEntry> GoToEntries(Workspace? workspace)
     {

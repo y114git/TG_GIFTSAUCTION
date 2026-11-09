@@ -143,6 +143,8 @@ public sealed partial class ImageEditorView : DockPanel, IDisposable
         Canvas.Tool = tool;
         foreach (var (other, button) in _toolButtons) button.IsChecked = other == tool;
         _hint.Text = Loc.Current["image.hint." + tool];
+        _lastMenuCommand = null;
+        MarkMenus();
     }
 
     public void SetColour(Rgba colour, bool secondary)

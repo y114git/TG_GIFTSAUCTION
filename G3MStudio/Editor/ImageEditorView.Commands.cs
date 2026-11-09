@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using Avalonia.Media;
 using G3MStudio.Core.Workspace;
 
@@ -12,7 +13,12 @@ public sealed partial class ImageEditorView
     {
         if (ToolCommands.TryGetValue(id, out var tool)) ChooseTool(tool, false);
         else if (id.EndsWith("Filled", StringComparison.Ordinal) && ToolCommands.TryGetValue(id[..^"Filled".Length], out var shape)) ChooseTool(shape, true);
-        else return RunAction(id) || RunSelection(id) || RunTransform(id) || RunLayer(id);
+        else if (RunAction(id) || RunSelection(id) || RunTransform(id) || RunLayer(id))
+        {
+            if (_modeMenus.Any(m => ((MenuItem[])m.Tag!).Any(i => i.Tag as string == id))) _lastMenuCommand = id;
+            MarkMenus();
+        }
+        else return false;
         return true;
     }
 

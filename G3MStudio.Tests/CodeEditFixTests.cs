@@ -104,6 +104,20 @@ public sealed class CodeEditFixTests
         }, "return 1;");
     }
 
+    // The dialog sizing wraps window content in a LayoutTransformControl whose child link outlives Content = null on some hosts.
+    private static void Detach(Window window, Control content)
+    {
+        if (content.Parent is LayoutTransformControl wrap) wrap.Child = null;
+        else window.Content = null;
+        window.UpdateLayout();
+    }
+
+    private static void Attach(Window window, Control content)
+    {
+        if (window.Content is LayoutTransformControl wrap) wrap.Child = content;
+        else window.Content = content;
+    }
+
     [Fact]
     public async Task ATabShownAgainOwesTheLiveCheckItMissed()
     {
@@ -112,10 +126,9 @@ public sealed class CodeEditFixTests
             await tab.Ready;
             tab.Editor.Text = "if (b {\n}";
             Assert.True(tab.LivePending);
-            window.Content = null; // hidden: the pending check is cancelled
-            window.UpdateLayout();
+            Detach(window, tab); // hidden: the pending check is cancelled
             Assert.False(tab.LivePending);
-            window.Content = tab;
+            Attach(window, tab);
             Assert.True(tab.LivePending);
         }, "return 1;");
     }
@@ -207,10 +220,9 @@ public sealed class CodeEditFixTests
                 var panel = new ReferencePanel(GmlReference.Default);
                 var window = new Window { Content = panel, Width = 500, Height = 600 };
                 window.Show();
-                window.Content = null;
-                window.UpdateLayout();
+                Detach(window, panel);
                 Loc.Current.SetLanguage("ru");
-                window.Content = panel;
+                Attach(window, panel);
                 panel.Show("string_length");
                 Assert.Equal(GmlReference.Default.For("ru").Find("string_length")!.Summary, panel.Selected!.Summary);
                 var category = panel.GetVisualDescendantsOfType<ComboBox>().Single(c => c.Name == "ReferenceCategory");
