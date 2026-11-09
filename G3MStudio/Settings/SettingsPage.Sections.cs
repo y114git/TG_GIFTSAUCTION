@@ -36,7 +36,7 @@ public sealed partial class SettingsPage
         var reduce = new CheckBox { Name = "ReduceMotion", Tag = Loc.Current["settings.reduceMotion"], Content = Loc.Current["settings.reduceMotion"], IsChecked = s.ReduceMotion };
         reduce.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { ReduceMotion = reduce.IsChecked == true }); };
 
-        var sizePanel = new StackPanel { Spacing = 10, Tag = Loc.Current["settings.sizes"] };
+        var sizePanel = new StackPanel { Spacing = Mods.ModsUi.Space(3), Tag = Loc.Current["settings.sizes"] };
         sizePanel.Children.Add(new TextBlock { Text = Loc.Current["settings.sizes"], Classes = { "muted" }, Margin = new Thickness(0, 8, 0, 0) });
         foreach (var (sizeKey, min, max, _) in ThemeSizes.All)
         {

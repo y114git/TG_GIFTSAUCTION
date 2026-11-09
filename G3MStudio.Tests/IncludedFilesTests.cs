@@ -125,4 +125,37 @@ public sealed class IncludedFilesTests
         var item = ResourceTypes.All.First(t => t.Key == "general").Items(data)!.OfType<IncludedFilesEntry>().Single();
         Assert.Equal(ResourceTypes.IncludedFilesName, ResourceTypes.NameOf(item));
     }
+
+    [Fact]
+    public void OnlyTrashOlderThanTheAgeIsPruned()
+    {
+        using var dir = new TempDir();
+        var home = new UserData(dir.File("user"));
+        var old = home.Combine("trash", DateTime.Now.AddDays(-40).ToString("yyyyMMdd-HHmmss-fff", System.Globalization.CultureInfo.InvariantCulture));
+        var recent = home.Combine("trash", DateTime.Now.AddDays(-2).ToString("yyyyMMdd-HHmmss-fff", System.Globalization.CultureInfo.InvariantCulture));
+        foreach (var batch in new[] { old, recent }) Directory.CreateDirectory(batch);
+        home.SweepTrash(TimeSpan.FromDays(30));
+        Assert.False(Directory.Exists(old));
+        Assert.True(Directory.Exists(recent));
+    }
+
+    [Fact]
+    public void AFolderThatIsALinkIsNotFollowed()
+    {
+        using var dir = new TempDir();
+        var game = Directory.CreateDirectory(dir.File("game")).FullName;
+        var outside = Directory.CreateDirectory(dir.File("outside")).FullName;
+        try
+        {
+            Directory.CreateSymbolicLink(Path.Combine(game, "link"), outside);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            return; // creating links needs a privilege on this machine
+        }
+
+        var files = new IncludedFiles(Path.Combine(game, "data.win"));
+        Assert.Throws<InvalidOperationException>(() => files.Resolve("link/x.ogg"));
+        Assert.StartsWith(game, files.Resolve("plain/x.ogg"), StringComparison.OrdinalIgnoreCase);
+    }
 }

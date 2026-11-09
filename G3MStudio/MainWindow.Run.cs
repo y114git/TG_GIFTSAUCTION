@@ -182,7 +182,7 @@ public sealed partial class MainWindow
         if (!ApplyCodeEditors()) return;
         _lastCrash = null;
         workspace.Problems.SetRaw("run", []);
-        if (check == RunnerCheck.Unknown && _warnedUnknownRunner.Add(Path.GetFullPath(workspace.Path))) Notify(NotificationLevel.Warning, Loc.Current.Format("live.unknownExe", ("path", spec.Runner)));
+        if (check == RunnerCheck.Unknown && _warnedUnknownRunner.Add(Path.GetFullPath(workspace.Path) + "|" + Path.GetFullPath(spec.Runner))) Notify(NotificationLevel.Warning, Loc.Current.Format("live.unknownExe", ("path", spec.Runner)));
         Notify(NotificationLevel.Info, Loc.Current.Format("run.starting", ("name", name)));
         if (inPlace) Notify(NotificationLevel.Warning, Loc.Current["live.inPlaceWarning"]);
         else if (settings.WarnTempRun && !_warnedTempRun)

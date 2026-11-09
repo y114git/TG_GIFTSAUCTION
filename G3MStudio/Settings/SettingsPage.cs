@@ -188,7 +188,15 @@ public sealed partial class SettingsPage : UserControl
         _building = true;
         var s = _store.Current;
         var search = new TextBox { Name = "SettingsSearch", Text = _search, PlaceholderText = Loc.Current["settings.search"] };
-        var page = new StackPanel { MaxWidth = 640, HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(24), Spacing = 10, Children = { Header(), search } };
+        Avalonia.Automation.AutomationProperties.SetName(search, Loc.Current["settings.search"]);
+        var clear = new Button { Name = "SettingsSearchClear", Content = "×", Padding = new Thickness(6, 0), MinWidth = 24, IsVisible = _search.Length > 0 }.Labeled("settings.searchClear");
+        clear.Click += (_, _) =>
+        {
+            search.Text = "";
+            search.Focus();
+        };
+        search.InnerRightContent = clear;
+        var page = new StackPanel { MaxWidth = 640, HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(24), Spacing = Mods.ModsUi.Space(3), Children = { Header(), search } };
         Control[] sections =
         [
             .. AppearanceSection(s), .. ColorsSection(), .. EditorSection(s), .. ImageSection(s), .. SoundSection(s), .. DiffSection(s), .. RoomsSection(s), .. DecompilerSection(s), .. FilesSection(s),
@@ -196,7 +204,8 @@ public sealed partial class SettingsPage : UserControl
         ];
         page.Children.AddRange(sections);
         // The categories are the headings of the page, listed on the left.
-        var nav = new ListBox { Name = "SettingsNav", Width = 200, BorderThickness = new Thickness(0), Margin = new Thickness(16, 0, 0, 0), Background = Avalonia.Media.Brushes.Transparent, ItemsSource = page.Children.OfType<TextBlock>().Where(t => t.Classes.Contains("accent")).Select(t => t.Text).ToList(), SelectedIndex = Math.Max(0, _section) };
+        var nav = new ListBox { Name = "SettingsNav", MinWidth = Wide(12.5), BorderThickness = new Thickness(0), Margin = new Thickness(16, 0, 0, 0), Background = Avalonia.Media.Brushes.Transparent, ItemsSource = page.Children.OfType<TextBlock>().Where(t => t.Classes.Contains("accent")).Select(t => t.Text).ToList(), SelectedIndex = Math.Max(0, _section) };
+        Avalonia.Automation.AutomationProperties.SetName(nav, Loc.Current["settings.nav"]);
         nav.SelectionChanged += (_, _) =>
         {
             if (nav.SelectedIndex < 0) return; // cleared on purpose while a search finds nothing
@@ -208,6 +217,7 @@ public sealed partial class SettingsPage : UserControl
         void Refresh()
         {
             var text = _search = search.Text ?? "";
+            clear.IsVisible = text.Length > 0;
             var found = Filter(page, text, _section);
             nothing.IsVisible = text.Trim().Length > 0 && !found;
             nav.SelectedIndex = nothing.IsVisible ? -1 : _section; // no category stays lit when the search hides all of them

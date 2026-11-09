@@ -4,7 +4,7 @@
              xmlns:local="using:G3MStudio.Start"
              x:Class="G3MStudio.Start.StartPage">
   <ScrollViewer>
-    <StackPanel MaxWidth="920" Margin="32,64,32,32" Spacing="14" HorizontalAlignment="Center">
+    <StackPanel MaxWidth="920" Margin="32,64,32,32" Spacing="{DynamicResource Space.4}" HorizontalAlignment="Center">
       <TextBlock Text="G3MStudio" FontSize="{DynamicResource FontSize.Display}" />
       <TextBlock Text="{loc:Tr app.welcome}" Classes="muted" />
       <StackPanel Orientation="Horizontal" Spacing="8">

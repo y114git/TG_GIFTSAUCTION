@@ -113,6 +113,8 @@
       "exportAll": "将全部资源导出到文件夹...",
       "import": "从其他数据文件导入资源...",
       "importFiles": "从文件导入图片、声音和脚本...",
+      "importCodeFolder": "从文件夹导入代码...",
+      "importCodeFiles": "从文件导入代码...",
       "new": {
         "objects": "新建对象...",
         "scripts": "新建脚本...",
@@ -140,6 +142,7 @@
       "selectAll": "全选",
       "find": "查找",
       "findInCode": "在代码中查找...",
+      "replaceInCode": "在代码中替换...",
       "findUsages": "查找用法",
       "findUses": "查找其使用的内容",
       "replaceFrame": "替换精灵帧...",
@@ -472,6 +475,8 @@
     },
     "newFolderTitle": "新建文件夹",
     "folderName": "文件夹名称",
+    "bulkMode": "重命名模式",
+    "bulkPreview": "重命名前后的名称",
     "create": "创建",
     "topLevel": "(顶层)",
     "newFolderChoice": "新建文件夹...",
@@ -715,6 +720,8 @@
     "later": "稍后再做"
   },
   "editor": {
+    "typingInsert": "插入",
+    "typingOverwrite": "改写",
     "empty": "没有打开的内容。按 Ctrl+P 查找资源，或在资源管理器中双击一项。"
   },
   "save": {
@@ -841,6 +848,8 @@
     "fontFiles": "字体文件",
     "notAFont": "{file} 不是字体文件。",
     "search": "搜索设置",
+    "searchClear": "清除搜索",
+    "nav": "设置类别",
     "run": "运行",
     "runRunner": "运行器（留空则使用数据文件旁的游戏可执行文件）",
     "runArguments": "额外参数",
@@ -949,6 +958,12 @@
   },
   "search": {
     "placeholder": "在代码中查找",
+    "word": "全字匹配",
+    "replacePlaceholder": "替换为",
+    "preview": "预览替换",
+    "replaceSelected": "替换所选",
+    "replaced": "已在 {entries} 个条目中替换 {lines} 行。撤销一次即可还原。",
+    "replaceFailed": "因无法编译而保持不变：{entries}。",
     "case": "区分大小写",
     "regex": "正则表达式",
     "run": "搜索",
@@ -1051,6 +1066,9 @@
   },
   "textureItem": {
     "export": "导出 PNG",
+    "replace": "替换 PNG",
+    "pick": "{name} 的图片",
+    "replaced": "已替换 {name} 的图片。",
     "saved": "已保存到 {path}",
     "failed": "无法保存：{reason}"
   },
@@ -1075,6 +1093,7 @@
     "unrefFound": "有 {count} 个资源没有被任何地方使用。",
     "unrefNone": "没有未使用的资源。",
     "unrefFailed": "无法查找未使用的资源: {reason}",
+    "removeSelected": "移除所选",
     "searching": "正在查找 {name} 的用法...",
     "found": "{name} 在 {count} 处被使用。",
     "none": "{name} 未在任何地方使用。",
@@ -1105,6 +1124,14 @@
     "revertTitle": "还原到已保存",
     "confirmRevert": "要放弃 {name} 的 {count} 项未保存更改并重新加载文件吗？",
     "pickFiles": "选择图片、声音或 GML 文件",
+    "pickCodeFolder": "包含 GML 和汇编文件的文件夹",
+    "pickCodeFiles": "选择 GML 或汇编文件",
+    "codeTitle": "导入代码",
+    "codePreview": "用文件替换 {count} 个条目的代码？\n{names}",
+    "codeMisses": "{count} 个文件没有同名条目，将被跳过：{names}",
+    "codeNone": "没有文件与此数据文件的代码条目同名。",
+    "codeDone": "已替换 {count} 个条目的代码。撤销一次即可还原。",
+    "codeFailed": "未导入任何内容：{reason}",
     "filesImported": "已从文件添加 {count} 个资源。",
     "fileFailed": "无法导入“{name}”：{reason}",
     "selectedCount": "已选的 {count} 个资源",
@@ -2164,6 +2191,12 @@
       "speed": "速度（帧/秒）"
     },
     "extensionSummary": "扩展 {name} {version}: {files} 个文件, {options} 个选项",
+    "extAddFile": "添加文件",
+    "extAddFunction": "添加函数",
+    "extAddArgument": "添加参数",
+    "extAddOption": "添加选项",
+    "extUp": "上移",
+    "extDown": "下移",
     "shaderCheck": {
       "ok": "未发现问题 (简易检查，不是编译器)",
       "brackets": "括号不匹配",
@@ -2176,6 +2209,9 @@
       "audioTitle": "音频组",
       "move": "移动",
       "moveTo": "将所选项移到",
+      "groups": "组",
+      "members": "成员",
+      "kind": "类型",
       "moved": "已将 {count} 项移到 {group}。"
     }
   },

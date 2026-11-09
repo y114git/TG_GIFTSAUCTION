@@ -11,8 +11,8 @@
       <Menu Name="MainMenu" DockPanel.Dock="Top" />
       <Border DockPanel.Dock="Bottom" Background="{DynamicResource Bg.Raised}" BorderBrush="{DynamicResource Border.Subtle}" BorderThickness="0,2,0,0" Padding="8,2">
         <DockPanel>
-          <Button DockPanel.Dock="Right" Name="ProjectButton" IsVisible="False" Padding="6,0" MinHeight="0" VerticalAlignment="Center" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
-          <Button DockPanel.Dock="Right" Name="NotifyButton" IsVisible="False" Padding="6,0" MinHeight="0" VerticalAlignment="Center" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
+          <Button DockPanel.Dock="Right" Name="ProjectButton" IsVisible="False" Padding="6,0" MinHeight="24" VerticalAlignment="Center" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
+          <Button DockPanel.Dock="Right" Name="NotifyButton" IsVisible="False" Padding="6,0" MinHeight="24" VerticalAlignment="Center" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
           <TextBlock DockPanel.Dock="Right" Name="RunText" IsVisible="False" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" Foreground="{DynamicResource Text.Accent}" />
           <TextBlock DockPanel.Dock="Right" Name="MemoryText" Classes="muted" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
           <TextBlock DockPanel.Dock="Right" Name="AssetIdText" IsVisible="False" Classes="muted" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
@@ -24,9 +24,9 @@
         <Grid Name="WorkArea" IsVisible="False">
           <dock:DockControl Name="DockHost" />
           <!-- One chevron per side folds that dock (the layout menu and Ctrl+Alt+H fold all). -->
-          <Button Name="FoldLeft" Padding="0" BorderThickness="0" Width="{DynamicResource Space.4}" HorizontalAlignment="Left" VerticalAlignment="Center" />
-          <Button Name="FoldRight" Padding="0" BorderThickness="0" Width="{DynamicResource Space.4}" HorizontalAlignment="Right" VerticalAlignment="Center" />
-          <Button Name="FoldBottom" Padding="0" BorderThickness="0" Height="{DynamicResource Space.4}" MinHeight="0" HorizontalAlignment="Center" VerticalAlignment="Bottom" />
+          <Button Name="FoldLeft" Padding="0" BorderThickness="0" Width="24" HorizontalAlignment="Left" VerticalAlignment="Center" />
+          <Button Name="FoldRight" Padding="0" BorderThickness="0" Width="24" HorizontalAlignment="Right" VerticalAlignment="Center" />
+          <Button Name="FoldBottom" Padding="0" BorderThickness="0" Height="24" MinHeight="24" HorizontalAlignment="Center" VerticalAlignment="Bottom" />
         </Grid>
         <Border Name="SettingsHost" IsVisible="False" Background="{DynamicResource Bg.Window}" />
         <Border Name="Progress" IsVisible="False" Background="{DynamicResource Bg.Overlay}">

@@ -76,6 +76,11 @@ public partial class MainWindow
         Editor.UiMotion.Set(s.ReduceMotion);
         ZoomFactor = UiSizing.Effective(s.UiScale, DialogSizing.ScreenOf(this)) / 100.0;
         ZoomHost.LayoutTransform = new ScaleTransform(ZoomFactor, ZoomFactor);
+        // 960 x 600 at 100% (ux-standards section 12 rule 8), grown with the scale but never past the screen.
+        var screen = DialogSizing.ScreenOf(this);
+        var (maxWidth, maxHeight) = screen.Scaling > 0 ? (screen.PixelWidth / screen.Scaling, screen.PixelHeight / screen.Scaling) : (double.PositiveInfinity, double.PositiveInfinity);
+        MinWidth = Math.Min(960 * ZoomFactor, maxWidth);
+        MinHeight = Math.Min(600 * ZoomFactor, maxHeight);
         if (s.FontFamily.Length > 0) FontFamily = Fonts.Resolve(s.FontFamily) ?? new FontFamily(s.FontFamily); else ClearValue(FontFamilyProperty);
         if (Enum.TryParse<FontWeight>(s.FontWeight, out var weight)) FontWeight = weight; else ClearValue(FontWeightProperty);
         ApplyColors(s.Colors);

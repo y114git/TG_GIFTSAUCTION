@@ -61,11 +61,13 @@ public sealed class LayerAutosave : IDisposable
     /// Writes now on the calling thread. The picture export and the write run outside the gate, so edits are never blocked; an edit that arrives meanwhile
     /// arms the timer again. A call while another write runs does nothing (that write re-arms the timer if edits came in).
     /// </summary>
-    public void Flush()
+    public void Flush() => Write(false);
+
+    private void Write(bool final)
     {
         lock (_gate)
         {
-            if (_disposed || _writing) return;
+            if ((_disposed && !final) || _writing) return;
             (_writing, _dirty) = (true, false);
         }
 
@@ -114,5 +116,9 @@ public sealed class LayerAutosave : IDisposable
 
         // an in-flight write finishes before the owner tears the folder down; bounded so a stuck write cannot hang the close
         SpinWait.SpinUntil(() => { lock (_gate) return !_writing; }, TimeSpan.FromSeconds(5));
+        // edits made during the delay or that write are still pending: write them once more
+        bool pending;
+        lock (_gate) pending = _dirty && Enabled;
+        if (pending) Write(true);
     }
 }

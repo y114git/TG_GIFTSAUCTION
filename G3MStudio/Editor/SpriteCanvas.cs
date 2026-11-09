@@ -206,7 +206,7 @@ public sealed class SpriteCanvas : Control
         if (_sprite.V3NineSlice is { Enabled: true } && ShowSlice) DrawSlice(context, _grab == Grab.Guide ? _slice : Slice);
         var (ox, oy) = _grab == Grab.Origin ? _origin : (_sprite.OriginX, _sprite.OriginY);
         var at = new Point((ox + 0.5) * Zoom, (oy + 0.5) * Zoom);
-        foreach (var (pen, reach) in new[] { (new Pen(Brushes.Black, 3), 7.0), (new Pen(Brushes.White, 1), 6.0) })
+        foreach (var (pen, reach) in new[] { (new Pen(Brushes.Black, 3), 7.0), (new Pen(CanvasTheme.Handle, 1), 6.0) })
         {
             context.DrawLine(pen, at - new Vector(reach, 0), at + new Vector(reach, 0));
             context.DrawLine(pen, at - new Vector(0, reach), at + new Vector(0, reach));
@@ -218,7 +218,7 @@ public sealed class SpriteCanvas : Control
         var rect = new Rect(box.Left * Zoom, box.Top * Zoom, box.Width * Zoom, box.Height * Zoom);
         context.DrawRectangle(CanvasTheme.Soft(CanvasTheme.Point, 0.15), new Pen(CanvasTheme.Point, 2), rect);
         foreach (var corner in new[] { rect.TopLeft, rect.TopRight, rect.BottomLeft, rect.BottomRight, new Point(rect.Center.X, rect.Top), new Point(rect.Center.X, rect.Bottom), new Point(rect.Left, rect.Center.Y), new Point(rect.Right, rect.Center.Y) })
-            context.DrawRectangle(Brushes.White, new Pen(Brushes.Black, 2), new Rect(corner.X - 3, corner.Y - 3, 6, 6));
+            context.DrawRectangle(CanvasTheme.Handle, new Pen(Brushes.Black, 2), new Rect(corner.X - 3, corner.Y - 3, 6, 6));
     }
 
     private void DrawSlice(DrawingContext context, (int Left, int Top, int Right, int Bottom) s)

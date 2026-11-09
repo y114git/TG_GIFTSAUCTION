@@ -40,6 +40,32 @@ public sealed class CodeSearchTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public async Task ReplaceInCodeIsOneUndoableEditAndSkipsEntriesThatDoNotCompile()
+    {
+        using var dir = new TempDir();
+        using var workspace = await Open(dir);
+        var ct = TestContext.Current.CancellationToken;
+
+        var word = await CodeSearch.RunAsync(workspace, new CodeSearchOptions("retur", WholeWord: true, Replacement: "x"), cancellationToken: ct);
+        Assert.Empty(word.Hits); // "retur" is only part of a word
+        var plan = await CodeSearch.RunAsync(workspace, new CodeSearchOptions("return 1", Replacement: "return 2"), cancellationToken: ct);
+        var hit = Assert.Single(plan.Hits, h => h.Entry == "gml_Script_probe");
+        Assert.Equal("return 2;", hit.Replaced);
+
+        var options = new CodeSearchOptions("return 1", Replacement: "return 2");
+        var result = await CodeReplace.ApplyAsync(workspace, options, [hit], ct);
+        Assert.Equal(1, result.Entries);
+        Assert.Contains("return 2", CodeText.Decompile(workspace.Data, "gml_Script_probe"), StringComparison.Ordinal);
+        workspace.Undo();
+        Assert.Contains("return 1", CodeText.Decompile(workspace.Data, "gml_Script_probe"), StringComparison.Ordinal);
+
+        var broken = await CodeReplace.ApplyAsync(workspace, new CodeSearchOptions("return 1", Replacement: "return ("), [hit], ct);
+        Assert.Equal(["gml_Script_probe"], broken.Failed);
+        Assert.Equal(0, broken.Entries);
+        Assert.Contains("return 1", CodeText.Decompile(workspace.Data, "gml_Script_probe"), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task TheDecompileContextIsSharedUntilTheNextEdit()
     {
         using var dir = new TempDir();
@@ -170,6 +196,48 @@ public sealed class CodeSearchTests(ITestOutputHelper output)
                 Assert.Contains(hits, h => h is { OwnerType: "objects", OwnerName: "obj_child" });
                 Assert.DoesNotContain(hits, h => h.OwnerName == "obj_0"); // its child refers to it
                 foreach (var hit in hits) Assert.Empty(await UsageSearch.FindAsync(workspace, hit.OwnerType!, hit.OwnerName, TestContext.Current.CancellationToken));
+            }
+            finally { window.Close(); }
+        });
+    }
+
+    [Fact]
+    public async Task RemoveSelectedDeletesUnreferencedAssetsAsOneUndoableEdit()
+    {
+        using var dir = new TempDir();
+        var path = TestData.WriteSample(dir, objects: 1, withCode: true);
+        await HeadlessApp.Run(async () =>
+        {
+            var window = TabsWorkspaceTests.NewWindow(dir);
+            var asked = 0;
+            window.Confirmer = (_, _) => Task.FromResult(++asked > 0);
+            try
+            {
+                await window.OpenAsync(path);
+                var workspace = window.Workspaces.Current!;
+                workspace.Data.GameObjects.Add(new G3MLib.DataFile.Models.GameMakerGameObject { Name = workspace.Data.Strings.MakeString("obj_child", out _), ParentId = workspace.Data.GameObjects[0] });
+                window.Registry.Execute("edit.findUnreferenced");
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+                var panel = window.GetVisualDescendants().OfType<UsagesPanel>().Single();
+                for (var i = 0; i < 300 && !panel.Hits.Any(h => h.OwnerName == "obj_child"); i++)
+                {
+                    Dispatcher.UIThread.RunJobs();
+                    await Task.Delay(10, TestContext.Current.CancellationToken);
+                }
+
+                panel.SelectAllRows();
+                panel.RemoveSelected();
+                for (var i = 0; i < 300 && workspace.Data.GameObjects.Any(o => o.Name.Content == "obj_child"); i++)
+                {
+                    Dispatcher.UIThread.RunJobs();
+                    await Task.Delay(10, TestContext.Current.CancellationToken);
+                }
+
+                Assert.True(asked > 0);
+                Assert.DoesNotContain(workspace.Data.GameObjects, o => o.Name.Content == "obj_child");
+                workspace.Undo();
+                Assert.Contains(workspace.Data.GameObjects, o => o.Name.Content == "obj_child");
             }
             finally { window.Close(); }
         });

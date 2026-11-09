@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio;
 
@@ -32,6 +33,10 @@ public sealed class GroupsWindow : Window
         Height = 460;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         _move.Content = Loc.Current["editors.groups.move"];
+        _groups.Labeled("editors.groups.groups");
+        _members.Labeled("editors.groups.members");
+        _kind.Labeled("editors.groups.kind");
+        _target.Labeled("editors.groups.moveTo");
         _kind.ItemsSource = Kinds.Select(k => Loc.Current["explorer.type." + (k == "tilesets" ? "backgrounds" : k)]).ToList();
         _kind.SelectedIndex = 0;
         _kind.IsVisible = !audio;

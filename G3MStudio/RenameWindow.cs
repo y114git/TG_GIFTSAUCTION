@@ -66,7 +66,7 @@ public sealed class RenameWindow : Window
         Content = new StackPanel
         {
             Margin = new Avalonia.Thickness(16),
-            Spacing = 10,
+            Spacing = Mods.ModsUi.Space(3),
             Children =
             {
                 new TextBlock { Text = label ?? Loc.Current.Format("rename.label", ("name", current)) },

@@ -77,7 +77,7 @@ public sealed class LayoutsWindow : Window
         Content = new StackPanel
         {
             Margin = new Avalonia.Thickness(16),
-            Spacing = 10,
+            Spacing = Mods.ModsUi.Space(3),
             Children =
             {
                 _empty,

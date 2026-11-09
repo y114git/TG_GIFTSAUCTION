@@ -113,6 +113,8 @@
       "exportAll": "Exportar todos los recursos a una carpeta...",
       "import": "Importar recursos de otro archivo de datos...",
       "importFiles": "Importar imágenes, sonidos y scripts desde archivos...",
+      "importCodeFolder": "Importar código desde una carpeta...",
+      "importCodeFiles": "Importar código desde archivos...",
       "new": {
         "objects": "Nuevo objeto...",
         "scripts": "Nuevo script...",
@@ -140,6 +142,7 @@
       "selectAll": "Seleccionar todo",
       "find": "Buscar",
       "findInCode": "Buscar en el código...",
+      "replaceInCode": "Reemplazar en el código...",
       "findUsages": "Buscar usos",
       "findUses": "Buscar lo que usa",
       "replaceFrame": "Reemplazar fotograma del sprite...",
@@ -472,6 +475,8 @@
     },
     "newFolderTitle": "Nueva carpeta",
     "folderName": "Nombre de la carpeta",
+    "bulkMode": "Modo de cambio de nombre",
+    "bulkPreview": "Nombres antes y después",
     "create": "Crear",
     "topLevel": "(nivel superior)",
     "newFolderChoice": "Nueva carpeta...",
@@ -715,6 +720,8 @@
     "later": "Hacerlo más tarde"
   },
   "editor": {
+    "typingInsert": "INS",
+    "typingOverwrite": "SOB",
     "empty": "No hay nada abierto. Pulsa Ctrl+P para buscar un recurso o haz doble clic en uno del Explorador."
   },
   "save": {
@@ -841,6 +848,8 @@
     "fontFiles": "Archivos de fuente",
     "notAFont": "{file} no es un archivo de fuente.",
     "search": "Buscar en la configuración",
+    "searchClear": "Borrar búsqueda",
+    "nav": "Categorías de configuración",
     "run": "Ejecución",
     "runRunner": "Ejecutor (vacío usa el ejecutable del juego junto al archivo de datos)",
     "runArguments": "Argumentos adicionales",
@@ -949,6 +958,12 @@
   },
   "search": {
     "placeholder": "Buscar en el código",
+    "word": "Palabra completa",
+    "replacePlaceholder": "Reemplazar por",
+    "preview": "Vista previa del reemplazo",
+    "replaceSelected": "Reemplazar lo marcado",
+    "replaced": "Se reemplazaron {lines} líneas en {entries} entradas. Deshacer lo revierte en un solo paso.",
+    "replaceFailed": "Sin cambios porque no compilan: {entries}.",
     "case": "Coincidir mayúsculas",
     "regex": "Expresión regular",
     "run": "Buscar",
@@ -1051,6 +1066,9 @@
   },
   "textureItem": {
     "export": "Exportar PNG",
+    "replace": "Reemplazar PNG",
+    "pick": "Imagen para {name}",
+    "replaced": "Imagen de {name} reemplazada.",
     "saved": "Guardado en {path}",
     "failed": "No se pudo guardar: {reason}"
   },
@@ -1075,6 +1093,7 @@
     "unrefFound": "Recursos que no se usan en ningún sitio: {count}.",
     "unrefNone": "Ningún recurso está sin usar.",
     "unrefFailed": "No se pudieron buscar recursos sin uso: {reason}",
+    "removeSelected": "Quitar lo seleccionado",
     "searching": "Buscando usos de {name}...",
     "found": "Lugares donde se usa {name}: {count}.",
     "none": "{name} no se usa en ningún sitio.",
@@ -1105,6 +1124,14 @@
     "revertTitle": "Volver a lo guardado",
     "confirmRevert": "¿Descartar los cambios sin guardar de {name} ({count}) y cargar el archivo de nuevo?",
     "pickFiles": "Elija imágenes, sonidos o archivos GML",
+    "pickCodeFolder": "Carpeta con archivos GML y de ensamblador",
+    "pickCodeFiles": "Elige archivos GML o de ensamblador",
+    "codeTitle": "Importar código",
+    "codePreview": "¿Reemplazar el código de {count} entradas desde los archivos?\n{names}",
+    "codeMisses": "Ninguna entrada se llama como {count} archivos, que se omiten: {names}",
+    "codeNone": "Ningún archivo se llama como una entrada de código de este archivo de datos.",
+    "codeDone": "Código reemplazado en {count} entradas. Deshacer lo revierte en un solo paso.",
+    "codeFailed": "No se importó nada: {reason}",
     "filesImported": "Recursos añadidos desde archivos: {count}.",
     "fileFailed": "No se pudo importar «{name}»: {reason}",
     "selectedCount": "Recursos seleccionados: {count}",
@@ -2164,6 +2191,12 @@
       "speed": "Velocidad (fotogramas por segundo)"
     },
     "extensionSummary": "Extensión {name} {version}: {files} archivos, {options} opciones",
+    "extAddFile": "Añadir archivo",
+    "extAddFunction": "Añadir función",
+    "extAddArgument": "Añadir argumento",
+    "extAddOption": "Añadir opción",
+    "extUp": "Subir",
+    "extDown": "Bajar",
     "shaderCheck": {
       "ok": "Sin problemas (una revisión ligera, no un compilador)",
       "brackets": "Los corchetes no coinciden",
@@ -2176,6 +2209,9 @@
       "audioTitle": "Grupos de audio",
       "move": "Mover",
       "moveTo": "Mover lo elegido a",
+      "groups": "Grupos",
+      "members": "Miembros",
+      "kind": "Tipo",
       "moved": "Se movieron {count} a {group}."
     }
   },

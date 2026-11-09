@@ -77,6 +77,9 @@ public sealed class SecurityFixTests
         var part = Path.Combine(folder, "stale.part");
         File.WriteAllText(part, "x");
         cache.Remember(dir.File("n.win"), file, 1 << 20);
+        Assert.True(File.Exists(part)); // fresh: another Studio may still be writing it
+        File.SetLastWriteTimeUtc(part, DateTime.UtcNow.AddHours(-1));
+        cache.Remember(dir.File("m.win"), file, 1 << 20);
         Assert.False(File.Exists(part));
         File.WriteAllText(part, "x");
         Assert.True(cache.Clear());

@@ -169,6 +169,25 @@ public sealed partial class MainWindow
         await ReplaceFrameFromAsync(workspace, sprite, view.SelectedFrame, path);
     }
 
+    /// <summary>Replaces the one texture picture of a font or tile set with a picture file; one undoable step. True when it was replaced.</summary>
+    public async Task<bool> ReplaceItemPictureAsync(Workspace workspace, string type, string name, string? file = null)
+    {
+        if ((file ?? await PickPatchFile(Loc.Current.Format("textureItem.pick", ("name", name)), false)) is not { } path) return false;
+        try
+        {
+            var bytes = await File.ReadAllBytesAsync(path);
+            using (ReplaceFrameCommand.ReadPicture(bytes)) { } // refuses what cannot be read before it reaches the history
+            workspace.Edit(new ReplaceItemCommand(type, name, bytes));
+            Notify(NotificationLevel.Info, Loc.Current.Format("textureItem.replaced", ("name", name)));
+            return true;
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or MagickException or InvalidDataException or InvalidOperationException)
+        {
+            Notify(NotificationLevel.Error, Loc.Current.Format("sprites.badPicture", ("name", Path.GetFileName(path)), ("reason", e.Message)));
+            return false;
+        }
+    }
+
     /// <summary>Puts a picture file on one frame of a sprite; one undoable step. Used by Replace Frame and by a picture dropped on a sprite tab.</summary>
     private async Task ReplaceFrameFromAsync(Workspace workspace, string sprite, int frame, string path)
     {

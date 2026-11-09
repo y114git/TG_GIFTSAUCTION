@@ -47,7 +47,8 @@ public sealed class TextureItemView : DockPanel
     private readonly Avalonia.Controls.Shapes.Rectangle _mark = new() { Stroke = G3MStudio.Theme.CanvasTheme.Hover, StrokeThickness = 2, IsVisible = false, IsHitTestVisible = false, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top };
     private readonly Slider _zoomBar = new() { Minimum = 1, Maximum = 8, Value = 1, Width = 160, TickFrequency = 1, IsSnapToTickEnabled = true };
 
-    public TextureItemView(GameMakerTexturePageItem? item, TextureBitmaps textures)
+    // replace: asks the owner to replace the picture of the item (a picker and one undoable edit); true when it did. Null shows no Replace button.
+    public TextureItemView(GameMakerTexturePageItem? item, TextureBitmaps textures, Func<Task<bool>>? replace = null)
     {
         Name = "TextureItemView";
         Height = 300;
@@ -56,6 +57,18 @@ public sealed class TextureItemView : DockPanel
         var export = new Button { Name = "ExportItem", Content = Loc.Current["textureItem.export"] };
         export.Click += async (_, _) => await ExportAsync(item);
         var bar = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 8, Children = { _zoomBar, export, _caption } };
+        if (replace is not null)
+        {
+            var swap = new Button { Name = "ReplaceItem", Content = Loc.Current["textureItem.replace"] };
+            swap.Click += async (_, _) =>
+            {
+                if (!await replace() || item?.TexturePage is not { } page) return;
+                textures.Forget(page); // the page picture changed: decode it again
+                await ShowAsync(item, textures);
+            };
+            bar.Children.Insert(2, swap);
+        }
+
         SetDock(bar, Avalonia.Controls.Dock.Top);
         Children.Add(bar);
         foreach (var layer in new Control[] { _chequer, _image, _box, _mark }) _grid.Children.Add(layer);

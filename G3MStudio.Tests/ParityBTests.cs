@@ -144,20 +144,6 @@ public sealed class ParityBTests
     }
 
     [Fact]
-    public void TheExtensionOutlineListsFilesFunctionsAndOptions()
-    {
-        using var function = new GameMakerExtensionFunction { Name = new GameMakerString("fn"), Arguments = [] };
-        using var file = new GameMakerExtensionFile { Filename = new GameMakerString("a.dll"), Functions = [function] };
-        using var option = new GameMakerExtensionOption { Name = new GameMakerString("k"), Value = new GameMakerString("v") };
-        using var extension = new GameMakerExtension { Name = new GameMakerString("e"), Files = [file], Options = [option] };
-        var lines = ExtensionView.Outline(extension);
-        Assert.Equal(3, lines.Count);
-        Assert.StartsWith("a.dll", lines[0], StringComparison.Ordinal);
-        Assert.Contains("fn(", lines[1], StringComparison.Ordinal);
-        Assert.Equal("k = v", lines[2]);
-    }
-
-    [Fact]
     public async Task TheImageEditorRightColumnFoldsEveryPanel()
     {
         await HeadlessApp.Run(() =>

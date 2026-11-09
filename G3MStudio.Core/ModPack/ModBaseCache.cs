@@ -66,10 +66,18 @@ public sealed partial class ModBaseCache(UserData home)
             var key = UserData.KeyFor(dataFile);
             if (!replace && index.TryGetValue(key, out var existing)) return existing;
             Directory.CreateDirectory(_folder);
-            SweepParts();
+            SweepParts(TimeSpan.FromMinutes(10));
             var (hash, size) = Compress(source, maxBytes, out var part);
             if (hash is null) return null;
-            File.Move(part, BlobFile(hash), true);
+            try
+            {
+                File.Move(part, BlobFile(hash), true);
+            }
+            catch (FileNotFoundException)
+            {
+                return null; // another Studio swept the part file meanwhile: no copy this time
+            }
+
             var entry = new ModBaseEntry(Path.GetFullPath(dataFile), hash, size, DateTime.UtcNow);
             index[key] = entry;
             Evict(index, maxBytes, key);

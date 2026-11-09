@@ -113,6 +113,8 @@
       "exportAll": "將全部資源匯出到資料夾...",
       "import": "從其他資料檔案匯入資源...",
       "importFiles": "從檔案匯入圖片、聲音和指令碼...",
+      "importCodeFolder": "從資料夾匯入程式碼...",
+      "importCodeFiles": "從檔案匯入程式碼...",
       "new": {
         "objects": "新增物件...",
         "scripts": "新增腳本...",
@@ -140,6 +142,7 @@
       "selectAll": "全選",
       "find": "尋找",
       "findInCode": "在程式碼中尋找...",
+      "replaceInCode": "在程式碼中取代...",
       "findUsages": "尋找用法",
       "findUses": "尋找其使用的內容",
       "replaceFrame": "取代精靈影格...",
@@ -472,6 +475,8 @@
     },
     "newFolderTitle": "新增資料夾",
     "folderName": "資料夾名稱",
+    "bulkMode": "重新命名模式",
+    "bulkPreview": "重新命名前後的名稱",
     "create": "建立",
     "topLevel": "(最上層)",
     "newFolderChoice": "新增資料夾...",
@@ -715,6 +720,8 @@
     "later": "稍後再做"
   },
   "editor": {
+    "typingInsert": "插入",
+    "typingOverwrite": "改寫",
     "empty": "沒有開啟的內容。按 Ctrl+P 尋找資源，或在總管中按兩下一項。"
   },
   "save": {
@@ -841,6 +848,8 @@
     "fontFiles": "字型檔案",
     "notAFont": "{file} 不是字型檔案。",
     "search": "搜尋設定",
+    "searchClear": "清除搜尋",
+    "nav": "設定類別",
     "run": "執行",
     "runRunner": "執行器（留空則使用資料檔案旁的遊戲執行檔案）",
     "runArguments": "額外參數",
@@ -949,6 +958,12 @@
   },
   "search": {
     "placeholder": "在程式碼中尋找",
+    "word": "完整單字",
+    "replacePlaceholder": "取代為",
+    "preview": "預覽取代",
+    "replaceSelected": "取代所選",
+    "replaced": "已在 {entries} 個項目中取代 {lines} 行。復原一次即可還原。",
+    "replaceFailed": "因無法編譯而保持不變：{entries}。",
     "case": "區分大小寫",
     "regex": "規則運算式",
     "run": "搜尋",
@@ -1051,6 +1066,9 @@
   },
   "textureItem": {
     "export": "匯出 PNG",
+    "replace": "取代 PNG",
+    "pick": "{name} 的圖片",
+    "replaced": "已取代 {name} 的圖片。",
     "saved": "已儲存到 {path}",
     "failed": "無法儲存：{reason}"
   },
@@ -1075,6 +1093,7 @@
     "unrefFound": "有 {count} 個資源沒有被任何地方使用。",
     "unrefNone": "沒有未使用的資源。",
     "unrefFailed": "無法尋找未使用的資源: {reason}",
+    "removeSelected": "移除所選",
     "searching": "正在尋找 {name} 的用法...",
     "found": "{name} 在 {count} 處被使用。",
     "none": "{name} 未在任何地方使用。",
@@ -1105,6 +1124,14 @@
     "revertTitle": "還原到已儲存",
     "confirmRevert": "要捨棄 {name} 的 {count} 項未儲存變更並重新載入檔案嗎？",
     "pickFiles": "選擇圖片、聲音或 GML 檔案",
+    "pickCodeFolder": "包含 GML 與組合語言檔案的資料夾",
+    "pickCodeFiles": "選擇 GML 或組合語言檔案",
+    "codeTitle": "匯入程式碼",
+    "codePreview": "用檔案取代 {count} 個項目的程式碼？\n{names}",
+    "codeMisses": "{count} 個檔案沒有同名項目，將被略過：{names}",
+    "codeNone": "沒有檔案與此資料檔的程式碼項目同名。",
+    "codeDone": "已取代 {count} 個項目的程式碼。復原一次即可還原。",
+    "codeFailed": "未匯入任何內容：{reason}",
     "filesImported": "已從檔案新增 {count} 個資源。",
     "fileFailed": "無法匯入「{name}」：{reason}",
     "selectedCount": "已選的 {count} 個資源",
@@ -2164,6 +2191,12 @@
       "speed": "速度（影格/秒）"
     },
     "extensionSummary": "擴充 {name} {version}: {files} 個檔案, {options} 個選項",
+    "extAddFile": "新增檔案",
+    "extAddFunction": "新增函式",
+    "extAddArgument": "新增參數",
+    "extAddOption": "新增選項",
+    "extUp": "上移",
+    "extDown": "下移",
     "shaderCheck": {
       "ok": "未發現問題 (簡易檢查，不是編譯器)",
       "brackets": "括號不相符",
@@ -2176,6 +2209,9 @@
       "audioTitle": "音訊群組",
       "move": "移動",
       "moveTo": "將所選項移到",
+      "groups": "群組",
+      "members": "成員",
+      "kind": "類型",
       "moved": "已將 {count} 項移到 {group}。"
     }
   },

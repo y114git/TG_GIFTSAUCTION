@@ -144,12 +144,12 @@ public sealed class TilePickerView : StackPanel
     private readonly GameMakerBackground _background;
     private readonly ListBox _list = new() { Name = "TileIds", MaxHeight = 160 };
 
-    public TilePickerView(GameMakerBackground background, TextureBitmaps textures, Workspace workspace, AutoTileStore? autoTiles = null)
+    public TilePickerView(GameMakerBackground background, TextureBitmaps textures, Workspace workspace, AutoTileStore? autoTiles = null, Func<Task<bool>>? replace = null)
     {
         _background = background;
         Name = "TilePickerView";
         Spacing = 4;
-        Texture = new TextureItemView(background.Texture, textures);
+        Texture = new TextureItemView(background.Texture, textures, replace);
         Texture.Picked += (x, y) =>
         {
             var index = TileGeometry.IndexAt(_background, x, y);

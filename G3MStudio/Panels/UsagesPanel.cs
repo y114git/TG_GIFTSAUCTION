@@ -9,7 +9,8 @@ namespace G3MStudio.Panels;
 public sealed class UsagesPanel : UserControl
 {
     private readonly TextBlock _status = new() { Name = "UsagesStatus", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap };
-    private readonly ListBox _list = new() { Name = "UsagesList" };
+    private readonly ListBox _list = new() { Name = "UsagesList", SelectionMode = SelectionMode.Multiple };
+    private readonly Button _remove = new Button { Name = "UsagesRemove", IsVisible = false }.Tr(ContentControl.ContentProperty, "usages.removeSelected");
     private int _generation;
 
     public UsagesPanel()
@@ -17,9 +18,12 @@ public sealed class UsagesPanel : UserControl
         _list.ItemTemplate = new FuncDataTemplate<UsageHit>((hit, _) => new TextBlock { Text = hit is null ? "" : $"{hit.OwnerName}  {hit.Where}".TrimEnd(), TextTrimming = Avalonia.Media.TextTrimming.CharacterEllipsis });
         _list.DoubleTapped += (_, _) => { if (_list.SelectedItem is UsageHit hit) OpenRequested?.Invoke(hit); };
         _list.KeyDown += (_, e) => { if (e.Key == Avalonia.Input.Key.Enter && _list.SelectedItem is UsageHit hit) { e.Handled = true; OpenRequested?.Invoke(hit); } };
+        _remove.Click += (_, _) => RemoveSelected();
         var layout = new DockPanel { Margin = new Avalonia.Thickness(8) };
         DockPanel.SetDock(_status, Avalonia.Controls.Dock.Top);
+        DockPanel.SetDock(_remove, Avalonia.Controls.Dock.Top);
         layout.Children.Add(_status);
+        layout.Children.Add(_remove);
         layout.Children.Add(_list);
         Content = layout;
     }
@@ -30,10 +34,23 @@ public sealed class UsagesPanel : UserControl
 
     public event Action<UsageHit>? OpenRequested;
 
+    /// <summary>Asked for by Remove Selected under the unreferenced assets; the window deletes them through the usual delete question.</summary>
+    public event Action<IReadOnlyList<UsageHit>>? RemoveRequested;
+
+    /// <summary>Asks to remove the selected rows of the unreferenced list.</summary>
+    public void RemoveSelected()
+    {
+        if (_remove.IsVisible && _list.SelectedItems?.OfType<UsageHit>().ToList() is { Count: > 0 } selected) RemoveRequested?.Invoke(selected);
+    }
+
+    /// <summary>Selects every row of the list.</summary>
+    public void SelectAllRows() => _list.SelectAll();
+
     public void Clear()
     {
         _generation++; // a search that is still running must not fill the panel afterwards
         _list.ItemsSource = null;
+        _remove.IsVisible = false;
         _status.Text = "";
     }
 
@@ -42,12 +59,14 @@ public sealed class UsagesPanel : UserControl
     {
         var generation = ++_generation;
         _list.ItemsSource = null;
+        _remove.IsVisible = false;
         _status.Text = Loc.Current["usages.unrefSearching"];
         try
         {
             var hits = await search;
             if (generation != _generation) return;
             _list.ItemsSource = hits;
+            _remove.IsVisible = hits.Count > 0;
             _status.Text = Loc.Current.Format(hits.Count == 0 ? "usages.unrefNone" : "usages.unrefFound", ("count", hits.Count));
         }
         catch (Exception e) when (e is InvalidOperationException or OperationCanceledException && generation == _generation)
@@ -66,6 +85,7 @@ public sealed class UsagesPanel : UserControl
     {
         var generation = ++_generation;
         _list.ItemsSource = null;
+        _remove.IsVisible = false;
         _status.Text = Loc.Current.Format(searching, ("name", name));
         try
         {

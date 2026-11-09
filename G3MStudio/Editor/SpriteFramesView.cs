@@ -1,4 +1,5 @@
 using Avalonia;
+using G3MStudio.Theme;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -154,7 +155,7 @@ public sealed class SpriteFramesView : ScrollViewer
         Spacing = 2,
         Children =
         {
-            new Border { Width = 64, Height = 64, BorderThickness = new Thickness(2), BorderBrush = Brushes.Gray },
+            new Border { Width = 64, Height = 64, BorderThickness = new Thickness(2), BorderBrush = CanvasTheme.Muted },
             new TextBlock { Text = index.ToString(System.Globalization.CultureInfo.InvariantCulture), Classes = { "muted" } },
         },
     };
@@ -167,7 +168,7 @@ public sealed class OriginMarker(GameMakerSprite sprite, double scale) : Control
     {
         var at = new Point((sprite.OriginX + 0.5) * scale, (sprite.OriginY + 0.5) * scale);
         if (!new Rect(Bounds.Size).Inflate(8).Contains(at)) return;
-        foreach (var (pen, reach) in new[] { (new Pen(Brushes.Black, 3), 6.5), (new Pen(Brushes.White, 1), 5.5) })
+        foreach (var (pen, reach) in new[] { (new Pen(Brushes.Black, 3), 6.5), (new Pen(CanvasTheme.Handle, 1), 5.5) })
         {
             context.DrawLine(pen, at - new Vector(reach, 0), at + new Vector(reach, 0));
             context.DrawLine(pen, at - new Vector(0, reach), at + new Vector(0, reach));

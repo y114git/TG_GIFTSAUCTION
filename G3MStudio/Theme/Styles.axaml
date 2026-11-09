@@ -9,6 +9,14 @@
     <Setter Property="FontWeight" Value="{DynamicResource Font.Weight}" />
     <Setter Property="FontSize" Value="{DynamicResource FontSize.Body}" />
   </Style>
+  <!-- One keyboard focus ring for every control: 2 px Select, drawn inside the control so no parent clips it (ux-standards section 3 rule 2). The adorner shows for keyboard focus only. -->
+  <Style Selector=":is(Control)">
+    <Setter Property="FocusAdorner">
+      <FocusAdornerTemplate>
+        <Border BorderThickness="2" BorderBrush="{DynamicResource Select}" IsHitTestVisible="False" />
+      </FocusAdornerTemplate>
+    </Setter>
+  </Style>
   <!-- Button text is often a resource name; an underscore in it must not become an access key and vanish. -->
   <Style Selector="Button /template/ ContentPresenter"><Setter Property="RecognizesAccessKey" Value="False" /></Style>
   <!-- A list is framed by a thin quiet line, not the white theme default. -->
@@ -36,6 +44,18 @@
                   TreeViewItem:selected:pointerover /template/ ContentPresenter#PART_HeaderPresenter,
                   TreeViewItem:selected:pressed /template/ ContentPresenter#PART_HeaderPresenter">
     <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
+  </Style>
+  <!-- Children that keep their own muted or accent colour would turn grey or light green on the selection fill: they take the dark text too, and a 2 px Select bar marks the row without a colour (ux-standards section 2 rule 2). -->
+  <Style Selector="ListBoxItem:selected TextBlock.muted, ListBoxItem:selected TextBlock.accent,
+                  ComboBoxItem:selected TextBlock.muted, ComboBoxItem:selected TextBlock.accent,
+                  TreeViewItem:selected TextBlock.muted, TreeViewItem:selected TextBlock.accent">
+    <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
+  </Style>
+  <!-- Inset shadow: the bar sits in the row's left padding, so the text does not move. -->
+  <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter,
+                  ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter,
+                  TreeViewItem:selected /template/ ContentPresenter#PART_HeaderPresenter">
+    <Setter Property="BoxShadow" Value="inset 2 0 0 0 #ECEDEF" />
   </Style>
   <!-- Sizes come from the tokens (Tokens.axaml, ThemeSizes): the density presets and Settings > Appearance > Sizes move them. -->
   <Style Selector="Button, ToggleButton, ComboBox, NumericUpDown"><Setter Property="MinHeight" Value="{DynamicResource Control.Height}" /></Style>

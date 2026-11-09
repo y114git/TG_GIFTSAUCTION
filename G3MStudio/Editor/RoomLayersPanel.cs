@@ -78,7 +78,8 @@ public sealed class RoomLayersPanel : DockPanel
                 if (!_building && Selected is { } layer && e.NewValue is { } value) Edit([Command(operation, layer, value.ToString(CultureInfo.InvariantCulture))]);
             };
             _props[operation] = box;
-            properties.Children.Add(new DockPanel { Children = { new TextBlock { Text = Loc.Current[label], MinWidth = 80, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center }, box } });
+            var caption = new TextBlock { Text = Loc.Current[label], MinWidth = 80, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
+            properties.Children.Add(new DockPanel { Children = { caption, box.LabeledBy(caption) } });
         }
 
         SetDock(properties, Avalonia.Controls.Dock.Bottom);
@@ -300,9 +301,7 @@ public sealed class RoomLayersPanel : DockPanel
 
     private static ToggleButton IconToggle(string icon, string tip, bool on, Layer layer)
     {
-        var button = new ToggleButton { IsChecked = on, Tag = layer, Padding = new Avalonia.Thickness(4), Background = Avalonia.Media.Brushes.Transparent, Content = new PathIcon { Data = Avalonia.Media.Geometry.Parse(icon) } };
-        ToolTip.SetTip(button, Loc.Current[tip]);
-        return button;
+        return new ToggleButton { IsChecked = on, Tag = layer, Padding = new Avalonia.Thickness(4), Background = Avalonia.Media.Brushes.Transparent, Content = new PathIcon { Data = Avalonia.Media.Geometry.Parse(icon) } }.Labeled(tip);
     }
 
     private void Refresh()

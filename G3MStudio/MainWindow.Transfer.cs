@@ -120,6 +120,51 @@ public sealed partial class MainWindow
         Docking.OpenTab("resource", last, false);
     }
 
+    public void ImportCodeFolder() => _ = ImportCodeFolderAsync();
+
+    public async Task ImportCodeFolderAsync()
+    {
+        if (await PickFolder(Loc.Current["transfer.pickCodeFolder"]) is { } folder) await ImportCodePathsAsync([folder]);
+    }
+
+    public void ImportCodeFiles() => _ = ImportCodeFilesAsync();
+
+    public async Task ImportCodeFilesAsync() => await ImportCodePathsAsync(await PickPatchFiles(Loc.Current["transfer.pickCodeFiles"]));
+
+    /// <summary>
+    /// Import GML: .gml and .asm files (or the ones in a folder) replace the code of the existing entries they are named after. The matches and the files
+    /// with no entry are listed first; the replacement is one undoable edit, and nothing changes when one file does not compile.
+    /// </summary>
+    public async Task ImportCodePathsAsync(IEnumerable<string> paths)
+    {
+        if (Workspaces.Current is not { } workspace || !ApplyCodeEditors()) return;
+        try
+        {
+            var files = CodeFileImport.Collect(paths);
+            CodeFilePlan plan;
+            using (workspace.Lock.Read()) plan = CodeFileImport.Plan(workspace.Data, files);
+            if (plan.Matches.Count == 0)
+            {
+                Notify(NotificationLevel.Warning, Loc.Current["transfer.codeNone"]);
+                return;
+            }
+
+            var matched = string.Join(Environment.NewLine, plan.Matches.Take(8).Select(m => "  " + m.Entry)) + (plan.Matches.Count > 8 ? Environment.NewLine + $"  ... +{plan.Matches.Count - 8}" : "");
+            var missed = plan.Misses.Count == 0 ? "" : Environment.NewLine + Loc.Current.Format("transfer.codeMisses", ("count", plan.Misses.Count), ("names", string.Join(", ", plan.Misses.Take(8)) + (plan.Misses.Count > 8 ? $" ... +{plan.Misses.Count - 8}" : "")));
+            if (!await Confirm(Loc.Current["transfer.codeTitle"], Loc.Current.Format("transfer.codePreview", ("count", plan.Matches.Count), ("names", matched)) + missed)) return;
+            await workspace.EditInBackground(CodeFileImport.Build(plan.Matches));
+            Notify(NotificationLevel.Info, Loc.Current.Format("transfer.codeDone", ("count", plan.Matches.Count)));
+        }
+        catch (OutOfMemoryException)
+        {
+            NotifyOutOfMemory("memory.opImport");
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException or InvalidDataException or CodeCompileException)
+        {
+            Notify(NotificationLevel.Error, Loc.Current.Format("transfer.codeFailed", ("reason", e.Message)));
+        }
+    }
+
     /// <summary>Exports the entry selected in the Explorer, or the one in the tab in front, to a folder.</summary>
     public async Task ExportSelectionAsync()
     {
@@ -239,7 +284,9 @@ public sealed partial class MainWindow
             var scratch = Directory.CreateTempSubdirectory("g3mstudio-import-").FullName;
             try
             {
-                await workspace.ApplyBulkAsync(() => results = ResourceTransfer.ImportPackage(workspace, zip, scratch, progress, token), true);
+                // Unpacked and checked first: a refused package must not reach the bulk change, which drops the undo stack.
+                var selection = await Task.Run(() => ResourceTransfer.UnpackPackage(zip, scratch), token);
+                await workspace.ApplyBulkAsync(() => results = ResourceTransfer.ImportUnpacked(workspace, selection, scratch, progress, token), true);
             }
             catch (OperationCanceledException)
             {

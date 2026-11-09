@@ -101,7 +101,7 @@ public sealed partial class SettingsPage
                     Show();
                 };
                 Show();
-                block.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { new TextBlock { Text = label, Width = 200, VerticalAlignment = VerticalAlignment.Center }, swatch, box, reset } });
+                block.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { new TextBlock { Text = label, MinWidth = 200, VerticalAlignment = VerticalAlignment.Center }, swatch, box, reset } });
             }
         }
 

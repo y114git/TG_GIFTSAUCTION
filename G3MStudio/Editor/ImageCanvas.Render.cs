@@ -87,7 +87,7 @@ public sealed partial class ImageCanvas
         _outline ??= Outline(selection);
         using var _ = context.PushTransform(Matrix.CreateScale(Zoom, Zoom) * Matrix.CreateTranslation(_origin.X, _origin.Y));
         context.DrawGeometry(null, new Pen(Brushes.Black, 3 / Zoom), _outline);
-        context.DrawGeometry(null, new Pen(Brushes.White, 1.5 / Zoom, new DashStyle([3, 3], 0)), _outline);
+        context.DrawGeometry(null, new Pen(CanvasTheme.Handle, 1.5 / Zoom, new DashStyle([3, 3], 0)), _outline);
     }
 
     /// <summary>The border of the selected pixels as lines in picture coordinates (one rectangle when the selection is a rectangle).</summary>

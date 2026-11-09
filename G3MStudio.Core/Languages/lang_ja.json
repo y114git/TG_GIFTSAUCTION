@@ -113,6 +113,8 @@
       "exportAll": "すべてのリソースをフォルダーにエクスポート...",
       "import": "別のデータファイルからリソースをインポート...",
       "importFiles": "画像・サウンド・スクリプトのファイルをインポート...",
+      "importCodeFolder": "フォルダーからコードをインポート...",
+      "importCodeFiles": "ファイルからコードをインポート...",
       "new": {
         "objects": "新しいオブジェクト...",
         "scripts": "新しいスクリプト...",
@@ -140,6 +142,7 @@
       "selectAll": "すべて選択",
       "find": "検索",
       "findInCode": "コード内を検索...",
+      "replaceInCode": "コード内を置換...",
       "findUsages": "使用箇所を検索",
       "findUses": "使用しているものを検索",
       "replaceFrame": "スプライトのフレームを置換...",
@@ -472,6 +475,8 @@
     },
     "newFolderTitle": "新しいフォルダー",
     "folderName": "フォルダー名",
+    "bulkMode": "名前変更モード",
+    "bulkPreview": "変更前後の名前",
     "create": "作成",
     "topLevel": "(最上位)",
     "newFolderChoice": "新しいフォルダー...",
@@ -715,6 +720,8 @@
     "later": "後で行う"
   },
   "editor": {
+    "typingInsert": "挿入",
+    "typingOverwrite": "上書",
     "empty": "何も開いていません。Ctrl+P でリソースを検索するか、エクスプローラーでダブルクリックしてください。"
   },
   "save": {
@@ -841,6 +848,8 @@
     "fontFiles": "フォントファイル",
     "notAFont": "{file} はフォントファイルではありません。",
     "search": "設定を検索",
+    "searchClear": "検索をクリア",
+    "nav": "設定のカテゴリ",
     "run": "実行",
     "runRunner": "ランナー (空欄ならデータファイルの隣のゲーム実行ファイル)",
     "runArguments": "追加の引数",
@@ -949,6 +958,12 @@
   },
   "search": {
     "placeholder": "コード内を検索",
+    "word": "単語単位",
+    "replacePlaceholder": "置換後の文字列",
+    "preview": "置換をプレビュー",
+    "replaceSelected": "選択を置換",
+    "replaced": "{entries} 件のエントリで {lines} 行を置換しました。元に戻すと一度で取り消せます。",
+    "replaceFailed": "コンパイルできないため変更していません: {entries}。",
     "case": "大文字と小文字を区別",
     "regex": "正規表現",
     "run": "検索",
@@ -1051,6 +1066,9 @@
   },
   "textureItem": {
     "export": "PNGで書き出し",
+    "replace": "PNG を置換",
+    "pick": "{name} の画像",
+    "replaced": "{name} の画像を置き換えました。",
     "saved": "{path} に保存しました",
     "failed": "保存できませんでした: {reason}"
   },
@@ -1075,6 +1093,7 @@
     "unrefFound": "どこからも使われていないアセットが {count} 件あります。",
     "unrefNone": "未使用のアセットはありません。",
     "unrefFailed": "未使用のアセットを検索できませんでした: {reason}",
+    "removeSelected": "選択を削除",
     "searching": "{name} の使用箇所を検索中...",
     "found": "{name} は {count} か所で使われています。",
     "none": "{name} はどこでも使われていません。",
@@ -1105,6 +1124,14 @@
     "revertTitle": "保存済みの状態に戻す",
     "confirmRevert": "{name} の未保存の変更 {count} 件を破棄して、ファイルを読み込み直しますか?",
     "pickFiles": "画像、サウンド、GML ファイルを選択",
+    "pickCodeFolder": "GML とアセンブリのファイルがあるフォルダー",
+    "pickCodeFiles": "GML またはアセンブリのファイルを選択",
+    "codeTitle": "コードのインポート",
+    "codePreview": "{count} 件のエントリのコードをファイルで置き換えますか？\n{names}",
+    "codeMisses": "{count} 個のファイルは同名のエントリがないためスキップします: {names}",
+    "codeNone": "このデータファイルのコードエントリ名に一致するファイルがありません。",
+    "codeDone": "{count} 件のエントリのコードを置き換えました。元に戻すと一度で取り消せます。",
+    "codeFailed": "何もインポートされませんでした: {reason}",
     "filesImported": "ファイルから {count} 件のリソースを追加しました。",
     "fileFailed": "「{name}」をインポートできません: {reason}",
     "selectedCount": "選択した {count} 件のリソース",
@@ -2164,6 +2191,12 @@
       "speed": "速度（フレーム/秒）"
     },
     "extensionSummary": "拡張 {name} {version}: ファイル {files}、オプション {options}",
+    "extAddFile": "ファイルを追加",
+    "extAddFunction": "関数を追加",
+    "extAddArgument": "引数を追加",
+    "extAddOption": "オプションを追加",
+    "extUp": "上へ",
+    "extDown": "下へ",
     "shaderCheck": {
       "ok": "問題は見つかりません (簡易チェックでコンパイラではありません)",
       "brackets": "括弧が対応していません",
@@ -2176,6 +2209,9 @@
       "audioTitle": "オーディオグループ",
       "move": "移動",
       "moveTo": "選択項目の移動先",
+      "groups": "グループ",
+      "members": "メンバー",
+      "kind": "種類",
       "moved": "{count} 件を {group} に移動しました。"
     }
   },

@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using G3MLib.DataFile;
 using G3MStudio.Core.Notifications;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
@@ -155,18 +156,21 @@ public sealed class IncludedFilesView : Grid
         if (file is null || TopLevel.GetTopLevel(this) is not Window window) return;
         var name = await ProjectDialogs.AskTextAsync(window, Loc.Current["included.rename"], Loc.Current.Format("included.renamePrompt", ("name", file.Name)), file.Name, false);
         if (string.IsNullOrWhiteSpace(name) || name == file.Name) return;
-        await ForceAsync(force => _files.Rename(file.Path, name.Trim(), _workspace.Data, force), file.Name);
+        await ForceAsync((data, force) => _files.Rename(file.Path, name.Trim(), data, force), file.Name);
     }
 
-    private Task DeleteAsync(IncludedFile? file) => file is null ? Task.CompletedTask : ForceAsync(force => _files.Delete(file.Path, _workspace.Data, force), file.Name);
+    private Task DeleteAsync(IncludedFile? file) => file is null ? Task.CompletedTask : ForceAsync((data, force) => _files.Delete(file.Path, data, force), file.Name);
 
     // Same shape as the risky edits: try, warn on a refusal, then repeat with the force flag when the owner agrees.
-    private async Task ForceAsync(Action<bool> act, string name)
+    // The file IO runs off the UI thread; the lock is held only to read the model.
+    private async Task ForceAsync(Action<GameMakerData?, bool> act, string name)
     {
+        GameMakerData? data;
+        using (_workspace.Lock.Read()) data = _workspace.Data;
         IncludedFileUseException refusal;
         try
         {
-            using (_workspace.Lock.Read()) act(false);
+            await Task.Run(() => act(data, false));
             return;
         }
         catch (IncludedFileUseException e)
@@ -174,7 +178,6 @@ public sealed class IncludedFilesView : Grid
             refusal = e;
         }
 
-        if (await _askRisky(refusal, name))
-            using (_workspace.Lock.Read()) act(true);
+        if (await _askRisky(refusal, name)) await Task.Run(() => act(data, true));
     }
 }

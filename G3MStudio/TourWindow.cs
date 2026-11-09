@@ -51,7 +51,7 @@ public sealed class TourWindow : Window
         Content = new StackPanel
         {
             Margin = new Avalonia.Thickness(24),
-            Spacing = 10,
+            Spacing = Mods.ModsUi.Space(3),
             Children =
             {
                 _count,

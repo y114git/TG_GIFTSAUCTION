@@ -98,9 +98,20 @@ public sealed partial class IncludedFiles(string dataFile, UserData? home = null
         var full = Path.GetFullPath(Path.Combine(Root, relative));
         // A root folder such as C:\ already ends with the separator.
         var prefix = Path.EndsInDirectorySeparator(Root) ? Root : Root + Path.DirectorySeparatorChar;
-        return full.StartsWith(prefix, NameCase) && !Hidden(full)
-            ? full
-            : throw new InvalidOperationException($"'{relative}' is outside the game folder and was not used.");
+        if (!full.StartsWith(prefix, NameCase) || Hidden(full) || HasLinkedParent(full, prefix.Length)) throw new InvalidOperationException($"'{relative}' is outside the game folder and was not used.");
+        return full;
+    }
+
+    // A folder that is a link could lead out of the game folder (Scan skips them for the same reason).
+    private static bool HasLinkedParent(string full, int rootLength)
+    {
+        for (var i = full.IndexOf(Path.DirectorySeparatorChar, rootLength); i > 0; i = full.IndexOf(Path.DirectorySeparatorChar, i + 1))
+        {
+            var folder = new DirectoryInfo(full[..i]);
+            if (folder.Exists && folder.Attributes.HasFlag(FileAttributes.ReparsePoint)) return true;
+        }
+
+        return false;
     }
 }
 

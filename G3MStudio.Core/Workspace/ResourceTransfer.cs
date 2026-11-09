@@ -103,9 +103,15 @@ public static class ResourceTransfer
     /// Imports a ZIP made by Export as Package: it is unpacked into <paramref name="scratch"/> and everything in it goes in through <see cref="CopyPackage.Import"/>
     /// (resources first, then the code they own). Same rule as <see cref="Import"/>: the caller makes it a bulk change.
     /// </summary>
-    public static IReadOnlyList<ItemResult> ImportPackage(Workspace workspace, string zipPath, string scratch, IProgress<BatchProgress>? progress, CancellationToken cancellationToken)
+    public static IReadOnlyList<ItemResult> ImportPackage(Workspace workspace, string zipPath, string scratch, IProgress<BatchProgress>? progress, CancellationToken cancellationToken) =>
+        ImportUnpacked(workspace, UnpackPackage(zipPath, scratch), scratch, progress, cancellationToken);
+
+    /// <summary>
+    /// Unpacks and checks a package without touching the workspace, so a refused package can be rejected before the bulk change that would wipe the undo stack.
+    /// </summary>
+    public static Dictionary<string, HashSet<string>> UnpackPackage(string zipPath, string scratch)
     {
-        CopyPackage.Unzip(File.ReadAllBytes(zipPath), scratch);
+        CopyPackage.Unzip(zipPath, scratch);
         // The ZIP is untrusted: only the known resource folders and safe item names are imported, and the room instance ids, page indexes and audio slots
         // of the other file are dropped like in a copy.
         var selection = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
@@ -119,6 +125,12 @@ public static class ResourceTransfer
         }
 
         if (selection.Count == 0) throw new InvalidDataException("The package holds no resources.");
+        return selection;
+    }
+
+    /// <summary>Imports a package that <see cref="UnpackPackage"/> accepted; the caller makes it a bulk change.</summary>
+    public static IReadOnlyList<ItemResult> ImportUnpacked(Workspace workspace, Dictionary<string, HashSet<string>> selection, string scratch, IProgress<BatchProgress>? progress, CancellationToken cancellationToken)
+    {
         CopyPackage.Prepare(scratch, new Dictionary<string, string>(), ResourceCopier.FirstFreeInstanceId(workspace.Data));
         return CopyPackage.Import(workspace.Data, scratch, selection, progress, cancellationToken);
     }

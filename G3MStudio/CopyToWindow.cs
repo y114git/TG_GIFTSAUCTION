@@ -44,7 +44,7 @@ public sealed class CopyToWindow : Window
         Content = new StackPanel
         {
             Margin = new Avalonia.Thickness(16),
-            Spacing = 10,
+            Spacing = Mods.ModsUi.Space(3),
             Children =
             {
                 new TextBlock { Text = Loc.Current.Format("copyTo.header", ("count", items.Count), ("source", source.Name), ("target", target.Name)), TextWrapping = TextWrapping.Wrap },

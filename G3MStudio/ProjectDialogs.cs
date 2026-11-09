@@ -5,6 +5,7 @@ using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using G3MStudio.Core.Projects;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio;
 
@@ -44,7 +45,8 @@ internal static class ProjectDialogs
     public static async Task<(string Root, bool Remember)?> AskLocationAsync(Window owner, string suggested)
     {
         var window = Shell("project.location.title");
-        var path = new TextBox { Name = "Folder", Text = suggested, MinWidth = 300 };
+        var caption = new TextBlock { Text = Loc.Current["project.location.label"] };
+        var path = new TextBox { Name = "Folder", Text = suggested, MinWidth = 300 }.LabeledBy(caption);
         var remember = new CheckBox { Name = "Remember", Content = Loc.Current["project.location.remember"], IsChecked = true };
         (string, bool)? answer = null;
         var browse = Btn("project.location.browse", "Browse", async () =>
@@ -61,10 +63,10 @@ internal static class ProjectDialogs
         window.Content = new StackPanel
         {
             Margin = new Thickness(16),
-            Spacing = 10,
+            Spacing = Mods.ModsUi.Space(3),
             Children =
             {
-                new TextBlock { Text = Loc.Current["project.location.label"] },
+                caption,
                 new DockPanel { Children = { path } },
                 new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { browse } },
                 remember,
@@ -111,7 +113,8 @@ internal static class ProjectDialogs
     public static async Task AskMoveAsync(Window owner, string current, Func<string, RelocateMode, Task<string?>> apply)
     {
         var window = Shell("project.move.title", 520);
-        var path = new TextBox { Name = "NewPath", Text = current, MinWidth = 400 };
+        var caption = new TextBlock { Text = Loc.Current["project.move.path"] };
+        var path = new TextBox { Name = "NewPath", Text = current, MinWidth = 400 }.LabeledBy(caption);
         var error = new TextBlock { Name = "Error", TextWrapping = TextWrapping.Wrap, Foreground = (IBrush?)Application.Current?.FindResource("Danger") };
         var all = new List<Button>();
         Button Mode(string key, RelocateMode mode)
@@ -131,10 +134,10 @@ internal static class ProjectDialogs
         window.Content = new StackPanel
         {
             Margin = new Thickness(16),
-            Spacing = 10,
+            Spacing = Mods.ModsUi.Space(3),
             Children =
             {
-                new TextBlock { Text = Loc.Current["project.move.path"] },
+                caption,
                 path,
                 error,
                 Buttons(Mode("project.move.move", RelocateMode.Move), Mode("project.move.copy", RelocateMode.Copy), Mode("project.move.recreate", RelocateMode.Recreate), Btn("explorer.cancel", "Cancel", window.Close)),
@@ -205,7 +208,8 @@ internal static class ProjectDialogs
         {
             var side = new ComboBox { Name = "Side", ItemsSource = new[] { Loc.Current["project.conflicts.ours"], Loc.Current["project.conflicts.theirs"] }, SelectedIndex = 0, MinWidth = 200, Tag = conflict.Path };
             rows.Add((conflict.Path, side));
-            list.Children.Add(new DockPanel { Children = { new TextBlock { Text = conflict.Path, VerticalAlignment = VerticalAlignment.Center, Width = 280 }, side } });
+            var file = new TextBlock { Text = conflict.Path, VerticalAlignment = VerticalAlignment.Center, Width = 280 };
+            list.Children.Add(new DockPanel { Children = { file, side.LabeledBy(file) } });
         }
 
         Dictionary<string, MergeSide>? answer = null;
@@ -320,14 +324,15 @@ internal static class ProjectDialogs
         var window = Shell("transfer.confirmTitle", multiline ? 560 : 460);
         window.Title = title;
         string? answer = null;
-        var box = new TextBox { Name = "ScriptText", Text = current, AcceptsReturn = multiline, TextWrapping = multiline ? TextWrapping.Wrap : TextWrapping.NoWrap, MinHeight = multiline ? 140 : 0 };
+        var caption = new TextBlock { Text = label, TextWrapping = TextWrapping.Wrap };
+        var box = new TextBox { Name = "ScriptText", Text = current, AcceptsReturn = multiline, TextWrapping = multiline ? TextWrapping.Wrap : TextWrapping.NoWrap, MinHeight = multiline ? 140 : 0 }.LabeledBy(caption);
         window.Content = new StackPanel
         {
             Margin = new Thickness(16),
             Spacing = 12,
             Children =
             {
-                new TextBlock { Text = label, TextWrapping = TextWrapping.Wrap },
+                caption,
                 box,
                 Buttons(Btn("transfer.ok", "Ok", () => { answer = box.Text ?? string.Empty; window.Close(); }), Btn("explorer.cancel", "Cancel", window.Close)),
             },
@@ -342,7 +347,8 @@ internal static class ProjectDialogs
         var window = Shell("transfer.confirmTitle", 520);
         window.Title = title;
         int? answer = null;
-        var list = new ListBox { Name = "ChoiceList", ItemsSource = items, SelectedIndex = selected, MaxHeight = 280, ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<string>((text, _) => columns is null ? new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap } : ChoiceRow(text.Split('\t'), false)) };
+        var caption = new TextBlock { Text = label, TextWrapping = TextWrapping.Wrap };
+        var list = new ListBox { Name = "ChoiceList", ItemsSource = items, SelectedIndex = selected, MaxHeight = 280, ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<string>((text, _) => columns is null ? new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap } : ChoiceRow(text.Split('\t'), false)) }.LabeledBy(caption);
         ScrollViewer.SetHorizontalScrollBarVisibility(list, Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled);
         list.DoubleTapped += (_, _) =>
         {
@@ -356,7 +362,7 @@ internal static class ProjectDialogs
             Spacing = 12,
             Children =
             {
-                new TextBlock { Text = label, TextWrapping = TextWrapping.Wrap },
+                caption,
                 list,
                 Buttons(Btn("transfer.ok", "Ok", () => { if (list.SelectedIndex >= 0) answer = list.SelectedIndex; window.Close(); }), Btn("explorer.cancel", "Cancel", window.Close)),
             },

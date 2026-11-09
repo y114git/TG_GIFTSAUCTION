@@ -6,7 +6,7 @@ using ImageMagick;
 namespace G3MStudio.Core.Workspace;
 
 /// <summary>Replaces one frame of a sprite with a picture (any format Magick reads). The page image it overwrote is kept, so Undo puts it back. The picture is stored in the journal.</summary>
-public sealed class ReplaceFrameCommand(string sprite, int frame, byte[] picture) : EditCommand
+public class ReplaceFrameCommand(string sprite, int frame, byte[] picture) : EditCommand
 {
     public const string Name = "replaceFrame";
 
@@ -50,7 +50,7 @@ public sealed class ReplaceFrameCommand(string sprite, int frame, byte[] picture
         ["picture"] = Convert.ToBase64String(picture),
     };
 
-    private GameMakerTexturePageItem Item(GameMakerData data)
+    protected virtual GameMakerTexturePageItem Item(GameMakerData data)
     {
         var found = data.Sprites.FirstOrDefault(s => s.Name.Content == sprite) ?? throw new InvalidOperationException($"Sprite '{sprite}' does not exist.");
         return found.Textures.ElementAtOrDefault(frame)?.Texture ?? throw new InvalidOperationException($"Sprite '{sprite}' has no frame {frame}.");

@@ -97,8 +97,8 @@ public sealed partial class MainWindow
 
     private TilePickerView TilePicker(GameMakerBackground background, Workspace workspace)
     {
-        var view = new TilePickerView(background, _textures, workspace, AutoTilesOf(workspace));
         var set = ResourceTypes.NameOf(background);
+        var view = new TilePickerView(background, _textures, workspace, AutoTilesOf(workspace), () => ReplaceItemPictureAsync(workspace, "tileSets", set));
         if (view.AutoTiles is { } rules) rules.FilePicker = (title, save) => PickPatchFile(title, save, ".json");
         view.FindRequested += index =>
         {
@@ -114,6 +114,14 @@ public sealed partial class MainWindow
         if (Workspaces.Current is not { } workspace || key is null || ResourceTypes.SplitKey(key) is not ("objects", var name)) return;
         Docking.ShowPanel("Usages");
         _ = _usages.ShowAsync(name, UsageSearch.FindChildrenAsync(workspace, name));
+    }
+
+    /// <summary>Deletes the selected unreferenced assets through the delete question as one undo step, then lists what is left.</summary>
+    private async Task RemoveUnreferencedAsync(IReadOnlyList<UsageHit> hits)
+    {
+        if (Workspaces.Current is not { } workspace || !ApplyCodeEditors()) return;
+        await DeleteManyAsync(workspace, [.. hits.Where(h => h.OwnerType is not null).Select(h => (h.OwnerType!, h.OwnerName))]);
+        FindUnreferenced();
     }
 
     public void FindUnreferenced()
@@ -138,6 +146,12 @@ public sealed partial class MainWindow
     }
 
     public void ShowSearch() => Docking.ShowPanel("Search");
+
+    public void ShowReplace()
+    {
+        ShowSearch();
+        _search.FocusReplace();
+    }
 
     public void SelectAll()
     {

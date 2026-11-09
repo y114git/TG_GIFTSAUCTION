@@ -53,13 +53,14 @@ public sealed partial class ModBaseCache
             if (!used.Contains(System.IO.Path.GetFileNameWithoutExtension(file))) File.Delete(file);
     }
 
-    // Leftovers of a copy that was interrupted.
-    private void SweepParts()
+    // Leftovers of a copy that was interrupted. A recent file may belong to a copy that another Studio is still writing, so only old ones go (Clear takes all).
+    private void SweepParts(TimeSpan age)
     {
         foreach (var part in Directory.EnumerateFiles(_folder, "*.part"))
         {
             try
             {
+                if (File.GetLastWriteTimeUtc(part) > DateTime.UtcNow - age) continue;
                 File.Delete(part);
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
@@ -132,7 +133,7 @@ public sealed partial class ModBaseCache
             if (!Directory.Exists(_folder)) return true;
             try
             {
-                SweepParts();
+                SweepParts(TimeSpan.Zero);
                 Directory.Delete(_folder, true);
                 return true;
             }

@@ -113,6 +113,8 @@
       "exportAll": "Export All Resources to a Folder...",
       "import": "Import Resources from Another Data File...",
       "importFiles": "Import Pictures, Sounds and Scripts from Files...",
+      "importCodeFolder": "Import Code from a Folder...",
+      "importCodeFiles": "Import Code from Files...",
       "new": {
         "objects": "New Object...",
         "scripts": "New Script...",
@@ -140,6 +142,7 @@
       "selectAll": "Select All",
       "find": "Find",
       "findInCode": "Find in Code...",
+      "replaceInCode": "Replace in Code...",
       "findUsages": "Find Usages",
       "findUses": "Find What It Uses",
       "replaceFrame": "Replace Sprite Frame...",
@@ -472,6 +475,8 @@
     },
     "newFolderTitle": "New folder",
     "folderName": "Folder name",
+    "bulkMode": "Rename mode",
+    "bulkPreview": "Names before and after",
     "create": "Create",
     "topLevel": "(top level)",
     "newFolderChoice": "New folder...",
@@ -715,6 +720,8 @@
     "later": "Do it later"
   },
   "editor": {
+    "typingInsert": "INS",
+    "typingOverwrite": "OVR",
     "empty": "Nothing open. Press Ctrl+P to find a resource, or double-click one in the Explorer."
   },
   "save": {
@@ -841,6 +848,8 @@
     "fontFiles": "Font files",
     "notAFont": "{file} is not a font file.",
     "search": "Search settings",
+    "searchClear": "Clear search",
+    "nav": "Settings categories",
     "run": "Run",
     "runRunner": "Runner (empty runs the game executable next to the data file)",
     "runArguments": "Extra arguments",
@@ -949,6 +958,12 @@
   },
   "search": {
     "placeholder": "Find in code",
+    "word": "Whole word",
+    "replacePlaceholder": "Replace with",
+    "preview": "Preview replace",
+    "replaceSelected": "Replace selected",
+    "replaced": "Replaced {lines} lines in {entries} entries. Undo takes it back in one step.",
+    "replaceFailed": "Left unchanged because they do not compile: {entries}.",
     "case": "Match case",
     "regex": "Regular expression",
     "run": "Search",
@@ -1051,6 +1066,9 @@
   },
   "textureItem": {
     "export": "Export PNG",
+    "replace": "Replace PNG",
+    "pick": "Picture for {name}",
+    "replaced": "Picture of {name} replaced.",
     "saved": "Saved to {path}",
     "failed": "Could not save: {reason}"
   },
@@ -1075,6 +1093,7 @@
     "unrefFound": "Assets that are not used anywhere: {count}.",
     "unrefNone": "No asset is unused.",
     "unrefFailed": "Could not search for unused assets: {reason}",
+    "removeSelected": "Remove selected",
     "searching": "Looking for uses of {name}...",
     "found": "Places that use {name}: {count}.",
     "none": "{name} is not used anywhere.",
@@ -1105,6 +1124,14 @@
     "revertTitle": "Revert to Saved",
     "confirmRevert": "Drop unsaved changes of {name} ({count}) and load the file again?",
     "pickFiles": "Pick pictures, sounds or GML files",
+    "pickCodeFolder": "Folder with GML and assembly files",
+    "pickCodeFiles": "Pick GML or assembly files",
+    "codeTitle": "Import Code",
+    "codePreview": "Replace the code of {count} entries from files?\n{names}",
+    "codeMisses": "No entry has the name of {count} files, which are skipped: {names}",
+    "codeNone": "No file is named after a code entry of this data file.",
+    "codeDone": "Code replaced in {count} entries. Undo takes it back in one step.",
+    "codeFailed": "Nothing was imported: {reason}",
     "filesImported": "Resources added from files: {count}.",
     "fileFailed": "Could not import '{name}': {reason}",
     "selectedCount": "Selected resources: {count}",
@@ -2164,6 +2191,12 @@
       "speed": "Speed (frames per second)"
     },
     "extensionSummary": "Extension {name} {version}: {files} files, {options} options",
+    "extAddFile": "Add file",
+    "extAddFunction": "Add function",
+    "extAddArgument": "Add argument",
+    "extAddOption": "Add option",
+    "extUp": "Move up",
+    "extDown": "Move down",
     "shaderCheck": {
       "ok": "No problems found (a light check, not a compiler)",
       "brackets": "Brackets do not match",
@@ -2176,6 +2209,9 @@
       "audioTitle": "Audio Groups",
       "move": "Move",
       "moveTo": "Move picked to",
+      "groups": "Groups",
+      "members": "Members",
+      "kind": "Kind",
       "moved": "Moved {count} to {group}."
     }
   },

@@ -40,10 +40,12 @@ public sealed partial class IncludedFiles
     {
         var target = Resolve(relative);
         if (!File.Exists(target)) throw new FileNotFoundException($"'{relative}' does not exist.");
-        var temp = target + TempSuffix;
+        var temp = $"{target}.{Guid.NewGuid():N}{TempSuffix}";
         try
         {
-            File.Copy(source, temp, true);
+            using (var input = File.OpenRead(source))
+            using (var output = new FileStream(temp, FileMode.CreateNew, FileAccess.Write))
+                input.CopyTo(output);
             File.Move(temp, target, true);
         }
         catch
@@ -71,7 +73,7 @@ public sealed partial class IncludedFiles
         var target = Path.Combine(ParentOf(source), newName);
         Resolve(Relative(target));
         // A case-only rename ("Mus.ogg" to "mus.ogg") finds the file itself on a case-insensitive disk.
-        if ((File.Exists(target) || Directory.Exists(target)) && !string.Equals(source, target, StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException($"'{newName}' already exists.");
+        if ((File.Exists(target) || Directory.Exists(target)) && !string.Equals(source, target, NameCase)) throw new InvalidOperationException($"'{newName}' already exists.");
         if (!force) CheckUse(relative, data, true);
         File.Move(source, target);
         return Relative(target);

@@ -14,6 +14,7 @@ public sealed partial class UserData(string root)
     {
         var data = new UserData(Environment.GetEnvironmentVariable("G3MSTUDIO_DATA") is { Length: > 0 } custom ? custom : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "G3MStudio"));
         data.SweepStaleTemp(TimeSpan.FromDays(1));
+        data.SweepTrash(TimeSpan.FromDays(30));
         return data;
     }
 
@@ -49,6 +50,32 @@ public sealed partial class UserData(string root)
             }
 
             throw;
+        }
+    }
+
+    /// <summary>Deletes the included-files trash batches (folders named by the delete time) that are older than <paramref name="age"/>.</summary>
+    public void SweepTrash(TimeSpan age)
+    {
+        var trash = Combine("trash");
+        if (!Directory.Exists(trash)) return;
+        try
+        {
+            foreach (var batch in Directory.EnumerateDirectories(trash))
+            {
+                if (!DateTime.TryParseExact(Path.GetFileName(batch), "yyyyMMdd-HHmmss-fff", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var deleted) || deleted > DateTime.Now - age) continue;
+                try
+                {
+                    Directory.Delete(batch, true);
+                }
+                catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+                {
+                    // in use or locked: try again next start
+                }
+            }
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            // an unreadable folder is skipped
         }
     }
 

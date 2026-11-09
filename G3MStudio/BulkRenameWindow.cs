@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio;
 
@@ -44,6 +45,10 @@ public sealed class BulkRenameWindow : Window
         var error = new TextBlock { Name = "BulkError", TextWrapping = Avalonia.Media.TextWrapping.Wrap, Foreground = (Avalonia.Media.IBrush?)Application.Current?.FindResource("Danger") };
         _find.PlaceholderText = Loc.Current["organize.find"];
         _text.PlaceholderText = Loc.Current["organize.text"];
+        _mode.Labeled("organize.bulkMode");
+        _find.Labeled("organize.find");
+        _text.Labeled("organize.text");
+        _preview.Labeled("organize.bulkPreview");
         _mode.SelectionChanged += (_, _) => Refresh();
         _find.TextChanged += (_, _) => Refresh();
         _text.TextChanged += (_, _) => Refresh();

@@ -5,6 +5,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio.Editor;
 
@@ -102,8 +103,8 @@ public sealed partial class ImageEditorView
 
     private Border LayerRow(PaintLayer layer, int index)
     {
-        var eye = LayerToggle("LayerEye_" + index, EyeIcon, layer.Visible, on => LayerOp("visible", on ? "1" : "0", index, ActiveLayer));
-        var padlock = LayerToggle("LayerLock_" + index, LockIcon, layer.Locked, on => LayerOp("lock", on ? "1" : "0", index, ActiveLayer));
+        var eye = LayerToggle("LayerEye_" + index, EyeIcon, "rooms.show", layer.Visible, on => LayerOp("visible", on ? "1" : "0", index, ActiveLayer));
+        var padlock = LayerToggle("LayerLock_" + index, LockIcon, "rooms.lock", layer.Locked, on => LayerOp("lock", on ? "1" : "0", index, ActiveLayer));
         var name = new Button { Name = "LayerSelect_" + index, Content = layer.Name, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Left };
         name.Click += (_, _) => SelectLayer(index);
         DockPanel.SetDock(eye, Avalonia.Controls.Dock.Left);
@@ -111,9 +112,9 @@ public sealed partial class ImageEditorView
         return new Border { Name = "LayerRow_" + index, BorderThickness = new Thickness(index == ActiveLayer ? 2 : 0), BorderBrush = G3MStudio.Theme.CanvasTheme.Point, Child = new DockPanel { Children = { eye, padlock, name } } };
     }
 
-    private static ToggleButton LayerToggle(string name, string icon, bool on, Action<bool> changed)
+    private static ToggleButton LayerToggle(string name, string icon, string labelKey, bool on, Action<bool> changed)
     {
-        var button = new ToggleButton { Name = name, IsChecked = on, Width = 30, Padding = new Thickness(0), Content = new PathIcon { Data = Geometry.Parse(icon), Width = 14, Height = 14, Opacity = on ? 1 : 0.35 } };
+        var button = new ToggleButton { Name = name, IsChecked = on, Width = 30, Padding = new Thickness(0), Content = new PathIcon { Data = Geometry.Parse(icon), Width = 14, Height = 14, Opacity = on ? 1 : 0.35 } }.Labeled(labelKey);
         button.Click += (_, _) => changed(button.IsChecked == true);
         return button;
     }

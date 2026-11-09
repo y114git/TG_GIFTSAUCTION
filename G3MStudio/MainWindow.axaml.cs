@@ -87,6 +87,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
         _search.OpenRequested += hit => OpenCodeAt(hit.Entry, hit.Line, 1);
         _search.BeforeRun = ApplyCodeEditors;
         _usages.OpenRequested += OpenUsage;
+        _usages.RemoveRequested += hits => _ = RemoveUnreferencedAsync(hits);
         _reference.InsertRequested += text => ActiveCodeTab?.InsertAtCaret(text);
         _reference.ManualRequested += OpenManual;
         InitProject();
@@ -189,6 +190,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
         Registry?.SetContext(AppCommands.ProjectOn, current?.Project is not null);
         Registry?.SetContext(AppCommands.ProjectOff, current is not null && current.Project is null);
         ProjectButton.Content = ProjectText();
+        Avalonia.Automation.AutomationProperties.SetName(ProjectButton, (string)ProjectButton.Content);
         NotifyButton.IsVisible = Notifications.Unread > 0;
         NotifyButton.Content = Loc.Current.Format("notify.button", ("count", Notifications.Unread));
         Avalonia.Automation.AutomationProperties.SetName(NotifyButton, (string)NotifyButton.Content);
@@ -341,7 +343,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
     private StackPanel FontTab(GameMakerFont font, Workspace workspace)
     {
         // A short sheet (the picture scrolls inside it) keeps the glyph list and the kerning pairs in view; a taller fixed size was cut to its middle by a smaller border.
-        var sheet = new TextureItemView(font.Texture, _textures) { Height = 150 };
+        var sheet = new TextureItemView(font.Texture, _textures, () => ReplaceItemPictureAsync(workspace, "fonts", ResourceTypes.NameOf(font))) { Height = 150 };
         return new StackPanel { Spacing = 8, Children = { sheet, new FontGlyphsView(font, workspace) { Sheet = sheet, ReplaceRequested = name => _ = ReplaceFontAsync(name) } } };
     }
 

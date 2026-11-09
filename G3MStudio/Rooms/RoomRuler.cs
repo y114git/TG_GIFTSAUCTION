@@ -1,5 +1,6 @@
 using System.Globalization;
 using Avalonia;
+using G3MStudio.Theme;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
@@ -32,12 +33,12 @@ public sealed class RoomRuler : Control
         var length = horizontal ? Bounds.Width : Bounds.Height;
         var start = horizontal ? _view.Offset.X : _view.Offset.Y;
         var step = NiceStep(60 / _view.Zoom);
-        var pen = new Pen(Brushes.Gray, 1);
+        var pen = new Pen(CanvasTheme.Muted, 1);
         for (var value = Math.Floor(start / step) * step; (value - start) * _view.Zoom <= length; value += step)
         {
             var at = (value - start) * _view.Zoom;
             if (at < 0) continue;
-            var label = new FormattedText(value.ToString("0", CultureInfo.InvariantCulture), CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Typeface.Default, 9, Brushes.Gray);
+            var label = new FormattedText(value.ToString("0", CultureInfo.InvariantCulture), CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Typeface.Default, 9, CanvasTheme.Muted);
             if (horizontal)
             {
                 context.DrawLine(pen, new Point(at, Thickness - 8), new Point(at, Thickness));

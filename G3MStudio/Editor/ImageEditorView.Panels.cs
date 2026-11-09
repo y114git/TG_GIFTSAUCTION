@@ -5,6 +5,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio.Editor;
 
@@ -56,8 +57,8 @@ public sealed partial class ImageEditorView
     private static Button Small(string name, string text, Action click)
     {
         var button = new Button { Name = name, Content = text, Padding = new Thickness(6, 2) };
-        if (name == "ImageZoomOut") Avalonia.Automation.AutomationProperties.SetName(button, Loc.Current["rooms.zoomOut"]);
-        if (name == "ImageZoomIn") Avalonia.Automation.AutomationProperties.SetName(button, Loc.Current["rooms.zoomIn"]);
+        if (name == "ImageZoomOut") button.Labeled("rooms.zoomOut");
+        if (name == "ImageZoomIn") button.Labeled("rooms.zoomIn");
         button.Click += (_, _) => click();
         return button;
     }
@@ -148,7 +149,9 @@ public sealed partial class ImageEditorView
         foreach (var (shape, size) in new[] { (BrushShape.Square, 1), (BrushShape.Square, 2), (BrushShape.Square, 3), (BrushShape.Square, 5), (BrushShape.Square, 8), (BrushShape.Round, 3), (BrushShape.Round, 5), (BrushShape.Round, 8), (BrushShape.Round, 12), (BrushShape.Round, 16) })
         {
             var button = new Button { Width = 36, Height = 36, Padding = new Thickness(0), Margin = new Thickness(1), Content = BrushPreview(shape, size) };
-            ToolTip.SetTip(button, $"{Loc.Current["image.shape." + shape]} {size}");
+            var brushName = $"{Loc.Current["image.shape." + shape]} {size}";
+            ToolTip.SetTip(button, brushName);
+            Avalonia.Automation.AutomationProperties.SetName(button, brushName);
             button.Click += (_, _) =>
             {
                 Canvas.Shape = shape;
@@ -216,7 +219,7 @@ public sealed partial class ImageEditorView
         foreach (var tool in ImageTools.All)
         {
             var button = new ToggleButton { Name = "Tool_" + tool, Width = 44, Height = 40, Margin = new Thickness(1), Padding = new Thickness(0), Content = new PathIcon { Data = Geometry.Parse(ImageTools.Icon(tool)) } };
-            ToolTip.SetTip(button, Tip(Loc.Current["image.tool." + tool], ImageTools.CommandOf(tool)));
+            button.Labeled("image.tool." + tool, Tip(Loc.Current["image.tool." + tool], ImageTools.CommandOf(tool)));
             button.Click += (_, _) =>
             {
                 SetTool(tool);

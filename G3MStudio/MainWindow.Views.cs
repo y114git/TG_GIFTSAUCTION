@@ -126,7 +126,7 @@ public sealed partial class MainWindow
                 GameMakerParticleSystem system => ParticleTab(system, workspace),
                 GameMakerSequence sequence => SequencePlayerView.Tab(sequence, _textures, workspace),
                 GameMakerAnimationCurve curve => new CurveEditor(curve, workspace),
-                GameMakerExtension extension => new ExtensionView(extension),
+                GameMakerExtension extension => new ExtensionView(extension, workspace, (build, name) => EditOrForceAsync(workspace, build, name)),
                 GameMakerShader shader => new ShaderSourceView(shader, workspace),
                 GameMakerTimeline timeline => new TimelineStepsView(timeline, workspace, OpenEntry),
                 GameMakerEmbeddedTexture page => new TexturePagePreview(page, _textures, workspace.History, workspace.Data.TexturePageItems, (ExportPage, ReplacePage, () => new GroupsWindow(workspace, false).Show(this))),

@@ -157,10 +157,45 @@ public static partial class CopyPackage
     public static void Unzip(byte[] package, string directory)
     {
         using var stream = new MemoryStream(package);
-        using var zip = new ZipArchive(stream);
-        // ExtractToDirectory refuses names that leave the folder; the caps stop a pack that unpacks to far more than it weighs.
+        Unzip(stream, directory);
+    }
+
+    public static void Unzip(string zipPath, string directory)
+    {
+        if (new FileInfo(zipPath).Length > MaxUnpackedBytes) throw new InvalidDataException("The package is too large.");
+        using var stream = File.OpenRead(zipPath);
+        Unzip(stream, directory);
+    }
+
+    private static void Unzip(Stream package, string directory)
+    {
+        using var zip = new ZipArchive(package);
+        // The caps stop a pack that unpacks to far more than it weighs; the declared sizes can lie, so the bytes are counted while copying.
         if (zip.Entries.Count > MaxUnpackedFiles || zip.Entries.Sum(e => e.Length) > MaxUnpackedBytes) throw new InvalidDataException("The package holds too many files or unpacks to too much data.");
-        zip.ExtractToDirectory(directory, true);
+        var root = Path.GetFullPath(directory);
+        var budget = MaxUnpackedBytes;
+        foreach (var entry in zip.Entries)
+        {
+            var target = Path.GetFullPath(Path.Combine(root, entry.FullName));
+            if (!target.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.Ordinal)) throw new IOException($"The package entry '{entry.FullName}' leaves the target folder.");
+            if (entry.Name.Length == 0)
+            {
+                Directory.CreateDirectory(target);
+                continue;
+            }
+
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            using var source = entry.Open();
+            using var output = File.Create(target);
+            var buffer = new byte[81920];
+            int read;
+            while ((read = source.Read(buffer, 0, (int)Math.Min(buffer.Length, budget + 1))) > 0)
+            {
+                budget -= read;
+                if (budget < 0) throw new InvalidDataException("The package holds too many files or unpacks to too much data.");
+                output.Write(buffer, 0, read);
+            }
+        }
     }
 
     /// <summary>

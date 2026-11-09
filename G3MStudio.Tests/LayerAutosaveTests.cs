@@ -30,6 +30,17 @@ public sealed class LayerAutosaveTests
     }
 
     [Fact]
+    public void DisposeWritesEditsThatWereStillWaitingForTheDelay()
+    {
+        var store = new LayerStore();
+        var writes = 0;
+        var autosave = new LayerAutosave(store, _ => writes++, TimeSpan.FromSeconds(30));
+        store.Set("spr", 0, Stack(50));
+        autosave.Dispose();
+        Assert.Equal(1, writes);
+    }
+
+    [Fact]
     public void DisposeWaitsForAWriteThatIsRunning()
     {
         var store = new LayerStore();

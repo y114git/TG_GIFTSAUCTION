@@ -45,7 +45,7 @@ public static class RunLocator
     {
         if (!File.Exists(runner)) return RunnerCheck.Missing;
         var folder = Path.GetDirectoryName(Path.GetFullPath(dataFile));
-        var sameFolder = string.Equals(Path.GetDirectoryName(Path.GetFullPath(runner)), folder, StringComparison.OrdinalIgnoreCase);
+        var sameFolder = string.Equals(Path.GetDirectoryName(Path.GetFullPath(runner)), folder, OperatingSystem.IsLinux() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
         return sameFolder && GameNames(dataFile, gameFileName).Contains(Path.GetFileName(runner), StringComparer.OrdinalIgnoreCase) ? RunnerCheck.Known : RunnerCheck.Unknown;
     }
 

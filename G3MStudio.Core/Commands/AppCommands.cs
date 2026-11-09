@@ -54,6 +54,9 @@ public interface IShell : IOrganizeShell
 
     void ShowSearch();
 
+    /// <summary>Ctrl+Shift+H: opens the Search panel with the cursor in the replace box.</summary>
+    void ShowReplace();
+
     /// <summary>Lists where the selected resource (or the one in the tab in front) is used.</summary>
     void FindUsages();
 
@@ -68,6 +71,11 @@ public interface IShell : IOrganizeShell
     void ImportPackage();
 
     void ImportFiles();
+
+    /// <summary>Import GML: replaces the code of existing entries from .gml and .asm files named after them, picked as a folder or as files.</summary>
+    void ImportCodeFolder();
+
+    void ImportCodeFiles();
 
     void RevertToSaved();
 
@@ -337,6 +345,8 @@ public static partial class AppCommands
         Add("file.import", null, shell.ImportResources, WorkspaceOpen);
         Add("file.importPackage", null, shell.ImportPackage, WorkspaceOpen);
         Add("file.importFiles", null, shell.ImportFiles, WorkspaceOpen);
+        Add("file.importCodeFolder", null, shell.ImportCodeFolder, WorkspaceOpen);
+        Add("file.importCodeFiles", null, shell.ImportCodeFiles, WorkspaceOpen);
         Add("help.checkUpdates", null, shell.CheckForUpdates);
         Add("run.game", "F5", shell.RunGame, WorkspaceOpen);
         Add("run.withRuntime", null, shell.RunWithRuntime, WorkspaceOpen);
@@ -415,6 +425,7 @@ public static partial class AppCommands
         Add("edit.selectAll", "Ctrl+A", shell.SelectAll, WorkspaceOpen);
         Add("edit.find", "Ctrl+F", shell.Find, WorkspaceOpen);
         Add("edit.findInCode", "Ctrl+Shift+F", shell.ShowSearch, WorkspaceOpen);
+        Add("edit.replaceInCode", "Ctrl+Shift+H", shell.ShowReplace, WorkspaceOpen);
         Add("edit.findUsages", "Shift+F12", shell.FindUsages, WorkspaceOpen);
         Add("edit.findUses", null, shell.FindUses, WorkspaceOpen);
     }

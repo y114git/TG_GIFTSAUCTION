@@ -1,4 +1,5 @@
 using Avalonia;
+using G3MStudio.Theme;
 using Avalonia.Controls;
 using Avalonia.Media;
 using G3MLib.DataFile.Models;
@@ -218,8 +219,8 @@ public sealed class AnimationCurveView : Control
         double Span(float low, float high) => high - low < 1e-6 ? 1 : high - low;
         var (spanX, spanY) = (Span(minX, maxX), Span(minY, maxY));
         Point Map(float x, float y) => new(44 + (x - minX) / spanX * Math.Max(1, Bounds.Width - 68), Bounds.Height - 24 - (y - minY) / spanY * Math.Max(1, Bounds.Height - 48));
-        var axis = new Pen(new SolidColorBrush(Avalonia.Media.Colors.White, 0.25), 1);
-        var grid = new Pen(new SolidColorBrush(Avalonia.Media.Colors.White, 0.08), 1);
+        var axis = new Pen(CanvasTheme.Soft(CanvasTheme.Handle, 0.25), 1);
+        var grid = new Pen(CanvasTheme.Soft(CanvasTheme.Handle, 0.08), 1);
         for (var q = 1; q < 4; q++)
         {
             context.DrawLine(grid, Map(minX, minY + (float)(spanY * q / 4)), Map(maxX, minY + (float)(spanY * q / 4)));
@@ -230,7 +231,7 @@ public sealed class AnimationCurveView : Control
         context.DrawLine(axis, Map(minX, minY), Map(minX, maxY));
         void Label(float value, Point at)
         {
-            var text = new FormattedText(value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture), System.Globalization.CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Typeface.Default, 11, Brushes.Gray);
+            var text = new FormattedText(value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture), System.Globalization.CultureInfo.InvariantCulture, FlowDirection.LeftToRight, Typeface.Default, 11, CanvasTheme.Muted);
             context.DrawText(text, at);
         }
 

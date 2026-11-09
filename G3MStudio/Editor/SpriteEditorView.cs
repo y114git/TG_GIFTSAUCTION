@@ -1,4 +1,3 @@
-using G3MStudio.Localization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -32,10 +31,8 @@ public sealed class SpriteEditorView : ScrollViewer
         VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
         Frames = new SpriteFramesView(sprite, textures, workspace.History);
         Tools = new SpriteToolsView(sprite, textures, workspace);
-        var zoomOut = new Button { Name = "SpriteZoomOut", Content = "-", MinWidth = 32 };
-        var zoomIn = new Button { Name = "SpriteZoomIn", Content = "+", MinWidth = 32 };
-        Avalonia.Automation.AutomationProperties.SetName(zoomOut, Loc.Current["rooms.zoomOut"]);
-        Avalonia.Automation.AutomationProperties.SetName(zoomIn, Loc.Current["rooms.zoomIn"]);
+        var zoomOut = new Button { Name = "SpriteZoomOut", Content = "-", MinWidth = 32 }.Labeled("rooms.zoomOut");
+        var zoomIn = new Button { Name = "SpriteZoomIn", Content = "+", MinWidth = 32 }.Labeled("rooms.zoomIn");
         var zoomText = new TextBlock { VerticalAlignment = VerticalAlignment.Center, Classes = { "muted" } };
         void Zoom(int by)
         {
