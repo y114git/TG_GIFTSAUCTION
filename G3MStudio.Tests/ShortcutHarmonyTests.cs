@@ -24,7 +24,7 @@ public sealed partial class ShortcutHarmonyTests
         [12] = ["code.goToDefinition", "code.peekDefinition", "edit.findUsages"],
     };
 
-    private static readonly string[] RegionKeys = ["view.region.menu", "panel.explorer", "view.region.status"];
+    private static readonly string[] RegionKeys = ["view.region.menu", "panel.explorer", "panel.inspector", "view.region.status"];
 
     private static string Canonical(string gesture) => string.Join('+', gesture.Split('+').Order(StringComparer.OrdinalIgnoreCase));
 
@@ -69,10 +69,9 @@ public sealed partial class ShortcutHarmonyTests
         Assert.Equal("F5", registry.Get("run.game").Shortcut);
         Assert.Equal("F6", registry.Get("view.nextRegion").Shortcut);
         Assert.Equal("Shift+F6", registry.Get("view.prevRegion").Shortcut);
-        Assert.Equal("F6", AppCommands.LegacyAliases["run.stop"]);
-        // Not bound by default (F6 has a new owner), but adding it is allowed and the clash is reported.
+        // The old key is not bound by default (F6 has a new owner), but adding it as an alias in Settings is allowed and the clash is reported.
         Assert.DoesNotContain("F6", registry.Get("run.stop").Gestures);
-        registry.SetAliases("run.stop", [AppCommands.LegacyAliases["run.stop"]]);
+        registry.SetAliases("run.stop", ["F6"]);
         Assert.Contains("F6", registry.Get("run.stop").Gestures);
         Assert.Equal(["view.nextRegion"], registry.UsersOf("F6", "run.stop").Select(c => c.Id));
     }
@@ -134,5 +133,17 @@ public sealed partial class ShortcutHarmonyTests
             }
             finally { window.Close(); }
         });
+    }
+
+    [Fact]
+    public void AUserKeyThatIsAlsoAnotherDefaultIsReportedAndWinsTheKeyPress()
+    {
+        var registry = AppCommands.Create(new FakeShell());
+        Assert.Empty(registry.OverrideClashes());
+        registry.SetShortcut("run.stop", "F6"); // view.nextRegion has F6 by default
+        var (user, other, gesture) = Assert.Single(registry.OverrideClashes());
+        Assert.Equal(("run.stop", "view.nextRegion", "F6"), (user.Id, other.Id, gesture));
+        Assert.True(registry.IsOverridden("run.stop"));
+        Assert.False(registry.IsOverridden("view.nextRegion"));
     }
 }

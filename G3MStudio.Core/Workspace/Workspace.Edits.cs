@@ -89,6 +89,47 @@ public sealed partial class Workspace
         using (Lock.Write()) History.Commit(command);
     }
 
+    /// <summary>
+    /// Tries each edit alone and puts the model back after every one, in one pass under the write lock. Returns the edits that threw, with the exception,
+    /// so a caller can leave those out before it writes the rest as one group. Nothing is added to the history.
+    /// </summary>
+    public async Task<IReadOnlyList<(EditCommand Command, InvalidOperationException Error)>> ProbeInBackground(IReadOnlyList<EditCommand> commands)
+    {
+        while (_hold || History.Frozen) await Task.Delay(50);
+        History.Frozen = true;
+        try
+        {
+            return await Task.Run(() =>
+            {
+                var failures = new List<(EditCommand, InvalidOperationException)>();
+                using (Lock.Write())
+                {
+                    _decompileContext = null;
+                    foreach (var command in commands)
+                    {
+                        try
+                        {
+                            command.Apply(Data);
+                            command.Revert(Data);
+                        }
+                        catch (InvalidOperationException e)
+                        {
+                            failures.Add((command, e));
+                        }
+                    }
+
+                    _decompileContext = null;
+                }
+
+                return (IReadOnlyList<(EditCommand, InvalidOperationException)>)failures;
+            }, CancellationToken.None);
+        }
+        finally
+        {
+            History.Frozen = false;
+        }
+    }
+
     /// <summary>Counts decompiler setting changes, which are not edits but alter the text of every code entry.</summary>
     public int DecompilerRevision { get; private set; }
 

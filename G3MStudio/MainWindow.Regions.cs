@@ -14,11 +14,16 @@ public sealed partial class MainWindow
     private IReadOnlyList<(string Key, Control? Root)> Regions() =>
     [
         ("view.region.menu", MainMenu),
-        ("panel.explorer", Explorer),
+        DockRegion("LeftDock"),
         ("view.region.editor", Docking.DocumentOf(Docking.ActiveTabId ?? "")?.Content as Control),
-        ("view.region.bottom", Docking.Find<IToolDock>("BottomDock")?.ActiveDockable is Tool { Content: Control panel } ? panel : null),
+        DockRegion("RightDock"),
+        DockRegion("BottomDock", "view.region.bottom"),
         ("view.region.status", StatusBar),
     ];
+
+    /// <summary>The active panel of a tool dock; the region is named after the panel unless a fixed key is given.</summary>
+    private (string Key, Control? Root) DockRegion(string dock, string? key = null) =>
+        Docking.Find<IToolDock>(dock)?.ActiveDockable is Tool { Content: Control panel } tool ? (key ?? "panel." + tool.Id.ToLowerInvariant(), panel) : (key ?? "", null);
 
     public void FocusRegion(int direction)
     {

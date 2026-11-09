@@ -314,4 +314,35 @@ public sealed class CodeSearchTests(ITestOutputHelper output)
         output.WriteLine($"{Path.GetFileName(Path.GetDirectoryName(file))}: {result.Hits.Count:N0} hits in {result.Searched:N0} entries, {result.Failed} failed, {watch.Elapsed.TotalSeconds:F1} s");
         Assert.True(result.Searched > 0);
     }
+
+    [Fact]
+    public async Task AChosenLineThatChangedSinceThePreviewIsSkippedAndReported()
+    {
+        using var dir = new TempDir();
+        using var workspace = await Open(dir);
+        var ct = TestContext.Current.CancellationToken;
+        var options = new CodeSearchOptions("return 1", Replacement: "return 2");
+        var plan = await CodeSearch.RunAsync(workspace, options, cancellationToken: ct);
+        var hit = Assert.Single(plan.Hits, h => h.Entry == "gml_Script_probe");
+
+        workspace.Edit(new EditCodeCommand("gml_Script_probe", "return 8;"));
+        var result = await CodeReplace.ApplyAsync(workspace, options, [hit], ct);
+        Assert.Equal(0, result.Entries);
+        Assert.Equal(["gml_Script_probe"], result.Stale);
+        Assert.Contains("return 8", CodeText.Decompile(workspace.Data, "gml_Script_probe"), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ProbingFindsEveryEditThatDoesNotCompileInOnePassAndLeavesTheModelAlone()
+    {
+        using var dir = new TempDir();
+        using var workspace = await Open(dir);
+        var bad1 = new EditCodeCommand("gml_Script_probe", "return (");
+        var good = new EditCodeCommand("gml_Script_probe", "return 9;");
+        var bad2 = new EditCodeCommand("gml_Script_probe", "return )");
+
+        var failures = await workspace.ProbeInBackground([bad1, good, bad2]);
+        Assert.Equal([bad1, bad2], failures.Select(f => f.Command));
+        Assert.Contains("return 1", CodeText.Decompile(workspace.Data, "gml_Script_probe"), StringComparison.Ordinal);
+    }
 }

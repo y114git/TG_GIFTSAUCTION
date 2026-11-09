@@ -5,7 +5,8 @@ namespace G3MStudio.Core.Workspace;
 /// <param name="Lines">Lines that were changed.</param>
 /// <param name="Entries">Code entries that were changed.</param>
 /// <param name="Failed">Entries that were left as they were: they did not decompile, or the new text did not compile.</param>
-public sealed record CodeReplaceResult(int Lines, int Entries, IReadOnlyList<string> Failed);
+/// <param name="Stale">Entries with a chosen line that no longer reads as it did in the preview; those lines were skipped.</param>
+public sealed record CodeReplaceResult(int Lines, int Entries, IReadOnlyList<string> Failed, IReadOnlyList<string>? Stale = null);
 
 /// <summary>Find and replace across all code (SF-03): writes the checked lines of a preview as one undoable edit.</summary>
 public static class CodeReplace
@@ -19,6 +20,7 @@ public static class CodeReplace
         if (options.Replacement is null) throw new ArgumentException("There is no replacement text.", nameof(options));
         var regex = CodeSearch.CreateRegex(options);
         var failed = new List<string>();
+        var staleEntries = new List<string>();
         var edits = new List<(EditCodeCommand Command, string Entry, int Lines)>();
         await Task.Run(() =>
         {
@@ -40,34 +42,40 @@ public static class CodeReplace
 
                 var lines = text.Split('\n');
                 var changed = 0;
+                var stale = false;
                 foreach (var line in group.Select(h => h.Line).Distinct())
                 {
-                    if (line < 1 || line > lines.Length) continue;
+                    // The text changed since the preview: skip the line instead of rewriting something the user never saw.
+                    if (line < 1 || line > lines.Length || !lines[line - 1].Trim().Equals(group.First(h => h.Line == line).Text.Trim(), StringComparison.Ordinal))
+                    {
+                        stale = true;
+                        continue;
+                    }
+
                     var replaced = CodeSearch.ReplaceLine(regex, options, lines[line - 1]);
                     if (replaced is null || replaced == lines[line - 1]) continue;
                     lines[line - 1] = replaced;
                     changed++;
                 }
 
+                if (stale) staleEntries.Add(group.Key);
                 if (changed > 0) edits.Add((new EditCodeCommand(group.Key, string.Join('\n', lines)), group.Key, changed));
             }
         }, cancellationToken);
 
-        // The group undoes itself when one entry does not compile; that entry is then left out and the rest tried again.
-        while (edits.Count > 0)
+        // Each edit is tried alone first, so every entry that does not compile or assemble is found in one pass and the rest are written as one group.
+        if (edits.Count > 0)
         {
-            try
+            foreach (var (command, error) in await workspace.ProbeInBackground([.. edits.Select(e => e.Command)]))
             {
-                await workspace.EditInBackground(new GroupCommand([.. edits.Select(e => e.Command)]));
-                break;
-            }
-            catch (CodeCompileException e)
-            {
-                failed.Add(e.Entry);
-                if (edits.RemoveAll(x => x.Entry == e.Entry) == 0) throw;
+                var bad = edits.First(e => e.Command == command);
+                failed.Add(error is CodeCompileException compile ? compile.Entry : bad.Entry);
+                edits.Remove(bad);
             }
         }
 
-        return new CodeReplaceResult(edits.Sum(e => e.Lines), edits.Count, failed);
+        if (edits.Count > 0) await workspace.EditInBackground(new GroupCommand([.. edits.Select(e => e.Command)]));
+
+        return new CodeReplaceResult(edits.Sum(e => e.Lines), edits.Count, failed, staleEntries);
     }
 }

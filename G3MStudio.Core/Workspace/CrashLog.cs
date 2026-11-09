@@ -20,12 +20,24 @@ public static class CrashLog
             var path = Path.Combine(folder, $"crash-{DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff", CultureInfo.InvariantCulture)}-{Guid.NewGuid().ToString("N")[..4]}.txt");
             var version = Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "unknown";
             File.WriteAllText(path, $"G3MStudio {version}\n{Environment.OSVersion}\n{DateTime.UtcNow:O}\n\n{exception}\n");
-            foreach (var old in Directory.EnumerateFiles(folder, "crash-*.txt").Order(StringComparer.Ordinal).SkipLast(Keep)) File.Delete(old);
+            Prune(folder);
             return path;
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
             return null;
+        }
+    }
+
+    // A failed delete must not hide the path of the file that was just written.
+    private static void Prune(string folder)
+    {
+        try
+        {
+            foreach (var old in Directory.EnumerateFiles(folder, "crash-*.txt").Order(StringComparer.Ordinal).SkipLast(Keep)) File.Delete(old);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
         }
     }
 }

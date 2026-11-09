@@ -324,9 +324,6 @@ public static partial class AppCommands
     /// <summary>Set while the tab in front is a sprite or a room, which the commands of the Sprite and Room menus work on.</summary>
     public const string SpriteTab = "spriteTab", RoomTab = "roomTab", ProjectOn = "projectOn", ProjectOff = "projectOff";
 
-    /// <summary>Old default gestures that moved away. Not bound by default (the new owner of the key would clash); Settings can add one back as an alias.</summary>
-    public static readonly IReadOnlyDictionary<string, string> LegacyAliases = new Dictionary<string, string> { ["run.stop"] = "F6" };
-
     public static CommandRegistry Create(IShell shell)
     {
         var registry = new CommandRegistry();

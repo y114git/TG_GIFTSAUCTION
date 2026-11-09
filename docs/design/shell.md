@@ -472,7 +472,7 @@ Rules:
 5. A key that moved keeps a selectable alias that is not bound by default. Stop Game was on F6; F6 now moves between regions, so Settings > Keyboard Shortcuts can add F6 back to Stop Game as an alias, and the page then names the command that shares the key.
 6. Everything stays rebindable. Stored overrides are keyed by command id, so a user's own key for a command survives a change of default.
 
-F6 order: menu bar, Explorer, editor area, bottom panels, status bar. Regions that are hidden or closed are skipped. The focus ring moves to the first focusable control of the region and a polite live text, "Focus: <region>", is read out by screen readers.
+F6 order: menu bar, the active left dock panel (Explorer or Search), editor area, Inspector, bottom panels, status bar. Regions that are hidden or closed are skipped. The focus ring moves to the first focusable control of the region and a polite live text, "Focus: <region>", is read out by screen readers.
 
 ## 4. Status bar
 

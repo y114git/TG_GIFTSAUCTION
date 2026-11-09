@@ -52,7 +52,11 @@ public sealed class GoToWindow : Window
         Opened += (_, _) =>
         {
             // The window sizes to its content; it never grows past the screen it is on.
-            if (Screens.ScreenFromWindow(this) is { } screen) MaxHeight = screen.WorkingArea.Height / screen.Scaling * 0.9;
+            if (Screens.ScreenFromWindow(this) is { } screen)
+            {
+                MaxHeight = screen.WorkingArea.Height / screen.Scaling * 0.9;
+                MaxWidth = screen.WorkingArea.Width / screen.Scaling * 0.9;
+            }
             _input.Focus();
         };
         Refresh();

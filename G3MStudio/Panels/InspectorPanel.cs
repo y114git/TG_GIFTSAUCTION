@@ -20,6 +20,7 @@ public sealed class InspectorPanel : ScrollViewer
     public InspectorPanel(Action findUsages, Action? findUses = null)
     {
         Name = "InspectorPanel";
+        Focusable = true; // F6 can reach it and the arrow keys scroll it, even when it holds no button
         _find.Click += (_, _) => findUsages();
         _findUses.Click += (_, _) => findUses?.Invoke();
         _stack.Children.Add(_context);

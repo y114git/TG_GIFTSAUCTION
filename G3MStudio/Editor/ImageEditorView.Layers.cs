@@ -12,7 +12,8 @@ namespace G3MStudio.Editor;
 /// <summary>The Layers panel under the Toolbox: the list (top layer first) with visibility and lock, the buttons, opacity and blend mode of the active layer.</summary>
 public sealed partial class ImageEditorView
 {
-    private const string EyeIcon = "M12 5C7 5 3 9 2 12c1 3 5 7 10 7s9-4 10-7c-1-3-5-7-10-7zm0 3a4 4 0 100 8 4 4 0 000-8z", LockIcon = "M6 10V8a6 6 0 0112 0v2h2v12H4V10zm2 0h8V8a4 4 0 00-8 0z";
+    private const string EyeIcon = "M12 5C7 5 3 9 2 12c1 3 5 7 10 7s9-4 10-7c-1-3-5-7-10-7zm0 3a4 4 0 100 8 4 4 0 000-8z", LockIcon = "M6 10V8a6 6 0 0112 0v2h2v12H4V10zm2 0h8V8a4 4 0 00-8 0z",
+        EyeOffIcon = "M12 5C7 5 3 9 2 12c1 3 5 7 10 7s9-4 10-7c-1-3-5-7-10-7zm0 3a4 4 0 100 8 4 4 0 000-8zM4.3 2.9l16.8 16.8-1.4 1.4L2.9 4.3z"; // the eye with a slash across it
 
     private readonly StackPanel _layerRows = new() { Name = "ImageLayers", Spacing = 2 };
     private readonly StackPanel _layersPanel = new() { Name = "ImageLayersPanel", Spacing = 2 };
@@ -103,7 +104,7 @@ public sealed partial class ImageEditorView
 
     private Border LayerRow(PaintLayer layer, int index)
     {
-        var eye = LayerToggle("LayerEye_" + index, EyeIcon, "rooms.show", layer.Visible, on => LayerOp("visible", on ? "1" : "0", index, ActiveLayer));
+        var eye = LayerToggle("LayerEye_" + index, EyeIcon, "rooms.show", layer.Visible, on => LayerOp("visible", on ? "1" : "0", index, ActiveLayer), EyeOffIcon);
         var padlock = LayerToggle("LayerLock_" + index, LockIcon, "rooms.lock", layer.Locked, on => LayerOp("lock", on ? "1" : "0", index, ActiveLayer));
         var name = new Button { Name = "LayerSelect_" + index, Content = layer.Name, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Left };
         name.Click += (_, _) => SelectLayer(index);
@@ -112,9 +113,9 @@ public sealed partial class ImageEditorView
         return new Border { Name = "LayerRow_" + index, BorderThickness = new Thickness(index == ActiveLayer ? 2 : 0), BorderBrush = G3MStudio.Theme.CanvasTheme.Point, Child = new DockPanel { Children = { eye, padlock, name } } };
     }
 
-    private static ToggleButton LayerToggle(string name, string icon, string labelKey, bool on, Action<bool> changed)
+    private static ToggleButton LayerToggle(string name, string icon, string labelKey, bool on, Action<bool> changed, string? offIcon = null)
     {
-        var button = new ToggleButton { Name = name, IsChecked = on, Width = 30, Padding = new Thickness(0), Content = new PathIcon { Data = Geometry.Parse(icon), Width = 14, Height = 14, Opacity = on ? 1 : 0.35 } }.Labeled(labelKey);
+        var button = new ToggleButton { Name = name, IsChecked = on, Width = 30, Padding = new Thickness(0), Content = new PathIcon { Data = Geometry.Parse(on ? icon : offIcon ?? icon), Width = 14, Height = 14, Opacity = on || offIcon is not null ? 1 : 0.35 } }.Labeled(labelKey);
         button.Click += (_, _) => changed(button.IsChecked == true);
         return button;
     }

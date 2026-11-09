@@ -163,7 +163,7 @@ public sealed partial class MainWindow
             var matched = string.Join(Environment.NewLine, plan.Matches.Take(8).Select(m => "  " + m.Entry)) + (plan.Matches.Count > 8 ? Environment.NewLine + $"  ... +{plan.Matches.Count - 8}" : "");
             var missed = plan.Misses.Count == 0 ? "" : Environment.NewLine + Loc.Current.Format("transfer.codeMisses", ("count", plan.Misses.Count), ("names", string.Join(", ", plan.Misses.Take(8)) + (plan.Misses.Count > 8 ? $" ... +{plan.Misses.Count - 8}" : "")));
             if (!await Confirm(Loc.Current["transfer.codeTitle"], Loc.Current.Format("transfer.codePreview", ("count", plan.Matches.Count), ("names", matched)) + missed)) return;
-            await workspace.EditInBackground(CodeFileImport.Build(plan.Matches));
+            await workspace.EditInBackground(await CodeFileImport.BuildAsync(plan.Matches));
             Notify(NotificationLevel.Info, Loc.Current.Format("transfer.codeDone", ("count", plan.Matches.Count)));
         }
         catch (OutOfMemoryException)

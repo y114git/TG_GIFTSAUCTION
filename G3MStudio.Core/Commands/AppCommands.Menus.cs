@@ -36,7 +36,14 @@ public static partial class AppCommands
 
     /// <summary>The commands every resource menu shares (Explorer row, tab, code editor, room canvas), in this order; a menu leaves out the ones its resource type cannot take.</summary>
     /// <summary>The ways of moving resources that the single Transfer entry offers; they stay commands (palette, Explorer menu, key bindings) but have no menu entry of their own.</summary>
-    public static readonly string[] TransferModes = ["file.import", "edit.copyToOtherFile", "file.importPackage", "organize.exportPackage", "file.importFiles", "mods.exportMod", "mods.exportPack"];
+    public static readonly (string TitleKey, string[] Ids)[] TransferGroups =
+    [
+        ("transfer.groupIn", ["file.import", "file.importPackage", "file.importFiles", "file.importCodeFolder", "file.importCodeFiles"]),
+        ("transfer.groupOut", ["edit.copyToOtherFile", "organize.exportPackage", "file.exportSelection", "file.exportAll"]),
+        ("transfer.groupMods", ["mods.exportMod", "mods.exportPack"]),
+    ];
+
+    public static readonly string[] TransferModes = [.. TransferGroups.SelectMany(g => g.Ids)];
 
     public static readonly string[] ResourceMenu = ["edit.rename", "edit.duplicate", "edit.copyName", "edit.findUsages", "edit.copyToOtherFile", "edit.reveal", "edit.toggleFavourite", "edit.addTag"];
 
@@ -55,7 +62,7 @@ public static partial class AppCommands
     /// </summary>
     public static readonly (string TitleKey, string[] Ids)[] Menus =
     [
-        ("menu.file", ["file.newData", "file.open", .. ResourceNew, "file.save", "file.saveAs", "file.saveCopy", "file.revert", "-", "file.exportSelection", "file.exportAll", "file.transfer", "file.importCodeFolder", "file.importCodeFiles", "-", "settings.open", "settings.resetPrompts", "-", "file.close", "file.exit"]),
+        ("menu.file", ["file.newData", "file.open", .. ResourceNew, "file.save", "file.saveAs", "file.saveCopy", "file.revert", "-", "file.transfer", "-", "settings.open", "settings.resetPrompts", "-", "file.close", "file.exit"]),
         ("menu.edit", ["edit.undo", "edit.redo", "-", "edit.rename", "edit.duplicate", "edit.moveUp", "edit.moveDown", "edit.copyName", "edit.reveal", "edit.toggleFavourite", "edit.addTag", "edit.delete", "edit.selectAll", "-", "edit.find", "edit.findInCode", "edit.replaceInCode", "edit.findUsages", "edit.findUses", "edit.findUnreferenced", "edit.findChildren"]),
         ("menu.organize", ["organize.newFolder", "organize.moveToFolder", "organize.addToCollection", "organize.removeFromGroup", "organize.colourLabel", "-", "organize.bulkRename", "organize.moveToTextureGroup", "organize.moveToAudioGroup", "-", "organize.selectByType", "organize.selectContents", "-", "organize.toggleFolderView", "organize.openFolder", "organize.folderUp"]),
         ("menu.view", ["view.commandPalette", "go.quickOpen", "go.goTo", "-", .. Panels.Select(p => "view.panel." + p.ToLowerInvariant()), "-", "view.zoomIn", "view.zoomOut", "view.zoomReset", "view.fullscreen", "-", "view.nextRegion", "view.prevRegion"]),

@@ -46,4 +46,15 @@ public sealed class CodeFileImportTests
             finally { window.Close(); }
         });
     }
+
+    [Fact]
+    public async Task AFileOverTheSizeCapIsRefusedWithAClearMessage()
+    {
+        using var dir = new TempDir();
+        var file = dir.File("gml_Script_probe.gml");
+        await using (var stream = File.Create(file)) stream.SetLength(CodeFileImport.MaxFileBytes + 1);
+
+        var error = await Assert.ThrowsAsync<InvalidDataException>(() => CodeFileImport.BuildAsync([new CodeFileMatch(file, "gml_Script_probe", false)], TestContext.Current.CancellationToken));
+        Assert.Contains("too big", error.Message, StringComparison.Ordinal);
+    }
 }

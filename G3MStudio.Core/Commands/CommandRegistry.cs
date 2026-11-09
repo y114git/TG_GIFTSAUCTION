@@ -75,6 +75,14 @@ public sealed class CommandRegistry
     public IEnumerable<Command> UsersOf(string gesture, string exceptId) =>
         _commands.Values.Where(c => c.Id != exceptId && c.Gestures.Contains(gesture, StringComparer.OrdinalIgnoreCase));
 
+    /// <summary>True when the primary gesture is one the user chose, not the default.</summary>
+    public bool IsOverridden(string id) => Find(id) is { Shortcut: not null } command && !string.Equals(command.Shortcut, DefaultShortcut(id), StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>The gestures a user's own primary shortcut shares with another command (for example a new default that landed on an old saved key). The user's command wins when a key is pressed.</summary>
+    public IEnumerable<(Command User, Command Other, string Gesture)> OverrideClashes() =>
+        _commands.Values.Where(c => IsOverridden(c.Id)).OrderBy(c => c.Id, StringComparer.Ordinal)
+            .SelectMany(c => UsersOf(c.Shortcut!, c.Id).OrderBy(o => o.Id, StringComparer.Ordinal).Select(o => (c, o, c.Shortcut!)));
+
     public bool HasContext(string key) => _context.Contains(key);
 
     public bool IsEnabled(Command command) => command.When is null || _context.Contains(command.When);

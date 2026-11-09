@@ -13,6 +13,7 @@ public class ReplaceFrameCommand(string sprite, int frame, byte[] picture) : Edi
     private GMImage? _before;
     private GMImage? _after;
     private (ushort Width, ushort Height) _size;
+    private (ushort Width, ushort Height) _newSize;
 
     private const uint MaxSide = 8192;
 
@@ -67,10 +68,12 @@ public class ReplaceFrameCommand(string sprite, int frame, byte[] picture) : Edi
             using var image = ReadPicture(picture);
             item.ReplaceTexture(image);
             _after = pixels.Image;
+            _newSize = (item.TargetWidth, item.TargetHeight);
         }
         else
         {
             pixels.Image = _after;
+            (item.TargetWidth, item.TargetHeight) = _newSize;
         }
     }
 

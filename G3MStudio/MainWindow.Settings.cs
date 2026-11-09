@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using G3MLib.Analyzer.Decompiler;
 using G3MStudio.Commands;
+using G3MStudio.Core.Notifications;
 using G3MStudio.Core.Projects;
 using G3MStudio.Core.Settings;
 using G3MStudio.Core.Workspace;
@@ -80,6 +81,8 @@ public partial class MainWindow
     }
 
     /// <summary>Puts the stored settings on screen: language, interface scale, font.</summary>
+    private readonly HashSet<string> _reportedClashes = [];
+
     private void ApplySettings()
     {
         var s = Workspaces.Settings.Current;
@@ -112,6 +115,12 @@ public partial class MainWindow
             Registry.SetShortcut(command.Id, s.Shortcuts.TryGetValue(command.Id, out var shortcut) ? (shortcut.Length == 0 ? null : shortcut) : Registry.DefaultShortcut(command.Id));
             Registry.SetAliases(command.Id, s.ShortcutAliases.TryGetValue(command.Id, out var aliases) ? [.. aliases.Where(a => Shortcuts.Parse(a) is not null)] : Registry.DefaultAliases(command.Id));
         }
+        foreach (var (user, other, gesture) in Registry.OverrideClashes())
+        {
+            if (_reportedClashes.Add($"{user.Id}|{other.Id}|{gesture}"))
+                Notify(NotificationLevel.Warning, Loc.Current.Format("settings.shortcutClash", ("shortcut", gesture), ("user", Loc.Current["cmd." + user.Id]), ("other", Loc.Current["cmd." + other.Id])));
+        }
+
         // The defaults for new projects also change the open one, but only when the defaults themselves changed.
         if (s.Project != _appliedProject)
         {

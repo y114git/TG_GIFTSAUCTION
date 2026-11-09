@@ -71,7 +71,7 @@ public sealed class ExtensionView : StackPanel
         var path = $"Files[{i}]";
         var file = _extension.Files[i];
         var body = new StackPanel { Spacing = 4 };
-        body.Children.Add(new PropertyGridTab(_workspace, "extensions", ExtensionName, null, path) { MaxHeight = 240 });
+        body.Children.Add(new PropertyGridTab(_workspace, "extensions", ExtensionName, null, path));
         for (var j = 0; j < file.Functions.Count; j++) body.Children.Add(FunctionBlock(path, j, file.Functions.Count));
         body.Children.Add(AddButton("ExtFunctionAdd_" + i, "editors.extAddFunction", path + ".Functions"));
         return Block(Label(() => $"{_extension.Files.ElementAtOrDefault(i)?.Filename?.Content} ({_extension.Files.ElementAtOrDefault(i)?.Kind})"), "Files", i, _extension.Files.Count, "ExtFile", null, body);
@@ -82,7 +82,7 @@ public sealed class ExtensionView : StackPanel
         var path = $"{filePath}.Functions[{j}]";
         var function = (PropertyModel.FindRoot(_workspace.Data, "extensions", ExtensionName) is { } root ? PropertyModel.ReadRaw(root, path) : null) as GameMakerExtensionFunction;
         var body = new StackPanel { Spacing = 4 };
-        body.Children.Add(new PropertyGridTab(_workspace, "extensions", ExtensionName, null, path) { MaxHeight = 240 });
+        body.Children.Add(new PropertyGridTab(_workspace, "extensions", ExtensionName, null, path));
         var args = path + ".Arguments";
         for (var k = 0; function is not null && k < function.Arguments.Count; k++)
         {
@@ -99,7 +99,7 @@ public sealed class ExtensionView : StackPanel
     {
         var expander = new Expander { Header = Buttons(label, list, index, count, name), HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch, HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Stretch, Margin = new Thickness(0, 0, 0, 2) };
         if (body is not null) expander.Content = body;
-        else expander.Expanded += (_, _) => expander.Content ??= new PropertyGridTab(_workspace, "extensions", ExtensionName, null, subPath!) { MaxHeight = 240 };
+        else expander.Expanded += (_, _) => expander.Content ??= new PropertyGridTab(_workspace, "extensions", ExtensionName, null, subPath!);
         return expander;
     }
 
@@ -108,10 +108,20 @@ public sealed class ExtensionView : StackPanel
         var up = new Button { Name = $"{name}Up_{index}", Content = Loc.Current["editors.extUp"], IsEnabled = index > 0 };
         var down = new Button { Name = $"{name}Down_{index}", Content = Loc.Current["editors.extDown"], IsEnabled = index < count - 1 };
         var remove = new Button { Name = $"{name}Remove_{index}", Content = Loc.Current["timelines.remove"] };
+        // The row label is part of each name, so a screen reader can tell the rows apart; the label text changes with the data.
+        void Name()
+        {
+            Avalonia.Automation.AutomationProperties.SetName(up, $"{Loc.Current["editors.extUp"]}: {label.Text}");
+            Avalonia.Automation.AutomationProperties.SetName(down, $"{Loc.Current["editors.extDown"]}: {label.Text}");
+            Avalonia.Automation.AutomationProperties.SetName(remove, $"{Loc.Current["timelines.remove"]}: {label.Text}");
+        }
+
+        label.PropertyChanged += (_, e) => { if (e.Property == TextBlock.TextProperty) Name(); };
+        Name();
         up.Click += (_, _) => Move(list, index, index - 1);
         down.Click += (_, _) => Move(list, index, index + 1);
         remove.Click += async (_, _) => await Remove(list, index);
-        var tools = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 4, Margin = new Thickness(12, 0, 40, 0), Children = { up, down, remove } };
+        var tools = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 4, Margin = new Thickness(12, 0, 24, 0), Children = { up, down, remove } };
         DockPanel.SetDock(tools, Avalonia.Controls.Dock.Right);
         return new DockPanel { LastChildFill = true, Children = { tools, label } };
     }

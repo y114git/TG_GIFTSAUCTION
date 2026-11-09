@@ -20,6 +20,7 @@ internal enum DialogScroll { None, Vertical, Both }
 internal static class DialogFrame
 {
     private static readonly AttachedProperty<bool> CommittedProperty = AvaloniaProperty.RegisterAttached<Window, Window, bool>("Committed", false);
+    private static readonly AttachedProperty<bool> AskingProperty = AvaloniaProperty.RegisterAttached<Window, Window, bool>("Asking", false);
     private static readonly AttachedProperty<bool> DiscardedProperty = AvaloniaProperty.RegisterAttached<Window, Window, bool>("Discarded", false);
     private static readonly AttachedProperty<Func<bool>?> DirtyProperty = AvaloniaProperty.RegisterAttached<Window, Window, Func<bool>?>("Dirty");
 
@@ -111,13 +112,27 @@ internal static class DialogFrame
             return;
         }
 
+        // Escape, Cancel and the close button pressed again while the prompt is open must not stack more prompts.
+        if (window.GetValue(AskingProperty)) return;
+        window.SetValue(AskingProperty, true);
         _ = AskAsync();
 
         async Task AskAsync()
         {
-            if (!await ConfirmDiscardAsync(window)) return;
-            window.SetValue(DiscardedProperty, true);
-            close();
+            try
+            {
+                if (!await ConfirmDiscardAsync(window)) return;
+                window.SetValue(DiscardedProperty, true);
+                close();
+            }
+            catch (Exception e) when (e is InvalidOperationException or ObjectDisposedException)
+            {
+                // The window went away while the prompt was open: there is nothing left to leave.
+            }
+            finally
+            {
+                window.SetValue(AskingProperty, false);
+            }
         }
     }
 

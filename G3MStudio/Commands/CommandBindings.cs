@@ -44,6 +44,11 @@ public static class Shortcuts
         }
     }
 
+    /// <summary>When two commands hold the same key, a gesture the user chose wins, then a primary shortcut over an alias, then the command id: never the registry's insertion order.</summary>
     public static Command? Match(CommandRegistry registry, KeyEventArgs e) =>
-        registry.All.FirstOrDefault(c => c.Gestures.Any(g => Parse(g) is { } gesture && gesture.Matches(e)));
+        registry.All.Where(c => c.Gestures.Any(g => Parse(g) is { } gesture && gesture.Matches(e)))
+            .OrderBy(c => registry.IsOverridden(c.Id) ? 0 : 1)
+            .ThenBy(c => c.Shortcut is { } primary && Parse(primary) is { } gesture && gesture.Matches(e) ? 0 : 1)
+            .ThenBy(c => c.Id, StringComparer.Ordinal)
+            .FirstOrDefault();
 }
