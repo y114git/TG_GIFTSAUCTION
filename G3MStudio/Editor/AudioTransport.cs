@@ -72,7 +72,7 @@ public sealed class AudioTransport : StackPanel
             _volumePercent = _volume.Value;
             _output?.Volume = _volumePercent / 100;
         };
-        var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { _play, _stop, _playRegion, _loop, new TextBlock { Text = Loc.Current["audio.volume"], VerticalAlignment = VerticalAlignment.Center }, _volume } };
+        var buttons = new WrapPanel { ItemSpacing = 8, LineSpacing = 6, Children = { _play, _stop, _playRegion, _loop, new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { new TextBlock { Text = Loc.Current["audio.volume"], VerticalAlignment = VerticalAlignment.Center }, _volume } } } };
         Children.Add(_wave);
         Children.Add(_seek);
         Children.Add(_time);

@@ -40,8 +40,8 @@ Priority key (work order; the 1.0.0-beta release needs every item, see requireme
 | UTMT-APP-10 | Window placement memory | Restores main window position and size on start when enabled. | UndertaleModTool/WindowExtensions.cs, UndertaleModTool/Settings.cs | P2 | implemented |
 | UTMT-APP-11 | Help menu | "GitHub" opens the repository page. "About" shows the version and edition string. | UndertaleModTool/MainWindow.xaml.cs (MenuItem_GitHub_Click, MenuItem_About_Click) | P2 | verified |
 | UTMT-APP-12 | Clickable results window | Separate window that lists code search results as links. Context menu: Open in new tab, Copy, Copy all. Used by scripts through `ClickableSearchOutput`. | UndertaleModTool/Windows/ClickableTextOutput.xaml | P1 | verified |
-| UTMT-APP-13 | Text input dialogs | Single-line and multiline input dialogs with custom button captions, used by the Add menu and scripts. | UndertaleModTool/Windows/TextInputDialog.xaml, UndertaleModTool/Windows/TextInput.cs | P0 | in progress |
-| UTMT-APP-14 | Crash logging | Unhandled exceptions are written to `crash.txt`, `crash2.txt` or `crash3.txt` next to the executable and logged with log4net. | UndertaleModTool/Program.cs | P1 | in progress |
+| UTMT-APP-13 | Text input dialogs | Single-line and multiline input dialogs with custom button captions, used by the Add menu and scripts. | UndertaleModTool/Windows/TextInputDialog.xaml, UndertaleModTool/Windows/TextInput.cs | P0 | done: Rename, New resource, Go to and Transfer dialogs take single-line input; Tools > Run C# Command takes several lines |
+| UTMT-APP-14 | Crash logging | Unhandled exceptions are written to `crash.txt`, `crash2.txt` or `crash3.txt` next to the executable and logged with log4net. | UndertaleModTool/Program.cs | P1 | done: an unhandled exception is written to crashes/crash-DATE.txt in the user data folder (the newest 10 stay, CrashLog); Sentry reporting stays optional on top |
 | UTMT-APP-15 | Message boxes | Shared question, warning and error dialogs that follow dark mode. | UndertaleModTool/WindowExtensions.cs | P0 | implemented |
 
 Count: 15.
@@ -61,8 +61,8 @@ Count: 15.
 | UTMT-FILE-09 | Close and unsaved-changes prompt | Ctrl+Q closes. With "Warn about saving before closing", asks to save. Closes standalone windows and child instances. | UndertaleModTool/MainWindow.xaml.cs (DataWindow_Closing, CloseOtherWindows) | P0 | verified |
 | UTMT-FILE-10 | Generate offset map | File menu. Reads a chosen data file and writes `<file>.offsetmap.txt` listing hex offset and object for each serialized item. | UndertaleModTool/MainWindow.xaml.cs (MenuItem_OffsetMap_Click), UndertaleModLib/UndertaleIO.cs | P2 | done (chunk level: Tools > Write Chunk Offset Map; items inside a chunk need the library) |
 | UTMT-FILE-11 | Audio group child instances | Opening an embedded audio entry stored in an external `audiogroupN.dat` starts a second UTMT process on that file, linked by a named pipe, and focuses the entry there. | UndertaleModTool/MainWindow.xaml.cs (OpenChildFile, ListenChildConnection), UndertaleModTool/Controls/AudioFileReference.xaml.cs | P1 | not planned: an audio group file opens as its own workspace (SND-06); Studio keeps one window per data file |
-| UTMT-FILE-12 | Command-line arguments | `UndertaleModTool <file>` opens a file. A second argument `launch` or `special_launch` runs the game and exits. `deleteTempFolder` cleans up after the updater. | UndertaleModTool/MainWindow.xaml.cs (Window_Loaded) | P1 | in progress |
-| UTMT-FILE-13 | Drag and drop onto window | Dropping a `.csx` asks to run it as a script. Dropping a data file or `.dat` asks to open it. | UndertaleModTool/MainWindow.xaml.cs (Window_Drop) | P1 | in progress |
+| UTMT-FILE-12 | Command-line arguments | `UndertaleModTool <file>` opens a file. A second argument `launch` or `special_launch` runs the game and exits. `deleteTempFolder` cleans up after the updater. | UndertaleModTool/MainWindow.xaml.cs (Window_Loaded) | P1 | done: a data file or link as the first argument opens it; --run and --run-with-runtime open and run the game (launch and special_launch); no deleteTempFolder, the updater is a native script |
+| UTMT-FILE-13 | Drag and drop onto window | Dropping a `.csx` asks to run it as a script. Dropping a data file or `.dat` asks to open it. | UndertaleModTool/MainWindow.xaml.cs (Window_Drop) | P1 | done: a dropped data file opens, pictures and sounds import, one picture or sound on its tab replaces the frame or audio, a dropped .csx asks first and runs as a script |
 | UTMT-FILE-14 | Path confinement | Paths derived from data (game exe, child files, script output) are checked to stay inside the expected folder. | UndertaleModLib/Util/Paths.cs | P0 | verified |
 
 Count: 14.
@@ -79,7 +79,7 @@ Count: 14.
 | UTMT-TREE-06 | Delete asset | Delete key or menu. Warns that IDs of later items shift. Closes affected tabs and prunes tab and closed-tab history. Unmarks the asset in a project. | UndertaleModTool/MainWindow.xaml.cs (DeleteItem) | P0 | verified |
 | UTMT-TREE-07 | Copy name | Copies the asset name, or the display title of a string. | UndertaleModTool/MainWindow.xaml.cs (CopyItemName) | P1 | implemented |
 | UTMT-TREE-08 | Reorder by drag | Dragging an asset onto another of the same type swaps their positions. Off by default. | UndertaleModTool/MainWindow.xaml.cs (TreeView_Drop) | P2 | implemented |
-| UTMT-TREE-09 | Drag asset as reference | Dragging from the tree into reference fields or the room canvas links or places the asset. | UndertaleModTool/MainWindow.xaml.cs (TreeView_MouseMove), UndertaleModTool/Controls/UndertaleObjectReference.xaml.cs | P0 | in progress |
+| UTMT-TREE-09 | Drag asset as reference | Dragging from the tree into reference fields or the room canvas links or places the asset. | UndertaleModTool/MainWindow.xaml.cs (TreeView_MouseMove), UndertaleModTool/Controls/UndertaleObjectReference.xaml.cs | P0 | done: an Explorer item dropped on a reference field in the property grid sets it (undoable, type checked); room canvas drops place the asset |
 | UTMT-TREE-10 | Version-aware labels | Backgrounds node is labeled "Tile sets" for GMS2 games. | UndertaleModTool/MainWindow.xaml.cs | P2 | implemented |
 | UTMT-TREE-11 | Null entries | Optional display of null list entries, which GM 2024.11+ games contain. | UndertaleModTool/Settings.cs (ShowNullEntriesInResourceTree) | P1 | done (ExplorerModel.ShowNulls, OI-310) |
 
@@ -105,7 +105,7 @@ Count: 8.
 | ID | Feature | Details | UTMT source location | Priority | Status |
 |---|---|---|---|---|---|
 | UTMT-RUN-01 | Temp run | F5. Saves to `mod_temprun.temp` beside the data file with Steam AppID 0 and debugger off, then starts `<GeneralInfo.FileName>.exe -game <temp>`. Shows a one-time warning that changes are not saved. In project mode saves to the project output path instead. | UndertaleModTool/MainWindow.xaml.cs (Command_Run) | P0 | verified |
-| UTMT-RUN-02 | Run with other runner | Alt+F5. Offers to disable the debugger flag, saves, opens the runtime picker, starts the runner with `-game` and `-debugoutput <file>.gamelog.txt`. | UndertaleModTool/MainWindow.xaml.cs (Command_RunSpecial) | P1 | in progress |
+| UTMT-RUN-02 | Run with other runner | Alt+F5. Offers to disable the debugger flag, saves, opens the runtime picker, starts the runner with `-game` and `-debugoutput <file>.gamelog.txt`. | UndertaleModTool/MainWindow.xaml.cs (Command_RunSpecial) | P1 | done: Run with Runtime picks the runner, passes -game and optionally -debugoutput FILE.gamelog.txt; the debugger flag is warned about when a file opens |
 | UTMT-RUN-03 | Runtime picker | Lists the game exe, GMS 1.4 `Runner.exe` from the GMS1 path, and every GMS2 runtime in the runtimes cache (prefers `windows\x64\Runner.exe`). Columns Version and Path. | UndertaleModTool/Windows/RuntimePicker.xaml.cs | P1 | done (Run with Runtime: game row first, GMS 1.4 runner, cache and setting folders, Version and Path columns, OI-314) |
 | UTMT-RUN-04 | Run under GMS debugger | Shift+F5, hidden unless enabled in settings. Sets the debugger flag, saves, writes a stub `.gmx`, starts the runner and `GMDebug.exe` against the `.yydebug` file and the debugger port. | UndertaleModTool/MainWindow.xaml.cs (Command_RunDebug) | P2 | not built: needs a GameMaker Studio 1.4 install (GMDebug.exe) to start and to test; the debug data it reads is built |
 | UTMT-RUN-05 | Debug data generation | Code path writes `.yydebug` with decompiled source or disassembly and breakpoint offsets. The mode dialog exists but the save path currently fixes the mode to "no debug". | UndertaleModTool/MainWindow.xaml.cs (SaveFile), UndertaleModTool/Windows/DebugDataDialog.xaml | P2 | done: Tools > Write Debug Data writes FILE.yydebug (decompiled, assembler or full assembler) with G3MLib 1.1.1 DebugDataGenerator |
@@ -128,7 +128,7 @@ Count: 6.
 | UTMT-SET-09 | Show null entries in tree | Default off. | UndertaleModTool/Windows/SettingsWindow.xaml | P1 | done (Settings > Appearance, ShowNullEntries, OI-310) |
 | UTMT-SET-10 | Recompile all GML on project save | Recompiles every project code source before writing the data file. Default off. | UndertaleModTool/Windows/SettingsWindow.xaml, UndertaleModLib/Project/ProjectContext.cs | P1 | not planned: Studio's own Project mode (docs/decisions/0010) replaces UTMT's project format |
 | UTMT-SET-11 | Dark mode toggle | Default off. | UndertaleModTool/Windows/SettingsWindow.xaml | P0 | not applicable (one dark theme and no light theme, Q23) |
-| UTMT-SET-12 | Transparency grid colors | Two ARGB hex colors for the checkerboard behind images. | UndertaleModTool/Windows/SettingsWindow.xaml, UndertaleModTool/Controls/TransparencyGridBrush.xaml | P2 | in progress |
+| UTMT-SET-12 | Transparency grid colors | Two ARGB hex colors for the checkerboard behind images. | UndertaleModTool/Windows/SettingsWindow.xaml, UndertaleModTool/Controls/TransparencyGridBrush.xaml | P2 | done: Settings > Image sets the two colours; the image editor and the picture views in resource tabs use them |
 | UTMT-SET-13 | Global room grid override | Optional global grid width, height and thickness that override per-room grid values. | UndertaleModTool/Windows/SettingsWindow.xaml | P2 | verified |
 | UTMT-SET-14 | Open app data folder | Button opens `%AppData%\UndertaleModTool`. | UndertaleModTool/Windows/SettingsWindow.xaml.cs (AppDataButton_Click) | P2 | implemented |
 | UTMT-SET-15 | Update app button | Visible only in debug (nightly) builds. See UTMT-PLAT-03. | UndertaleModTool/Windows/SettingsWindow.xaml.cs | P2 | verified |
@@ -156,7 +156,7 @@ Count: 8.
 | ID | Feature | Details | UTMT source location | Priority | Status |
 |---|---|---|---|---|---|
 | UTMT-SRCH-01 | Search in code | Find menu or Ctrl+Shift+F. Options: case sensitive, regex, multiline regex, search in assembly, filter by code name (with its own case and regex options). Parallel over all code entries. Uses project GML sources when present. Results grid Code, Line, Text. | UndertaleModTool/Windows/SearchInCodeWindow.xaml(.cs) | P0 | verified |
-| UTMT-SRCH-02 | Search results actions | Open (jumps to line), Open in new tab, Copy, Copy all, Enter to open. Blocks a second search while one runs. | UndertaleModTool/Windows/SearchInCodeWindow.xaml.cs | P0 | in progress |
+| UTMT-SRCH-02 | Search results actions | Open (jumps to line), Open in new tab, Copy, Copy all, Enter to open. Blocks a second search while one runs. | UndertaleModTool/Windows/SearchInCodeWindow.xaml.cs | P0 | done: Enter or double-click opens at the line as its own tab; the context menu has Open, Copy and Copy all |
 | UTMT-SRCH-03 | Find all references | From tree, reference fields and some editors. A dialog picks the reference types to scan (Select all, Deselect all). Results tree with name filter, Open in new tab, Copy name, nested Find all references, Export results to `references_of_asset_<name>.txt`. | UndertaleModTool/Windows/FindReferencesTypesDialog/*.cs | P0 | verified |
 | UTMT-SRCH-04 | Find unreferenced assets | Find menu. Same type dialog, results grouped by type, export to `unreferenced_assets.txt`. | UndertaleModTool/MainWindow.xaml.cs (MenuItem_FindUnreferencedAssets_Click), UndertaleModTool/Windows/FindReferencesTypesDialog/UndertaleResourceReferenceMethodsMap.cs | P1 | verified |
 | UTMT-SRCH-05 | Reference coverage | Searches sprites, backgrounds and tiles, fonts (incl. in texture groups), sounds, audio groups, paths, scripts, code, shaders, timelines, objects (parent, sprite, mask, events), rooms (instances, tiles, layers, sprite, sequence and particle instances, backgrounds, effect properties, creation and pre-create code), variables, functions, code locals, strings, texture page items, embedded textures, embedded images, embedded audio, texture groups, particle systems and emitters, sequences (tracks, keyframes, moments, broadcast messages), options constants. Version-dependent. | UndertaleModTool/Windows/FindReferencesTypesDialog/UndertaleResourceReferenceMap.cs | P1 | implemented |
@@ -230,7 +230,7 @@ Count: 5.
 | UTMT-BG-01 | Background properties | Name, transparent, smooth, preload, texture page item. | UndertaleModTool/Editors/UndertaleBackgroundEditor.xaml | P0 | implemented |
 | UTMT-BG-02 | GMS2 tile set properties | Tile set version, tile width and height, output border X and Y, tile columns, items per tile, tile count, frame time, exported sprite (GM 2023.8+). | UndertaleModTool/Editors/UndertaleBackgroundEditor.xaml | P0 | implemented |
 | UTMT-BG-03 | Tile ID table | Editable tile ID grid, double-click to add. Selecting a row highlights the tile on the texture and scrolls to it. | UndertaleModTool/Editors/UndertaleBackgroundEditor.xaml.cs (SelectTileRegion, ScrollTileIntoView) | P1 | implemented |
-| UTMT-BG-04 | Pick tile on texture | Clicking the texture selects the matching tile ID. Right-click offers tile reference search. | UndertaleModTool/Editors/UndertaleBackgroundEditor.xaml.cs (BGTexture_MouseLeftButtonDown) | P2 | in progress |
+| UTMT-BG-04 | Pick tile on texture | Clicking the texture selects the matching tile ID. Right-click offers tile reference search. | UndertaleModTool/Editors/UndertaleBackgroundEditor.xaml.cs (BGTexture_MouseLeftButtonDown) | P2 | done: a click on the tile set texture picks the tile, Find Rooms lists where it is used |
 | UTMT-BG-05 | Tile separation display | Shows tile separation X and Y derived from the borders. | UndertaleModTool/Editors/UndertaleBackgroundEditor.xaml | P2 | verified |
 
 Count: 5.
@@ -240,7 +240,7 @@ Count: 5.
 | ID | Feature | Details | UTMT source location | Priority | Status |
 |---|---|---|---|---|---|
 | UTMT-TEX-01 | Texture page item editor | Source X, Y, width, height; target X, Y, width, height; bounding width and height; texture page reference; preview of the item and of its place on the page. | UndertaleModTool/Editors/UndertaleTexturePageItemEditor.xaml | P0 | implemented |
-| UTMT-TEX-02 | Page item import and export | "Import" replaces the item image from PNG, "Export" writes PNG. "Find all references to this page item". | UndertaleModTool/Editors/UndertaleTexturePageItemEditor.xaml.cs | P0 | in progress |
+| UTMT-TEX-02 | Page item import and export | "Import" replaces the item image from PNG, "Export" writes PNG. "Find all references to this page item". | UndertaleModTool/Editors/UndertaleTexturePageItemEditor.xaml.cs | P0 | partial: Export (PNG) and Replace of a page item are built; Find all references to a page item is not built |
 | UTMT-TEX-03 | Embedded texture editor | Shows the texture page with size, "Scaled" and "Generated mips" fields, load-failure warning, zoom and scroll, fit to view. | UndertaleModTool/Editors/UndertaleEmbeddedTextureEditor.xaml(.cs) | P0 | verified |
 | UTMT-TEX-04 | Embedded texture import and export | Replace the whole page from PNG, export the page to PNG. | UndertaleModTool/Editors/UndertaleEmbeddedTextureEditor.xaml.cs | P0 | verified |
 | UTMT-TEX-05 | Page item hit test | Hovering a page highlights the page item under the cursor. Context menu: Open in new tab, Find all references. | UndertaleModTool/Editors/UndertaleEmbeddedTextureEditor.xaml.cs (Grid_MouseMove, FindAllItemReferencesItem_Click) | P1 | verified |
@@ -258,7 +258,7 @@ Count: 10.
 |---|---|---|---|---|---|
 | UTMT-FNT-01 | Font properties | Name, display name, font size (em), bold, italic, range start and end, charset, anti-aliasing, texture, scale X and Y, ascender, ascender offset, SDF spread, line height. | UndertaleModTool/Editors/UndertaleFontEditor/UndertaleFontEditor.xaml | P0 | implemented |
 | UTMT-FNT-02 | Glyph table | Char, source rectangle, shift (green on texture), offset (blue on texture). Click texture to select a glyph, selection scrolls into view. | UndertaleModTool/Editors/UndertaleFontEditor/UndertaleFontEditor.xaml.cs (Grid_MouseDown, ScrollGlyphIntoView) | P0 | verified |
-| UTMT-FNT-03 | Glyph rectangle editor | Separate window to drag and resize a glyph rectangle on the texture with zoom, keyboard nudge and a help button. | UndertaleModTool/Editors/UndertaleFontEditor/EditGlyphRectangleWindow.xaml(.cs) | P1 | in progress |
+| UTMT-FNT-03 | Glyph rectangle editor | Separate window to drag and resize a glyph rectangle on the texture with zoom, keyboard nudge and a help button. | UndertaleModTool/Editors/UndertaleFontEditor/EditGlyphRectangleWindow.xaml(.cs) | P1 | partial: glyph list with rectangle, shift and offset fields (undoable), and a click on the sheet picks the glyph; drag and resize on the sheet, keyboard nudge not built |
 | UTMT-FNT-04 | Kerning editor | Per-glyph kerning list (preceding char, additional shift) with back navigation. | UndertaleModTool/Editors/UndertaleFontEditor/UndertaleFontEditor.xaml.cs (EditKerningButton_Click) | P1 | implemented |
 | UTMT-FNT-05 | Glyph maintenance | "Create an empty glyph", "Sort glyphs", "Update range" from the glyph list. | UndertaleModTool/Editors/UndertaleFontEditor/UndertaleFontEditor.xaml.cs | P1 | verified |
 
@@ -303,7 +303,7 @@ Count: 6.
 | UTMT-ROOM-07 | Tile properties | Background or tile set, source region, position, scale, color, depth, instance ID (GMS1 and legacy GMS2 tiles). | UndertaleModTool/Editors/UndertaleRoomEditor/UndertaleRoomEditor.xaml | P1 | implemented |
 | UTMT-ROOM-08 | Layer properties | Layer name, ID, type, depth, offset, speed, visible. Per type: instances list; tiles (tile set, size, Edit, Export, Import, Auto size); background (sprite, tiling, stretch, color, first frame, animation speed and type); assets (legacy tiles, sprites, sequences, particle systems); effect (name only). | UndertaleModTool/Editors/UndertaleRoomEditor/UndertaleRoomEditor.xaml | P0 | verified |
 | UTMT-ROOM-09 | Sprite instances | Sprite, position, scale, color, rotation, frame index, animation speed and type, on assets layers. | UndertaleModTool/Editors/UndertaleRoomEditor/UndertaleRoomEditor.xaml | P1 | verified |
-| UTMT-ROOM-10 | Particle system instances | Particle system, position, scale, color, rotation, on assets layers. Random name and new ID on paste. | UndertaleModTool/Editors/UndertaleRoomEditor/UndertaleRoomEditor.xaml.cs | P2 | in progress |
+| UTMT-ROOM-10 | Particle system instances | Particle system, position, scale, color, rotation, on assets layers. Random name and new ID on paste. | UndertaleModTool/Editors/UndertaleRoomEditor/UndertaleRoomEditor.xaml.cs | P2 | partial: particle system instances are listed, selected, moved and deleted as room elements with undo; a random name on paste is not built |
 | UTMT-ROOM-11 | Add items | Context menus: New object instance, New tile (GMS1), New Instances, Tiles, Background or Assets layer, new GMS2 instance, New legacy tile, New sprite instance. | UndertaleModTool/Editors/UndertaleRoomEditor/UndertaleRoomEditor.xaml.cs (MenuItem_New*) | P0 | verified |
 | UTMT-ROOM-12 | Select and drag | Click selects the topmost item. Drag moves it. Movement snaps to the room grid; Ctrl halves the grid, Shift doubles it. | UndertaleModTool/Editors/UndertaleRoomEditor/UndertaleRoomEditor.xaml.cs (GetGridMouseCoordinates, Rectangle_MouseMove) | P0 | verified |
 | UTMT-ROOM-13 | Paint copies | Alt+drag paints copies of the selected instance, tile, sprite or particle instance along the grid. | UndertaleModTool/Editors/UndertaleRoomEditor/UndertaleRoomEditor.xaml.cs (PaintObjects) | P1 | verified |
@@ -347,9 +347,9 @@ Count: 8.
 | UTMT-AST-01 | Shader editor | Name, type, GLSL ES vertex and fragment, GLSL vertex and fragment, HLSL9 vertex and fragment sources, vertex attribute list, warning against editing compiled data. | UndertaleModTool/Editors/UndertaleShaderEditor.xaml | P1 | verified |
 | UTMT-AST-02 | Path editor | Name, smooth, closed, precision, points (X, Y, speed). Preview does not update live (noted in the UI). | UndertaleModTool/Editors/UndertalePathEditor.xaml | P1 | verified |
 | UTMT-AST-03 | Timeline editor | Moments list with step and code entry actions. | UndertaleModTool/Editors/UndertaleTimelineEditor.xaml | P1 | verified |
-| UTMT-AST-04 | Extension editor | Name, class name, version, folder, product ID, files list ("Add new extension file"), options (name, value, kind, "Add new extension option"), kind templates. | UndertaleModTool/Editors/UndertaleExtensionEditor.xaml(.cs) | P2 | in progress |
-| UTMT-AST-05 | Extension file editor | File name, init and cleanup function names, kind, functions list. | UndertaleModTool/Editors/UndertaleExtensionFileEditor.xaml | P2 | in progress |
-| UTMT-AST-06 | Extension function editor | Name, external name, ID, kind, return type, argument types. | UndertaleModTool/Editors/UndertaleExtensionFunctionEditor.xaml | P2 | in progress |
+| UTMT-AST-04 | Extension editor | Name, class name, version, folder, product ID, files list ("Add new extension file"), options (name, value, kind, "Add new extension option"), kind templates. | UndertaleModTool/Editors/UndertaleExtensionEditor.xaml(.cs) | P2 | done: extension, its files and options add, remove and reorder with undo (ExtensionListCommand); kind templates are not built |
+| UTMT-AST-05 | Extension file editor | File name, init and cleanup function names, kind, functions list. | UndertaleModTool/Editors/UndertaleExtensionFileEditor.xaml | P2 | done: file name, init and cleanup functions, kind and functions list edit with undo |
+| UTMT-AST-06 | Extension function editor | Name, external name, ID, kind, return type, argument types. | UndertaleModTool/Editors/UndertaleExtensionFunctionEditor.xaml | P2 | done: functions and their arguments add, remove and reorder with undo; every field edits in the grid |
 | UTMT-AST-07 | String editor | Edits string content. | UndertaleModTool/Editors/UndertaleStringEditor.xaml | P0 | verified |
 | UTMT-AST-08 | Shared string edits | Editing a string field used elsewhere asks: change only this value, change all occurrences, or abort. | UndertaleModTool/Windows/StringUpdateWindow.xaml, UndertaleModTool/Controls/UndertaleStringReference.xaml.cs | P0 | verified |
 | UTMT-AST-09 | Variable editor | Name, instance type, variable ID, name string ID. | UndertaleModTool/Editors/UndertaleVariableEditor.xaml | P1 | implemented |
@@ -369,7 +369,7 @@ Count: 16.
 |---|---|---|---|---|---|
 | UTMT-GEN-01 | General info fields | Disable GMS debugger, bytecode version, file name, config, last object ID, last tile ID, game ID, DirectPlay GUID, name, version, default window size, license MD5 and CRC32, timestamp (local, GMT on hover), display name, Steam AppID, debugger port, FPS, allow statistics, game GUID. | UndertaleModTool/Editors/UndertaleGeneralInfoEditor.xaml | P0 | verified |
 | UTMT-GEN-02 | Info flags | Checkbox group for general info flags. | UndertaleModTool/Controls/FlagsBox.xaml | P0 | implemented |
-| UTMT-GEN-03 | Active targets and function classifications | Bit fields shown as flags. | UndertaleModTool/Editors/UndertaleGeneralInfoEditor.xaml | P2 | in progress |
+| UTMT-GEN-03 | Active targets and function classifications | Bit fields shown as flags. | UndertaleModTool/Editors/UndertaleGeneralInfoEditor.xaml | P2 | done: targets and function classifications are flag check boxes in the grid |
 | UTMT-GEN-04 | Room order | Editable room order list, double-click to add, "Sync with room list" rebuilds it from the room asset order. | UndertaleModTool/Editors/UndertaleGeneralInfoEditor.xaml.cs (SyncRoomList_Click) | P0 | verified |
 | UTMT-GEN-05 | Debugger checkbox guard | Toggling the debugger flag shows a confirmation. | UndertaleModTool/Editors/UndertaleGeneralInfoEditor.xaml.cs (DebuggerCheckBox_PreviewMouseLeftButtonDown) | P1 | implemented |
 | UTMT-GEN-06 | GMS2 extras | Shader extension flag and version. | UndertaleModTool/Editors/UndertaleGeneralInfoEditor.xaml | P2 | done (Game Options rows, test added) |
@@ -391,7 +391,7 @@ These are read and written by UndertaleModLib but have no editor or tree node in
 | UTMT-NOED-05 | Filter effects (FEDS) | Filter and effect definitions. | UndertaleModLib/Models/UndertaleFilterEffect.cs | P2 | implemented |
 | UTMT-NOED-06 | UI layers (UILR) | UI root nodes. | UndertaleModLib/Models/UndertaleUINode.cs | P2 | implemented |
 | UTMT-NOED-07 | Data files (DAFL) | Empty chunk, kept for round-trip. | UndertaleModLib/UndertaleChunks.cs | P2 | implemented |
-| UTMT-NOED-08 | Room text items and nine-slices | Present in the room model, not editable in the room editor. | UndertaleModLib/Models/UndertaleRoom.cs | P2 | in progress |
+| UTMT-NOED-08 | Room text items and nine-slices | Present in the room model, not editable in the room editor. | UndertaleModLib/Models/UndertaleRoom.cs | P2 | partial: text item instances are listed and moved as room elements; their text and slice fields are not edited in the room editor |
 | UTMT-NOED-09 | Effect layer properties | Effect type and properties in the model; the room editor only lists the layer name. | UndertaleModLib/Models/UndertaleRoom.cs | P2 | implemented |
 
 Count: 9.
@@ -400,7 +400,7 @@ Count: 9.
 
 | ID | Feature | Details | UTMT source location | Priority | Status |
 |---|---|---|---|---|---|
-| UTMT-CTRL-01 | Asset reference field | Shows the referenced asset. Drop an asset of the right type to change it, double-click or "..." to open, middle-click for a new tab, "X" to clear. Context menu: Open in new tab, Find all references. | UndertaleModTool/Controls/UndertaleObjectReference.xaml(.cs) | P0 | in progress |
+| UTMT-CTRL-01 | Asset reference field | Shows the referenced asset. Drop an asset of the right type to change it, double-click or "..." to open, middle-click for a new tab, "X" to clear. Context menu: Open in new tab, Find all references. | UndertaleModTool/Controls/UndertaleObjectReference.xaml(.cs) | P0 | partial: reference fields show the asset, open it, take a dropped Explorer item and clear with a button; middle-click and the Find all references item are not built |
 | UTMT-CTRL-02 | String reference field | Inline text edit of a shared string with the update prompt, drop a string to relink, "..." opens the string. | UndertaleModTool/Controls/UndertaleStringReference.xaml(.cs) | P0 | verified |
 | UTMT-CTRL-03 | Texture page item display | Renders a page item with its bounding box on a transparency grid. | UndertaleModTool/Controls/UndertaleTexturePageItemDisplay.xaml | P0 | done (TextureItemView, OI-311) |
 | UTMT-CTRL-04 | Flags box | Expander with one checkbox per flag of an enum. | UndertaleModTool/Controls/FlagsBox.xaml | P0 | verified |
@@ -429,9 +429,9 @@ Count: 7.
 
 | ID | Feature | Details | UTMT source location | Priority | Status |
 |---|---|---|---|---|---|
-| UTMT-API-01 | State accessors | `Data`, `Project`, `FilePath`, `ScriptPath`, `ExePath`, `Highlighted`, `Selected`, `CanSave`, `IsAppClosed`, `ScriptExecutionSuccess`, `ScriptErrorMessage`, `ScriptErrorType`, `MainThreadAction`. | UndertaleModLib/Scripting/IScriptInterface.cs | P1 | in progress |
+| UTMT-API-01 | State accessors | `Data`, `Project`, `FilePath`, `ScriptPath`, `ExePath`, `Highlighted`, `Selected`, `CanSave`, `IsAppClosed`, `ScriptExecutionSuccess`, `ScriptErrorMessage`, `ScriptErrorType`, `MainThreadAction`. | UndertaleModLib/Scripting/IScriptInterface.cs | P1 | done: scripts run on the library's script globals (Data, FilePath, ScriptPath and the rest); Studio supplies the dialogs and selection |
 | UTMT-API-02 | Data helpers | `EnsureDataLoaded`, `MakeNewDataFile`, `AreFilesIdentical`. | UndertaleModLib/Scripting/IScriptInterface.cs | P1 | implemented |
-| UTMT-API-03 | Message dialogs | `ScriptMessage`, `ScriptWarning`, `ScriptQuestion`, `ScriptError`, `SetUMTConsoleText`, `ScriptOpenURL`. | UndertaleModLib/Scripting/IScriptInterface.cs | P1 | in progress |
+| UTMT-API-03 | Message dialogs | `ScriptMessage`, `ScriptWarning`, `ScriptQuestion`, `ScriptError`, `SetUMTConsoleText`, `ScriptOpenURL`. | UndertaleModLib/Scripting/IScriptInterface.cs | P1 | done: the message, question, error, input and file prompts are the library's, answered by Studio dialogs |
 | UTMT-API-04 | Input and output dialogs | `ScriptInputDialog`, `SimpleTextInput`, `SimpleTextOutput`, `InitializeScriptDialog`. | UndertaleModLib/Scripting/IScriptInterface.cs | P1 | implemented |
 | UTMT-API-05 | Clickable search output | Two `ClickableSearchOutput` overloads show code search results with links and a failed list. | UndertaleModLib/Scripting/IScriptInterface.cs | P2 | implemented |
 | UTMT-API-06 | Progress API | `SetProgressBar`, `UpdateProgressBar`, `UpdateProgressValue`, `UpdateProgressStatus`, `AddProgress`, `IncrementProgress`, parallel variants, `GetProgress`, `SetProgress`, `HideProgressBar`, `StartProgressBarUpdater`, `StopProgressBarUpdater`, `EnableUI`. | UndertaleModLib/Scripting/IScriptInterface.cs | P1 | implemented |
@@ -475,11 +475,11 @@ Count: 5.
 
 | ID | Feature | Details | UTMT source location | Priority | Status |
 |---|---|---|---|---|---|
-| UTMT-KEY-01 | Global shortcuts | Ctrl+N new, Ctrl+O open, Ctrl+S save, Ctrl+Q close, F5 temp run, Shift+F5 debugger run, Alt+F5 other runner, Ctrl+Shift+F search in code. | UndertaleModTool/MainWindow.xaml | P0 | in progress |
-| UTMT-KEY-02 | Tab shortcuts | Ctrl+W, Ctrl+Shift+W, Ctrl+Shift+T, Ctrl+Tab, Ctrl+Shift+Tab. | UndertaleModTool/MainWindow.xaml | P0 | in progress |
-| UTMT-KEY-03 | Tree shortcuts | Enter opens, Delete deletes, middle-click opens in new tab. | UndertaleModTool/MainWindow.xaml.cs | P0 | in progress |
-| UTMT-KEY-04 | Code editor shortcuts | Ctrl+K compile or assemble, Ctrl+F find, Ctrl+wheel and Ctrl+plus or minus zoom, Ctrl+click go to definition. | UndertaleModTool/Editors/UndertaleCodeEditor.xaml(.cs) | P0 | in progress |
-| UTMT-KEY-05 | Room editor shortcuts | Ctrl+C, Ctrl+V, Ctrl+Shift+V, Ctrl+Z, Delete, X and Y flip, minus and plus reorder, Ctrl and Shift grid modifiers, Alt paint. | UndertaleModTool/Editors/UndertaleRoomEditor/UndertaleRoomEditor.xaml(.cs) | P0 | in progress |
+| UTMT-KEY-01 | Global shortcuts | Ctrl+N new, Ctrl+O open, Ctrl+S save, Ctrl+Q close, F5 temp run, Shift+F5 debugger run, Alt+F5 other runner, Ctrl+Shift+F search in code. | UndertaleModTool/MainWindow.xaml | P0 | in progress: the shortcut work owns these rows and checks them |
+| UTMT-KEY-02 | Tab shortcuts | Ctrl+W, Ctrl+Shift+W, Ctrl+Shift+T, Ctrl+Tab, Ctrl+Shift+Tab. | UndertaleModTool/MainWindow.xaml | P0 | in progress: the shortcut work owns these rows and checks them |
+| UTMT-KEY-03 | Tree shortcuts | Enter opens, Delete deletes, middle-click opens in new tab. | UndertaleModTool/MainWindow.xaml.cs | P0 | in progress: the shortcut work owns these rows and checks them |
+| UTMT-KEY-04 | Code editor shortcuts | Ctrl+K compile or assemble, Ctrl+F find, Ctrl+wheel and Ctrl+plus or minus zoom, Ctrl+click go to definition. | UndertaleModTool/Editors/UndertaleCodeEditor.xaml(.cs) | P0 | in progress: the shortcut work owns these rows and checks them |
+| UTMT-KEY-05 | Room editor shortcuts | Ctrl+C, Ctrl+V, Ctrl+Shift+V, Ctrl+Z, Delete, X and Y flip, minus and plus reorder, Ctrl and Shift grid modifiers, Alt paint. | UndertaleModTool/Editors/UndertaleRoomEditor/UndertaleRoomEditor.xaml(.cs) | P0 | in progress: the shortcut work owns these rows and checks them |
 | UTMT-KEY-06 | Tile editor shortcuts | X, Y or Z, Q, R, G, B, P, Ctrl+Z, Ctrl+Y, Ctrl+Shift+Z, Ctrl and Alt mouse modifiers. | UndertaleModTool/Editors/UndertaleRoomEditor/UndertaleTileEditor.xaml | P1 | implemented |
 
 Count: 6.

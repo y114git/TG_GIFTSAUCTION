@@ -3,6 +3,14 @@
     "language": "korean",
     "language_name": "한국어"
   },
+  "common": {
+    "cancel": "취소",
+    "close": "닫기",
+    "discardTitle": "변경 내용을 버리시겠습니까?",
+    "discardMessage": "이 창에서 값을 변경했습니다. 지금 닫으면 변경 내용이 사라집니다.",
+    "discard": "버리기",
+    "keepEditing": "계속 편집"
+  },
   "app": {
     "title": "G3MStudio",
     "welcome": "게임 데이터 파일을 열어 시작하세요.",
@@ -111,6 +119,7 @@
       "revert": "저장된 상태로 되돌리기...",
       "exportSelection": "선택한 리소스를 폴더로 내보내기...",
       "exportAll": "모든 리소스를 폴더로 내보내기...",
+      "transfer": "리소스 전송...",
       "import": "다른 데이터 파일에서 리소스 가져오기...",
       "importFiles": "그림, 소리, 스크립트 파일 가져오기...",
       "importCodeFolder": "폴더에서 코드 가져오기...",
@@ -165,6 +174,8 @@
     "view": {
       "commandPalette": "명령 팔레트...",
       "fullscreen": "전체 화면 전환",
+      "nextRegion": "다음 영역으로 포커스 이동",
+      "prevRegion": "이전 영역으로 포커스 이동",
       "zoomIn": "확대",
       "zoomOut": "축소",
       "zoomReset": "확대/축소 초기화"
@@ -679,7 +690,8 @@
     },
     "copyDetails": "자세히 복사",
     "retry": "다시 시도",
-    "sideBySide": "어셈블리 나란히 보기",
+    "showAssembly": "어셈블리 보기",
+    "showGml": "GML 보기",
     "showParent": "상위 스크립트 보기",
     "fallbackAssembly": "디컴파일러 실패: {reason}. 어셈블리를 표시합니다.",
     "fallbackParent": "디컴파일러 실패: {reason}. 상위 스크립트 {parent}을(를) 표시합니다. 읽기 전용입니다.",
@@ -942,6 +954,8 @@
   },
   "properties": {
     "addEntry": "항목 추가",
+    "moveUp": "위로",
+    "moveDown": "아래로",
     "section": {
       "physics": "물리",
       "texture": "텍스처 설정",
@@ -957,6 +971,9 @@
     "copy": "버전 정보 복사"
   },
   "search": {
+    "open": "열기",
+    "copy": "복사",
+    "copyAll": "모두 복사",
     "placeholder": "코드에서 찾기",
     "word": "단어 단위",
     "replacePlaceholder": "바꿀 내용",
@@ -973,14 +990,6 @@
     "cancelled": "검색이 취소되었습니다.",
     "badPattern": "이 패턴은 올바르지 않습니다: {reason}",
     "timeout": "이 패턴은 한 줄에서 너무 오래 걸립니다. 더 단순하게 만드세요."
-  },
-  "disassembly": {
-    "assemble": "어셈블",
-    "assembled": "어셈블했습니다.",
-    "assembleFailed": "어셈블하지 못했습니다: {reason}",
-    "title": "{entry} 디스어셈블리",
-    "loading": "명령어를 읽는 중...",
-    "failed": "명령어를 읽지 못했습니다: {reason}"
   },
   "autoTile": {
     "title": "오토타일 규칙 세트",
@@ -1000,7 +1009,14 @@
   },
   "view": {
     "autosaveFailed": "레이어 스택을 저장하지 못했습니다: {reason}",
-    "layersDamaged": "저장된 레이어 스택이 손상되었습니다. 파일을 {file}(으)로 보관했습니다."
+    "layersDamaged": "저장된 레이어 스택이 손상되었습니다. 파일을 {file}(으)로 보관했습니다.",
+    "region": {
+      "menu": "메뉴 모음",
+      "editor": "편집기 영역",
+      "bottom": "하단 패널",
+      "status": "상태 표시줄"
+    },
+    "regionMoved": "포커스: {region}"
   },
   "uiLayer": {
     "title": "UI 레이어",
@@ -1172,7 +1188,6 @@
       "exportPack": "표시된 변경을 팩으로 내보내기...",
       "createMod": "G3M 모드 만들기...",
       "refresh": "새로 고침",
-      "close": "닫기",
       "readOnly": "이 파일은 여기서 편집 중이 아니므로 변경을 적용할 수 없습니다.",
       "applied": "'{name}'을(를) 내 파일에 적용했습니다. 실행 취소로 되돌릴 수 있습니다.",
       "codeOwner": "새로 추가되거나 삭제된 코드는 해당 오브젝트, 스크립트, 룸과 함께 처리됩니다. 해당 항목을 적용하세요.",

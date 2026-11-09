@@ -35,6 +35,9 @@ public static partial class AppCommands
     };
 
     /// <summary>The commands every resource menu shares (Explorer row, tab, code editor, room canvas), in this order; a menu leaves out the ones its resource type cannot take.</summary>
+    /// <summary>The ways of moving resources that the single Transfer entry offers; they stay commands (palette, Explorer menu, key bindings) but have no menu entry of their own.</summary>
+    public static readonly string[] TransferModes = ["file.import", "edit.copyToOtherFile", "file.importPackage", "organize.exportPackage", "file.importFiles", "mods.exportMod", "mods.exportPack"];
+
     public static readonly string[] ResourceMenu = ["edit.rename", "edit.duplicate", "edit.copyName", "edit.findUsages", "edit.copyToOtherFile", "edit.reveal", "edit.toggleFavourite", "edit.addTag"];
 
     /// <summary>The menu of an editor tab: tab commands, then the resource commands.</summary>
@@ -52,10 +55,10 @@ public static partial class AppCommands
     /// </summary>
     public static readonly (string TitleKey, string[] Ids)[] Menus =
     [
-        ("menu.file", ["file.newData", "file.open", .. ResourceNew, "file.save", "file.saveAs", "file.saveCopy", "file.revert", "-", "file.exportSelection", "file.exportAll", "file.import", "file.importPackage", "file.importFiles", "file.importCodeFolder", "file.importCodeFiles", "-", "settings.open", "settings.resetPrompts", "-", "file.close", "file.exit"]),
-        ("menu.edit", ["edit.undo", "edit.redo", "-", "edit.rename", "edit.duplicate", "edit.copyToOtherFile", "edit.moveUp", "edit.moveDown", "edit.copyName", "edit.reveal", "edit.toggleFavourite", "edit.addTag", "edit.delete", "edit.selectAll", "-", "edit.find", "edit.findInCode", "edit.replaceInCode", "edit.findUsages", "edit.findUses", "edit.findUnreferenced", "edit.findChildren"]),
-        ("menu.organize", ["organize.newFolder", "organize.moveToFolder", "organize.addToCollection", "organize.removeFromGroup", "organize.colourLabel", "-", "organize.bulkRename", "organize.moveToTextureGroup", "organize.moveToAudioGroup", "organize.exportPackage", "-", "organize.selectByType", "organize.selectContents", "-", "organize.toggleFolderView", "organize.openFolder", "organize.folderUp"]),
-        ("menu.view", ["view.commandPalette", "go.quickOpen", "go.goTo", "-", .. Panels.Select(p => "view.panel." + p.ToLowerInvariant()), "-", "view.zoomIn", "view.zoomOut", "view.zoomReset", "view.fullscreen"]),
+        ("menu.file", ["file.newData", "file.open", .. ResourceNew, "file.save", "file.saveAs", "file.saveCopy", "file.revert", "-", "file.exportSelection", "file.exportAll", "file.transfer", "file.importCodeFolder", "file.importCodeFiles", "-", "settings.open", "settings.resetPrompts", "-", "file.close", "file.exit"]),
+        ("menu.edit", ["edit.undo", "edit.redo", "-", "edit.rename", "edit.duplicate", "edit.moveUp", "edit.moveDown", "edit.copyName", "edit.reveal", "edit.toggleFavourite", "edit.addTag", "edit.delete", "edit.selectAll", "-", "edit.find", "edit.findInCode", "edit.replaceInCode", "edit.findUsages", "edit.findUses", "edit.findUnreferenced", "edit.findChildren"]),
+        ("menu.organize", ["organize.newFolder", "organize.moveToFolder", "organize.addToCollection", "organize.removeFromGroup", "organize.colourLabel", "-", "organize.bulkRename", "organize.moveToTextureGroup", "organize.moveToAudioGroup", "-", "organize.selectByType", "organize.selectContents", "-", "organize.toggleFolderView", "organize.openFolder", "organize.folderUp"]),
+        ("menu.view", ["view.commandPalette", "go.quickOpen", "go.goTo", "-", .. Panels.Select(p => "view.panel." + p.ToLowerInvariant()), "-", "view.zoomIn", "view.zoomOut", "view.zoomReset", "view.fullscreen", "-", "view.nextRegion", "view.prevRegion"]),
         ("menu.project", ["project.enable", "project.sync", "project.options", "project.resolve", "project.moveDataFile", "project.disable"]),
         ("menu.sprite", ["edit.editImage", "edit.replaceFrame", "edit.duplicateFrame", "edit.removeFrame", "edit.importSheet", "-", "edit.recalculateMask", "edit.importMask", "edit.exportMask", "edit.exportGif"]),
         ("menu.sound", ["edit.editAudio", "edit.replaceAudio", "edit.exportAudio", "edit.exportAllAudio"]),
@@ -63,7 +66,7 @@ public static partial class AppCommands
         ("menu.image", [.. ImageCommands.Select(c => c.Id)]),
         ("menu.code", [.. CodeCommands.Select(c => c.Id)]),
         ("menu.run", ["run.game", "run.restart", "run.withRuntime", "run.stop", "-", "run.migrateOptions"]),
-        ("menu.mods", ["mods.createPatch", "mods.applyPatch", "mods.applyMod", "mods.mergePatches", "mods.validatePatch", "mods.exportMod", "-", "mods.compareDataFiles", "mods.exportPack", "mods.applyPack", "mods.rememberBase", "mods.clearBase"]),
+        ("menu.mods", ["mods.createPatch", "mods.applyPatch", "mods.applyMod", "mods.mergePatches", "mods.validatePatch", "-", "mods.compareDataFiles", "mods.applyPack", "mods.rememberBase", "mods.clearBase"]),
         ("menu.tools", ["tools.plugins", "tools.strings", "tools.roomOrder", "tools.textureGroups", "tools.audioGroups", "tools.hexView", "tools.offsetMap", "tools.writeDebugData", "tools.disassemble", "tools.runScript", "tools.runCommand", "-", "tools.repackTextures", "tools.exportPage", "tools.replacePage"]),
         ("menu.window", ["tabs.close", "tabs.closeOthers", "tabs.closeAll", "tabs.reopen", "-", "tabs.next", "tabs.previous", "tabs.back", "tabs.forward", "-", "tabs.pin", "tabs.keepOpen", "tabs.splitRight"]),
         ("menu.layout", ["window.layout.studio", "window.layout.wide", "window.layout.code", "window.layout.canvas", "window.layout.minimal", "-", "window.layout.save", "window.layout.saved", "window.layout.reset", "-", "dock.toggleAll", "dock.toggleLeft", "dock.toggleRight", "dock.toggleBottom", "-", "window.showAll", "window.closeAll"]),

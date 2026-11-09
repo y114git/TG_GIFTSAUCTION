@@ -14,7 +14,7 @@ public sealed record OnboardingActions(Action<string> Pick, Action<string> Accen
 /// </summary>
 public sealed class OnboardingWindow : Window
 {
-    private readonly ListBox _languages = new() { Name = "OnboardingLanguages", MinHeight = 220 };
+    private readonly ListBox _languages = new() { Name = "OnboardingLanguages", MinHeight = 140, MaxHeight = 260 };
 
     /// <summary>The accent colors offered on the welcome window: the G3M green first, then a few that stay readable on the dark surfaces.</summary>
     public static readonly string[] Accents = ["#039D5B", "#2F81F7", "#8957E5", "#E5534B", "#D29922", "#F778BA"];
@@ -32,10 +32,8 @@ public sealed class OnboardingWindow : Window
         {
             if (_languages.SelectedIndex >= 0) actions.Pick(languages[_languages.SelectedIndex].Key);
         };
-        var start = new Button { Name = "OnboardingStart", Classes = { "primary" } }.Tr(ContentControl.ContentProperty, "onboarding.start");
-        var skip = new Button { Name = "OnboardingSkip" }.Tr(ContentControl.ContentProperty, "onboarding.skip");
-        start.Click += (_, _) => Close(true);
-        skip.Click += (_, _) => Close(false);
+        var start = DialogFrame.Wire(this, new Button { Name = "OnboardingStart" }.Tr(ContentControl.ContentProperty, "onboarding.start"), () => Close(true), DialogRole.Primary);
+        var skip = DialogFrame.Wire(this, new Button { Name = "OnboardingSkip" }.Tr(ContentControl.ContentProperty, "onboarding.skip"), () => Close(false), DialogRole.Normal);
         Closed += (_, _) => actions.Finish();
         var report = new CheckBox { Name = "OnboardingCrash", IsChecked = crashReports }.Tr(ContentControl.ContentProperty, "onboarding.crash");
         report.IsCheckedChanged += (_, _) => actions.Crash(report.IsChecked == true);
@@ -49,9 +47,8 @@ public sealed class OnboardingWindow : Window
             swatches.Children.Add(swatch);
         }
 
-        Content = new StackPanel
+        DialogFrame.Show(this, new StackPanel
         {
-            Margin = new Avalonia.Thickness(24),
             Spacing = 12,
             Children =
             {
@@ -63,8 +60,7 @@ public sealed class OnboardingWindow : Window
                 swatches,
                 report,
                 new TextBlock { Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap }.Tr(TextBlock.TextProperty, "onboarding.later"),
-                new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right, Children = { skip, start } },
             },
-        };
+        }, [skip, start], scroll: DialogScroll.Vertical);
     }
 }

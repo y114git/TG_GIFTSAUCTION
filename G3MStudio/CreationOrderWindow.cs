@@ -1,9 +1,9 @@
 using System.Globalization;
 using Avalonia.Controls;
-using Avalonia.Layout;
 using G3MLib.DataFile.Models;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio;
 
@@ -12,7 +12,7 @@ public sealed class CreationOrderWindow : Window
 {
     private readonly GameMakerRoom _room;
     private readonly Workspace _workspace;
-    private readonly ListBox _list = new() { Name = "CreationOrder", MinHeight = 240 };
+    private readonly ListBox _list = new() { Name = "CreationOrder", MinHeight = 120 };
 
     public CreationOrderWindow(GameMakerRoom room, Workspace workspace)
     {
@@ -20,6 +20,8 @@ public sealed class CreationOrderWindow : Window
         Title = Loc.Current["rooms.orderTitle"] + " - " + room.Name.Content;
         Width = 420;
         Height = 460;
+        MinWidth = 340;
+        MinHeight = 340;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         Button Move(string key, string name, Func<int, int> target)
         {
@@ -28,10 +30,11 @@ public sealed class CreationOrderWindow : Window
             return button;
         }
 
-        var buttons = new StackPanel
+        var buttons = new WrapPanel
         {
-            Orientation = Orientation.Horizontal,
-            Spacing = 8,
+            ItemSpacing = 8,
+            LineSpacing = 8,
+            Margin = new Avalonia.Thickness(0, 0, 0, 8),
             Children =
             {
                 Move("rooms.orderTop", "OrderTop", _ => 0),
@@ -41,13 +44,11 @@ public sealed class CreationOrderWindow : Window
             },
         };
         var note = new TextBlock { Text = Loc.Current["rooms.orderNote"], TextWrapping = Avalonia.Media.TextWrapping.Wrap, Classes = { "muted" } };
-        var panel = new DockPanel { Margin = new Avalonia.Thickness(12) };
+        var panel = new DockPanel();
         DockPanel.SetDock(buttons, Avalonia.Controls.Dock.Top);
-        DockPanel.SetDock(note, Avalonia.Controls.Dock.Bottom);
         panel.Children.Add(buttons);
-        panel.Children.Add(note);
         panel.Children.Add(_list);
-        Content = panel;
+        DialogFrame.Show(this, panel, [DialogFrame.Close(this)], note);
         workspace.History.Changed += Refresh;
         Closed += (_, _) => workspace.History.Changed -= Refresh;
         Refresh();

@@ -1,6 +1,5 @@
 using G3MStudio.Theme;
 using Avalonia.Controls;
-using Avalonia.Layout;
 using G3MStudio.Localization;
 
 namespace G3MStudio;
@@ -33,33 +32,22 @@ public sealed class TourWindow : Window
         SizeToContent = SizeToContent.Height;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         CanResize = false;
-        var skip = new Button { Name = "TourSkip" }.Tr(ContentControl.ContentProperty, "tour.skip");
+        var skip = DialogFrame.Wire(this, new Button { Name = "TourSkip" }.Tr(ContentControl.ContentProperty, "tour.skip"), Close, DialogRole.Normal);
         _back.Content = Loc.Current["tour.back"];
-        _back.Click += (_, _) => Step = Math.Max(0, Step - 1);
-        _next.Click += (_, _) =>
+        DialogFrame.Wire(this, _back, () => Step = Math.Max(0, Step - 1), DialogRole.Normal);
+        DialogFrame.Wire(this, _next, () =>
         {
             if (Step == Steps.Length - 1) Close();
             else Step++;
-        };
-        skip.Click += (_, _) => Close();
+        }, DialogRole.Primary);
         KeyDown += (_, e) =>
         {
             if (e.Key != Avalonia.Input.Key.Escape) return;
             Close();
             e.Handled = true;
         };
-        Content = new StackPanel
-        {
-            Margin = new Avalonia.Thickness(24),
-            Spacing = Mods.ModsUi.Space(3),
-            Children =
-            {
-                _count,
-                _title,
-                _text,
-                new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right, Children = { skip, _back, _next } },
-            },
-        };
+        _title.TextWrapping = Avalonia.Media.TextWrapping.Wrap;
+        DialogFrame.Show(this, new StackPanel { Spacing = Mods.ModsUi.Space(2), Children = { _count, _title, _text } }, [skip, _back, _next], scroll: DialogScroll.Vertical);
         Step = 0;
     }
 

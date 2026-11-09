@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using Avalonia.Controls;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio;
 
@@ -35,18 +36,22 @@ public sealed class StringsWindow : Window
         Title = Loc.Current["strings.title"];
         Width = 560;
         Height = 560;
+        MinWidth = 420;
+        MinHeight = 480;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         var top = new DockPanel { Children = { _regex, _filter } };
         DockPanel.SetDock(_regex, Avalonia.Controls.Dock.Right);
-        var bottom = new StackPanel { Spacing = 6, Children = { _uses, _text, new DockPanel { Children = { _apply, _count } } } };
-        DockPanel.SetDock(_apply, Avalonia.Controls.Dock.Right);
-        var panel = new DockPanel { Margin = new Avalonia.Thickness(12) };
+        var bottom = new StackPanel { Spacing = 6, Margin = new Avalonia.Thickness(0, 8, 0, 0), Children = { _uses, _text } };
+        var panel = new DockPanel();
+        top.Margin = new Avalonia.Thickness(0, 0, 0, 8);
         DockPanel.SetDock(top, Avalonia.Controls.Dock.Top);
         DockPanel.SetDock(bottom, Avalonia.Controls.Dock.Bottom);
         panel.Children.Add(top);
         panel.Children.Add(bottom);
         panel.Children.Add(_list);
-        Content = panel;
+        _apply.Classes.Add("primary");
+        _count.TextWrapping = Avalonia.Media.TextWrapping.Wrap;
+        DialogFrame.Show(this, panel, [_apply, DialogFrame.Close(this, isDefault: false)], _count, dirty: () => _selected is not null && _text.Text != _selected.Text);
         _filter.PropertyChanged += (_, e) =>
         {
             if (e.Property == TextBox.TextProperty) Refresh();

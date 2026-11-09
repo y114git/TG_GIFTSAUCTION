@@ -244,7 +244,7 @@ public sealed class CodeSearchTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task TheDisassemblyWindowShowsTheInstructionsOfACodeEntry()
+    public async Task TheCodeTabSwitchesToTheAssemblyOfAnEntryAndAssemblesEditsWithUndo()
     {
         using var dir = new TempDir();
         var path = TestData.WriteSample(dir, objects: 1, withCode: true);
@@ -256,26 +256,23 @@ public sealed class CodeSearchTests(ITestOutputHelper output)
                 await window.OpenAsync(path);
                 var workspace = window.Workspaces.Current!;
                 var entry = workspace.Data.Code.First().Name.Content!;
-                var disassembly = new DisassemblyWindow(workspace, entry);
-                for (var i = 0; i < 300 && disassembly.Text.StartsWith("Reading", StringComparison.Ordinal); i++)
-                {
-                    Dispatcher.UIThread.RunJobs();
-                    await Task.Delay(10, TestContext.Current.CancellationToken);
-                }
+                var tab = new G3MStudio.Editor.CodeEditorTab(workspace, entry);
+                await tab.Ready;
+                var gml = tab.Text;
+                tab.ShowAssembly = true;
+                await tab.Ready;
+                Assert.NotEqual(gml, tab.Text);
+                Assert.Equal(CodeMode.Assembly, tab.Mode);
+                Assert.False(tab.ShowsFallback);
 
-                Assert.False(string.IsNullOrWhiteSpace(disassembly.Text));
-                Assert.DoesNotContain("Could not read", disassembly.Text, StringComparison.Ordinal);
-                Assert.StartsWith("Reading", new DisassemblyWindow(workspace, entry).Text, StringComparison.Ordinal);
-
-                // Assemble puts the shown text back as one edit that undoes.
-                var assemble = ((Avalonia.Controls.Control)disassembly.Content!).GetVisualDescendants().OfType<Avalonia.Controls.Button>().Single(b => b.Name == "Assemble");
+                // Apply puts the edited assembly back as one edit that undoes.
                 var steps = workspace.History.Position;
-                assemble.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Avalonia.Controls.Button.ClickEvent));
-                Assert.Equal(steps, workspace.History.Position); // unchanged text is not an edit
-                ((Avalonia.Controls.Control)disassembly.Content!).GetVisualDescendants().OfType<AvaloniaEdit.TextEditor>().Single().Text += "\n; edited";
-                assemble.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Avalonia.Controls.Button.ClickEvent));
-                Assert.Equal("Assembled.", disassembly.Message.Text);
+                tab.Editor.Text += "\n; edited";
+                Assert.True(tab.Apply());
                 Assert.Equal(steps + 1, workspace.History.Position);
+                tab.ShowAssembly = false;
+                await tab.Ready;
+                Assert.Equal(CodeMode.Decompiled, tab.Mode);
             }
             finally { window.Close(); }
         });

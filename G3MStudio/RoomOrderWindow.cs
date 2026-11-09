@@ -1,7 +1,7 @@
 using Avalonia.Controls;
-using Avalonia.Layout;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio;
 
@@ -9,7 +9,7 @@ namespace G3MStudio;
 public sealed class RoomOrderWindow : Window
 {
     private readonly Workspace _workspace;
-    private readonly ListBox _list = new() { Name = "RoomOrderList", MinHeight = 240 };
+    private readonly ListBox _list = new() { Name = "RoomOrderList", MinHeight = 120 };
     private readonly ComboBox _rooms = new() { Name = "RoomOrderRooms", MinWidth = 220 };
     private readonly Button _up = new() { Name = "RoomOrderUp" }, _down = new() { Name = "RoomOrderDown" }, _remove = new() { Name = "RoomOrderRemove" }, _add = new() { Name = "RoomOrderAdd" };
     private readonly TextBlock _message = new() { Name = "RoomOrderMessage", TextWrapping = Avalonia.Media.TextWrapping.Wrap };
@@ -20,6 +20,8 @@ public sealed class RoomOrderWindow : Window
         Title = Loc.Current["roomOrder.title"];
         Width = 520;
         Height = 480;
+        MinWidth = 380;
+        MinHeight = 380;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         _up.Content = Loc.Current["roomOrder.up"];
         _down.Content = Loc.Current["roomOrder.down"];
@@ -35,21 +37,20 @@ public sealed class RoomOrderWindow : Window
         _list.SelectionChanged += (_, _) => RefreshButtons();
         workspace.History.Changed += Fill;
         Closed += (_, _) => workspace.History.Changed -= Fill;
-        var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { _up, _down, _remove } };
-        var adder = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { _rooms, _add } };
-        Content = new DockPanel
+        var buttons = new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Children = { _up, _down, _remove } };
+        var adder = new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Children = { _rooms, _add } };
+        var content = new DockPanel
         {
-            Margin = new Avalonia.Thickness(12),
             LastChildFill = true,
             Children =
             {
                 Docked(new TextBlock { Text = Loc.Current["roomOrder.hint"], Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap, Margin = new Avalonia.Thickness(0, 0, 0, 8) }, Avalonia.Controls.Dock.Top),
-                Docked(_message, Avalonia.Controls.Dock.Bottom),
                 Docked(adder, Avalonia.Controls.Dock.Bottom),
                 Docked(buttons, Avalonia.Controls.Dock.Bottom),
                 _list,
             },
         };
+        DialogFrame.Show(this, content, [DialogFrame.Close(this)], _message);
         Fill();
     }
 

@@ -3,6 +3,14 @@
     "language": "japanese",
     "language_name": "日本語"
   },
+  "common": {
+    "cancel": "キャンセル",
+    "close": "閉じる",
+    "discardTitle": "変更を破棄しますか?",
+    "discardMessage": "このウィンドウで値を変更しています。今閉じると失われます。",
+    "discard": "破棄",
+    "keepEditing": "編集を続ける"
+  },
   "app": {
     "title": "G3MStudio",
     "welcome": "ゲームのデータファイルを開いて始めましょう。",
@@ -111,6 +119,7 @@
       "revert": "保存済みの状態に戻す...",
       "exportSelection": "選択したリソースをフォルダーにエクスポート...",
       "exportAll": "すべてのリソースをフォルダーにエクスポート...",
+      "transfer": "リソースを転送...",
       "import": "別のデータファイルからリソースをインポート...",
       "importFiles": "画像・サウンド・スクリプトのファイルをインポート...",
       "importCodeFolder": "フォルダーからコードをインポート...",
@@ -165,6 +174,8 @@
     "view": {
       "commandPalette": "コマンドパレット...",
       "fullscreen": "全画面表示の切り替え",
+      "nextRegion": "次の領域にフォーカス",
+      "prevRegion": "前の領域にフォーカス",
       "zoomIn": "拡大",
       "zoomOut": "縮小",
       "zoomReset": "ズームをリセット"
@@ -679,7 +690,8 @@
     },
     "copyDetails": "詳細をコピー",
     "retry": "再試行",
-    "sideBySide": "アセンブリを並べて表示",
+    "showAssembly": "アセンブリを表示",
+    "showGml": "GMLを表示",
     "showParent": "親スクリプトを表示",
     "fallbackAssembly": "デコンパイラが失敗しました: {reason}。アセンブリを表示しています。",
     "fallbackParent": "デコンパイラが失敗しました: {reason}。親スクリプト {parent} を表示しています。読み取り専用です。",
@@ -942,6 +954,8 @@
   },
   "properties": {
     "addEntry": "エントリを追加",
+    "moveUp": "上へ",
+    "moveDown": "下へ",
     "section": {
       "physics": "物理",
       "texture": "テクスチャ設定",
@@ -957,6 +971,9 @@
     "copy": "バージョン情報をコピー"
   },
   "search": {
+    "open": "開く",
+    "copy": "コピー",
+    "copyAll": "すべてコピー",
     "placeholder": "コード内を検索",
     "word": "単語単位",
     "replacePlaceholder": "置換後の文字列",
@@ -973,14 +990,6 @@
     "cancelled": "検索をキャンセルしました。",
     "badPattern": "このパターンは無効です: {reason}",
     "timeout": "このパターンは 1 行の処理に時間がかかりすぎます。もっと単純にしてください。"
-  },
-  "disassembly": {
-    "assemble": "アセンブル",
-    "assembled": "アセンブルしました。",
-    "assembleFailed": "アセンブルできませんでした: {reason}",
-    "title": "{entry} の逆アセンブル",
-    "loading": "命令を読み込み中...",
-    "failed": "命令を読み込めませんでした: {reason}"
   },
   "autoTile": {
     "title": "オートタイルのルールセット",
@@ -1000,7 +1009,14 @@
   },
   "view": {
     "autosaveFailed": "レイヤースタックを保存できませんでした: {reason}",
-    "layersDamaged": "保存されたレイヤースタックが破損していました。ファイルは {file} として残しました。"
+    "layersDamaged": "保存されたレイヤースタックが破損していました。ファイルは {file} として残しました。",
+    "region": {
+      "menu": "メニューバー",
+      "editor": "エディター領域",
+      "bottom": "下部パネル",
+      "status": "ステータスバー"
+    },
+    "regionMoved": "フォーカス: {region}"
   },
   "uiLayer": {
     "title": "UI レイヤー",
@@ -1172,7 +1188,6 @@
       "exportPack": "表示中の変更をパックとして書き出し...",
       "createMod": "G3M モッドを作成...",
       "refresh": "更新",
-      "close": "閉じる",
       "readOnly": "このファイルはここで編集されていないため、変更を適用できません。",
       "applied": "'{name}' を自分のファイルに適用しました。元に戻すで取り消せます。",
       "codeOwner": "追加・削除されたコードは、そのオブジェクト、スクリプト、ルームと一緒に扱われます。代わりにその項目を適用してください。",

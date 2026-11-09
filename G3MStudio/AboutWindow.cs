@@ -1,10 +1,8 @@
 using G3MStudio.Theme;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input.Platform;
-using Avalonia.Layout;
 using G3MStudio.Localization;
 
 namespace G3MStudio;
@@ -16,6 +14,7 @@ public sealed class AboutWindow : Window
     {
         Title = Loc.Current["about.title"];
         Width = 440;
+        MinWidth = 340;
         SizeToContent = SizeToContent.Height;
         CanResize = false;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
@@ -25,19 +24,11 @@ public sealed class AboutWindow : Window
         {
             if (Clipboard is { } clipboard) await clipboard.SetTextAsync(VersionInfo());
         };
-        var close = new Button { Name = "CloseAbout", IsDefault = true, IsCancel = true, Content = Loc.Current["settings.close"] };
-        close.Click += (_, _) => Close();
-        Content = new StackPanel
+        DialogFrame.Show(this, new StackPanel
         {
-            Margin = new Thickness(16),
             Spacing = 12,
-            Children =
-            {
-                new TextBlock { Text = Loc.Current["app.title"] }.TextSize("FontSize.Display"),
-                text,
-                new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { copy, close } },
-            },
-        };
+            Children = { new TextBlock { Text = Loc.Current["app.title"] }.TextSize("FontSize.Display"), text },
+        }, [copy, DialogFrame.Close(this, "CloseAbout")], scroll: DialogScroll.Vertical);
     }
 
     /// <summary>The lines of the dialog, one per fact, in English and the same for every language so a bug report reads the same.</summary>

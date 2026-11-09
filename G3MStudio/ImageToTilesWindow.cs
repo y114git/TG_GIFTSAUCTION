@@ -4,6 +4,7 @@ using Avalonia.Layout;
 using G3MLib.DataFile.Models;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio;
 
@@ -17,10 +18,10 @@ public sealed class ImageToTilesWindow : Window
     private readonly IReadOnlyList<GameMakerBackground> _sets;
     private readonly Func<Task<string?>> _pick;
     private readonly Func<IDisposable>? _read;
-    private readonly TextBlock _path = new() { Name = "TilesPath", TextTrimming = Avalonia.Media.TextTrimming.CharacterEllipsis, MaxWidth = 320, VerticalAlignment = VerticalAlignment.Center };
+    private readonly TextBlock _path = new() { Name = "TilesPath", TextTrimming = Avalonia.Media.TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center };
     private readonly ComboBox _set = new() { Name = "TilesSet", MinWidth = 220 };
     private readonly TextBox _name = new() { Name = "TilesName", MinWidth = 220 };
-    private readonly TextBlock _summary = new() { Name = "TilesSummary", TextWrapping = Avalonia.Media.TextWrapping.Wrap, MaxWidth = 440 };
+    private readonly TextBlock _summary = new() { Name = "TilesSummary", TextWrapping = Avalonia.Media.TextWrapping.Wrap };
     private readonly Button _ok = new() { Name = "TilesOk", IsEnabled = false, Classes = { "primary" } };
     private PixelBuffer? _picture;
 
@@ -28,7 +29,8 @@ public sealed class ImageToTilesWindow : Window
     {
         (_room, _sets, _pick, _read) = (room, sets, pick, read);
         Title = Loc.Current["rooms.imgTitle"];
-        SizeToContent = SizeToContent.WidthAndHeight;
+        Width = 520;
+        SizeToContent = SizeToContent.Height;
         CanResize = false;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         _set.ItemsSource = sets.Select(s => s.Name.Content ?? "").ToList();
@@ -37,28 +39,22 @@ public sealed class ImageToTilesWindow : Window
         _path.Text = Loc.Current["rooms.imgNone"];
         _ok.Content = Loc.Current["image.ok"];
         var choose = new Button { Name = "TilesChoose", Content = Loc.Current["rooms.imgChoose"] };
-        var cancel = new Button { Name = "TilesCancel", Content = Loc.Current["explorer.cancel"] };
         choose.Click += async (_, _) =>
         {
             if (await _pick() is { } file) Load(file);
         };
         _set.SelectionChanged += (_, _) => Refresh();
         _name.TextChanged += (_, _) => UpdateOk();
-        _ok.Click += (_, _) => Close(true);
-        cancel.Click += (_, _) => Close(false);
-        Content = new StackPanel
+        var picture = new DockPanel { Children = { choose, _path } };
+        choose.Margin = new Thickness(0, 0, 8, 0);
+        DockPanel.SetDock(choose, Avalonia.Controls.Dock.Left);
+        DialogFrame.Wire(this, _ok, () => Close(true), DialogRole.Primary);
+        var typed = DialogFrame.Snapshot(_set, _name);
+        DialogFrame.Show(this, new StackPanel
         {
-            Spacing = 6,
-            Margin = new Thickness(12),
-            Children =
-            {
-                new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { choose, _path } },
-                Row("rooms.imgTileSet", _set),
-                Row("rooms.imgLayer", _name),
-                _summary,
-                new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right, Children = { cancel, _ok } },
-            },
-        };
+            Spacing = 8,
+            Children = { picture, DialogFrame.Form((Loc.Current["rooms.imgTileSet"], _set), (Loc.Current["rooms.imgLayer"], _name)), _summary },
+        }, [_ok, DialogFrame.Cancel(this, () => Close(false), "TilesCancel")], scroll: DialogScroll.Vertical, dirty: () => _picture is not null || typed());
     }
 
     /// <summary>The match for the current choice, or null before a picture is loaded.</summary>
@@ -68,9 +64,6 @@ public sealed class ImageToTilesWindow : Window
 
     public string LayerName => (_name.Text ?? "").Trim();
 
-    private static StackPanel Row(string label, Control control) =>
-        new() { Orientation = Orientation.Horizontal, Spacing = 8, Children = { new TextBlock { Text = Loc.Current[label], Width = 110, VerticalAlignment = VerticalAlignment.Center }, control } };
-
     /// <summary>Reads the picture file and shows the match; a file that cannot be read shows the reason and keeps OK off.</summary>
     public void Load(string file)
     {
@@ -78,6 +71,7 @@ public sealed class ImageToTilesWindow : Window
         {
             _picture = SheetSplit.Read(File.ReadAllBytes(file))[0];
             _path.Text = Path.GetFileName(file);
+            ToolTip.SetTip(_path, file);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException or ImageMagick.MagickException)
         {

@@ -74,6 +74,17 @@ public sealed partial class MainWindow
 
     public void ExportAll() => _ = ExportAllAsync();
 
+    public void Transfer() => _ = TransferAsync();
+
+    /// <summary>Asks which way to move resources, then runs that command (tests set <see cref="TransferChooser"/>).</summary>
+    public async Task TransferAsync()
+    {
+        var id = TransferChooser is { } choose ? await choose() : await new TransferWindow().ShowDialog<string?>(this);
+        if (id is not null) Registry.Execute(id);
+    }
+
+    public Func<Task<string?>>? TransferChooser { get; set; }
+
     public void ImportResources() => _ = ImportAsync();
 
     public void ImportPackage() => _ = ImportPackageAsync();

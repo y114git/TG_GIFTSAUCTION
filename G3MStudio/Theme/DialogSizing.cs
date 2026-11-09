@@ -73,7 +73,7 @@ public static class DialogSizing
         {
             if (e.Key != Avalonia.Input.Key.Escape || e.Handled || !w.IsVisible) return;
             e.Handled = true;
-            w.Close();
+            DialogFrame.RequestClose(w);
         };
 
         // Only a size the user gave is kept: changes in the first moments are the dialog sizing itself.

@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Layout;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio;
 
@@ -27,9 +27,11 @@ public sealed class LayoutsWindow : Window
         _names = names;
         Title = Loc.Current["layouts.title"];
         Width = 420;
+        MinWidth = 340;
         SizeToContent = SizeToContent.Height;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         CanResize = false;
+        var close = DialogFrame.Close(this, isDefault: false);
         string? Picked() => _list.SelectedItem as string;
         void Update()
         {
@@ -74,19 +76,19 @@ public sealed class LayoutsWindow : Window
             Run();
             e.Handled = true;
         };
-        Content = new StackPanel
+        _empty.TextWrapping = Avalonia.Media.TextWrapping.Wrap;
+        _save.Classes.Add("primary");
+        DialogFrame.Show(this, new StackPanel
         {
-            Margin = new Avalonia.Thickness(16),
-            Spacing = Mods.ModsUi.Space(3),
+            Spacing = Mods.ModsUi.Space(2),
             Children =
             {
                 _empty,
                 _list,
-                new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { _load, _rename, _delete } },
+                new WrapPanel { ItemSpacing = 8, LineSpacing = 8, Children = { _load, _rename, _delete } },
                 _name,
-                _save,
             },
-        };
+        }, [_save, close], scroll: DialogScroll.Vertical, dirty: () => !string.IsNullOrWhiteSpace(_name.Text));
         Refresh();
         Update();
     }

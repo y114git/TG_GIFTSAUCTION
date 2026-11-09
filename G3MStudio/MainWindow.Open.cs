@@ -26,6 +26,13 @@ public sealed partial class MainWindow
     public void OpenDropped(IEnumerable<string> paths)
     {
         var list = paths.ToList();
+        // A dropped .csx runs as a script, after the same warning as Tools > Run Script (UTMT-FILE-13).
+        if (Workspaces.Current is not null && list is [var script] && script.EndsWith(".csx", StringComparison.OrdinalIgnoreCase))
+        {
+            _ = RunScriptAsync(script);
+            return;
+        }
+
         if (Workspaces.Current is { } open && list is [var one] && FrontTabKey() is { } front && ResourceTypes.SplitKey(front) is var (frontType, frontName))
         {
             // One picture on a sprite tab goes onto the selected frame, one sound file on a sound tab replaces its audio; anywhere else a file makes a new resource.

@@ -29,32 +29,28 @@ public sealed class CopyToWindow : Window
         (_source, _target, _items) = (source, target, items);
         Title = Loc.Current["copyTo.title"];
         Width = 640;
+        MinWidth = 440;
         SizeToContent = SizeToContent.Height;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         _notes.Foreground = (IBrush?)Avalonia.Application.Current?.FindResource("Text.Muted");
         foreach (var key in new[] { "copyTo.modeRename", "copyTo.modeSkip", "copyTo.modeReplace" }) _mode.Items.Add(Loc.Current[key]);
-        var cancel = new Button { Name = "CopyCancel", IsCancel = true, Content = Loc.Current["explorer.cancel"] };
         _dependencies.IsCheckedChanged += (_, _) => _ = RefreshAsync();
         _mode.SelectionChanged += (_, _) => _ = RefreshAsync();
-        _ok.IsDefault = true;
-        _ok.Click += (_, _) => Close(_plan);
-        cancel.Click += (_, _) => Close(null);
+        DialogFrame.Wire(this, _ok, () => Close(_plan), DialogRole.Primary);
         Closed += (_, _) => _version = int.MaxValue;
         Opened += (_, _) => _ = RefreshAsync();
-        Content = new StackPanel
+        _notes.Margin = default;
+        DialogFrame.Show(this, new StackPanel
         {
-            Margin = new Avalonia.Thickness(16),
-            Spacing = Mods.ModsUi.Space(3),
+            Spacing = Mods.ModsUi.Space(2),
             Children =
             {
                 new TextBlock { Text = Loc.Current.Format("copyTo.header", ("count", items.Count), ("source", source.Name), ("target", target.Name)), TextWrapping = TextWrapping.Wrap },
                 _dependencies,
-                new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { new TextBlock { Text = Loc.Current["copyTo.mode"], VerticalAlignment = VerticalAlignment.Center }, _mode } },
+                new WrapPanel { ItemSpacing = 8, LineSpacing = 8, Children = { new TextBlock { Text = Loc.Current["copyTo.mode"], VerticalAlignment = VerticalAlignment.Center }, _mode } },
                 _list,
-                _notes,
-                new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right, Children = { _ok, cancel } },
             },
-        };
+        }, [_ok, DialogFrame.Cancel(this, () => Close(null), "CopyCancel")], _notes, DialogScroll.Vertical);
     }
 
     private CopyPlan? _plan;
@@ -89,17 +85,18 @@ public sealed class CopyToWindow : Window
         var label = $"{Loc.Current["explorer.type." + entry.Type]}  {entry.Name}" + (entry.Action == CopyAction.Rename ? $"  >  {entry.TargetName}" : "")
             + (entry.IsDependency && entry.UsedBy.Count > 0 ? "  (" + Loc.Current.Format("copyTo.neededBy", ("names", string.Join(", ", entry.UsedBy))) + ")" : "")
             + (entry.Refusal is null ? "" : "  " + entry.Refusal);
-        var text = new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap, MaxWidth = 430 };
+        var text = new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
         if (entry.Refusal is not null) text.Foreground = (IBrush?)Avalonia.Application.Current?.FindResource("Danger");
-        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { Choice(entry), text } };
-        return row;
+        var choice = Choice(entry);
+        Grid.SetColumn(text, 1);
+        return new Grid { ColumnSpacing = 8, ColumnDefinitions = { new ColumnDefinition(GridLength.Auto), new ColumnDefinition(1, GridUnitType.Star) }, Children = { choice, text } };
     }
 
     // A name that exists in the target gets a choice; any other item only shows what happens to it.
     private Control Choice(PlanEntry entry)
     {
-        if (!entry.Collides || entry.Refusal is not null) return new TextBlock { Text = Loc.Current[ActionKey(entry.Action)], Width = 110, VerticalAlignment = VerticalAlignment.Center };
-        var box = new ComboBox { Width = 110 };
+        if (!entry.Collides || entry.Refusal is not null) return new TextBlock { Text = Loc.Current[ActionKey(entry.Action)], MinWidth = 110, VerticalAlignment = VerticalAlignment.Center };
+        var box = new ComboBox { MinWidth = 110 };
         box.Items.Add(Loc.Current["copyTo.choiceRename"]);
         box.Items.Add(Loc.Current["copyTo.actionSkip"]);
         if (entry.SameType) box.Items.Add(Loc.Current["copyTo.actionReplace"]);

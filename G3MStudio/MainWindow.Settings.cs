@@ -37,6 +37,17 @@ public partial class MainWindow
         void ApplyCrashReports() => CrashReporting.Apply(Workspaces.Settings.Current.CrashReports);
         Workspaces.Settings.Changed += ApplyCrashReports;
         Closed += (_, _) => Workspaces.Settings.Changed -= ApplyCrashReports;
+        // The transparency colours of Settings > Image also colour the grid behind pictures in the resource tabs.
+        static Avalonia.Media.IBrush? Paint(string text) => Core.Workspace.Rgba.Parse(text) is { } c ? new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromArgb(c.A, c.R, c.G, c.B)) : null;
+        void ApplyChequer()
+        {
+            var image = Workspaces.Settings.Current.Image;
+            (G3MStudio.Editor.Chequer.Light, G3MStudio.Editor.Chequer.Dark) = (Paint(image.CheckerLight), Paint(image.CheckerDark));
+        }
+
+        ApplyChequer();
+        Workspaces.Settings.Changed += ApplyChequer;
+        Closed += (_, _) => Workspaces.Settings.Changed -= ApplyChequer;
         // A static slot: clear it when this window closes, unless a newer window took it over.
         var riskyEdit = G3MStudio.Editor.PathView.RiskyEdit = EditOrForceAsync;
         Closed += (_, _) => { if (G3MStudio.Editor.PathView.RiskyEdit == riskyEdit) G3MStudio.Editor.PathView.RiskyEdit = null; };

@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using G3MStudio.Core.Plugins;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio;
 
@@ -11,8 +12,8 @@ public sealed class PluginsWindow : Window
 {
     private readonly PluginHost _host;
     private readonly Func<string, string, Task<bool>> _confirm;
-    private readonly ListBox _list = new() { Name = "PluginList", MinHeight = 160 };
-    private readonly TextBox _details = new() { Name = "PluginDetails", IsReadOnly = true, AcceptsReturn = true, TextWrapping = Avalonia.Media.TextWrapping.Wrap, MinHeight = 120 };
+    private readonly ListBox _list = new() { Name = "PluginList", MinHeight = 120 };
+    private readonly TextBox _details = new() { Name = "PluginDetails", IsReadOnly = true, AcceptsReturn = true, TextWrapping = Avalonia.Media.TextWrapping.Wrap, MinHeight = 100, MaxHeight = 200 };
     private readonly TextBlock _empty = new() { Name = "PluginsEmpty", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap };
     private readonly TextBox _url = new() { Name = "PluginUrl", MinWidth = 240, PlaceholderText = "https://github.com/owner/repository" };
     private bool _building;
@@ -23,6 +24,8 @@ public sealed class PluginsWindow : Window
         Title = Loc.Current["plugins.title"];
         Width = 560;
         Height = 560;
+        MinWidth = 420;
+        MinHeight = 440;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         _empty.Text = Loc.Current.Format("plugins.empty", ("folder", host.Folder));
         Button Tool(string name, string key, Action run)
@@ -50,7 +53,9 @@ public sealed class PluginsWindow : Window
                 Tool("PluginOpenFolder", "plugins.openFolder", () => OpenFolder(Selected?.Folder ?? host.Folder)),
             },
         };
-        var panel = new DockPanel { Margin = new Avalonia.Thickness(12) };
+        var panel = new DockPanel();
+        tools.Margin = new Avalonia.Thickness(0, 0, 0, 8);
+        _details.Margin = new Avalonia.Thickness(0, 8, 0, 0);
         DockPanel.SetDock(tools, Avalonia.Controls.Dock.Top);
         DockPanel.SetDock(_empty, Avalonia.Controls.Dock.Top);
         DockPanel.SetDock(_details, Avalonia.Controls.Dock.Bottom);
@@ -58,7 +63,7 @@ public sealed class PluginsWindow : Window
         panel.Children.Add(_empty);
         panel.Children.Add(_details);
         panel.Children.Add(_list);
-        Content = panel;
+        DialogFrame.Show(this, panel, [DialogFrame.Close(this, isDefault: false)]);
         _list.SelectionChanged += (_, _) => ShowDetails();
         host.Changed += Refresh;
         Closed += (_, _) => host.Changed -= Refresh;

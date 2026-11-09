@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Layout;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio;
 
@@ -22,9 +23,12 @@ public sealed class HexViewWindow : Window, IDisposable
         Title = Loc.Current.Format("hex.title", ("file", System.IO.Path.GetFileName(path)));
         Width = 760;
         Height = 560;
+        MinWidth = 420;
+        MinHeight = 280;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         Closed += (_, _) => Dispose();
         _rows.ItemsSource = new Rows(_source);
+        ScrollViewer.SetHorizontalScrollBarVisibility(_rows, Avalonia.Controls.Primitives.ScrollBarVisibility.Auto); // a narrow window scrolls the row instead of cutting it
         var go = new Button { Name = "HexGo", Content = Loc.Current["hex.goButton"] };
         var next = new Button { Name = "HexNext", Content = Loc.Current["hex.next"] };
         go.Click += (_, _) => GoTo();
@@ -47,11 +51,10 @@ public sealed class HexViewWindow : Window, IDisposable
         {
             if (chunks.SelectedIndex is >= 0 and var i) Show(list[i].Offset);
         };
-        var bar = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new Avalonia.Thickness(8), Children = { chunks, _goTo, go, new Border { Width = 12 }, _find, next, _message } };
+        var bar = new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Margin = new Avalonia.Thickness(0, 0, 0, 8), Children = { chunks, _goTo, go, _find, next, _message } };
         DockPanel.SetDock(bar, Avalonia.Controls.Dock.Top);
-        var info = new TextBlock { Text = Loc.Current.Format("hex.size", ("bytes", _source.Length.ToString("N0", System.Globalization.CultureInfo.CurrentCulture))), Classes = { "muted" }, Margin = new Avalonia.Thickness(8, 4) };
-        DockPanel.SetDock(info, Avalonia.Controls.Dock.Bottom);
-        Content = new DockPanel { Children = { bar, info, _rows } };
+        var info = new TextBlock { Text = Loc.Current.Format("hex.size", ("bytes", _source.Length.ToString("N0", System.Globalization.CultureInfo.CurrentCulture))), Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap };
+        DialogFrame.Show(this, new DockPanel { Children = { bar, _rows } }, [DialogFrame.Close(this)], info);
     }
 
     public void Dispose() => _source.Dispose();

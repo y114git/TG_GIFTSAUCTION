@@ -1,7 +1,6 @@
 using G3MStudio.Theme;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Layout;
 using G3MStudio.Localization;
 
 namespace G3MStudio;
@@ -23,13 +22,14 @@ public sealed class RenameWindow : Window
     {
         Title = title ?? Loc.Current["rename.title"];
         Width = 400;
+        MinWidth = 320;
         SizeToContent = SizeToContent.Height;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         CanResize = false;
         _name.Text = current;
         _error.Foreground = (Avalonia.Media.IBrush?)Avalonia.Application.Current?.FindResource("Danger");
-        var ok = new Button { Name = "Rename", IsDefault = true, Content = okText ?? Loc.Current["rename.ok"], IsEnabled = false };
-        var cancel = new Button { Name = "Cancel", IsCancel = true, Content = Loc.Current["explorer.cancel"] };
+        var ok = DialogFrame.Action(this, okText ?? Loc.Current["rename.ok"], "Rename", Run, DialogRole.Primary);
+        ok.IsEnabled = false;
         void Run()
         {
             var name = _name.Text?.Trim() ?? "";
@@ -50,12 +50,10 @@ public sealed class RenameWindow : Window
             if (preview is null || name.Length == 0 || name == current) return;
             _ = ShowPreviewAsync(preview, name, version);
         };
-        ok.Click += (_, _) => Run();
-        cancel.Click += (_, _) => Close(false);
         _name.KeyDown += (_, e) =>
         {
             if (e.Key != Key.Enter) return;
-            Run();
+            DialogFrame.Commit(this, Run);
             e.Handled = true;
         };
         Opened += (_, _) =>
@@ -63,20 +61,13 @@ public sealed class RenameWindow : Window
             _name.Focus();
             _name.SelectAll();
         };
-        Content = new StackPanel
+        DialogFrame.Show(this, new StackPanel
         {
-            Margin = new Avalonia.Thickness(16),
-            Spacing = Mods.ModsUi.Space(3),
-            Children =
-            {
-                new TextBlock { Text = label ?? Loc.Current.Format("rename.label", ("name", current)) },
-                _name,
-                _error,
-                _preview,
-                new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right, Children = { ok, cancel } },
-            },
-        };
+            Spacing = Mods.ModsUi.Space(2),
+            Children = { new TextBlock { Text = label ?? Loc.Current.Format("rename.label", ("name", current)), TextWrapping = Avalonia.Media.TextWrapping.Wrap }, _name, _error.HideWhenEmpty(), _preview.HideWhenEmpty() },
+        }, [ok, DialogFrame.Cancel(this, () => Close(false))], scroll: DialogScroll.Vertical, dirty: () => (_name.Text?.Trim() ?? "") != current);
     }
+
 
     private async Task ShowPreviewAsync(Func<string, string?> preview, string name, int version)
     {

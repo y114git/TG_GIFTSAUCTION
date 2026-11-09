@@ -3,6 +3,14 @@
     "language": "chinese_simplified",
     "language_name": "简体中文"
   },
+  "common": {
+    "cancel": "取消",
+    "close": "关闭",
+    "discardTitle": "放弃更改?",
+    "discardMessage": "你在此窗口中修改了内容。现在关闭将丢失这些修改。",
+    "discard": "放弃",
+    "keepEditing": "继续编辑"
+  },
   "app": {
     "title": "G3MStudio",
     "welcome": "打开游戏数据文件即可开始。",
@@ -111,6 +119,7 @@
       "revert": "还原到已保存...",
       "exportSelection": "将所选资源导出到文件夹...",
       "exportAll": "将全部资源导出到文件夹...",
+      "transfer": "传输资源...",
       "import": "从其他数据文件导入资源...",
       "importFiles": "从文件导入图片、声音和脚本...",
       "importCodeFolder": "从文件夹导入代码...",
@@ -165,6 +174,8 @@
     "view": {
       "commandPalette": "命令面板...",
       "fullscreen": "切换全屏",
+      "nextRegion": "聚焦下一个区域",
+      "prevRegion": "聚焦上一个区域",
       "zoomIn": "放大",
       "zoomOut": "缩小",
       "zoomReset": "重置缩放"
@@ -679,7 +690,8 @@
     },
     "copyDetails": "复制详情",
     "retry": "重试",
-    "sideBySide": "并排显示汇编",
+    "showAssembly": "显示汇编",
+    "showGml": "显示 GML",
     "showParent": "显示父脚本",
     "fallbackAssembly": "反编译失败：{reason}。正在显示汇编。",
     "fallbackParent": "反编译失败：{reason}。正在显示父脚本 {parent}，只读。",
@@ -942,6 +954,8 @@
   },
   "properties": {
     "addEntry": "添加条目",
+    "moveUp": "上移",
+    "moveDown": "下移",
     "section": {
       "physics": "物理",
       "texture": "纹理设置",
@@ -957,6 +971,9 @@
     "copy": "复制版本信息"
   },
   "search": {
+    "open": "打开",
+    "copy": "复制",
+    "copyAll": "全部复制",
     "placeholder": "在代码中查找",
     "word": "全字匹配",
     "replacePlaceholder": "替换为",
@@ -973,14 +990,6 @@
     "cancelled": "搜索已取消。",
     "badPattern": "此模式无效：{reason}",
     "timeout": "此模式在某一行上耗时过长。请简化它。"
-  },
-  "disassembly": {
-    "assemble": "汇编",
-    "assembled": "已汇编。",
-    "assembleFailed": "无法汇编：{reason}",
-    "title": "{entry} 的反汇编",
-    "loading": "正在读取指令...",
-    "failed": "无法读取指令: {reason}"
   },
   "autoTile": {
     "title": "自动图块规则集",
@@ -1000,7 +1009,14 @@
   },
   "view": {
     "autosaveFailed": "无法保存图层栈：{reason}",
-    "layersDamaged": "已保存的图层栈已损坏。文件已保留为 {file}。"
+    "layersDamaged": "已保存的图层栈已损坏。文件已保留为 {file}。",
+    "region": {
+      "menu": "菜单栏",
+      "editor": "编辑区",
+      "bottom": "底部面板",
+      "status": "状态栏"
+    },
+    "regionMoved": "焦点：{region}"
   },
   "uiLayer": {
     "title": "UI 图层",
@@ -1172,7 +1188,6 @@
       "exportPack": "将显示的更改导出为包...",
       "createMod": "创建 G3M 模组...",
       "refresh": "刷新",
-      "close": "关闭",
       "readOnly": "此文件当前不在这里编辑，无法应用更改。",
       "applied": "已将“{name}”应用到你的文件。撤销可还原。",
       "codeOwner": "新增或删除的代码随其对象、脚本或房间一起处理。请改为应用该项目。",

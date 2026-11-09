@@ -1,8 +1,8 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio;
 
@@ -32,7 +32,8 @@ public sealed class SheetImportWindow : Window
     {
         (_source, _sprite, _gif) = (source, sprite, source.Count > 1);
         Title = Loc.Current["sprites.sheetTitle"];
-        SizeToContent = SizeToContent.WidthAndHeight;
+        Width = 560;
+        SizeToContent = SizeToContent.Height;
         CanResize = false;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         var picture = source[0];
@@ -44,7 +45,6 @@ public sealed class SheetImportWindow : Window
         _replace.Content = Loc.Current["sprites.sheetReplace"];
         _replace.IsChecked = (_gif ? picture.Width : (int)_width.Value, _gif ? picture.Height : (int)_height.Value) != sprite;
         _ok.Content = Loc.Current["image.ok"];
-        var cancel = new Button { Name = "SheetCancel", Content = Loc.Current["explorer.cancel"] };
         // Typing in a box fires a change per keystroke; the cut runs once the typing pauses (reading Frames or pressing OK runs it at once).
         _debounce.Tick += (_, _) => Flush();
         foreach (var box in new[] { _columns, _rows, _width, _height, _count, _offsetX, _offsetY, _gapX, _gapY })
@@ -56,29 +56,31 @@ public sealed class SheetImportWindow : Window
             };
         _mode.SelectionChanged += (_, _) => Refresh();
         _replace.IsCheckedChanged += (_, _) => Refresh();
-        _ok.Click += (_, _) =>
-        {
-            Flush();
-            if (_ok.IsEnabled) Close(true);
-        };
         Closed += (_, _) => _debounce.Stop();
-        cancel.Click += (_, _) => Close(false);
-        var body = new StackPanel { Spacing = 6, Margin = new Thickness(12) };
+        var body = new StackPanel { Spacing = 8 };
         if (!_gif)
         {
+            var fields = new Grid { ColumnSpacing = 8, RowSpacing = 8 };
+            for (var c = 0; c < 4; c++) fields.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
+            AddRow(fields, 0, "sprites.sheetColumns", _columns, "sprites.sheetRows", _rows);
+            AddRow(fields, 1, "sprites.sheetFrameWidth", _width, "sprites.sheetFrameHeight", _height);
+            AddRow(fields, 2, "sprites.sheetOffsetX", _offsetX, "sprites.sheetOffsetY", _offsetY);
+            AddRow(fields, 3, "sprites.sheetGapX", _gapX, "sprites.sheetGapY", _gapY);
+            AddRow(fields, 4, "sprites.sheetCount", _count);
             body.Children.Add(_mode);
-            body.Children.Add(Row("sprites.sheetColumns", _columns, "sprites.sheetRows", _rows));
-            body.Children.Add(Row("sprites.sheetFrameWidth", _width, "sprites.sheetFrameHeight", _height));
-            body.Children.Add(Row("sprites.sheetOffsetX", _offsetX, "sprites.sheetOffsetY", _offsetY));
-            body.Children.Add(Row("sprites.sheetGapX", _gapX, "sprites.sheetGapY", _gapY));
-            body.Children.Add(Row("sprites.sheetCount", _count));
+            body.Children.Add(fields);
         }
 
         body.Children.Add(_replace);
         body.Children.Add(_summary);
-        body.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right, Children = { cancel, _ok } });
-        Content = body;
         Refresh();
+        DialogFrame.Wire(this, _ok, () =>
+        {
+            Flush();
+            if (_ok.IsEnabled) Close(true);
+        }, DialogRole.Primary);
+        DialogFrame.Show(this, body, [_ok, DialogFrame.Cancel(this, () => Close(false), "SheetCancel")], scroll: DialogScroll.Both,
+            dirty: DialogFrame.Snapshot(_mode, _columns, _rows, _width, _height, _count, _offsetX, _offsetY, _gapX, _gapY, _replace));
     }
 
     public IReadOnlyList<PixelBuffer> Frames
@@ -99,20 +101,25 @@ public sealed class SheetImportWindow : Window
 
     public bool Replace => _replace.IsChecked == true;
 
-    private static NumericUpDown Box(string name, int value, int min, int max) => new() { Name = name, Minimum = min, Maximum = max, Value = value, Increment = 1, FormatString = "0", Width = 150 };
+    private static NumericUpDown Box(string name, int value, int min, int max) => new() { Name = name, Minimum = min, Maximum = max, Value = value, Increment = 1, FormatString = "0", Width = 130 };
 
-    private static StackPanel Row(string labelA, Control a, string? labelB = null, Control? b = null)
+    // Labels wrap in a 110 px column, so a long translation grows the row instead of being cut.
+    private static void AddRow(Grid grid, int row, string labelA, Control a, string? labelB = null, Control? b = null)
     {
-        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-        row.Children.Add(new TextBlock { Text = Loc.Current[labelA], Width = 110, VerticalAlignment = VerticalAlignment.Center });
-        row.Children.Add(a);
-        if (labelB is not null && b is not null)
+        grid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+        void Put(string label, Control field, int column)
         {
-            row.Children.Add(new TextBlock { Text = Loc.Current[labelB], Width = 110, VerticalAlignment = VerticalAlignment.Center });
-            row.Children.Add(b);
+            var text = new TextBlock { Text = Loc.Current[label], MaxWidth = 110, TextWrapping = Avalonia.Media.TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center };
+            Grid.SetRow(text, row);
+            Grid.SetColumn(text, column);
+            Grid.SetRow(field, row);
+            Grid.SetColumn(field, column + 1);
+            grid.Children.Add(text);
+            grid.Children.Add(field);
         }
 
-        return row;
+        Put(labelA, a, 0);
+        if (labelB is not null && b is not null) Put(labelB, b, 2);
     }
 
     private static int Number(NumericUpDown box) => (int)(box.Value ?? 0);

@@ -14,6 +14,8 @@ internal sealed class FakeShell : IShell
 {
     public void ShowPalette() { }
     public void ToggleFullscreen() { }
+    public void FocusRegion(int direction) => RegionSteps.Add(direction);
+    public List<int> RegionSteps { get; } = [];
 
     public void EditImage() { }
     public void ReplaceAudio() { }
@@ -54,6 +56,7 @@ internal sealed class FakeShell : IShell
     public void FindUses() { }
     public void ExportSelection() { }
     public void ExportAll() { }
+    public void Transfer() { }
     public void ImportResources() { }
 
     public void ImportPackage() { }
@@ -192,6 +195,20 @@ public sealed class CommandTests
 {
     private static CommandRegistry NewRegistry() => AppCommands.Create(new FakeShell());
 
+    [Fact]
+    public void TransferIsTheOnlyMenuEntryForEveryWayOfMovingResourcesAndKeepsEachCommand()
+    {
+        var registry = NewRegistry();
+        var menuIds = AppCommands.Menus.SelectMany(m => m.Ids).ToList();
+        Assert.Contains("file.transfer", menuIds);
+        foreach (var id in TransferWindow.Modes)
+        {
+            Assert.NotNull(registry.Find(id));
+            Assert.DoesNotContain(id, menuIds);
+            Assert.NotEqual("cmd." + id, Loc.Current["cmd." + id]);
+        }
+    }
+
     private static RawInputModifiers Raw(KeyModifiers m) =>
         (m.HasFlag(KeyModifiers.Control) ? RawInputModifiers.Control : 0) | (m.HasFlag(KeyModifiers.Shift) ? RawInputModifiers.Shift : 0) |
         (m.HasFlag(KeyModifiers.Alt) ? RawInputModifiers.Alt : 0) | (m.HasFlag(KeyModifiers.Meta) ? RawInputModifiers.Meta : 0);
@@ -254,7 +271,7 @@ public sealed class CommandTests
         var registry = NewRegistry();
         var all = registry.All.ToList();
         var inMenus = AppCommands.Menus.SelectMany(m => m.Ids).Where(id => id != "-").ToList();
-        Assert.Equal(all.Select(c => c.Id).Order(), inMenus.Order());
+        Assert.Equal(all.Select(c => c.Id).Where(id => !AppCommands.TransferModes.Contains(id)).Order(), inMenus.Order()); // the transfer modes sit behind the one Transfer entry
         var shortcuts = all.SelectMany(c => c.Gestures).Select(g => Shortcuts.Parse(g)!.ToString()).ToList();
         Assert.Equal(shortcuts.Count, shortcuts.Distinct().Count());
     }
@@ -279,10 +296,13 @@ public sealed class CommandTests
                 var window = OpenWindow(executed);
                 try
                 {
-                    var item = MenuItems(window).Single(m => m.Command is RegistryCommand && (string?)m.Header == Loc.Current[AppCommands.TitleKey(id)]);
-                    Assert.True(item.Command!.CanExecute(null), id);
-                    item.Command.Execute(null);
-                    Assert.Equal([id], executed);
+                    if (!AppCommands.TransferModes.Contains(id)) // a transfer mode has no menu entry of its own
+                    {
+                        var item = MenuItems(window).Single(m => m.Command is RegistryCommand && (string?)m.Header == Loc.Current[AppCommands.TitleKey(id)]);
+                        Assert.True(item.Command!.CanExecute(null), id);
+                        item.Command.Execute(null);
+                        Assert.Equal([id], executed);
+                    }
                 }
                 finally { CloseAll(window); }
 

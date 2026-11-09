@@ -3,6 +3,14 @@
     "language": "spanish",
     "language_name": "Español"
   },
+  "common": {
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "discardTitle": "¿Descartar los cambios?",
+    "discardMessage": "Has cambiado valores en esta ventana. Si la cierras ahora, se perderán.",
+    "discard": "Descartar",
+    "keepEditing": "Seguir editando"
+  },
   "app": {
     "title": "G3MStudio",
     "welcome": "Abre un archivo de datos del juego para empezar.",
@@ -111,6 +119,7 @@
       "revert": "Volver a lo guardado...",
       "exportSelection": "Exportar los recursos seleccionados a una carpeta...",
       "exportAll": "Exportar todos los recursos a una carpeta...",
+      "transfer": "Transferir recursos...",
       "import": "Importar recursos de otro archivo de datos...",
       "importFiles": "Importar imágenes, sonidos y scripts desde archivos...",
       "importCodeFolder": "Importar código desde una carpeta...",
@@ -165,6 +174,8 @@
     "view": {
       "commandPalette": "Paleta de comandos...",
       "fullscreen": "Alternar pantalla completa",
+      "nextRegion": "Enfocar la región siguiente",
+      "prevRegion": "Enfocar la región anterior",
       "zoomIn": "Acercar",
       "zoomOut": "Alejar",
       "zoomReset": "Restablecer zoom"
@@ -679,7 +690,8 @@
     },
     "copyDetails": "Copiar detalles",
     "retry": "Reintentar",
-    "sideBySide": "Mostrar ensamblador al lado",
+    "showAssembly": "Mostrar ensamblador",
+    "showGml": "Mostrar GML",
     "showParent": "Mostrar el script padre",
     "fallbackAssembly": "El descompilador falló: {reason}. Se muestra el ensamblador.",
     "fallbackParent": "El descompilador falló: {reason}. Se muestra el script padre {parent}. Solo lectura.",
@@ -942,6 +954,8 @@
   },
   "properties": {
     "addEntry": "Añadir entrada",
+    "moveUp": "Subir",
+    "moveDown": "Bajar",
     "section": {
       "physics": "Física",
       "texture": "Configuración de textura",
@@ -957,6 +971,9 @@
     "copy": "Copiar información de versión"
   },
   "search": {
+    "open": "Abrir",
+    "copy": "Copiar",
+    "copyAll": "Copiar todo",
     "placeholder": "Buscar en el código",
     "word": "Palabra completa",
     "replacePlaceholder": "Reemplazar por",
@@ -973,14 +990,6 @@
     "cancelled": "Búsqueda cancelada.",
     "badPattern": "Este patrón no es válido: {reason}",
     "timeout": "El patrón tarda demasiado en una línea. Hazlo más simple."
-  },
-  "disassembly": {
-    "assemble": "Ensamblar",
-    "assembled": "Ensamblado.",
-    "assembleFailed": "No se pudo ensamblar: {reason}",
-    "title": "Desensamblado de {entry}",
-    "loading": "Leyendo las instrucciones...",
-    "failed": "No se pudieron leer las instrucciones: {reason}"
   },
   "autoTile": {
     "title": "Conjuntos de reglas de autotiles",
@@ -1000,7 +1009,14 @@
   },
   "view": {
     "autosaveFailed": "No se pudieron guardar las pilas de capas: {reason}",
-    "layersDamaged": "Las pilas de capas guardadas estaban dañadas. El archivo se conservó como {file}."
+    "layersDamaged": "Las pilas de capas guardadas estaban dañadas. El archivo se conservó como {file}.",
+    "region": {
+      "menu": "Barra de menús",
+      "editor": "Área del editor",
+      "bottom": "Paneles inferiores",
+      "status": "Barra de estado"
+    },
+    "regionMoved": "Foco: {region}"
   },
   "uiLayer": {
     "title": "Capa de interfaz",
@@ -1172,7 +1188,6 @@
       "exportPack": "Exportar los cambios mostrados como paquete...",
       "createMod": "Crear mod G3M...",
       "refresh": "Actualizar",
-      "close": "Cerrar",
       "readOnly": "Este archivo no se está editando aquí, así que no se puede aplicar el cambio.",
       "applied": "'{name}' aplicado a tu archivo. Deshacer lo revierte.",
       "codeOwner": "El código nuevo o eliminado va con su objeto, script o sala. Aplica ese elemento.",

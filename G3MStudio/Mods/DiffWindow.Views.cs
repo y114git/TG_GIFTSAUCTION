@@ -51,8 +51,8 @@ public sealed partial class DiffWindow
         _frame.ValueChanged += (_, _) => RenderPicture();
         _slider.PropertyChanged += (_, e) => { if (e.Property == RangeBase.ValueProperty) RenderPicture(); };
         RenderOptions.SetBitmapInterpolationMode(_image, BitmapInterpolationMode.None);
-        var codeBar = new StackPanel { Orientation = Orientation.Horizontal, Spacing = ModsUi.Space(2), Children = { _unified, _ignoreSpace } };
-        var pictureBar = new StackPanel { Orientation = Orientation.Horizontal, Spacing = ModsUi.Space(2), Children = { _mode, new TextBlock { Text = Loc.Current["mods.diff.frame"], VerticalAlignment = VerticalAlignment.Center }, _frame, _slider } };
+        var codeBar = new WrapPanel { ItemSpacing = ModsUi.Space(2), LineSpacing = ModsUi.Space(2), Children = { _unified, _ignoreSpace } };
+        var pictureBar = new WrapPanel { ItemSpacing = ModsUi.Space(2), LineSpacing = ModsUi.Space(2), Children = { _mode, new TextBlock { Text = Loc.Current["mods.diff.frame"], VerticalAlignment = VerticalAlignment.Center }, _frame, _slider } };
         _propsTab.Content = _props;
         _codeTab.Content = Stack(codeBar, _code);
         _pictureTab.Content = Stack(pictureBar, _pictureNote, _image);

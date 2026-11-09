@@ -23,8 +23,16 @@ public sealed record PropertyRow(string Path, string Name, PropertyKind Kind, st
     /// <summary>On a list or collection: its entry count. The value text is the bare number, the grid adds the localized label.</summary>
     public int? Count { get; init; }
 
-    /// <summary>On an entry of a list of strings: it can be removed.</summary>
+    /// <summary>On an entry of an editable list: it can be removed.</summary>
     public bool Removable { get; init; }
+
+    /// <summary>On an entry of an editable list: it has a neighbour above or below to swap places with.</summary>
+    public bool CanMoveUp { get; init; }
+
+    public bool CanMoveDown { get; init; }
+
+    /// <summary>On a reference to a resource or code entry: it can be set by text, the Explorer key of the target (empty clears it). The grid takes a dropped Explorer item and has a clear button.</summary>
+    public bool Reference { get; init; }
 }
 
 /// <summary>
@@ -72,6 +80,10 @@ public static class PropertyModel
                 if (kind == PropertyKind.Whole && type == typeof(uint) && IsColorName(property.Name)) kind = PropertyKind.Color;
                 rows.Add(new PropertyRow(path, property.Name, kind, Format(value), depth, !settable) { Choices = kind == PropertyKind.Enum ? Enum.GetNames(Nullable.GetUnderlyingType(type) ?? type) : kind == PropertyKind.Flags ? FlagNames(Nullable.GetUnderlyingType(type) ?? type) : null });
             }
+            else if (value is null && IsReferenceType(type))
+            {
+                rows.Add(new PropertyRow(path, property.Name, PropertyKind.Info, "", depth, true) { Reference = settable });
+            }
             else if (value is null)
             {
                 rows.Add(new PropertyRow(path, property.Name, PropertyKind.Info, "", depth, true));
@@ -79,26 +91,29 @@ public static class PropertyModel
             else if (value is GameMakerNamedResource or GameMakerCode)
             {
                 // A reference to another entry (an object's sprite, a script's code): shown by name, edited in its own editor.
-                rows.Add(new PropertyRow(path, property.Name, PropertyKind.Info, ResourceTypes.NameOf(value), depth, true) { Target = UsageSearch.TypeKeyOf(value) is { } targetType ? ResourceTypes.KeyOf(targetType, ResourceTypes.NameOf(value)) : null });
+                rows.Add(new PropertyRow(path, property.Name, PropertyKind.Info, ResourceTypes.NameOf(value), depth, true) { Reference = settable, Target = UsageSearch.TypeKeyOf(value) is { } targetType ? ResourceTypes.KeyOf(targetType, ResourceTypes.NameOf(value)) : null });
             }
             else if (value is byte[] bytes)
             {
                 rows.Add(new PropertyRow(path, property.Name, PropertyKind.Info, $"{bytes.Length} bytes", depth, true));
             }
-            else if (value is IList { Count: 0 } and not IList<GameMakerString>)
+            else if (value is IList { Count: 0 } empty && !CanAdd(empty, property.Name))
             {
                 // An empty list has nothing to show or edit, so it gets no row.
             }
             else if (value is IList list)
             {
-                // A list of strings is edited in place: each entry is a text box and the list takes new entries.
+                // An editable list takes new entries and removes or moves its own; a list with a dedicated editor (frames, events, layers) is only shown.
                 var strings = value is IList<GameMakerString>;
-                rows.Add(new PropertyRow(path, property.Name, PropertyKind.List, list.Count.ToString(System.Globalization.CultureInfo.InvariantCulture), depth, true) { Addable = strings, Count = list.Count });
+                var editable = IsEditable(list, property.Name);
+                rows.Add(new PropertyRow(path, property.Name, PropertyKind.List, list.Count.ToString(System.Globalization.CultureInfo.InvariantCulture), depth, true) { Addable = CanAdd(list, property.Name), Count = list.Count });
                 if (depth < MaxDepth)
                     for (var i = 0; i < Math.Min(list.Count, MaxListItems); i++)
                     {
-                        if (strings) rows.Add(new PropertyRow($"{path}[{i}]", $"[{i}]", PropertyKind.GmString, Format(list[i]), depth + 1, false) { Removable = true });
-                        else Describe(list[i], $"{path}[{i}]", $"[{i}]", depth + 1, rows, seen);
+                        var at = rows.Count;
+                        if (strings) rows.Add(new PropertyRow($"{path}[{i}]", $"[{i}]", PropertyKind.GmString, Format(list[i]), depth + 1, false));
+                        else Describe(list[i], $"{path}[{i}]", $"[{i}]", depth + 1, rows, seen, editable);
+                        if (editable && rows.Count > at) rows[at] = rows[at] with { Removable = true, CanMoveUp = i > 0, CanMoveDown = i < list.Count - 1 };
                     }
             }
             else if (value is IEnumerable and not string)
@@ -112,14 +127,17 @@ public static class PropertyModel
         }
     }
 
-    private static void Describe(object? item, string path, string title, int depth, List<PropertyRow> rows, HashSet<object> seen)
+    private static void Describe(object? item, string path, string title, int depth, List<PropertyRow> rows, HashSet<object> seen, bool editable = false)
     {
-        if (item is null || !seen.Add(item)) return;
+        if (item is null) return;
         if (KindOf(item.GetType()) is { } simple)
         {
-            rows.Add(new PropertyRow(path, title, simple, Format(item), depth, true));
+            var type = item.GetType();
+            rows.Add(new PropertyRow(path, title, simple, Format(item), depth, !editable) { Choices = simple == PropertyKind.Enum ? Enum.GetNames(type) : simple == PropertyKind.Flags ? FlagNames(type) : null });
             return;
         }
+
+        if (!seen.Add(item)) return;
 
         rows.Add(new PropertyRow(path, title, PropertyKind.Group, "", depth, true));
         if (depth < MaxDepth) Walk(item, path + ".", depth + 1, rows, seen);
@@ -195,6 +213,43 @@ public static class PropertyModel
         return int.TryParse(path[(open + 1)..^1], NumberStyles.None, CultureInfo.InvariantCulture, out index);
     }
 
+    /// <summary>Lists that have their own commands or hold ids other data points at; a generic add, remove or move would break those links.</summary>
+    private static readonly HashSet<string> OwnedLists = ["Textures", "CollisionMasks", "Events", "Actions", "Layers", "GameObjects", "Tiles", "LegacyTiles", "Moments", "Tracks", "Emitters", "Glyphs", "Files", "Functions", "Arguments", "Options", "Instructions", "ChildEntries", "Locals", "Sequences", "Children", "RoomOrder", "Instances", "InstanceIDs", "TileData", "Sprites", "NineSlices", "ParticleSystems", "TextItems", "BroadcastMessages", "Channels", "Points", "FunctionIDs"];
+
+    /// <summary>A list whose entries can be removed and moved: growable, and not one of <see cref="OwnedLists"/>. A string list is always editable.</summary>
+    public static bool IsEditable(IList list, string name) => !list.IsFixedSize && !list.IsReadOnly && (list is IList<GameMakerString> || !OwnedLists.Contains(name));
+
+    /// <summary>A list that can also take a new entry: the entry type has a blank form (a string, a number, a class with a plain constructor).</summary>
+    public static bool CanAdd(IList list, string name) => IsEditable(list, name) && EntryType(list) is { } type && (type == typeof(GameMakerString) || type.IsValueType || (type is { IsClass: true, IsAbstract: false } && !typeof(GameMakerResource).IsAssignableFrom(type) && !typeof(GameMakerCode).IsAssignableFrom(type) && type.GetConstructor(Type.EmptyTypes) is not null));
+
+    private static Type? EntryType(IList list) => list.GetType().GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IList<>))?.GenericTypeArguments[0];
+
+    /// <summary>A blank entry for the end of <paramref name="list"/>: an empty table string, zero, or a new object whose string fields are empty table strings.</summary>
+    public static object NewEntry(GameMakerData data, IList list, string name)
+    {
+        if (!CanAdd(list, name) || EntryType(list) is not { } type) throw new InvalidOperationException($"'{name}' cannot take a new entry.");
+        if (type == typeof(GameMakerString)) return data.Strings.MakeString("", out _);
+        var entry = Activator.CreateInstance(type) ?? throw new InvalidOperationException($"'{name}' cannot take a new entry.");
+        foreach (var p in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            if (p.PropertyType == typeof(GameMakerString) && p is { CanRead: true, SetMethod.IsPublic: true } && p.GetValue(entry) is null) p.SetValue(entry, data.Strings.MakeString("", out _));
+        return entry;
+    }
+
+    private static bool IsReferenceType(Type type) => typeof(GameMakerNamedResource).IsAssignableFrom(type) || typeof(GameMakerCode).IsAssignableFrom(type);
+
+    private static object Parse(GameMakerData data, Type type, string text)
+    {
+        type = Nullable.GetUnderlyingType(type) ?? type;
+        return type switch
+        {
+            _ when type == typeof(string) => text,
+            _ when type == typeof(GameMakerString) => data.Strings.MakeString(text, out _),
+            _ when type == typeof(bool) => bool.Parse(text),
+            _ when type.IsEnum => Enum.Parse(type, text),
+            _ => Convert.ChangeType(text, type, CultureInfo.InvariantCulture),
+        };
+    }
+
     private static IList EntriesOf(object root, string path) => ReadRaw(root, path) as IList ?? throw new InvalidOperationException($"'{path}' is not a list.");
 
     /// <summary>The value as text, for the old value of an edit.</summary>
@@ -231,22 +286,23 @@ public static class PropertyModel
     {
         if (IsEntry(path, out var entries, out var at))
         {
-            if (EntriesOf(root, entries) is not IList<GameMakerString> strings) throw new InvalidOperationException($"'{path}' is not a string.");
-            strings[at] = data.Strings.MakeString(text, out _);
+            var list = EntriesOf(root, entries);
+            list[at] = Parse(data, EntryType(list) ?? throw new InvalidOperationException($"'{path}' is not a plain value."), text);
             return;
         }
 
         var (owner, property) = Resolve(root, path);
         var type = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
-        if (NamedValues(owner, property) is { } names && Array.IndexOf(names, text) is var named and >= 0) text = named.ToString(CultureInfo.InvariantCulture);
-        var value = type switch
+        if (IsReferenceType(type))
         {
-            _ when type == typeof(string) => text,
-            _ when type == typeof(GameMakerString) => data.Strings.MakeString(text, out _),
-            _ when type == typeof(bool) => bool.Parse(text),
-            _ when type.IsEnum => Enum.Parse(type, text),
-            _ => Convert.ChangeType(text, type, CultureInfo.InvariantCulture),
-        };
-        property.SetValue(owner, value);
+            // The text is the Explorer key of the target; the target must be of the type the field holds.
+            var target = text.Length == 0 ? null : ResourceTypes.Find(data, text) ?? throw new ArgumentException($"'{text}' was not found.");
+            if (target is not null && !type.IsInstanceOfType(target)) throw new ArgumentException($"'{text}' is not a {type.Name}.");
+            property.SetValue(owner, target);
+            return;
+        }
+
+        if (NamedValues(owner, property) is { } names && Array.IndexOf(names, text) is var named and >= 0) text = named.ToString(CultureInfo.InvariantCulture);
+        property.SetValue(owner, Parse(data, type, text));
     }
 }

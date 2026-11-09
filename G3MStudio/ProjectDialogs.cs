@@ -20,25 +20,33 @@ internal static class ProjectDialogs
             Width = width,
             SizeToContent = SizeToContent.Height,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            MinWidth = Math.Min(width, 340),
             CanResize = false,
         };
         return window;
     }
 
-    private static Button Btn(string key, string name, Action click) => Make(Loc.Current[key], name, click);
+    private static Button Btn(Window window, string key, string name, Action click) => Make(window, Loc.Current[key], name, click);
 
-    private static Button Make(string text, string name, Action click)
-    {
-        var button = new Button { Content = text, Name = name, IsCancel = name == "Cancel", IsDefault = name == "Ok" };
-        button.Click += (_, _) => click();
-        return button;
-    }
+    private static Button Make(Window window, string text, string name, Action click) => DialogFrame.Action(window, text, name, click,
+        name switch { "Ok" or "Rebuild" or "BringIn" or "CopyCode" or "Keep" or "UseRemembered" or "Move" => DialogRole.Primary, "Cancel" => DialogRole.Cancel, _ => DialogRole.Normal });
 
+    /// <summary>The buttons of a dialog; <see cref="Frame"/> moves them into the action row.</summary>
     private static StackPanel Buttons(params Button[] buttons)
     {
-        var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right };
+        var panel = new StackPanel { Name = "DialogButtons" };
         foreach (var button in buttons) panel.Children.Add(button);
         return panel;
+    }
+
+    /// <summary>Puts the body in the shared dialog frame; its last child (made with <see cref="Buttons"/>) becomes the action row.</summary>
+    private static void Frame(Window window, StackPanel body, Func<bool>? dirty = null)
+    {
+        var buttons = (Panel)body.Children[^1];
+        body.Children.Remove(buttons);
+        var actions = buttons.Children.ToList();
+        buttons.Children.Clear();
+        DialogFrame.Show(window, body, actions, scroll: DialogScroll.Vertical, dirty: dirty);
     }
 
     /// <summary>Q48: where projects are saved. The folder is prefilled; Remember this choice is on by default.</summary>
@@ -49,20 +57,19 @@ internal static class ProjectDialogs
         var path = new TextBox { Name = "Folder", Text = suggested, MinWidth = 300 }.LabeledBy(caption);
         var remember = new CheckBox { Name = "Remember", Content = Loc.Current["project.location.remember"], IsChecked = true };
         (string, bool)? answer = null;
-        var browse = Btn("project.location.browse", "Browse", async () =>
+        var browse = Btn(window, "project.location.browse", "Browse", async () =>
         {
             var folders = await window.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions());
             if (folders is [{ } folder, ..] && folder.TryGetLocalPath() is { } picked) path.Text = picked;
         });
-        var ok = Btn("project.enable.button", "Ok", () =>
+        var ok = Btn(window, "project.enable.button", "Ok", () =>
         {
             if (string.IsNullOrWhiteSpace(path.Text)) return;
             answer = (path.Text.Trim(), remember.IsChecked == true);
             window.Close();
         });
-        window.Content = new StackPanel
+        Frame(window, new StackPanel
         {
-            Margin = new Thickness(16),
             Spacing = Mods.ModsUi.Space(3),
             Children =
             {
@@ -70,9 +77,9 @@ internal static class ProjectDialogs
                 new DockPanel { Children = { path } },
                 new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { browse } },
                 remember,
-                Buttons(ok, Btn("explorer.cancel", "Cancel", window.Close)),
+                Buttons(ok, Btn(window, "common.cancel", "Cancel", window.Close)),
             },
-        };
+        }, DialogFrame.Snapshot(path, remember));
         await window.ShowDialog(owner);
         return answer;
     }
@@ -89,7 +96,7 @@ internal static class ProjectDialogs
         var sync = Combo("AutoSync", current.AutoSync);
         var syncSeconds = Seconds("AutoSyncSeconds", current.AutoSyncSeconds);
         ProjectSettings? answer = null;
-        var ok = Btn("rename.ok", "Ok", () =>
+        var ok = Btn(window, "rename.ok", "Ok", () =>
         {
             answer = new ProjectSettings(triggers[save.SelectedIndex], (int)(saveSeconds.Value ?? current.AutoSaveSeconds), triggers[sync.SelectedIndex], (int)(syncSeconds.Value ?? current.AutoSyncSeconds));
             window.Close();
@@ -99,12 +106,11 @@ internal static class ProjectDialogs
             Spacing = 4,
             Children = { new TextBlock { Text = Loc.Current[labelKey] }, new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { combo, seconds, new TextBlock { Text = Loc.Current["project.settings.seconds"], VerticalAlignment = VerticalAlignment.Center } } } },
         };
-        window.Content = new StackPanel
+        Frame(window, new StackPanel
         {
-            Margin = new Thickness(16),
             Spacing = 12,
-            Children = { Row("project.settings.autosave", save, saveSeconds), Row("project.settings.autosync", sync, syncSeconds), Buttons(ok, Btn("explorer.cancel", "Cancel", window.Close)) },
-        };
+            Children = { Row("project.settings.autosave", save, saveSeconds), Row("project.settings.autosync", sync, syncSeconds), Buttons(ok, Btn(window, "common.cancel", "Cancel", window.Close)) },
+        }, DialogFrame.Snapshot(save, saveSeconds, sync, syncSeconds));
         await window.ShowDialog(owner);
         return answer;
     }
@@ -112,37 +118,36 @@ internal static class ProjectDialogs
     /// <summary>Q50: Move, Copy or Recreate from the project. <paramref name="apply"/> returns the reason it failed, or null when done.</summary>
     public static async Task AskMoveAsync(Window owner, string current, Func<string, RelocateMode, Task<string?>> apply)
     {
-        var window = Shell("project.move.title", 520);
+        var window = Shell("project.move.title", 600);
         var caption = new TextBlock { Text = Loc.Current["project.move.path"] };
         var path = new TextBox { Name = "NewPath", Text = current, MinWidth = 400 }.LabeledBy(caption);
-        var error = new TextBlock { Name = "Error", TextWrapping = TextWrapping.Wrap, Foreground = (IBrush?)Application.Current?.FindResource("Danger") };
+        var error = new TextBlock { Name = "Error", TextWrapping = TextWrapping.Wrap, Foreground = (IBrush?)Application.Current?.FindResource("Danger") }.HideWhenEmpty();
         var all = new List<Button>();
         Button Mode(string key, RelocateMode mode)
         {
-            var button = Make(Loc.Current[key], mode.ToString(), async () =>
+            var button = Make(window, Loc.Current[key], mode.ToString(), async () =>
             {
                 foreach (var b in all) b.IsEnabled = false;
                 var refused = await apply(path.Text?.Trim() ?? "", mode);
                 error.Text = refused ?? "";
                 foreach (var b in all) b.IsEnabled = true;
-                if (refused is null) window.Close();
+                if (refused is null) DialogFrame.Commit(window, window.Close);
             });
             all.Add(button);
             return button;
         }
 
-        window.Content = new StackPanel
+        Frame(window, new StackPanel
         {
-            Margin = new Thickness(16),
             Spacing = Mods.ModsUi.Space(3),
             Children =
             {
                 caption,
                 path,
                 error,
-                Buttons(Mode("project.move.move", RelocateMode.Move), Mode("project.move.copy", RelocateMode.Copy), Mode("project.move.recreate", RelocateMode.Recreate), Btn("explorer.cancel", "Cancel", window.Close)),
+                Buttons(Mode("project.move.move", RelocateMode.Move), Mode("project.move.copy", RelocateMode.Copy), Mode("project.move.recreate", RelocateMode.Recreate), Btn(window, "common.cancel", "Cancel", window.Close)),
             },
-        };
+        }, DialogFrame.Snapshot(path));
         await window.ShowDialog(owner);
     }
 
@@ -151,19 +156,18 @@ internal static class ProjectDialogs
     {
         var window = Shell("project.disable.title");
         bool? answer = null;
-        window.Content = new StackPanel
+        Frame(window, new StackPanel
         {
-            Margin = new Thickness(16),
             Spacing = 16,
             Children =
             {
                 new TextBlock { Text = Loc.Current["project.disable.message"], TextWrapping = TextWrapping.Wrap },
                 Buttons(
-                    Btn("project.disable.keep", "Keep", () => { answer = false; window.Close(); }),
-                    Btn("project.disable.delete", "Delete", () => { answer = true; window.Close(); }),
-                    Btn("explorer.cancel", "Cancel", window.Close)),
+                    Btn(window, "project.disable.keep", "Keep", () => { answer = false; window.Close(); }),
+                    Btn(window, "project.disable.delete", "Delete", () => { answer = true; window.Close(); }),
+                    Btn(window, "common.cancel", "Cancel", window.Close)),
             },
-        };
+        });
         await window.ShowDialog(owner);
         return answer;
     }
@@ -173,27 +177,20 @@ internal static class ProjectDialogs
     {
         var window = Shell("project.external.title");
         ExternalChange? answer = null;
-        Button Choice(string key, string id, ExternalChange change) => Btn(key, id, () => { answer = change; window.Close(); });
-        window.Content = new StackPanel
+        Button Choice(string key, string id, ExternalChange change) => Btn(window, key, id, () => { answer = change; window.Close(); });
+        Frame(window, new StackPanel
         {
-            Margin = new Thickness(16),
             Spacing = 16,
             Children =
             {
                 new TextBlock { Text = Loc.Current.Format("project.external.message", ("name", name)), TextWrapping = TextWrapping.Wrap },
-                new StackPanel
-                {
-                    Spacing = 8,
-                    Children =
-                    {
-                        Choice("project.external.bring", "BringIn", ExternalChange.BringIn),
-                        Choice("project.external.overwrite", "Overwrite", ExternalChange.Overwrite),
-                        Choice("project.external.keepBoth", "KeepBoth", ExternalChange.KeepBoth),
-                        Btn("project.external.later", "Later", window.Close),
-                    },
-                },
+                Buttons(
+                    Choice("project.external.bring", "BringIn", ExternalChange.BringIn),
+                    Choice("project.external.overwrite", "Overwrite", ExternalChange.Overwrite),
+                    Choice("project.external.keepBoth", "KeepBoth", ExternalChange.KeepBoth),
+                    Btn(window, "project.external.later", "Later", window.Close)),
             },
-        };
+        });
         await window.ShowDialog(owner);
         return answer;
     }
@@ -208,27 +205,27 @@ internal static class ProjectDialogs
         {
             var side = new ComboBox { Name = "Side", ItemsSource = new[] { Loc.Current["project.conflicts.ours"], Loc.Current["project.conflicts.theirs"] }, SelectedIndex = 0, MinWidth = 200, Tag = conflict.Path };
             rows.Add((conflict.Path, side));
-            var file = new TextBlock { Text = conflict.Path, VerticalAlignment = VerticalAlignment.Center, Width = 280 };
-            list.Children.Add(new DockPanel { Children = { file, side.LabeledBy(file) } });
+            var file = new TextBlock { Text = conflict.Path, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
+            DockPanel.SetDock(side, Avalonia.Controls.Dock.Right);
+            list.Children.Add(new DockPanel { Children = { side.LabeledBy(file), file } });
         }
 
         Dictionary<string, MergeSide>? answer = null;
-        var ok = Btn("project.conflicts.apply", "Ok", () =>
+        var ok = Btn(window, "project.conflicts.apply", "Ok", () =>
         {
             answer = rows.ToDictionary(r => r.Path, r => r.Side.SelectedIndex == 1 ? MergeSide.Theirs : MergeSide.Ours);
             window.Close();
         });
-        window.Content = new StackPanel
+        Frame(window, new StackPanel
         {
-            Margin = new Thickness(16),
             Spacing = 12,
             Children =
             {
                 new TextBlock { Text = Loc.Current["project.conflicts.message"], TextWrapping = TextWrapping.Wrap },
-                new ScrollViewer { MaxHeight = 320, Content = list },
-                Buttons(ok, Btn("explorer.cancel", "Cancel", window.Close)),
+                list,
+                Buttons(ok, Btn(window, "common.cancel", "Cancel", window.Close)),
             },
-        };
+        });
         await window.ShowDialog(owner);
         return answer;
     }
@@ -238,16 +235,15 @@ internal static class ProjectDialogs
         var window = Shell("transfer.confirmTitle");
         window.Title = title;
         var answer = false;
-        window.Content = new StackPanel
+        Frame(window, new StackPanel
         {
-            Margin = new Thickness(16),
             Spacing = 16,
             Children =
             {
                 new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap },
-                Buttons(Btn("transfer.ok", "Ok", () => { answer = true; window.Close(); }), Btn("explorer.cancel", "Cancel", window.Close)),
+                Buttons(Btn(window, "transfer.ok", "Ok", () => { answer = true; window.Close(); }), Btn(window, "common.cancel", "Cancel", window.Close)),
             },
-        };
+        });
         await window.ShowDialog(owner);
         return answer;
     }
@@ -258,16 +254,15 @@ internal static class ProjectDialogs
         var window = Shell("transfer.confirmTitle");
         window.Title = title;
         var remembered = true;
-        window.Content = new StackPanel
+        Frame(window, new StackPanel
         {
-            Margin = new Thickness(16),
             Spacing = 16,
             Children =
             {
                 new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap },
-                Buttons(Btn("modBase.useRemembered", "UseRemembered", window.Close), Btn("modBase.useThis", "UseThis", () => { remembered = false; window.Close(); })),
+                Buttons(Btn(window, "modBase.useRemembered", "UseRemembered", window.Close), Btn(window, "modBase.useThis", "UseThis", () => { remembered = false; window.Close(); })),
             },
-        };
+        });
         await window.ShowDialog(owner);
         return remembered;
     }
@@ -279,17 +274,16 @@ internal static class ProjectDialogs
         window.Title = title;
         var answer = false;
         var remember = new CheckBox { Name = "DontAskAgain", Content = Loc.Current["prompts.dontAsk"] };
-        window.Content = new StackPanel
+        Frame(window, new StackPanel
         {
-            Margin = new Thickness(Mods.ModsUi.Space(4)),
             Spacing = Mods.ModsUi.Space(4),
             Children =
             {
                 new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap },
                 remember,
-                Buttons(Btn("transfer.ok", "Ok", () => { answer = true; window.Close(); }), Btn("explorer.cancel", "Cancel", window.Close)),
+                Buttons(Btn(window, "transfer.ok", "Ok", () => { answer = true; window.Close(); }), Btn(window, "common.cancel", "Cancel", window.Close)),
             },
-        };
+        });
         await window.ShowDialog(owner);
         return (answer, remember.IsChecked == true);
     }
@@ -300,20 +294,19 @@ internal static class ProjectDialogs
         var window = Shell("prompts.momentTitle", 520);
         (bool, bool)? answer = null;
         var remember = new CheckBox { Name = "DontAskAgain", Content = Loc.Current["prompts.dontAsk"] };
-        window.Content = new StackPanel
+        Frame(window, new StackPanel
         {
-            Margin = new Thickness(Mods.ModsUi.Space(4)),
             Spacing = Mods.ModsUi.Space(4),
             Children =
             {
                 new TextBlock { Text = Loc.Current["prompts.momentAsk"], TextWrapping = TextWrapping.Wrap },
                 remember,
                 Buttons(
-                    Btn("prompts.momentCopy", "CopyCode", () => { answer = (true, remember.IsChecked == true); window.Close(); }),
-                    Btn("prompts.momentShare", "ShareCode", () => { answer = (false, remember.IsChecked == true); window.Close(); }),
-                    Btn("explorer.cancel", "Cancel", window.Close)),
+                    Btn(window, "prompts.momentCopy", "CopyCode", () => { answer = (true, remember.IsChecked == true); window.Close(); }),
+                    Btn(window, "prompts.momentShare", "ShareCode", () => { answer = (false, remember.IsChecked == true); window.Close(); }),
+                    Btn(window, "common.cancel", "Cancel", window.Close)),
             },
-        };
+        });
         await window.ShowDialog(owner);
         return answer;
     }
@@ -326,17 +319,16 @@ internal static class ProjectDialogs
         string? answer = null;
         var caption = new TextBlock { Text = label, TextWrapping = TextWrapping.Wrap };
         var box = new TextBox { Name = "ScriptText", Text = current, AcceptsReturn = multiline, TextWrapping = multiline ? TextWrapping.Wrap : TextWrapping.NoWrap, MinHeight = multiline ? 140 : 0 }.LabeledBy(caption);
-        window.Content = new StackPanel
+        Frame(window, new StackPanel
         {
-            Margin = new Thickness(16),
             Spacing = 12,
             Children =
             {
                 caption,
                 box,
-                Buttons(Btn("transfer.ok", "Ok", () => { answer = box.Text ?? string.Empty; window.Close(); }), Btn("explorer.cancel", "Cancel", window.Close)),
+                Buttons(Btn(window, "transfer.ok", "Ok", () => { answer = box.Text ?? string.Empty; window.Close(); }), Btn(window, "common.cancel", "Cancel", window.Close)),
             },
-        };
+        }, DialogFrame.Snapshot(box));
         await window.ShowDialog(owner);
         return answer;
     }
@@ -358,17 +350,16 @@ internal static class ProjectDialogs
         };
         var body = new StackPanel
         {
-            Margin = new Thickness(16),
             Spacing = 12,
             Children =
             {
                 caption,
                 list,
-                Buttons(Btn("transfer.ok", "Ok", () => { if (list.SelectedIndex >= 0) answer = list.SelectedIndex; window.Close(); }), Btn("explorer.cancel", "Cancel", window.Close)),
+                Buttons(Btn(window, "transfer.ok", "Ok", () => { if (list.SelectedIndex >= 0) answer = list.SelectedIndex; window.Close(); }), Btn(window, "common.cancel", "Cancel", window.Close)),
             },
         };
         if (columns is not null) body.Children.Insert(1, ChoiceRow([.. columns], true));
-        window.Content = body;
+        Frame(window, body);
         await window.ShowDialog(owner);
         return answer;
     }
@@ -392,16 +383,15 @@ internal static class ProjectDialogs
     {
         var window = Shell("project.rebuild.title");
         var answer = false;
-        window.Content = new StackPanel
+        Frame(window, new StackPanel
         {
-            Margin = new Thickness(16),
             Spacing = 16,
             Children =
             {
                 new TextBlock { Text = Loc.Current.Format("project.rebuild.message", ("name", name)), TextWrapping = TextWrapping.Wrap },
-                Buttons(Btn("project.rebuild.button", "Rebuild", () => { answer = true; window.Close(); }), Btn("explorer.cancel", "Cancel", window.Close)),
+                Buttons(Btn(window, "project.rebuild.button", "Rebuild", () => { answer = true; window.Close(); }), Btn(window, "common.cancel", "Cancel", window.Close)),
             },
-        };
+        });
         await window.ShowDialog(owner);
         return answer;
     }

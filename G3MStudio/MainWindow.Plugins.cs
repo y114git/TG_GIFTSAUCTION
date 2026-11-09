@@ -1,3 +1,4 @@
+using G3MStudio.Theme;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using G3MStudio.Commands;
@@ -25,7 +26,12 @@ public sealed partial class MainWindow
         {
             try
             {
-                if (create() is Control content) new Window { Title = title, Content = content, Width = 520, Height = 420, WindowStartupLocation = WindowStartupLocation.CenterOwner }.Show(this);
+                if (create() is Control content)
+                {
+                    var window = new Window { Title = title, Width = 520, Height = 420, MinWidth = 320, MinHeight = 240, WindowStartupLocation = WindowStartupLocation.CenterOwner };
+                    DialogFrame.Show(window, content, [DialogFrame.Close(window, isDefault: false)], scroll: DialogScroll.Both);
+                    window.Show(this);
+                }
             }
             catch (Exception e)
             {
@@ -71,11 +77,12 @@ public sealed partial class MainWindow
         if (Workspaces.Current is { } workspace) new GroupsWindow(workspace, true).Show(this);
     }
 
+    /// <summary>Switches the code tab of the selected entry between the decompiled text and the VM assembly (opens the tab first when it is not open).</summary>
     public void ShowDisassembly()
     {
         var key = (Docking.ActiveTabId is { } id ? Docking.Tabs.Get(id)?.Key : null) ?? Explorer.SelectedKey;
-        if (Workspaces.Current is not { } workspace || key is null || Core.Workspace.ResourceTypes.SplitKey(key) is not ("code", var entry)) return;
-        new DisassemblyWindow(workspace, entry).Show(this);
+        if (Workspaces.Current is null || key is null || Core.Workspace.ResourceTypes.SplitKey(key) is not ("code", _)) return;
+        if (Docking.OpenTab("code", key, false) is { } tab && _codeTabs.TryGetValue(tab.Id, out var editor)) editor.ShowAssembly = !editor.ShowAssembly;
     }
 
     public void ShowHexView()

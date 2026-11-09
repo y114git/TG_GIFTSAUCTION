@@ -1,3 +1,4 @@
+using Avalonia.Input.Platform;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
@@ -34,6 +35,25 @@ public sealed class SearchPanel : UserControl
         _replaceSelected.Click += async (_, _) => await ReplaceSelectedAsync();
         _results.DoubleTapped += (_, _) => { if (_results.SelectedItem is CodeHit hit) OpenRequested?.Invoke(hit); };
         _results.KeyDown += (_, e) => { if (e.Key == Avalonia.Input.Key.Enter && _results.SelectedItem is CodeHit hit) { e.Handled = true; OpenRequested?.Invoke(hit); } };
+        // Open, Copy and Copy all (UTMT-SRCH-02); a hit opens as a tab of its own, never as a preview that the next click replaces.
+        MenuItem Item(string key, Action run)
+        {
+            var item = new MenuItem().Tr(MenuItem.HeaderProperty, key);
+            item.Click += (_, _) => run();
+            return item;
+        }
+
+        string Line(CodeHit hit) => $"{hit.Entry}({hit.Line})  {hit.Text}";
+        void Copy(string text) { if (TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard) _ = clipboard.SetTextAsync(text); }
+        _results.ContextMenu = new ContextMenu
+        {
+            ItemsSource = new[]
+            {
+                Item("search.open", () => { if (_results.SelectedItem is CodeHit hit) OpenRequested?.Invoke(hit); }),
+                Item("search.copy", () => { if (_results.SelectedItem is CodeHit hit) Copy(Line(hit)); }),
+                Item("search.copyAll", () => Copy(string.Join(Environment.NewLine, Hits.Select(Line)))),
+            },
+        };
         _run.Click += async (_, _) => await RunAsync();
         _query.KeyDown += async (_, e) => { if (e.Key == Avalonia.Input.Key.Enter) await RunAsync(); };
         _cancel.Click += (_, _) => _cancelRunning?.Invoke();

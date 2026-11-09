@@ -31,6 +31,8 @@ public sealed class GroupsWindow : Window
         Title = Loc.Current[audio ? "editors.groups.audioTitle" : "editors.groups.textureTitle"];
         Width = 640;
         Height = 460;
+        MinWidth = 500;
+        MinHeight = 300;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         _move.Content = Loc.Current["editors.groups.move"];
         _groups.Labeled("editors.groups.groups");
@@ -40,14 +42,14 @@ public sealed class GroupsWindow : Window
         _kind.ItemsSource = Kinds.Select(k => Loc.Current["explorer.type." + (k == "tilesets" ? "backgrounds" : k)]).ToList();
         _kind.SelectedIndex = 0;
         _kind.IsVisible = !audio;
-        var bar = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { _kind, new TextBlock { Text = Loc.Current["editors.groups.moveTo"], VerticalAlignment = VerticalAlignment.Center }, _target, _move } };
-        var panel = new DockPanel { Margin = new Thickness(12), LastChildFill = true };
+        var bar = new WrapPanel { ItemSpacing = 8, LineSpacing = 8, Children = { _kind, new TextBlock { Text = Loc.Current["editors.groups.moveTo"], VerticalAlignment = VerticalAlignment.Center }, _target, _move } };
+        var panel = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(bar, Avalonia.Controls.Dock.Top);
-        DockPanel.SetDock(_message, Avalonia.Controls.Dock.Bottom);
         DockPanel.SetDock(_groups, Avalonia.Controls.Dock.Left);
         bar.Margin = new Thickness(0, 0, 0, 8);
-        foreach (var child in new Control[] { bar, _message, _groups, _members }) panel.Children.Add(child);
-        Content = panel;
+        _groups.Margin = new Thickness(0, 0, 8, 0);
+        foreach (var child in new Control[] { bar, _groups, _members }) panel.Children.Add(child);
+        DialogFrame.Show(this, panel, [DialogFrame.Close(this)], _message);
         _groups.SelectionChanged += (_, _) => ShowMembers();
         _kind.SelectionChanged += (_, _) => ShowMembers();
         _move.Click += (_, _) => Move();

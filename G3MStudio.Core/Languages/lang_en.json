@@ -3,6 +3,14 @@
     "language": "english",
     "language_name": "English"
   },
+  "common": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "discardTitle": "Discard changes?",
+    "discardMessage": "You changed values in this window. Closing it now loses them.",
+    "discard": "Discard",
+    "keepEditing": "Keep editing"
+  },
   "app": {
     "title": "G3MStudio",
     "welcome": "Open a game data file to start.",
@@ -111,6 +119,7 @@
       "revert": "Revert to Saved...",
       "exportSelection": "Export Selected Resources to a Folder...",
       "exportAll": "Export All Resources to a Folder...",
+      "transfer": "Transfer Resources...",
       "import": "Import Resources from Another Data File...",
       "importFiles": "Import Pictures, Sounds and Scripts from Files...",
       "importCodeFolder": "Import Code from a Folder...",
@@ -165,6 +174,8 @@
     "view": {
       "commandPalette": "Command Palette...",
       "fullscreen": "Toggle Full Screen",
+      "nextRegion": "Focus Next Region",
+      "prevRegion": "Focus Previous Region",
       "zoomIn": "Zoom In",
       "zoomOut": "Zoom Out",
       "zoomReset": "Reset Zoom"
@@ -679,7 +690,8 @@
     },
     "copyDetails": "Copy Details",
     "retry": "Retry",
-    "sideBySide": "Show Assembly Side by Side",
+    "showAssembly": "Show Assembly",
+    "showGml": "Show GML",
     "showParent": "Show Parent Script",
     "fallbackAssembly": "Decompiler failed: {reason}. Showing assembly.",
     "fallbackParent": "Decompiler failed: {reason}. Showing the parent script {parent}. Read only.",
@@ -942,6 +954,8 @@
   },
   "properties": {
     "addEntry": "Add entry",
+    "moveUp": "Up",
+    "moveDown": "Down",
     "section": {
       "physics": "Physics",
       "texture": "Texture settings",
@@ -957,6 +971,9 @@
     "copy": "Copy Version Info"
   },
   "search": {
+    "open": "Open",
+    "copy": "Copy",
+    "copyAll": "Copy all",
     "placeholder": "Find in code",
     "word": "Whole word",
     "replacePlaceholder": "Replace with",
@@ -973,14 +990,6 @@
     "cancelled": "Search cancelled.",
     "badPattern": "This pattern is not valid: {reason}",
     "timeout": "The pattern takes too long on a line. Make it simpler."
-  },
-  "disassembly": {
-    "assemble": "Assemble",
-    "assembled": "Assembled.",
-    "assembleFailed": "Could not assemble: {reason}",
-    "title": "Disassembly of {entry}",
-    "loading": "Reading the instructions...",
-    "failed": "Could not read the instructions: {reason}"
   },
   "autoTile": {
     "title": "Auto-tile rule sets",
@@ -1000,7 +1009,14 @@
   },
   "view": {
     "autosaveFailed": "The layer stacks could not be saved: {reason}",
-    "layersDamaged": "The saved layer stacks were damaged. The file was kept as {file}."
+    "layersDamaged": "The saved layer stacks were damaged. The file was kept as {file}.",
+    "region": {
+      "menu": "Menu bar",
+      "editor": "Editor area",
+      "bottom": "Bottom panels",
+      "status": "Status bar"
+    },
+    "regionMoved": "Focus: {region}"
   },
   "uiLayer": {
     "title": "UI layer",
@@ -1172,7 +1188,6 @@
       "exportPack": "Export shown changes as pack...",
       "createMod": "Create G3M mod...",
       "refresh": "Refresh",
-      "close": "Close",
       "readOnly": "This file is not being edited here, so the change cannot be applied.",
       "applied": "Applied '{name}' to your file. Undo reverts it.",
       "codeOwner": "New or removed code travels with its object, script or room. Apply that item instead.",

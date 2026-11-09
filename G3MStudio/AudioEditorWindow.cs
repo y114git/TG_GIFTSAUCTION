@@ -1,8 +1,8 @@
 using Avalonia.Controls;
-using Avalonia.Layout;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Editor;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio;
 
@@ -31,15 +31,14 @@ public sealed class AudioEditorWindow : Window
         _kind = SoundAudio.Format(wav) is "ogg" ? "ogg" : "wav";
         Title = title;
         Width = 560;
+        MinWidth = 420;
         SizeToContent = SizeToContent.Height;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         _end.Value = (decimal)_audio.Seconds; // exact: a rounded value would cut the last milliseconds when nothing was changed
         _end.Maximum = (decimal)Math.Ceiling(_audio.Seconds * 100) / 100;
         _start.Maximum = _end.Maximum;
         foreach (var box in new[] { _start, _end, _gain, _fadeIn, _fadeOut }) box.ValueChanged += (_, _) => ShowLength();
-        var ok = new Button { Name = "AudioApply", Content = Loc.Current["audio.apply"], Classes = { "primary" } };
-        var cancel = new Button { Name = "AudioCancel", Content = Loc.Current["explorer.cancel"] };
-        ok.Click += (_, _) =>
+        var ok = DialogFrame.Action(this, Loc.Current["audio.apply"], "AudioApply", () =>
         {
             try
             {
@@ -50,31 +49,21 @@ public sealed class AudioEditorWindow : Window
             {
                 _message.Text = e.Message;
             }
-        };
-        cancel.Click += (_, _) => Close(false);
-        var rows = new StackPanel { Spacing = 6 };
+        }, DialogRole.Primary);
+        var rows = new StackPanel { Spacing = 8 };
         Transport = new AudioTransport(_audio.Seconds, () => _audio, WaveformView.Peaks(_audio), audio ?? (() => new()), () => (Seconds(_start), Seconds(_end)), "AudioPlay") { NoDevice = () => _message.Text = Loc.Current["audio.noDevice"] };
         foreach (var box in new[] { _start, _end }) box.ValueChanged += (_, _) => Transport.Redraw();
         Closed += (_, _) => Transport.Close();
         rows.Children.Add(Transport);
-        rows.Children.Add(Row("audio.start", _start));
-        rows.Children.Add(Row("audio.end", _end));
-        rows.Children.Add(Row("audio.gain", _gain));
-        rows.Children.Add(Row("audio.fadeIn", _fadeIn));
-        rows.Children.Add(Row("audio.fadeOut", _fadeOut));
+        rows.Children.Add(DialogFrame.Form((Loc.Current["audio.start"], _start), (Loc.Current["audio.end"], _end), (Loc.Current["audio.gain"], _gain), (Loc.Current["audio.fadeIn"], _fadeIn), (Loc.Current["audio.fadeOut"], _fadeOut)));
         rows.Children.Add(_info);
-        rows.Children.Add(_message);
-        rows.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right, Children = { ok, cancel } });
-        rows.Margin = new Avalonia.Thickness(16);
-        Content = rows;
+        _info.TextWrapping = Avalonia.Media.TextWrapping.Wrap;
         ShowLength();
+        DialogFrame.Show(this, rows, [ok, DialogFrame.Cancel(this, () => Close(false), "AudioCancel")], _message, DialogScroll.Vertical, DialogFrame.Snapshot(_start, _end, _gain, _fadeIn, _fadeOut));
     }
 
     private static NumericUpDown Field(string name, decimal value, decimal min, decimal max, decimal step, string format = "0.00") =>
         new() { Name = name, Value = value, Minimum = min, Maximum = max, Increment = step, FormatString = format, Width = 140 };
-
-    private static StackPanel Row(string key, Control field) =>
-        new() { Orientation = Orientation.Horizontal, Spacing = 12, Children = { new TextBlock { Text = Loc.Current[key], Width = 200, VerticalAlignment = VerticalAlignment.Center }, field } };
 
     private static double Seconds(NumericUpDown box) => (double)(box.Value ?? 0);
 

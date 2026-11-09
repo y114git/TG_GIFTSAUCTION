@@ -8,6 +8,8 @@ public static partial class AppCommands
 
         Add("view.commandPalette", "Ctrl+Shift+P", shell.ShowPalette);
         Add("view.fullscreen", "F11", shell.ToggleFullscreen);
+        Add("view.nextRegion", "F6", () => shell.FocusRegion(1));
+        Add("view.prevRegion", "Shift+F6", () => shell.FocusRegion(-1));
         Add("view.zoomIn", "Ctrl+OemPlus", () => shell.Zoom(1));
         Add("view.zoomOut", "Ctrl+OemMinus", () => shell.Zoom(-1));
         Add("view.zoomReset", "Ctrl+D0", () => shell.Zoom(0));

@@ -36,13 +36,15 @@ public sealed class GoToWindow : Window
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         _results.ItemTemplate = new FuncDataTemplate<GoToEntry>((entry, _) => entry is null ? new TextBlock() : Row(entry));
         var gap = Space("Space.2");
-        var left = new DockPanel { Children = { Docked(_input, Avalonia.Controls.Dock.Top, gap), Docked(_empty, Avalonia.Controls.Dock.Bottom, gap), _results } };
+        var left = new DockPanel { Children = { Docked(_empty, Avalonia.Controls.Dock.Bottom, gap), _results } };
         var right = new ScrollViewer { Name = "PreviewScroll", Content = _previewText, MinHeight = 280, MaxHeight = 360 };
-        var grid = new Grid { Margin = new Thickness(gap), ColumnSpacing = gap, ColumnDefinitions = { new ColumnDefinition(1.2, GridUnitType.Star), new ColumnDefinition(1, GridUnitType.Star) } };
+        var grid = new Grid { ColumnSpacing = gap, ColumnDefinitions = { new ColumnDefinition(1.2, GridUnitType.Star), new ColumnDefinition(1, GridUnitType.Star) } };
         grid.Children.Add(left);
         Grid.SetColumn(right, 1);
         grid.Children.Add(right);
-        Content = grid;
+        ToolTip.SetTip(_input, _input.PlaceholderText); // the hint is longer than the box in some languages
+        var body = new DockPanel { Margin = new Thickness(gap), Children = { Docked(_input, Avalonia.Controls.Dock.Top, gap), grid } };
+        Content = new ScrollViewer { Name = "GoToScroll", Content = body, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto };
         _input.TextChanged += (_, _) => Refresh();
         _results.SelectionChanged += (_, _) => _ = ShowPreviewAsync();
         _input.AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);

@@ -63,8 +63,8 @@ public sealed class CodeFallbackTests
             Assert.False(tab.Editor.IsReadOnly);
             var banner = tab.GetVisualDescendants().OfType<SelectableTextBlock>().Single(t => t.Name == "FallbackText");
             Assert.Equal("Decompiler failed: boom. Showing assembly.", banner.Text);
-            var buttons = tab.GetVisualDescendants().OfType<Button>().Where(b => b.Name is "Retry" or "SideBySide" or "ShowParent").ToList();
-            Assert.Equal(3, buttons.Count);
+            var buttons = tab.GetVisualDescendants().OfType<Button>().Where(b => b.Name is "Retry" or "ShowParent").ToList();
+            Assert.Equal(2, buttons.Count);
 
             buttons.Single(b => b.Name == "ShowParent").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
             for (var i = 0; i < 300 && tab.Mode != CodeMode.Parent; i++)

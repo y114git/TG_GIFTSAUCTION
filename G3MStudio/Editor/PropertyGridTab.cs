@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Layout;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
@@ -270,6 +271,12 @@ public sealed class PropertyGridTab : DockPanel
         // The add row and the remove buttons of a list of strings (UTMT-CTRL-06).
         if (row.Addable) line.Children.Add(EntryButton("ListAdd_" + row.Path, Loc.Current["properties.addEntry"], new ListEntryCommand(_type, _name, row.Path, ListEntryCommand.Add, -1)));
         if (row.Removable && ListEntryPath(row.Path) is var (list, at)) line.Children.Add(EntryButton("ListRemove_" + row.Path, Loc.Current["timelines.remove"], new ListEntryCommand(_type, _name, list, ListEntryCommand.Remove, at)));
+        if (row.Removable && ListEntryPath(row.Path) is var (moveList, moveAt))
+        {
+            if (row.CanMoveDown) line.Children.Add(EntryButton("ListDown_" + row.Path, Loc.Current["properties.moveDown"], new ListEntryCommand(_type, _name, moveList, ListEntryCommand.Down, moveAt)));
+            if (row.CanMoveUp) line.Children.Add(EntryButton("ListUp_" + row.Path, Loc.Current["properties.moveUp"], new ListEntryCommand(_type, _name, moveList, ListEntryCommand.Up, moveAt)));
+        }
+
         var editor = Editor(row);
         if (_sprite is { OriginLocked: true } && _prefix.Length == 0 && row.Path is "OriginX" or "OriginY") editor.IsEnabled = false;
         line.Children.Add(editor);
@@ -327,17 +334,36 @@ public sealed class PropertyGridTab : DockPanel
         return new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { pick, box } };
     }
 
+    // A reference to another entry: its name is a link that opens it. A settable one takes an Explorer item dropped on it and has a button that clears it (UTMT-CTRL-01).
+    private StackPanel ReferenceEditor(PropertyRow row)
+    {
+        var link = new Button { Name = "Open_" + row.Path, Content = row.Value.Length > 0 ? row.Value : Loc.Current["explorer.noValue"], Classes = { "link" }, HorizontalAlignment = HorizontalAlignment.Left, IsEnabled = row.Target is not null };
+        if (row.Target is { } target) link.Click += (_, _) => OpenRequested?.Invoke(target);
+        var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Background = Avalonia.Media.Brushes.Transparent, Children = { link } };
+        if (!row.Reference) return panel;
+        var clear = new Button { Name = "Clear_" + row.Path, Content = "×", IsEnabled = row.Target is not null };
+        Avalonia.Automation.AutomationProperties.SetName(clear, Loc.Current["timelines.remove"]);
+        clear.Click += (_, _) => Commit(row.Path, "");
+        panel.Children.Add(clear);
+        Avalonia.Input.DragDrop.SetAllowDrop(panel, true);
+        panel.AddHandler(Avalonia.Input.DragDrop.DragOverEvent, (_, e) => e.DragEffects = e.DataTransfer.TryGetValue(ResourceDrag.Keys) is null ? Avalonia.Input.DragDropEffects.None : Avalonia.Input.DragDropEffects.Move);
+        panel.AddHandler(Avalonia.Input.DragDrop.DropEvent, (_, e) =>
+        {
+            if (e.DataTransfer.TryGetValue(ResourceDrag.Keys)?.Split('\n', StringSplitOptions.RemoveEmptyEntries) is not [var key, ..]) return;
+            Commit(row.Path, key);
+            e.Handled = true;
+        });
+        return panel;
+    }
+
     private Control Editor(PropertyRow row)
     {
         switch (row.Kind)
         {
             case PropertyKind.Group:
                 return new TextBlock();
-            case PropertyKind.Info when row.Target is { } target:
-                // A reference to another entry: its name is a link that opens it.
-                var link = new Button { Name = "Open_" + row.Path, Content = row.Value, Classes = { "link" }, HorizontalAlignment = HorizontalAlignment.Left };
-                link.Click += (_, _) => OpenRequested?.Invoke(target);
-                return link;
+            case PropertyKind.Info when row.Target is not null || row.Reference:
+                return ReferenceEditor(row);
             case PropertyKind.List or PropertyKind.Info:
                 return new TextBlock { Text = row.Count is { } n ? Loc.Current.Format("properties.items", ("count", n)) : row.Value.Length > 0 ? row.Value : Loc.Current["explorer.noValue"], Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center };
             case PropertyKind.Bool:

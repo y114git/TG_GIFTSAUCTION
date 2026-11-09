@@ -5,6 +5,7 @@ using G3MStudio.Core.ModPack;
 using G3MStudio.Core.Settings;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio.Mods;
 
@@ -34,6 +35,8 @@ public sealed partial class DiffWindow : Window
         Title = Loc.Current.Format("mods.diff.title", ("left", left.Name), ("right", right.Name));
         Width = 1100;
         Height = 720;
+        MinWidth = 760;
+        MinHeight = 420;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         BuildTypes();
         foreach (var kind in Enum.GetValues<ChangeKind>())
@@ -46,7 +49,7 @@ public sealed partial class DiffWindow : Window
         _filter.TextChanged += (_, _) => RenderTree();
         _types.SelectionChanged += (_, _) => RenderTree();
         _tree.SelectionChanged += async (_, _) => await SelectAsync();
-        Content = Layout();
+        Layout();
         RenderTree();
     }
 
@@ -63,9 +66,10 @@ public sealed partial class DiffWindow : Window
         _types.SelectedIndex = 0;
     }
 
-    private DockPanel Layout()
+    private void Layout()
     {
-        var bar = new StackPanel { Orientation = Orientation.Horizontal, Spacing = ModsUi.Space(2), Margin = new Avalonia.Thickness(0, 0, 0, ModsUi.Space(2)) };
+        var bar = new WrapPanel { ItemSpacing = ModsUi.Space(2), LineSpacing = ModsUi.Space(2), Margin = new Avalonia.Thickness(0, 0, 0, ModsUi.Space(2)) };
+        _summary.TextWrapping = Avalonia.Media.TextWrapping.Wrap;
         bar.Children.AddRange([_summary, _filter, _types, .. _kinds.Values]);
         var body = new Grid { ColumnDefinitions = { new ColumnDefinition(340, GridUnitType.Pixel), new ColumnDefinition(ModsUi.Space(2), GridUnitType.Pixel), new ColumnDefinition(1, GridUnitType.Star) } };
         var splitter = new GridSplitter { Width = ModsUi.Space(2) };
@@ -73,16 +77,14 @@ public sealed partial class DiffWindow : Window
         var details = Details();
         Grid.SetColumn(details, 2);
         body.Children.AddRange([_tree, splitter, details]);
-        var foot = ModsUi.Buttons(Action("DiffCopy", "mods.diff.copy", CopyAsync), Action("DiffReport", "mods.diff.saveReport", () => _owner.SaveDiffReportAsync(_left, _right)), Action("DiffExport", "mods.diff.exportPack", async () => await _owner.ExportPackAsync(_left, _right, _diff.Where(CurrentFilter()))),
-            Action("DiffCreateMod", "mods.diff.createMod", async () => await _owner.CreateG3MModAsync(_left, _right)), Action("DiffRefresh", "mods.diff.refresh", RefreshAsync), _apply, Action("DiffClose", "mods.diff.close", () => { Close(); return Task.CompletedTask; }));
         _apply.Click += async (_, _) => await ApplyAsync();
-        var panel = new DockPanel { Margin = ModsUi.Pad(3) };
+        _apply.Classes.Add("primary");
+        _status.TextWrapping = Avalonia.Media.TextWrapping.Wrap;
+        var panel = new DockPanel();
         DockPanel.SetDock(bar, Avalonia.Controls.Dock.Top);
-        _status.Margin = new Avalonia.Thickness(0, ModsUi.Space(1), 0, 0);
-        var bottom = new StackPanel { Spacing = ModsUi.Space(1), Children = { _status, foot } };
-        DockPanel.SetDock(bottom, Avalonia.Controls.Dock.Bottom);
-        panel.Children.AddRange([bar, bottom, body]);
-        return panel;
+        panel.Children.AddRange([bar, body]);
+        DialogFrame.Show(this, panel, [Action("DiffCopy", "mods.diff.copy", CopyAsync), Action("DiffReport", "mods.diff.saveReport", () => _owner.SaveDiffReportAsync(_left, _right)), Action("DiffExport", "mods.diff.exportPack", async () => await _owner.ExportPackAsync(_left, _right, _diff.Where(CurrentFilter()))),
+            Action("DiffCreateMod", "mods.diff.createMod", async () => await _owner.CreateG3MModAsync(_left, _right)), Action("DiffRefresh", "mods.diff.refresh", RefreshAsync), _apply, DialogFrame.Close(this, "DiffClose", isDefault: false)], _status);
     }
 
     private static Button Action(string name, string key, Func<Task> run)

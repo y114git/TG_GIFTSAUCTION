@@ -8,6 +8,9 @@ public interface IShell : IOrganizeShell
 
     void ToggleFullscreen();
 
+    /// <summary>Moves the keyboard focus to the next (1) or previous (-1) region: menu, Explorer, editor area, bottom panels, status bar.</summary>
+    void FocusRegion(int direction);
+
     /// <summary>Zoom step: +1 or -1, or 0 to reset.</summary>
     void Zoom(int step);
 
@@ -65,6 +68,9 @@ public interface IShell : IOrganizeShell
     void ExportSelection();
 
     void ExportAll();
+
+    /// <summary>One entry for every way resources move between data files and folders: asks which one (import from a file, copy, package, files, mod ZIP, mod pack).</summary>
+    void Transfer();
 
     void ImportResources();
 
@@ -318,6 +324,9 @@ public static partial class AppCommands
     /// <summary>Set while the tab in front is a sprite or a room, which the commands of the Sprite and Room menus work on.</summary>
     public const string SpriteTab = "spriteTab", RoomTab = "roomTab", ProjectOn = "projectOn", ProjectOff = "projectOff";
 
+    /// <summary>Old default gestures that moved away. Not bound by default (the new owner of the key would clash); Settings can add one back as an alias.</summary>
+    public static readonly IReadOnlyDictionary<string, string> LegacyAliases = new Dictionary<string, string> { ["run.stop"] = "F6" };
+
     public static CommandRegistry Create(IShell shell)
     {
         var registry = new CommandRegistry();
@@ -342,6 +351,7 @@ public static partial class AppCommands
         Add("file.revert", null, shell.RevertToSaved, WorkspaceOpen);
         Add("file.exportSelection", null, shell.ExportSelection, WorkspaceOpen);
         Add("file.exportAll", null, shell.ExportAll, WorkspaceOpen);
+        Add("file.transfer", null, shell.Transfer, WorkspaceOpen);
         Add("file.import", null, shell.ImportResources, WorkspaceOpen);
         Add("file.importPackage", null, shell.ImportPackage, WorkspaceOpen);
         Add("file.importFiles", null, shell.ImportFiles, WorkspaceOpen);
@@ -351,7 +361,7 @@ public static partial class AppCommands
         Add("run.game", "F5", shell.RunGame, WorkspaceOpen);
         Add("run.withRuntime", null, shell.RunWithRuntime, WorkspaceOpen);
         Add("run.restart", "Ctrl+F5", shell.RestartGame, WorkspaceOpen);
-        Add("run.stop", "F6", shell.StopGame);
+        Add("run.stop", "Shift+F5", shell.StopGame);
         Add("edit.editAudio", null, shell.EditAudio, WorkspaceOpen);
         Add("edit.replaceAudio", null, shell.ReplaceAudio, WorkspaceOpen);
         Add("edit.exportAudio", null, shell.ExportAudio, WorkspaceOpen);

@@ -292,7 +292,7 @@ public sealed class ScreenshotTests
     }
 
     /// <summary>One second of a 440 Hz tone as 16 bit mono WAV, for the audio editor picture.</summary>
-    private static byte[] ToneWav()
+    internal static byte[] ToneWav()
     {
         const int rate = 8000;
         using var stream = new MemoryStream();

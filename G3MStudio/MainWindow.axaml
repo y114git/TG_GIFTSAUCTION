@@ -9,14 +9,16 @@
   <LayoutTransformControl Name="ZoomHost">
     <DockPanel>
       <Menu Name="MainMenu" DockPanel.Dock="Top" />
-      <Border DockPanel.Dock="Bottom" Background="{DynamicResource Bg.Raised}" BorderBrush="{DynamicResource Border.Subtle}" BorderThickness="0,2,0,0" Padding="8,2">
+      <Border Name="StatusBar" DockPanel.Dock="Bottom" Background="{DynamicResource Bg.Raised}" BorderBrush="{DynamicResource Border.Subtle}" BorderThickness="0,2,0,0" Padding="8,2">
         <DockPanel>
           <Button DockPanel.Dock="Right" Name="ProjectButton" IsVisible="False" Padding="6,0" MinHeight="24" VerticalAlignment="Center" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
           <Button DockPanel.Dock="Right" Name="NotifyButton" IsVisible="False" Padding="6,0" MinHeight="24" VerticalAlignment="Center" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
           <TextBlock DockPanel.Dock="Right" Name="RunText" IsVisible="False" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" Foreground="{DynamicResource Text.Accent}" />
           <TextBlock DockPanel.Dock="Right" Name="MemoryText" Classes="muted" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
           <TextBlock DockPanel.Dock="Right" Name="AssetIdText" IsVisible="False" Classes="muted" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
-          <TextBlock Name="StatusText" FontSize="{DynamicResource FontSize.Caption}" />
+          <TextBlock Name="StatusText" Focusable="True" FontSize="{DynamicResource FontSize.Caption}" />
+          <!-- Read out by screen readers when F6 moves the focus; not drawn. -->
+          <TextBlock Name="RegionAnnouncement" Opacity="0" Width="1" Height="1" AutomationProperties.LiveSetting="Assertive" />
         </DockPanel>
       </Border>
       <Grid>

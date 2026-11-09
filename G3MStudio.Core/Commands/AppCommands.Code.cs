@@ -19,7 +19,7 @@ public static partial class AppCommands
         ("code.moveLineDown", "Alt+Down"),
         ("code.toggleBookmark", "Ctrl+F2"),
         ("code.nextBookmark", "Alt+F2"),
-        ("code.previousBookmark", "Ctrl+Shift+F2"),
+        ("code.previousBookmark", "Alt+Shift+F2"),
         ("code.nextProblem", "F8"),
         ("code.previousProblem", "Shift+F8"),
         ("code.outline", "Ctrl+Shift+O"),

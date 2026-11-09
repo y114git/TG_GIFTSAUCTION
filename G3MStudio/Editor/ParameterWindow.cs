@@ -1,7 +1,6 @@
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Layout;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio.Editor;
 
@@ -13,23 +12,20 @@ public sealed class ParameterWindow : Window
     private ParameterWindow(string title, (string Label, double Value, double Min, double Max)[] fields)
     {
         Title = title;
-        SizeToContent = SizeToContent.WidthAndHeight;
+        Width = 380;
+        SizeToContent = SizeToContent.Height;
         CanResize = false;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        var body = new StackPanel { Spacing = 6, Margin = new Thickness(12) };
+        var rows = new List<(string, Control)>();
         foreach (var (label, value, min, max) in fields)
         {
             var box = new NumericUpDown { Minimum = (decimal)min, Maximum = (decimal)max, Value = (decimal)value, Increment = 1, FormatString = "0.##", Width = 120 };
             _fields.Add(box);
-            body.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { new TextBlock { Text = label, Width = 110, VerticalAlignment = VerticalAlignment.Center }, box } });
+            rows.Add((label, box));
         }
 
-        var ok = new Button { Name = "ParameterOk", IsDefault = true, Content = Loc.Current["image.ok"], Classes = { "primary" } };
-        var cancel = new Button { Name = "ParameterCancel", IsCancel = true, Content = Loc.Current["explorer.cancel"] };
-        ok.Click += (_, _) => Close(true);
-        cancel.Click += (_, _) => Close(false);
-        body.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right, Children = { cancel, ok } });
-        Content = body;
+        var ok = DialogFrame.Action(this, Loc.Current["image.ok"], "ParameterOk", () => Close(true), DialogRole.Primary);
+        DialogFrame.Show(this, DialogFrame.Form([.. rows]), [ok, DialogFrame.Cancel(this, () => Close(false), "ParameterCancel")], scroll: DialogScroll.Vertical, dirty: DialogFrame.Snapshot([.. _fields]));
     }
 
     public static async Task<double[]?> AskAsync(Window owner, string title, (string Label, double Value, double Min, double Max)[] fields)

@@ -69,6 +69,66 @@ public sealed class PropertyTests
     }
 
     [Fact]
+    public void AnyPlainListTakesAddMoveAndRemoveWithUndoWhileOwnedListsAreRefused()
+    {
+        using var data = TestData.Create(1);
+        var history = new EditHistory(data);
+        var options = ResourceTypes.GameOptionsName;
+        var root = PropertyModel.FindRoot(data, "general", options)!;
+        var constants = PropertyModel.Describe(root).Single(r => r.Name == "Constants");
+        Assert.True(constants.Addable);
+        var original = TestData.Bytes(data);
+        var before = ((System.Collections.IList)PropertyModel.ReadRaw(root, constants.Path)!).Count;
+
+        history.Execute(new ListEntryCommand("general", options, constants.Path, ListEntryCommand.Add, -1));
+        history.Execute(new ListEntryCommand("general", options, constants.Path, ListEntryCommand.Add, -1));
+        var rows = PropertyModel.Describe(root).Where(r => r.Removable && r.Path.StartsWith(constants.Path + "[", StringComparison.Ordinal)).ToList();
+        Assert.Equal(before + 2, rows.Count);
+        Assert.True(rows[0].CanMoveDown && !rows[0].CanMoveUp);
+
+        var first = PropertyModel.ReadRaw(root, rows[0].Path);
+        history.Execute(new ListEntryCommand("general", options, constants.Path, ListEntryCommand.Down, 0));
+        Assert.Same(first, PropertyModel.ReadRaw(root, rows[1].Path));
+        history.Undo();
+        Assert.Same(first, PropertyModel.ReadRaw(root, rows[0].Path));
+        history.Execute(new ListEntryCommand("general", options, constants.Path, ListEntryCommand.Remove, 0));
+        Assert.Equal(before + 1, PropertyModel.Describe(root).Count(r => r.Removable && r.Path.StartsWith(constants.Path + "[", StringComparison.Ordinal)));
+        history.Undo();
+        history.Undo();
+        history.Undo();
+        Assert.Equal(original, TestData.Bytes(data));
+
+        // A list with its own editor and a move past the end are refused.
+        Assert.Throws<InvalidOperationException>(() => history.Execute(new ListEntryCommand("objects", ResourceTypes.NameOf(data.GameObjects[0]), "Events", ListEntryCommand.Remove, 0)));
+        Assert.Throws<InvalidOperationException>(() => history.Execute(new ListEntryCommand("general", options, constants.Path, ListEntryCommand.Up, 0)));
+    }
+
+    [Fact]
+    public void AReferenceFieldIsSetByExplorerKeyAndClearedWithUndoAndRefusesAWrongType()
+    {
+        using var data = TestData.Create(1);
+#pragma warning disable CA2000 // the data model owns what is added to it
+        data.Sprites.Add(new G3MLib.DataFile.Models.GameMakerSprite { Name = data.Strings.MakeString("spr_a") });
+#pragma warning restore CA2000
+        var history = new EditHistory(data);
+        var obj = data.GameObjects[0];
+        var row = PropertyModel.Describe(obj).Single(r => r.Name == "Sprite");
+        Assert.True(row.Reference);
+
+        history.Execute(new SetPropertyCommand("objects", "obj_0", "Sprite", "sprites:spr_a"));
+        Assert.Same(data.Sprites[0], obj.Sprite);
+        Assert.Equal("sprites:spr_a", PropertyModel.Describe(obj).Single(r => r.Name == "Sprite").Target);
+        history.Execute(new SetPropertyCommand("objects", "obj_0", "Sprite", ""));
+        Assert.Null(obj.Sprite);
+        history.Undo();
+        Assert.Same(data.Sprites[0], obj.Sprite);
+        history.Undo();
+        Assert.Null(obj.Sprite);
+
+        Assert.Throws<InvalidOperationException>(() => history.Execute(new SetPropertyCommand("objects", "obj_0", "Sprite", "scripts:scr_0")));
+    }
+
+    [Fact]
     public void NullEntriesAreListedOnlyWhenAskedAndAreNotCounted()
     {
         using var data = TestData.Create(2);

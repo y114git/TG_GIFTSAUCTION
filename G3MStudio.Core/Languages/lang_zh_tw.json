@@ -3,6 +3,14 @@
     "language": "chinese_traditional",
     "language_name": "繁體中文"
   },
+  "common": {
+    "cancel": "取消",
+    "close": "關閉",
+    "discardTitle": "要捨棄變更嗎?",
+    "discardMessage": "你在此視窗中修改了內容。現在關閉會遺失這些修改。",
+    "discard": "捨棄",
+    "keepEditing": "繼續編輯"
+  },
   "app": {
     "title": "G3MStudio",
     "welcome": "開啟遊戲資料檔案即可開始。",
@@ -111,6 +119,7 @@
       "revert": "還原到已儲存...",
       "exportSelection": "將所選資源匯出到資料夾...",
       "exportAll": "將全部資源匯出到資料夾...",
+      "transfer": "傳輸資源...",
       "import": "從其他資料檔案匯入資源...",
       "importFiles": "從檔案匯入圖片、聲音和指令碼...",
       "importCodeFolder": "從資料夾匯入程式碼...",
@@ -165,6 +174,8 @@
     "view": {
       "commandPalette": "命令選擇區...",
       "fullscreen": "切換全螢幕",
+      "nextRegion": "聚焦下一個區域",
+      "prevRegion": "聚焦上一個區域",
       "zoomIn": "放大",
       "zoomOut": "縮小",
       "zoomReset": "重設縮放"
@@ -679,7 +690,8 @@
     },
     "copyDetails": "複製詳細資料",
     "retry": "重試",
-    "sideBySide": "並排顯示組合語言",
+    "showAssembly": "顯示組合語言",
+    "showGml": "顯示 GML",
     "showParent": "顯示父指令碼",
     "fallbackAssembly": "反編譯失敗：{reason}。正在顯示組合語言。",
     "fallbackParent": "反編譯失敗：{reason}。正在顯示父指令碼 {parent}，唯讀。",
@@ -942,6 +954,8 @@
   },
   "properties": {
     "addEntry": "新增項目",
+    "moveUp": "上移",
+    "moveDown": "下移",
     "section": {
       "physics": "物理",
       "texture": "紋理設定",
@@ -957,6 +971,9 @@
     "copy": "複製版本資訊"
   },
   "search": {
+    "open": "開啟",
+    "copy": "複製",
+    "copyAll": "全部複製",
     "placeholder": "在程式碼中尋找",
     "word": "完整單字",
     "replacePlaceholder": "取代為",
@@ -973,14 +990,6 @@
     "cancelled": "搜尋已取消。",
     "badPattern": "此模式無效：{reason}",
     "timeout": "此模式在某一行上耗時過長。請簡化它。"
-  },
-  "disassembly": {
-    "assemble": "組譯",
-    "assembled": "已組譯。",
-    "assembleFailed": "無法組譯：{reason}",
-    "title": "{entry} 的反組譯",
-    "loading": "正在讀取指令...",
-    "failed": "無法讀取指令: {reason}"
   },
   "autoTile": {
     "title": "自動圖塊規則集",
@@ -1000,7 +1009,14 @@
   },
   "view": {
     "autosaveFailed": "無法儲存圖層堆疊：{reason}",
-    "layersDamaged": "已儲存的圖層堆疊已損毀。檔案已保留為 {file}。"
+    "layersDamaged": "已儲存的圖層堆疊已損毀。檔案已保留為 {file}。",
+    "region": {
+      "menu": "功能表列",
+      "editor": "編輯區",
+      "bottom": "底部面板",
+      "status": "狀態列"
+    },
+    "regionMoved": "焦點：{region}"
   },
   "uiLayer": {
     "title": "UI 圖層",
@@ -1172,7 +1188,6 @@
       "exportPack": "將顯示的變更匯出為套件...",
       "createMod": "建立 G3M 模組...",
       "refresh": "重新整理",
-      "close": "關閉",
       "readOnly": "此檔案目前不在這裡編輯，無法套用變更。",
       "applied": "已將「{name}」套用到你的檔案。復原可還原。",
       "codeOwner": "新增或刪除的程式碼隨其物件、腳本或房間一起處理。請改為套用該項目。",

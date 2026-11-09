@@ -142,7 +142,6 @@ public sealed partial class MainWindow
 
         var editor = new CodeEditorTab(workspace, entry);
         editor.GoToRequested += key => Docking.OpenTab(key.StartsWith("code:", StringComparison.Ordinal) ? "code" : "resource", key, false);
-        editor.DisassemblyRequested += () => new DisassemblyWindow(workspace, entry).Show(this);
         ConnectCodeTab(editor, workspace);
         _codeTabs[tab.Id] = editor;
         Dispatcher.UIThread.Post(UpdateTabContexts, DispatcherPriority.Loaded); // the tab was made after the dock told its listeners, so the menus look again

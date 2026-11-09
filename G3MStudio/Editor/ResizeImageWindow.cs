@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio.Editor;
 
@@ -31,7 +32,8 @@ public sealed class ResizeImageWindow : Window
     {
         (_size, _groups) = (size, groups);
         Title = Loc.Current["image.resizeTitle"];
-        SizeToContent = SizeToContent.WidthAndHeight;
+        Width = 460;
+        SizeToContent = SizeToContent.Height;
         CanResize = false;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         _mode.ItemsSource = new[] { Loc.Current["image.resizeScale"], Loc.Current["image.resizeCanvas"] };
@@ -53,32 +55,25 @@ public sealed class ResizeImageWindow : Window
             grid.Children.Add(anchor);
         }
 
-        var ok = new Button { Name = "ResizeOk", Content = Loc.Current["image.ok"], Classes = { "primary" } };
-        var cancel = new Button { Name = "ResizeCancel", Content = Loc.Current["explorer.cancel"] };
+        var ok = DialogFrame.Action(this, Loc.Current["image.ok"], "ResizeOk", () => Close(true), DialogRole.Primary);
         _mode.SelectionChanged += (_, _) => grid.IsEnabled = _mode.SelectedIndex == 1;
         grid.IsEnabled = !scale;
         _unit.SelectionChanged += (_, _) => SetValues(_size.Width, _size.Height);
         _width.ValueChanged += (_, _) => Follow(true);
         _height.ValueChanged += (_, _) => Follow(false);
-        ok.Click += (_, _) => Close(true);
-        cancel.Click += (_, _) => Close(false);
-        var body = new StackPanel { Spacing = 6, Margin = new Thickness(12) };
+        var body = new StackPanel { Spacing = 8 };
         body.Children.Add(_mode);
         body.Children.Add(_unit);
-        body.Children.Add(Row("image.p.width", _width));
-        body.Children.Add(Row("image.p.height", _height));
+        body.Children.Add(DialogFrame.Form((Loc.Current["image.p.width"], _width), (Loc.Current["image.p.height"], _height)));
         body.Children.Add(_keep);
-        body.Children.Add(Row("image.anchor", grid));
+        body.Children.Add(DialogFrame.Form((Loc.Current["image.anchor"], grid)));
         body.Children.Add(_all);
-        if (groups.Count > 0) body.Children.Add(Row("image.textureGroup", _group));
-        body.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right, Children = { cancel, ok } });
-        Content = body;
+        if (groups.Count > 0) body.Children.Add(DialogFrame.Form((Loc.Current["image.textureGroup"], _group)));
+        DialogFrame.Show(this, body, [ok, DialogFrame.Cancel(this, () => Close(false), "ResizeCancel")], scroll: DialogScroll.Vertical,
+            dirty: DialogFrame.Snapshot(_mode, _unit, _width, _height, _keep, _all, _group));
     }
 
     private bool Percent => _unit.SelectedIndex == 1;
-
-    private static StackPanel Row(string label, Control control) =>
-        new() { Orientation = Orientation.Horizontal, Spacing = 8, Children = { new TextBlock { Text = Loc.Current[label], Width = 110, VerticalAlignment = VerticalAlignment.Center }, control } };
 
     private void SetValues(int w, int h)
     {

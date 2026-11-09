@@ -532,7 +532,7 @@ public sealed class MaskTests
             await HeadlessApp.Run(() =>
             {
                 var tab = new Editor.PropertyGridTab(workspace, "rooms", room.Name.Content ?? "");
-                var window = new Avalonia.Controls.Window { Content = tab, Width = 700, Height = 600 };
+                var window = new Avalonia.Controls.Window { Content = tab, Width = 700, Height = 3000 };
                 window.Show();
                 window.UpdateLayout();
                 bool ItemsShown() => Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(window).OfType<Avalonia.Controls.TextBox>().Any(b => b.Name?.StartsWith("Prop_" + list + "[", StringComparison.Ordinal) == true);

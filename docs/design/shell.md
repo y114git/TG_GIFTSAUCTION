@@ -174,7 +174,7 @@ Every top-level menu, every item, its command id and its default shortcuts. Gene
 | Zoom > Zoom Out | `view.zoomOut` | Ctrl+- | Cmd+- |
 | Zoom > Reset Zoom | `view.zoomReset` | Ctrl+0 | Cmd+0 |
 | Focus Next Region | `view.nextRegion` | F6 | F6 |
-| Focus Previous Region | `view.previousRegion` | Shift+F6 | Shift+F6 |
+| Focus Previous Region | `view.prevRegion` | Shift+F6 | Shift+F6 |
 | Focus Menu Bar | `view.menuBar` | F10 | F10 |
 
 ### Go menu
@@ -264,7 +264,7 @@ Every top-level menu, every item, its command id and its default shortcuts. Gene
 | Launch With Mods... | `run.withMods` | None | None |
 | Launch and Keep Changes... | `run.keepChanges` | None | None |
 | Stop Game | `run.stop` | Shift+F5 | Shift+F5 |
-| Restart Game | `run.restart` | Ctrl+Shift+F5 | Cmd+Shift+F5 |
+| Restart Game | `run.restart` | Ctrl+F5 | Cmd+F5 |
 | Launch Under GameMaker Debugger | `run.gmsDebug` | None | None |
 | Launch Profiles... | `run.profiles` | None | None |
 | Show Game Log | `run.openLog` | None | None |
@@ -449,6 +449,30 @@ Quick open is the default mode of the box in 3.2: `go.quickOpen` (Ctrl+P, Cmd+P)
 3. Names that exist in two types show the type label and folder path so the rows are distinguishable.
 4. With no text, the box lists the resources opened most recently in this workspace.
 5. Empty result: "No results for '{text}'." with the hint line of 3.2 item 6.
+
+### 3.4 Default key groups
+
+Each function key belongs to one family. A modifier changes the strength or the direction of the same job, never the job.
+
+| Key | Family | Bindings |
+|---|---|---|
+| F1 | Help | F1 Documentation, Ctrl+F1 Help on Word |
+| F2 | Names and marks | F2 Rename, Ctrl+F2 Toggle Bookmark, Alt+F2 Next Bookmark, Alt+Shift+F2 Previous Bookmark |
+| F5 | Run (GameMaker order) | F5 Launch Game, Ctrl+F5 Restart Game, Shift+F5 Stop Game, Ctrl+Shift+F5 Play Room |
+| F6 | Regions | F6 Focus Next Region, Shift+F6 Focus Previous Region |
+| F8 | Problems | F8 Next Problem, Shift+F8 Previous Problem |
+| F11, F12 | View and code navigation | F11 Full Screen, F12 Go to Definition, Alt+F12 Peek Definition, Shift+F12 Find Usages |
+
+Rules:
+
+1. Plain key: the main action of the family. Ctrl: the stronger variant (restart, bookmark set, word help). Alt: the side variant (peek, next bookmark). Shift: the reverse or the stop (previous, stop, usages of what F12 defines).
+2. Shift+Alt follows the same order: a "next" on Alt has its "previous" on Alt+Shift.
+3. No two commands share a gesture where both can run (same context). A test fails on a new duplicate.
+4. Letters and Ctrl+letters keep the common editor meaning (Ctrl+S save, Ctrl+F find, Ctrl+P quick open). Ctrl+F is the letter, not the F-key family.
+5. A key that moved keeps a selectable alias that is not bound by default. Stop Game was on F6; F6 now moves between regions, so Settings > Keyboard Shortcuts can add F6 back to Stop Game as an alias, and the page then names the command that shares the key.
+6. Everything stays rebindable. Stored overrides are keyed by command id, so a user's own key for a command survives a change of default.
+
+F6 order: menu bar, Explorer, editor area, bottom panels, status bar. Regions that are hidden or closed are skipped. The focus ring moves to the first focusable control of the region and a polite live text, "Focus: <region>", is read out by screen readers.
 
 ## 4. Status bar
 
@@ -1085,7 +1109,7 @@ Every chord that appears in more than one overlapping context carries an explici
 | Ctrl+- | Cmd+- | Zoom Out | `view.zoomOut` |
 | Ctrl+0 | Cmd+0 | Reset Zoom | `view.zoomReset` |
 | F6 | F6 | Focus Next Region | `view.nextRegion` |
-| Shift+F6 | Shift+F6 | Focus Previous Region | `view.previousRegion` |
+| Shift+F6 | Shift+F6 | Focus Previous Region | `view.prevRegion` |
 | F10 | F10 | Focus Menu Bar | `view.menuBar` |
 | Ctrl+P | Cmd+P | Go to Resource... | `go.quickOpen` |
 | Ctrl+Shift+O | Cmd+Shift+O | Go to Symbol in Editor... | `go.symbolInEditor` |
@@ -1105,7 +1129,7 @@ Every chord that appears in more than one overlapping context carries an explici
 | F5 | F5 | Launch Game | `run.game` |
 | Alt+F5 | Option+F5 | Launch With Options... | `run.withOptions` |
 | Shift+F5 | Shift+F5 | Stop Game | `run.stop` |
-| Ctrl+Shift+F5 | Cmd+Shift+F5 | Restart Game | `run.restart` |
+| Ctrl+F5 | Cmd+F5 | Restart Game | `run.restart` |
 | Ctrl+Shift+N | Cmd+Shift+N | New Window | `window.new` |
 
 #### Tabs and editor groups (always active)

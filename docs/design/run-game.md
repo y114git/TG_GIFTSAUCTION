@@ -140,7 +140,7 @@ The Output channel "Game" shows what the process prints (standard output and err
 | Count | A tab label "Game Log 3" counts new errors since the tab was last seen |
 | Retention | The last 20 runs are kept in app data; the log picker lists them with start time, runner, mods and exit code |
 
-Stop (Shift+F5) ends the process tree. Restart (Ctrl+Shift+F5) stops it and launches again with the same profile. Exit code and duration end each run: "Game exited with code 0 after 4 min 12 s."
+Stop (Shift+F5) ends the process tree. Restart (Ctrl+F5) stops it and launches again with the same profile. Exit code and duration end each run: "Game exited with code 0 after 4 min 12 s."
 
 ### 7.2 Crash reports (F-SUITE-6)
 
@@ -181,7 +181,7 @@ Rows open the resource diff (data-diff view) and "Export Report" writes a Markdo
 | Launch With Mods... | `run.withMods` | None | None |
 | Launch and Keep Changes... | `run.keepChanges` | None | None |
 | Stop Game | `run.stop` | Shift+F5 | Shift+F5 |
-| Restart Game | `run.restart` | Ctrl+Shift+F5 | Cmd+Shift+F5 |
+| Restart Game | `run.restart` | Ctrl+F5 | Cmd+F5 |
 | Launch Under GameMaker Debugger | `run.gmsDebug` | None | None |
 | Launch Profiles... | `run.profiles` | None | None |
 | Show Game Log | `run.openLog` | None | None |
