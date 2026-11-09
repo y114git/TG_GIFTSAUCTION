@@ -101,7 +101,7 @@ public sealed class SheetImportWindow : Window
 
     public bool Replace => _replace.IsChecked == true;
 
-    private static NumericUpDown Box(string name, int value, int min, int max) => new() { Name = name, Minimum = min, Maximum = max, Value = value, Increment = 1, FormatString = "0", Width = 130 };
+    private static NumericUpDown Box(string name, int value, int min, int max) => new() { Name = name, Minimum = min, Maximum = max, Value = value, Increment = 1, FormatString = "0", Width = 150 };
 
     // Labels wrap in a 110 px column, so a long translation grows the row instead of being cut.
     private static void AddRow(Grid grid, int row, string labelA, Control a, string? labelB = null, Control? b = null)
