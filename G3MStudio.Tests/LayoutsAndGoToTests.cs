@@ -1,4 +1,6 @@
 using Avalonia.Controls;
+using Avalonia.Headless;
+using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Dock.Avalonia.Controls;
@@ -287,6 +289,46 @@ public sealed class LayoutsAndGoToTests
                 window.GoToBox.Text = ">hide or show";
                 Dispatcher.UIThread.RunJobs();
                 Assert.Empty(window.GoToBox.Items);
+            }
+            finally { window.Close(); }
+        });
+    }
+
+    [Fact]
+    public async Task GoToKeysStillWorkAfterTheListTookTheFocus()
+    {
+        using var dir = new TempDir();
+        var path = TestData.WriteSample(dir, objects: 3);
+        await HeadlessApp.Run(async () =>
+        {
+            var window = TabsWorkspaceTests.NewWindow(dir);
+            try
+            {
+                await window.OpenAsync(path);
+                window.Registry.Execute("go.goTo");
+                var box = window.GoToBox!;
+                var chosen = new List<string>();
+                box.Chosen += (e, _) => chosen.Add(e.Name);
+                box.Text = "o:obj_";
+                Dispatcher.UIThread.RunJobs();
+                var list = box.GetVisualDescendants().OfType<ListBox>().Single();
+                list.Focus();
+                box.KeyTextInput("2"); // typing goes back to the box
+                Dispatcher.UIThread.RunJobs();
+                Assert.Equal("o:obj_2", box.Text);
+                Assert.Equal(["obj_2"], box.Items.Select(i => i.Name));
+                box.Text = "o:obj_";
+                Dispatcher.UIThread.RunJobs();
+                list.Focus();
+                box.KeyPressQwerty(PhysicalKey.ArrowDown, RawInputModifiers.None);
+                box.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.None);
+                Assert.Equal([box.Items[1].Name], chosen);
+                window.Registry.Execute("go.goTo");
+                var second = window.GoToBox!;
+                second.GetVisualDescendants().OfType<ListBox>().Single().Focus();
+                second.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+                Dispatcher.UIThread.RunJobs();
+                Assert.Null(window.GoToBox);
             }
             finally { window.Close(); }
         });

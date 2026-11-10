@@ -6,6 +6,8 @@
   "common": {
     "cancel": "Cancel",
     "close": "Close",
+    "ok": "OK",
+    "delete": "Delete",
     "discardTitle": "Discard changes?",
     "discardMessage": "You changed values in this window. Closing it now loses them.",
     "discard": "Discard",
@@ -132,7 +134,12 @@
         "sounds": "New Sound...",
         "rooms": "New Room...",
         "sprites": "New Sprite...",
-        "shaders": "New Shader..."
+        "shaders": "New Shader...",
+        "fonts": "New Font...",
+        "sequences": "New Sequence...",
+        "animationCurves": "New Animation Curve...",
+        "particleSystems": "New Particle System...",
+        "extensions": "New Extension..."
       },
       "importPackage": "Import Resources from a Package..."
     },
@@ -160,7 +167,7 @@
       "replaceAudio": "Replace Audio...",
       "exportAudio": "Export Audio...",
       "duplicateFrame": "Duplicate Sprite Frame",
-      "removeFrame": "Remove Sprite Frame",
+      "removeFrame": "Delete Sprite Frame",
       "recalculateMask": "Recalculate Collision Mask",
       "importMask": "Import Mask...",
       "exportMask": "Export Mask...",
@@ -312,7 +319,7 @@
       "previousFrame": "Previous",
       "nextFrame": "Next",
       "duplicateFrame": "Duplicate frame",
-      "removeFrame": "Remove frame",
+      "removeFrame": "Delete frame",
       "play": "Play",
       "selectAll": "Select all",
       "selectNone": "Select none",
@@ -749,7 +756,10 @@
   "quick": {
     "goTo": {
       "title": "Go To",
-      "placeholder": "Type a name. o: objects, @ symbols, # strings, > commands, t: tabs"
+      "placeholder": "Type a name. o: objects, @ symbols, # strings, > commands, t: tabs",
+      "results": "Results",
+      "preview": "Preview",
+      "prefixes": "Prefixes: o: objects, s: sprites, r: rooms, x: scripts, c: code, f: functions, v: variables, @ symbols, # strings, > commands, t: tabs, p: settings"
     },
     "kind": {
       "resource": "Resource",
@@ -858,6 +868,7 @@
     "profilesNote": "The run profile you pick is remembered for each data file.",
     "shortcutShared": "{shortcut} is also used by: {commands}.",
     "shortcutClash": "{shortcut} is set for {user} and is also the default of {other}. {user} runs on that key.",
+    "shortcutClashUser": "{shortcut} is set for {user} and is also used by {other}. {user} runs on that key.",
     "addFont": "Add font file...",
     "removeFont": "Remove",
     "fontFiles": "Font files",
@@ -1116,7 +1127,9 @@
     "unrefFound": "Assets that are not used anywhere: {count}.",
     "unrefNone": "No asset is unused.",
     "unrefFailed": "Could not search for unused assets: {reason}",
-    "removeSelected": "Remove selected",
+    "unrefNote": "Assets that the game finds by name while it runs (asset_get_index, a room started by name, the first room, an object created by name) can be listed here although they are in use. Exclude them before you remove anything.",
+    "excludeSelected": "Exclude selected",
+    "removeSelected": "Delete selected",
     "searching": "Looking for uses of {name}...",
     "found": "Places that use {name}: {count}.",
     "none": "{name} is not used anywhere.",
@@ -1136,7 +1149,6 @@
     "noFolders": "{folder} holds no resource folders such as Sprites or GameObjects.",
     "confirmTitle": "Please confirm",
     "confirmImport": "Import {folders} from {folder}? The open data file changes in memory and this cannot be undone. Save to keep it, or Revert to Saved to drop it.",
-    "ok": "Ok",
     "title": "Transfer Resources",
     "continue": "Continue",
     "groupIn": "Into this data file",
@@ -1170,6 +1182,9 @@
     "codeTitle": "Import Code",
     "codePreview": "Replace the code of {count} entries from files?\n{names}",
     "codeMisses": "No entry has the name of {count} files, which are skipped: {names}",
+    "codeCreateAsk": "{count} files name no code entry: {names}\nYes adds an empty entry for each one and fills it from the file. No skips these files.",
+    "codeSkipAsk": "{failed} files cannot be imported:\n{list}\nYes imports the other {rest} files and skips these. No imports nothing.",
+    "codeSkipped": "Skipped {count} files with errors: {names}",
     "codeNone": "No file is named after a code entry of this data file.",
     "codeDone": "Code replaced in {count} entries. Undo takes it back in one step.",
     "codeFailed": "Nothing was imported: {reason}",
@@ -1385,6 +1400,21 @@
     "kindFunction": "function",
     "kindOther": "other",
     "kindUnused": "unused",
+    "replaceWith": "Replace with...",
+    "replaceAll": "Replace all",
+    "add": "Add",
+    "delete": "Delete",
+    "export": "Export CSV...",
+    "import": "Import CSV...",
+    "noChange": "Nothing changed.",
+    "added": "String added.",
+    "deleted": "String deleted.",
+    "deleteUsed": "Only a string that nothing uses can be deleted. Change its text instead, or wait until the kind column is ready.",
+    "replaceNeedsFilter": "Type the text to find in the filter first. Replace all changes the strings that are shown.",
+    "replaced": "Text replaced in {count} strings, as one step.",
+    "exported": "{count} strings written to {name}.",
+    "imported": "Changed {count} strings, as one step. Numbers not in the table: {skipped}.",
+    "importFailed": "Could not import: {reason}",
     "uses": "Places that use it: {count}. Changing the text changes all of them. To change one use only, edit that property in its own tab.",
     "title": "Strings",
     "filter": "Filter strings...",
@@ -1668,7 +1698,7 @@
     "vertices": "Physics shape vertices",
     "vertexAdd": "Add vertex",
     "vertexSet": "Set vertex",
-    "removeEvent": "Remove"
+    "removeEvent": "Delete"
   },
   "image": {
     "noFrames": "This sprite has no frames to edit.",
@@ -1738,11 +1768,10 @@
     "prev": "Previous",
     "next": "Next",
     "addFrame": "Duplicate frame",
-    "removeFrame": "Remove frame",
+    "removeFrame": "Delete frame",
     "play": "Play",
     "size": "{w} x {h}",
     "selection": "Selection",
-    "ok": "OK",
     "menu": {
       "selection": "Selection",
       "transform": "Transform",
@@ -2067,15 +2096,15 @@
     "audioKind": "{reason}\n\nThe sound keeps its old type and flags, so the game may not play audio of another kind. Undo brings the old audio back until you save.",
     "pageSizeTitle": "Replace the page with a picture of another size?",
     "pageSize": "{reason}\n\nEvery sprite frame, glyph and tile on this page points at a rectangle on it. With another size they can show the wrong part or nothing. Undo brings the old picture back until you save.",
-    "lastFrameTitle": "Remove the last frame of {name}?",
+    "lastFrameTitle": "Delete the last frame of {name}?",
     "lastFrame": "{reason}\n\nA sprite without frames draws nothing, and the game can fail where it uses {name}. Undo puts the frame back until you save.",
-    "lastPointTitle": "Remove the last point of {name}?",
+    "lastPointTitle": "Delete the last point of {name}?",
     "lastPoint": "{reason}\n\nAn empty path can make the game fail where it follows {name}. Undo puts the point back until you save.",
     "importTypeTitle": "Import {name} as a script?",
     "importType": "{reason}\n\nIf you go on, Studio reads the file as text and makes a script from it. A file that is not GML will not compile as it is. Undo removes the script until you save.",
     "copySizeTitle": "Copy a very large package anyway?",
     "copySize": "{reason}\n\nThe whole package is held in memory and in the journal, so Studio can run out of memory or become slow. Undo removes the copy until you save.",
-    "collisionTitle": "Delete {name} and remove the events that aim at it?",
+    "collisionTitle": "Delete {name} and the events that aim at it?",
     "collision": "{reason}\n\nIf you go on, those collision events and their code are removed from the other objects. Undo brings them back until you save.",
     "roomPngTitle": "Save a reduced picture of the room?",
     "roomPng": "{reason}\n\nIf you go on, the picture is made smaller so that its longer side is 16384 pixels. It is not pixel for pixel.",
@@ -2263,7 +2292,12 @@
       "groups": "Groups",
       "members": "Members",
       "kind": "Kind",
-      "moved": "Moved {count} to {group}."
+      "moved": "Moved {count} to {group}.",
+      "newName": "Group name",
+      "newGroup": "New group",
+      "renameGroup": "Rename group",
+      "created": "Group {name} created.",
+      "renamed": "Group renamed to {name}."
     }
   },
   "output": {
@@ -2368,6 +2402,7 @@
     "imported": "Chunk {name} replaced from {file}. The file is loaded again.",
     "none": "The file on disk has no chunks (it is not a FORM file).",
     "unsavedReload": "You have unsaved changes. The file is loaded again after this write, so they are dropped. Save first if you are unsure.",
-    "reason": "This writes raw bytes into the data file on disk."
+    "reason": "This writes raw bytes into the data file on disk.",
+    "otherFile": "The data file in use is no longer the one this action started with. Nothing was written."
   }
 }

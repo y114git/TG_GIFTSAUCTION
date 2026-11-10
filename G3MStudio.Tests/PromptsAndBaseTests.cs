@@ -34,10 +34,10 @@ public sealed class PromptsAndBaseTests
     {
         var s = new AppSettings();
         Assert.All(Prompts.All, p => Assert.Equal(PromptChoice.Ask, Prompts.Get(s, p.Id)));
-        s = Prompts.Set(s, Prompts.DeleteResource, PromptChoice.No);
+        s = Prompts.Set(s, Prompts.RevertToSaved, PromptChoice.No);
         s = Prompts.Set(s, Prompts.CloseUnsaved, PromptChoice.Yes);
         s = Prompts.Set(s, Prompts.RiskyAction, PromptChoice.No);
-        Assert.Equal(PromptChoice.No, Prompts.Get(s, Prompts.DeleteResource));
+        Assert.Equal(PromptChoice.No, Prompts.Get(s, Prompts.RevertToSaved));
         Assert.False(s.AskOnClose); // the old setting is the same store
         Assert.False(s.AskRiskyActions);
         // A prompt that only picks between two actions cannot be answered No.
@@ -46,6 +46,17 @@ public sealed class PromptsAndBaseTests
         Assert.All(Prompts.All, p => Assert.Equal(PromptChoice.Ask, Prompts.Get(reset, p.Id)));
         Assert.Empty(reset.Prompts);
         Assert.True(reset.AskOnClose && reset.AskRiskyActions && !reset.AllowUnsafeSilently);
+    }
+
+    [Fact]
+    public void DeletePromptsNeverRememberNoAndReadAStoredNoAsAsk()
+    {
+        var s = new AppSettings();
+        Assert.Equal(s, Prompts.Set(s, Prompts.DeleteResource, PromptChoice.No));
+        Assert.Equal(PromptChoice.Yes, Prompts.Get(Prompts.Set(s, Prompts.DeleteMany, PromptChoice.Yes), Prompts.DeleteMany));
+        var old = s with { Prompts = new Dictionary<string, string> { [Prompts.DeleteResource] = "No", [Prompts.DeleteMany] = "No" } };
+        Assert.Equal(PromptChoice.Ask, Prompts.Get(old, Prompts.DeleteResource));
+        Assert.Equal(PromptChoice.Ask, Prompts.Get(old, Prompts.DeleteMany));
     }
 
     [Fact]

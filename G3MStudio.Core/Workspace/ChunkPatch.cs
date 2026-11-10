@@ -14,15 +14,16 @@ public static class ChunkPatch
         return [.. source.Chunks().Select(c => c.Name)];
     }
 
-    /// <summary>The data of the chunk, without its eight byte header.</summary>
-    public static byte[] Export(string path, string name)
+    /// <summary>Copies the data of the chunk, without its eight byte header, to the stream; a chunk over 2 GB streams like any other.</summary>
+    public static void Export(string path, string name, Stream to)
     {
-        using var source = new HexSource(path);
-        var (offset, length) = Find(source, name);
-        return source.Read(offset + 8, (int)length);
+        long offset, length;
+        using (var source = new HexSource(path)) (offset, length) = Find(source, name);
+        using var input = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        Copy(input, to, offset + 8, offset + 8 + length);
     }
 
-    /// <summary>The chunk with a new length is written to a temporary file next to the original, which then replaces it; the length in the FORM header follows.</summary>
+    /// <summary>The chunk with a new length is written to a temporary file next to the original, which then replaces it; the length in the FORM header follows. The first replacement keeps the original as <c>.bak</c>.</summary>
     public static void Replace(string path, string name, byte[] data)
     {
         long offset, length, total;
@@ -46,6 +47,7 @@ public static class ChunkPatch
                 output.Write(BitConverter.GetBytes((uint)(output.Length - 8)));
             }
 
+            if (!File.Exists(path + ".bak")) File.Copy(path, path + ".bak");
             File.Move(temp, path, true);
         }
         finally

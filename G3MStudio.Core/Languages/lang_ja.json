@@ -6,6 +6,8 @@
   "common": {
     "cancel": "キャンセル",
     "close": "閉じる",
+    "ok": "OK",
+    "delete": "削除",
     "discardTitle": "変更を破棄しますか?",
     "discardMessage": "このウィンドウで値を変更しています。今閉じると失われます。",
     "discard": "破棄",
@@ -132,7 +134,12 @@
         "sounds": "新しいサウンド...",
         "rooms": "新しいルーム...",
         "sprites": "新しいスプライト...",
-        "shaders": "新しいシェーダー..."
+        "shaders": "新しいシェーダー...",
+        "fonts": "新しいフォント...",
+        "sequences": "新しいシーケンス...",
+        "animationCurves": "新しいアニメーションカーブ...",
+        "particleSystems": "新しいパーティクルシステム...",
+        "extensions": "新しい拡張機能..."
       },
       "importPackage": "パッケージからリソースをインポート..."
     },
@@ -749,7 +756,10 @@
   "quick": {
     "goTo": {
       "title": "移動",
-      "placeholder": "名前を入力。o: オブジェクト、@ シンボル、# 文字列、> コマンド、t: タブ"
+      "placeholder": "名前を入力。o: オブジェクト、@ シンボル、# 文字列、> コマンド、t: タブ",
+      "results": "結果",
+      "preview": "プレビュー",
+      "prefixes": "プレフィックス: o: オブジェクト、s: スプライト、r: ルーム、x: スクリプト、c: コード、f: 関数、v: 変数、@ シンボル、# 文字列、> コマンド、t: タブ、p: 設定"
     },
     "kind": {
       "resource": "リソース",
@@ -858,6 +868,7 @@
     "profilesNote": "選んだ実行プロファイルは、データファイルごとに記憶されます。",
     "shortcutShared": "{shortcut} は次でも使用されています: {commands}。",
     "shortcutClash": "{shortcut} は {user} に設定されていて、{other} の既定でもあります。このキーでは {user} が実行されます。",
+    "shortcutClashUser": "{shortcut} は {user} に設定されていて、{other} でも使われています。このキーでは {user} が実行されます。",
     "addFont": "フォントファイルを追加...",
     "removeFont": "削除",
     "fontFiles": "フォントファイル",
@@ -1116,6 +1127,8 @@
     "unrefFound": "どこからも使われていないアセットが {count} 件あります。",
     "unrefNone": "未使用のアセットはありません。",
     "unrefFailed": "未使用のアセットを検索できませんでした: {reason}",
+    "unrefNote": "実行中にゲームが名前で探すアセット（asset_get_index、名前で開始するルーム、最初のルーム、名前で作成するオブジェクト）は、使われていてもここに表示されることがあります。削除する前に除外してください。",
+    "excludeSelected": "選択を除外",
     "removeSelected": "選択を削除",
     "searching": "{name} の使用箇所を検索中...",
     "found": "{name} は {count} か所で使われています。",
@@ -1136,7 +1149,6 @@
     "noFolders": "{folder} には Sprites や GameObjects などのリソースフォルダーがありません。",
     "confirmTitle": "確認してください",
     "confirmImport": "{folder} から {folders} をインポートしますか? 開いているデータファイルはメモリ上で変更され、元に戻せません。保存して残すか、保存済みの状態に戻して破棄してください。",
-    "ok": "OK",
     "title": "リソースを転送",
     "continue": "続行",
     "groupIn": "このデータファイルへ",
@@ -1170,6 +1182,9 @@
     "codeTitle": "コードのインポート",
     "codePreview": "{count} 件のエントリのコードをファイルで置き換えますか？\n{names}",
     "codeMisses": "{count} 個のファイルは同名のエントリがないためスキップします: {names}",
+    "codeCreateAsk": "同名のエントリがないファイル: {count} 個: {names}\nはい: 各ファイルに空のエントリを追加し、ファイルの内容で埋めます。いいえ: これらのファイルをスキップします。",
+    "codeSkipAsk": "インポートできないファイル: {failed} 個:\n{list}\nはい: 残りの {rest} 個のファイルをインポートし、これらをスキップします。いいえ: 何もインポートしません。",
+    "codeSkipped": "エラーでスキップしたファイル: {count} 個: {names}",
     "codeNone": "このデータファイルのコードエントリ名に一致するファイルがありません。",
     "codeDone": "{count} 件のエントリのコードを置き換えました。元に戻すと一度で取り消せます。",
     "codeFailed": "何もインポートされませんでした: {reason}",
@@ -1385,6 +1400,21 @@
     "kindFunction": "関数",
     "kindOther": "その他",
     "kindUnused": "未使用",
+    "replaceWith": "置換後の文字列...",
+    "replaceAll": "すべて置換",
+    "add": "追加",
+    "delete": "削除",
+    "export": "CSV をエクスポート...",
+    "import": "CSV をインポート...",
+    "noChange": "変更はありませんでした。",
+    "added": "文字列を追加しました。",
+    "deleted": "文字列を削除しました。",
+    "deleteUsed": "削除できるのはどこからも使われていない文字列だけです。代わりにテキストを変更するか、種類の列が準備できるまで待ってください。",
+    "replaceNeedsFilter": "先にフィルターに検索する文字列を入力してください。すべて置換は表示中の文字列を変更します。",
+    "replaced": "{count} 件の文字列のテキストを置換しました（1 ステップ）。",
+    "exported": "{count} 件の文字列を {name} に書き出しました。",
+    "imported": "{count} 件の文字列を変更しました（1 ステップ）。表にない番号: {skipped}。",
+    "importFailed": "インポートできませんでした: {reason}",
     "uses": "{count} か所で使用。テキストを変更するとすべて変わります。1 か所だけ変えるには、そのプロパティを各タブで編集してください。",
     "title": "文字列",
     "filter": "文字列を絞り込み...",
@@ -1742,7 +1772,6 @@
     "play": "再生",
     "size": "{w} x {h}",
     "selection": "選択範囲",
-    "ok": "OK",
     "menu": {
       "selection": "選択範囲",
       "transform": "変形",
@@ -2263,7 +2292,12 @@
       "groups": "グループ",
       "members": "メンバー",
       "kind": "種類",
-      "moved": "{count} 件を {group} に移動しました。"
+      "moved": "{count} 件を {group} に移動しました。",
+      "newName": "グループ名",
+      "newGroup": "新しいグループ",
+      "renameGroup": "グループ名を変更",
+      "created": "グループ {name} を作成しました。",
+      "renamed": "グループ名を {name} に変更しました。"
     }
   },
   "output": {
@@ -2368,6 +2402,7 @@
     "imported": "チャンク {name} を {file} で置き換えました。ファイルを読み込み直します。",
     "none": "ディスク上のファイルにチャンクがありません(FORM ファイルではありません)。",
     "unsavedReload": "未保存の変更があります。書き込み後にファイルを読み込み直すため、変更は失われます。迷う場合は先に保存してください。",
-    "reason": "ディスク上のデータファイルに生のバイトを書き込みます。"
+    "reason": "ディスク上のデータファイルに生のバイトを書き込みます。",
+    "otherFile": "開いているデータファイルは、この操作を始めたときのファイルと異なります。何も書き込まれていません。"
   }
 }

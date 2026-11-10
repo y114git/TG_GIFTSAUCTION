@@ -96,9 +96,10 @@ public sealed class TextureItemView : DockPanel
         _image.PointerReleased += (_, e) =>
         {
             if (_drag is null) return;
+            EndMarkDrag(); // before the release of the capture, which would cancel the drag
             e.Pointer.Capture(null);
-            EndMarkDrag();
         };
+        _image.PointerCaptureLost += (_, _) => CancelMarkDrag();
         _scroll.Focusable = true;
         _scroll.KeyDown += (_, e) => e.Handled = NudgeMark(e.Key, e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Shift));
         Ready = ShowAsync(item, textures);
@@ -129,7 +130,19 @@ public sealed class TextureItemView : DockPanel
     {
         if (_drag is not { } d) return;
         int dx = (int)Math.Round((at.X - d.From.X) / Zoom), dy = (int)Math.Round((at.Y - d.From.Y) / Zoom);
-        _marked = d.Resize ? (d.Start.X, d.Start.Y, Math.Max(1, d.Start.W + dx), Math.Max(1, d.Start.H + dy)) : (d.Start.X + dx, d.Start.Y + dy, d.Start.W, d.Start.H);
+        _marked = ClampMark(d.Resize ? (d.Start.X, d.Start.Y, d.Start.W + dx, d.Start.H + dy) : (d.Start.X + dx, d.Start.Y + dy, d.Start.W, d.Start.H));
+        PlaceMark();
+    }
+
+    // Glyph and item rectangles are stored as ushort: the position stays 0..65535 and the size 1..65535.
+    internal static (int X, int Y, int W, int H) ClampMark((int X, int Y, int W, int H) r) =>
+        (Math.Clamp(r.X, 0, ushort.MaxValue), Math.Clamp(r.Y, 0, ushort.MaxValue), Math.Clamp(r.W, 1, ushort.MaxValue), Math.Clamp(r.H, 1, ushort.MaxValue));
+
+    private void CancelMarkDrag()
+    {
+        if (_drag is not { } d) return;
+        _drag = null;
+        _marked = d.Start;
         PlaceMark();
     }
 
@@ -146,7 +159,7 @@ public sealed class TextureItemView : DockPanel
         if (!MarkEditable || _marked is not { } m) return false;
         var (dx, dy) = key switch { Avalonia.Input.Key.Left => (-1, 0), Avalonia.Input.Key.Right => (1, 0), Avalonia.Input.Key.Up => (0, -1), Avalonia.Input.Key.Down => (0, 1), _ => (0, 0) };
         if (dx == 0 && dy == 0) return false;
-        var next = resize ? (m.X, m.Y, Math.Max(1, m.W + dx), Math.Max(1, m.H + dy)) : (m.X + dx, m.Y + dy, m.W, m.H);
+        var next = ClampMark(resize ? (m.X, m.Y, m.W + dx, m.H + dy) : (m.X + dx, m.Y + dy, m.W, m.H));
         _marked = next;
         PlaceMark();
         MarkEdited?.Invoke(next);

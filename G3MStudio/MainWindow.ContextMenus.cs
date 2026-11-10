@@ -36,7 +36,7 @@ public sealed partial class MainWindow
             .Where(id => id switch
             {
                 "edit.rename" => type != "general",
-                "edit.duplicate" => ResourceDuplicate.Types.Contains(type),
+                "edit.duplicate" => ResourceDuplicate.All.Contains(type),
                 "edit.copyToOtherFile" => CopyPlanner.Supported.Contains(type),
                 _ => true,
             })

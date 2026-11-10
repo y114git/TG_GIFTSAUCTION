@@ -144,7 +144,8 @@ public sealed partial class MainWindow
 
     /// <summary>
     /// Import GML: .gml and .asm files (or the ones in a folder) replace the code of the existing entries they are named after. The matches and the files
-    /// with no entry are listed first; the replacement is one undoable edit, and nothing changes when one file does not compile.
+    /// with no entry are listed first (those files can get new entries); the import is one undoable edit. Files that cannot be read or do not compile are
+    /// listed, and the owner chooses to import the rest without them or to import nothing.
     /// </summary>
     public async Task ImportCodePathsAsync(IEnumerable<string> paths)
     {
@@ -154,6 +155,13 @@ public sealed partial class MainWindow
             var files = CodeFileImport.Collect(paths);
             CodeFilePlan plan;
             using (workspace.Lock.Read()) plan = CodeFileImport.Plan(workspace.Data, files);
+            if (plan.Misses.Count > 0)
+            {
+                var names = string.Join(", ", plan.Misses.Take(8)) + (plan.Misses.Count > 8 ? $" ... +{plan.Misses.Count - 8}" : "");
+                if (await Confirm(Loc.Current["transfer.codeTitle"], Loc.Current.Format("transfer.codeCreateAsk", ("count", plan.Misses.Count), ("names", names))))
+                    using (workspace.Lock.Read()) plan = CodeFileImport.Plan(workspace.Data, files, createMissing: true);
+            }
+
             if (plan.Matches.Count == 0)
             {
                 Notify(NotificationLevel.Warning, Loc.Current["transfer.codeNone"]);
@@ -163,8 +171,27 @@ public sealed partial class MainWindow
             var matched = string.Join(Environment.NewLine, plan.Matches.Take(8).Select(m => "  " + m.Entry)) + (plan.Matches.Count > 8 ? Environment.NewLine + $"  ... +{plan.Matches.Count - 8}" : "");
             var missed = plan.Misses.Count == 0 ? "" : Environment.NewLine + Loc.Current.Format("transfer.codeMisses", ("count", plan.Misses.Count), ("names", string.Join(", ", plan.Misses.Take(8)) + (plan.Misses.Count > 8 ? $" ... +{plan.Misses.Count - 8}" : "")));
             if (!await Confirm(Loc.Current["transfer.codeTitle"], Loc.Current.Format("transfer.codePreview", ("count", plan.Matches.Count), ("names", matched)) + missed)) return;
-            await workspace.EditInBackground(await CodeFileImport.BuildAsync(plan.Matches));
-            Notify(NotificationLevel.Info, Loc.Current.Format("transfer.codeDone", ("count", plan.Matches.Count)));
+            var (built, failures) = await CodeFileImport.BuildEachAsync(plan.Matches);
+            // Each edit is tried alone first (the model is put back after every try), so every file that does not compile is found in one pass.
+            var failed = failures.ToList();
+            var items = built.ToList();
+            foreach (var (command, error) in await workspace.ProbeInBackground([.. items.Select(i => i.Command)]))
+            {
+                var bad = items.First(i => i.Command == command);
+                items.Remove(bad);
+                failed.Add(new CodeFileFailure(Path.GetFileName(bad.Match.Path), error.Message.Split('\n')[0].Trim()));
+            }
+
+            if (failed.Count > 0)
+            {
+                var list = string.Join(Environment.NewLine, failed.Take(8).Select(f => $"  {f.File}: {f.Reason}")) + (failed.Count > 8 ? Environment.NewLine + $"  ... +{failed.Count - 8}" : "");
+                if (items.Count == 0) throw new InvalidDataException(failed[0].Reason);
+                if (!await Confirm(Loc.Current["transfer.codeTitle"], Loc.Current.Format("transfer.codeSkipAsk", ("failed", failed.Count), ("list", list), ("rest", items.Count)))) return;
+            }
+
+            await workspace.EditInBackground(new GroupCommand([.. items.Select(i => i.Command)]));
+            Notify(NotificationLevel.Info, Loc.Current.Format("transfer.codeDone", ("count", items.Count)));
+            if (failed.Count > 0) Notify(NotificationLevel.Warning, Loc.Current.Format("transfer.codeSkipped", ("count", failed.Count), ("names", string.Join(", ", failed.Select(f => f.File)))));
         }
         catch (OutOfMemoryException)
         {

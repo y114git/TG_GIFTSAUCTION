@@ -110,6 +110,31 @@ public sealed class DialogLayoutTests
     }
 
     [Fact]
+    public async Task ADeleteQuestionNamesTheVerbAndDefaultsToCancel()
+    {
+        using var dir = new TempDir();
+        await HeadlessApp.Run(async () =>
+        {
+            var owner = TabsWorkspaceTests.NewWindow(dir);
+            try
+            {
+                var before = owner.OwnedWindows.Count;
+                var answer = ProjectDialogs.AskConfirmRememberAsync(owner, "Delete a", "Delete a?", "common.delete");
+                var dialog = owner.OwnedWindows[before];
+                await Settle();
+                var ok = dialog.GetVisualDescendants().OfType<Button>().Single(b => b.Name == "Ok");
+                var cancel = dialog.GetVisualDescendants().OfType<Button>().Single(b => b.Name == "Cancel");
+                Assert.Equal(Loc.Current["common.delete"], ok.Content);
+                Assert.True(ok.Classes.Contains("danger") && !ok.IsDefault);
+                Assert.True(cancel.IsDefault && cancel.IsFocused);
+                dialog.Close();
+                Assert.False((await answer).Answer);
+            }
+            finally { owner.Close(); }
+        });
+    }
+
+    [Fact]
     public async Task EscapeAsksBeforeItDropsWhatWasTyped()
     {
         using var dir = new TempDir();

@@ -323,7 +323,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
     {
         // A short sheet (the picture scrolls inside it) keeps the glyph list and the kerning pairs in view; a taller fixed size was cut to its middle by a smaller border.
         var sheet = new TextureItemView(font.Texture, _textures, () => ReplaceItemPictureAsync(workspace, "fonts", ResourceTypes.NameOf(font))) { Height = 150 };
-        return new StackPanel { Spacing = 8, Children = { sheet, new FontGlyphsView(font, workspace) { Sheet = sheet, ReplaceRequested = name => _ = ReplaceFontAsync(name) } } };
+        return new StackPanel { Spacing = 8, Children = { sheet, new FontGlyphsView(font, workspace) { Sheet = sheet, Notify = Notify, ReplaceRequested = name => _ = ReplaceFontAsync(name) } } };
     }
 
     public Task<bool> ConfirmCloseAsync() => ApplyCodeEditors() ? CloseGuard.ConfirmAsync(Workspaces.Current, AskClose, SaveForCloseAsync, Workspaces.Settings.Current.AskOnClose) : Task.FromResult(false);

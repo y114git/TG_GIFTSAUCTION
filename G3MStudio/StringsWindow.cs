@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
 using G3MStudio.Theme;
@@ -21,6 +22,13 @@ public sealed class StringsWindow : Window
     private readonly Button _apply = new() { Name = "StringApply", Content = Loc.Current["strings.apply"], IsEnabled = false };
     private readonly TextBlock _count = new() { Name = "StringCount", Classes = { "muted" } };
     private readonly TextBlock _uses = new() { Name = "StringUses", Classes = { "muted" } };
+    private readonly TextBox _replaceWith = new() { Name = "StringReplaceWith", PlaceholderText = Loc.Current["strings.replaceWith"] };
+    private readonly Button _replaceAll = new() { Name = "StringReplaceAll", Content = Loc.Current["strings.replaceAll"] };
+    private readonly Button _add = new() { Name = "StringAdd", Content = Loc.Current["strings.add"] };
+    private readonly Button _delete = new() { Name = "StringDelete", Content = Loc.Current["strings.delete"], IsEnabled = false };
+    private readonly Button _export = new() { Name = "StringExport", Content = Loc.Current["strings.export"] };
+    private readonly Button _import = new() { Name = "StringImport", Content = Loc.Current["strings.import"] };
+    private readonly TextBlock _note = new() { Name = "StringNote", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap };
     private int _countVersion;
     private Row? _selected;
 
@@ -41,7 +49,11 @@ public sealed class StringsWindow : Window
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         var top = new DockPanel { Children = { _regex, _filter } };
         DockPanel.SetDock(_regex, Avalonia.Controls.Dock.Right);
-        var bottom = new StackPanel { Spacing = 6, Margin = new Avalonia.Thickness(0, 8, 0, 0), Children = { _uses, _text } };
+        var replaceRow = new DockPanel { Children = { _replaceAll, _replaceWith } };
+        DockPanel.SetDock(_replaceAll, Avalonia.Controls.Dock.Right);
+        var tools = new WrapPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Children = { _add, _delete, _export, _import } };
+        foreach (var button in tools.Children) button.Margin = new Avalonia.Thickness(0, 0, 6, 0);
+        var bottom = new StackPanel { Spacing = 6, Margin = new Avalonia.Thickness(0, 8, 0, 0), Children = { _uses, _text, replaceRow, tools, _note } };
         var panel = new DockPanel();
         top.Margin = new Avalonia.Thickness(0, 0, 0, 8);
         DockPanel.SetDock(top, Avalonia.Controls.Dock.Top);
@@ -62,9 +74,15 @@ public sealed class StringsWindow : Window
             _selected = _list.SelectedItem as Row;
             _text.Text = _selected?.Text ?? "";
             _apply.IsEnabled = _selected is not null;
+            _delete.IsEnabled = _selected is not null;
             _ = ShowUsesAsync();
         };
         _apply.Click += (_, _) => Apply();
+        _add.Click += (_, _) => Add();
+        _delete.Click += (_, _) => DeleteSelected();
+        _replaceAll.Click += (_, _) => ReplaceAll();
+        _export.Click += async (_, _) => await ExportAsync();
+        _import.Click += async (_, _) => await ImportAsync();
         workspace.History.Changed += Refresh;
         _indexTimer.Tick += (_, _) =>
         {
@@ -92,6 +110,116 @@ public sealed class StringsWindow : Window
     {
         if (_selected is null || _text.Text is not { } text || text == _selected.Text) return;
         _workspace.Edit(new EditStringCommand(_selected.Index, text));
+    }
+
+    private IReadOnlyList<Row> Shown => _list.ItemsSource as IReadOnlyList<Row> ?? [];
+
+    // A failed batch shows its reason and changes nothing: the commands undo themselves.
+    private bool TryEdit(EditCommand? command, string noneKey)
+    {
+        if (command is null)
+        {
+            _note.Text = Loc.Current[noneKey];
+            return false;
+        }
+
+        try
+        {
+            _workspace.Edit(command);
+            return true;
+        }
+        catch (InvalidOperationException e)
+        {
+            _note.Text = e.Message;
+            return false;
+        }
+    }
+
+    internal void Add()
+    {
+        if (_text.Text is not { Length: > 0 } text) return;
+        if (TryEdit(new StringAddCommand(text), "strings.noChange")) _note.Text = Loc.Current["strings.added"];
+    }
+
+    // Only a string nothing uses is deleted: the kind column shows "unused" once the reference index is ready.
+    internal void DeleteSelected()
+    {
+        if (_selected is null) return;
+        if (_selected.Kind != Loc.Current["strings.kindUnused"])
+        {
+            _note.Text = Loc.Current["strings.deleteUsed"];
+            return;
+        }
+
+        if (TryEdit(new StringDeleteCommand(_selected.Index), "strings.noChange")) _note.Text = Loc.Current["strings.deleted"];
+    }
+
+    internal void ReplaceAll()
+    {
+        if (_filter.Text is not { Length: > 0 } needle)
+        {
+            _note.Text = Loc.Current["strings.replaceNeedsFilter"];
+            return;
+        }
+
+        try
+        {
+            var pattern = new Regex(_regex.IsChecked == true ? needle : Regex.Escape(needle), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2));
+            var with = _regex.IsChecked == true ? _replaceWith.Text ?? "" : (_replaceWith.Text ?? "").Replace("$", "$$", StringComparison.Ordinal);
+            var edit = StringTable.ReplaceEdits(_workspace.Data, Shown.Select(r => r.Index), pattern, with);
+            var count = Shown.Count(r => pattern.Replace(r.Text, with) != r.Text);
+            if (TryEdit(edit, "strings.noChange")) _note.Text = Loc.Current.Format("strings.replaced", ("count", count));
+        }
+        catch (Exception e) when (e is ArgumentException or RegexMatchTimeoutException)
+        {
+            _note.Text = e.Message;
+        }
+    }
+
+    /// <summary>Writes the shown strings as CSV (index, text).</summary>
+    internal void ExportTo(string path)
+    {
+        File.WriteAllText(path, StringTable.ToCsv(Shown.Select(r => (r.Index, r.Text))), new System.Text.UTF8Encoding(true));
+        _note.Text = Loc.Current.Format("strings.exported", ("count", Shown.Count), ("name", Path.GetFileName(path)));
+    }
+
+    /// <summary>Sets the text of the strings the CSV names by number, as one undo step.</summary>
+    internal void ImportFrom(string path)
+    {
+        try
+        {
+            var rows = StringTable.ParseCsv(File.ReadAllText(path));
+            var edit = StringTable.ImportEdits(_workspace.Data, rows, out var skipped);
+            var changed = rows.Count(r => r.Index >= 0 && r.Index < _workspace.Data.Strings.Count && _workspace.Data.Strings[r.Index].Content != r.Text);
+            if (TryEdit(edit, "strings.noChange")) _note.Text = Loc.Current.Format("strings.imported", ("count", changed), ("skipped", skipped));
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException)
+        {
+            _note.Text = Loc.Current.Format("strings.importFailed", ("reason", e.Message));
+        }
+    }
+
+    private async Task ExportAsync()
+    {
+        var file = await StorageProvider.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
+        {
+            Title = Loc.Current["strings.export"].TrimEnd('.'),
+            DefaultExtension = "csv",
+            SuggestedFileName = "string_table.csv",
+            FileTypeChoices = [new Avalonia.Platform.Storage.FilePickerFileType("CSV") { Patterns = ["*.csv"] }],
+        });
+        if (file?.TryGetLocalPath() is { } path) ExportTo(path);
+    }
+
+    private async Task ImportAsync()
+    {
+        var files = await StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
+        {
+            Title = Loc.Current["strings.import"].TrimEnd('.'),
+            AllowMultiple = false,
+            FileTypeFilter = [new Avalonia.Platform.Storage.FilePickerFileType("CSV") { Patterns = ["*.csv"] }],
+        });
+        if (files.Count == 1 && files[0].TryGetLocalPath() is { } path) ImportFrom(path);
     }
 
     private void Refresh()

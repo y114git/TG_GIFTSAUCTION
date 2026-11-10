@@ -210,7 +210,7 @@ public sealed partial class RoomPreview
         var copies = new List<RoomElementCommand>();
         foreach (var p in elements.OfType<ParticleSystemInstance>())
             if (p.ParticleSystem?.Name.Content is { } particle && RoomElements.LayerOf(_room, p) is { } layer)
-                copies.Add(new RoomElementCommand(new ElementRef(RoomName, layer.LayerId, RoomElements.Particle, RoomElements.NewParticleName(_room)), RoomElementCommand.Add, p.X + (int)offset.X, p.Y + (int)offset.Y, particle));
+                copies.Add(new RoomElementCommand(new ElementRef(RoomName, layer.LayerId, RoomElements.Particle, RoomElements.NewParticleName(_room)), RoomElementCommand.Add, p.X + (int)offset.X, p.Y + (int)offset.Y, particle, new ParticleLook(p.Color, p.ScaleX, p.ScaleY, p.Rotation)));
         if (commands.Count == 0 && copies.Count == 0) return;
         Edit([.. commands, .. copies]);
         if (commands.Count == 0) return;

@@ -202,7 +202,7 @@ public sealed class CurveEditor : DockPanel
     private readonly Workspace? _workspace;
     private readonly ComboBox _channels = new() { Name = "CurveChannel", MinWidth = 140 };
     private readonly ComboBox _type = new() { Name = "CurveType", MinWidth = 120 };
-    private readonly ListBox _points = new() { Name = "CurvePoints", MinWidth = 160, MaxHeight = 220 };
+    private readonly ListBox _points = new() { Name = "CurvePoints", MaxHeight = 220 };
     private readonly NumericUpDown _x = new() { Name = "CurvePointX", FormatString = "0.###", Minimum = -1000000, Maximum = 1000000, Increment = 0.1M };
     private readonly NumericUpDown _value = new() { Name = "CurvePointValue", FormatString = "0.###", Minimum = -1000000, Maximum = 1000000, Increment = 0.1M };
     private bool _building;
@@ -216,7 +216,7 @@ public sealed class CurveEditor : DockPanel
         Name = "CurveEditor";
         Graph = new CurveGraph(curve, workspace);
         _type.ItemsSource = TypeKeys.Select(k => Loc.Current[k]).ToList();
-        var top = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new Thickness(0, 0, 0, 6), Children = { new TextBlock { Text = Loc.Current["editors.curve.channel"], VerticalAlignment = VerticalAlignment.Center }, _channels, _type } };
+        var top = new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Margin = new Thickness(0, 0, 0, 6), Children = { new TextBlock { Text = Loc.Current["editors.curve.channel"], VerticalAlignment = VerticalAlignment.Center }, _channels, _type } };
         SetDock(top, Avalonia.Controls.Dock.Top);
         Children.Add(top);
         var add = new Button { Name = "CurvePointAdd", Content = Loc.Current["editors.curve.add"], IsEnabled = workspace is not null };
@@ -229,10 +229,13 @@ public sealed class CurveEditor : DockPanel
             presets.SelectedIndex = -1;
         };
         top.Children.Add(presets);
-        var side = new StackPanel { Width = 200, Spacing = 4, Margin = new Thickness(0, 0, 8, 0), Children = { _points, Labelled("X", _x), Labelled(Loc.Current["editors.curve.value"], _value), new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { add, delete } } } };
-        SetDock(side, Avalonia.Controls.Dock.Left);
-        Children.Add(side);
-        Children.Add(Graph);
+        var side = new StackPanel { Spacing = 4, Margin = new Thickness(0, 0, 8, 0), Children = { _points, Labelled("X", _x), Labelled(Loc.Current["editors.curve.value"], _value), new WrapPanel { ItemSpacing = 4, LineSpacing = 4, Children = { add, delete } } } };
+        // The side column takes a quarter of the width between 140 and 220 px, so a narrow tab keeps room for the graph.
+        var body = new Grid { ColumnDefinitions = { new ColumnDefinition(1, GridUnitType.Star) { MinWidth = 140, MaxWidth = 220 }, new ColumnDefinition(3, GridUnitType.Star) } };
+        Grid.SetColumn(Graph, 1);
+        body.Children.Add(side);
+        body.Children.Add(Graph);
+        Children.Add(body);
         _channels.SelectionChanged += (_, _) =>
         {
             if (_building) return; // Refresh sets the list itself, which raises this again

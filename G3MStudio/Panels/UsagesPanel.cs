@@ -11,6 +11,8 @@ public sealed class UsagesPanel : UserControl
     private readonly TextBlock _status = new() { Name = "UsagesStatus", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap };
     private readonly ListBox _list = new() { Name = "UsagesList", SelectionMode = SelectionMode.Multiple };
     private readonly Button _remove = new Button { Name = "UsagesRemove", IsVisible = false }.Tr(ContentControl.ContentProperty, "usages.removeSelected");
+    private readonly Button _exclude = new Button { Name = "UsagesExclude", IsVisible = false }.Tr(ContentControl.ContentProperty, "usages.excludeSelected");
+    private readonly TextBlock _note = new TextBlock { Name = "UsagesNote", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap, IsVisible = false }.Tr(TextBlock.TextProperty, "usages.unrefNote");
     private int _generation;
 
     public UsagesPanel()
@@ -19,11 +21,16 @@ public sealed class UsagesPanel : UserControl
         _list.DoubleTapped += (_, _) => { if (_list.SelectedItem is UsageHit hit) OpenRequested?.Invoke(hit); };
         _list.KeyDown += (_, e) => { if (e.Key == Avalonia.Input.Key.Enter && _list.SelectedItem is UsageHit hit) { e.Handled = true; OpenRequested?.Invoke(hit); } };
         _remove.Click += (_, _) => RemoveSelected();
+        _exclude.Click += (_, _) => ExcludeSelected();
         var layout = new DockPanel { Margin = new Avalonia.Thickness(8) };
         DockPanel.SetDock(_status, Avalonia.Controls.Dock.Top);
         DockPanel.SetDock(_remove, Avalonia.Controls.Dock.Top);
+        DockPanel.SetDock(_exclude, Avalonia.Controls.Dock.Top);
+        DockPanel.SetDock(_note, Avalonia.Controls.Dock.Top);
         layout.Children.Add(_status);
+        layout.Children.Add(_note);
         layout.Children.Add(_remove);
+        layout.Children.Add(_exclude);
         layout.Children.Add(_list);
         Content = layout;
     }
@@ -43,6 +50,16 @@ public sealed class UsagesPanel : UserControl
         if (_remove.IsVisible && _list.SelectedItems?.OfType<UsageHit>().ToList() is { Count: > 0 } selected) RemoveRequested?.Invoke(selected);
     }
 
+    /// <summary>Takes the selected rows of the unreferenced list out of it, so Remove Selected and Select All leave them alone. The list is rebuilt by the next search.</summary>
+    public void ExcludeSelected()
+    {
+        if (!_exclude.IsVisible || _list.SelectedItems?.OfType<UsageHit>().ToHashSet() is not { Count: > 0 } picked) return;
+        var left = Hits.Where(h => !picked.Contains(h)).ToList();
+        _list.ItemsSource = left;
+        _remove.IsVisible = _exclude.IsVisible = left.Count > 0;
+        _status.Text = Loc.Current.Format(left.Count == 0 ? "usages.unrefNone" : "usages.unrefFound", ("count", left.Count));
+    }
+
     /// <summary>Selects every row of the list.</summary>
     public void SelectAllRows() => _list.SelectAll();
 
@@ -50,7 +67,7 @@ public sealed class UsagesPanel : UserControl
     {
         _generation++; // a search that is still running must not fill the panel afterwards
         _list.ItemsSource = null;
-        _remove.IsVisible = false;
+        _remove.IsVisible = _exclude.IsVisible = _note.IsVisible = false;
         _status.Text = "";
     }
 
@@ -59,14 +76,15 @@ public sealed class UsagesPanel : UserControl
     {
         var generation = ++_generation;
         _list.ItemsSource = null;
-        _remove.IsVisible = false;
+        _remove.IsVisible = _exclude.IsVisible = false;
+        _note.IsVisible = true;
         _status.Text = Loc.Current["usages.unrefSearching"];
         try
         {
             var hits = await search;
             if (generation != _generation) return;
             _list.ItemsSource = hits;
-            _remove.IsVisible = hits.Count > 0;
+            _remove.IsVisible = _exclude.IsVisible = hits.Count > 0;
             _status.Text = Loc.Current.Format(hits.Count == 0 ? "usages.unrefNone" : "usages.unrefFound", ("count", hits.Count));
         }
         catch (Exception e) when (e is InvalidOperationException or OperationCanceledException && generation == _generation)
@@ -85,7 +103,7 @@ public sealed class UsagesPanel : UserControl
     {
         var generation = ++_generation;
         _list.ItemsSource = null;
-        _remove.IsVisible = false;
+        _remove.IsVisible = _exclude.IsVisible = _note.IsVisible = false;
         _status.Text = Loc.Current.Format(searching, ("name", name));
         try
         {

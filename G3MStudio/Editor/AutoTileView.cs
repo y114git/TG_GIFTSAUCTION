@@ -23,9 +23,9 @@ public sealed class AutoTileView : StackPanel
     private readonly ComboBox _sets = new() { Name = "AutoTileSets", MinWidth = 140 };
     private readonly ComboBox _layout = new() { Name = "AutoTileLayout", MinWidth = 110, ItemsSource = new[] { "47", "16", "256" } };
     private readonly TextBox _name = new() { Name = "AutoTileName", MinWidth = 140 };
-    private readonly NumericUpDown _terrain = new() { Name = "AutoTileTerrain", Minimum = 1, Maximum = 255, FormatString = "0", Width = 100, Value = 1 };
-    private readonly NumericUpDown _first = new() { Name = "AutoTileFirst", Minimum = 1, Maximum = 65535, FormatString = "0", Width = 100, Value = 1 };
-    private readonly NumericUpDown _columns = new() { Name = "AutoTileColumns", Minimum = 1, Maximum = 256, FormatString = "0", Width = 100, Value = 8 };
+    private readonly NumericUpDown _terrain = new() { Name = "AutoTileTerrain", Minimum = 1, Maximum = 255, FormatString = "0", MinWidth = 80, Value = 1 };
+    private readonly NumericUpDown _first = new() { Name = "AutoTileFirst", Minimum = 1, Maximum = 65535, FormatString = "0", MinWidth = 80, Value = 1 };
+    private readonly NumericUpDown _columns = new() { Name = "AutoTileColumns", Minimum = 1, Maximum = 256, FormatString = "0", MinWidth = 80, Value = 8 };
     private readonly WrapPanel _slots = new() { Name = "AutoTileSlots" };
     private readonly TextBlock _message = new() { Name = "AutoTileMessage", Classes = { "muted" }, TextWrapping = TextWrapping.Wrap };
     private readonly CheckBox _arm = new() { Name = "AutoTileArm" };
@@ -69,9 +69,9 @@ public sealed class AutoTileView : StackPanel
 
     private string? _current;
 
-    private static StackPanel Row(params Control[] items)
+    private static WrapPanel Row(params Control[] items)
     {
-        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+        var row = new WrapPanel { ItemSpacing = 6, LineSpacing = 6 };
         foreach (var item in items)
         {
             item.VerticalAlignment = VerticalAlignment.Center;

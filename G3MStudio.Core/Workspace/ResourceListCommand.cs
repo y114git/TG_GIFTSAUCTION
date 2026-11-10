@@ -21,7 +21,7 @@ public sealed partial class ResourceListCommand : EditCommand
     public const string Delete = "delete";
 
     /// <summary>Types that can be created from nothing.</summary>
-    public static readonly string[] Creatable = ["objects", "scripts", "paths", "timelines", "sounds", "rooms", "sprites", "shaders"];
+    public static readonly string[] Creatable = ["objects", "scripts", "paths", "timelines", "sounds", "rooms", "sprites", "shaders", "fonts", "sequences", "animationCurves", "particleSystems", "extensions"];
 
     /// <summary>Types that can be deleted.</summary>
     public static readonly string[] Deletable = ["objects", "sprites", "sounds", "paths", "scripts", "shaders", "fonts", "timelines", "rooms", "animationCurves", "sequences", "particleSystems", "tileSets", "extensions"];
@@ -85,6 +85,7 @@ public sealed partial class ResourceListCommand : EditCommand
     {
         if (!Creatable.Contains(_type)) throw new InvalidOperationException($"A new {_type} entry cannot be created here.");
         CheckName(data);
+        if (ResourceTypes.All.First(t => t.Key == _type).Items(data) is null) throw new InvalidOperationException($"This data file has no {_type} section, so it cannot hold a new one.");
         var name = data.Strings.MakeString(_name, out _);
         switch (_type)
         {
@@ -116,6 +117,26 @@ public sealed partial class ResourceListCommand : EditCommand
             case "rooms":
                 _item = new GameMakerRoom { Name = name, Width = 1024, Height = 768 };
                 data.Rooms.Add((GameMakerRoom)_item);
+                break;
+            case "fonts":
+                _item = new GameMakerFont { Name = name, DisplayName = data.Strings.MakeString("Arial", out _), EmSize = 12, ScaleX = 1, ScaleY = 1, RangeStart = 32, RangeEnd = 127, AntiAliasing = 1, Charset = 1 };
+                data.Fonts.Add((GameMakerFont)_item);
+                break;
+            case "sequences":
+                _item = new GameMakerSequence { Name = name, Tracks = [], Moments = [], BroadcastMessages = [], FunctionIDs = [] };
+                data.Sequences.Add((GameMakerSequence)_item);
+                break;
+            case "animationCurves":
+                _item = new GameMakerAnimationCurve { Name = name, Channels = [] };
+                data.AnimationCurves.Add((GameMakerAnimationCurve)_item);
+                break;
+            case "particleSystems":
+                _item = new GameMakerParticleSystem { Name = name, Emitters = [] };
+                data.ParticleSystems.Add((GameMakerParticleSystem)_item);
+                break;
+            case "extensions":
+                _item = new GameMakerExtension { Name = name, FolderName = data.Strings.MakeString("", out _), ClassName = data.Strings.MakeString("", out _), Version = data.Strings.MakeString("1.0.0", out _), Files = [], Options = [] };
+                data.Extensions.Add((GameMakerExtension)_item);
                 break;
             default:
                 // A sound starts as one second of silence (WAV) in its own embedded audio slot, like the library's own import makes it.

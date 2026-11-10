@@ -6,6 +6,8 @@
   "common": {
     "cancel": "Cancelar",
     "close": "Cerrar",
+    "ok": "Aceptar",
+    "delete": "Eliminar",
     "discardTitle": "¿Descartar los cambios?",
     "discardMessage": "Has cambiado valores en esta ventana. Si la cierras ahora, se perderán.",
     "discard": "Descartar",
@@ -132,7 +134,12 @@
         "sounds": "Nuevo sonido...",
         "rooms": "Nueva sala...",
         "sprites": "Nuevo sprite...",
-        "shaders": "Nuevo shader..."
+        "shaders": "Nuevo shader...",
+        "fonts": "Nueva fuente...",
+        "sequences": "Nueva secuencia...",
+        "animationCurves": "Nueva curva de animación...",
+        "particleSystems": "Nuevo sistema de partículas...",
+        "extensions": "Nueva extensión..."
       },
       "importPackage": "Importar recursos desde un paquete..."
     },
@@ -160,7 +167,7 @@
       "replaceAudio": "Reemplazar audio...",
       "exportAudio": "Exportar audio...",
       "duplicateFrame": "Duplicar fotograma del sprite",
-      "removeFrame": "Quitar fotograma del sprite",
+      "removeFrame": "Eliminar fotograma del sprite",
       "recalculateMask": "Recalcular máscara de colisión",
       "importMask": "Importar máscara...",
       "exportMask": "Exportar máscara...",
@@ -312,7 +319,7 @@
       "previousFrame": "Anterior",
       "nextFrame": "Siguiente",
       "duplicateFrame": "Duplicar fotograma",
-      "removeFrame": "Quitar fotograma",
+      "removeFrame": "Eliminar fotograma",
       "play": "Reproducir",
       "selectAll": "Seleccionar todo",
       "selectNone": "No seleccionar nada",
@@ -749,7 +756,10 @@
   "quick": {
     "goTo": {
       "title": "Ir a",
-      "placeholder": "Escribe un nombre. o: objetos, @ símbolos, # cadenas, > comandos, t: pestañas"
+      "placeholder": "Escribe un nombre. o: objetos, @ símbolos, # cadenas, > comandos, t: pestañas",
+      "results": "Resultados",
+      "preview": "Vista previa",
+      "prefixes": "Prefijos: o: objetos, s: sprites, r: salas, x: scripts, c: código, f: funciones, v: variables, @ símbolos, # cadenas, > comandos, t: pestañas, p: configuración"
     },
     "kind": {
       "resource": "Recurso",
@@ -858,6 +868,7 @@
     "profilesNote": "El perfil de ejecución que elijas se recuerda para cada archivo de datos.",
     "shortcutShared": "{shortcut} también lo usan: {commands}.",
     "shortcutClash": "{shortcut} está asignado a {user} y también es el valor predeterminado de {other}. En esa tecla se ejecuta {user}.",
+    "shortcutClashUser": "{shortcut} está asignado a {user} y también lo usa {other}. En esa tecla se ejecuta {user}.",
     "addFont": "Añadir archivo de fuente...",
     "removeFont": "Quitar",
     "fontFiles": "Archivos de fuente",
@@ -1116,7 +1127,9 @@
     "unrefFound": "Recursos que no se usan en ningún sitio: {count}.",
     "unrefNone": "Ningún recurso está sin usar.",
     "unrefFailed": "No se pudieron buscar recursos sin uso: {reason}",
-    "removeSelected": "Quitar lo seleccionado",
+    "unrefNote": "Los assets que el juego busca por nombre mientras se ejecuta (asset_get_index, una sala iniciada por nombre, la primera sala, un objeto creado por nombre) pueden aparecer aquí aunque estén en uso. Exclúyelos antes de quitar nada.",
+    "excludeSelected": "Excluir lo seleccionado",
+    "removeSelected": "Eliminar lo seleccionado",
     "searching": "Buscando usos de {name}...",
     "found": "Lugares donde se usa {name}: {count}.",
     "none": "{name} no se usa en ningún sitio.",
@@ -1136,7 +1149,6 @@
     "noFolders": "{folder} no contiene carpetas de recursos como Sprites o GameObjects.",
     "confirmTitle": "Confirma, por favor",
     "confirmImport": "¿Importar {folders} desde {folder}? El archivo de datos abierto cambia en memoria y no se puede deshacer. Guarda para conservarlo o vuelve a lo guardado para descartarlo.",
-    "ok": "Aceptar",
     "title": "Transferir recursos",
     "continue": "Continuar",
     "groupIn": "Hacia este archivo de datos",
@@ -1170,6 +1182,9 @@
     "codeTitle": "Importar código",
     "codePreview": "¿Reemplazar el código de {count} entradas desde los archivos?\n{names}",
     "codeMisses": "Ninguna entrada se llama como {count} archivos, que se omiten: {names}",
+    "codeCreateAsk": "Archivos sin una entrada con su nombre: {count}: {names}\nSí: añade una entrada vacía para cada uno y la rellena desde el archivo. No: omite esos archivos.",
+    "codeSkipAsk": "Archivos que no se pueden importar: {failed}:\n{list}\nSí: importa los otros {rest} archivos y omite estos. No: no importa nada.",
+    "codeSkipped": "Archivos omitidos por errores: {count}: {names}",
     "codeNone": "Ningún archivo se llama como una entrada de código de este archivo de datos.",
     "codeDone": "Código reemplazado en {count} entradas. Deshacer lo revierte en un solo paso.",
     "codeFailed": "No se importó nada: {reason}",
@@ -1385,6 +1400,21 @@
     "kindFunction": "función",
     "kindOther": "otro",
     "kindUnused": "sin usar",
+    "replaceWith": "Reemplazar con...",
+    "replaceAll": "Reemplazar todo",
+    "add": "Añadir",
+    "delete": "Eliminar",
+    "export": "Exportar CSV...",
+    "import": "Importar CSV...",
+    "noChange": "No cambió nada.",
+    "added": "Cadena añadida.",
+    "deleted": "Cadena eliminada.",
+    "deleteUsed": "Solo se puede eliminar una cadena que nada usa. Cambia su texto o espera a que la columna de tipo esté lista.",
+    "replaceNeedsFilter": "Escribe primero el texto a buscar en el filtro. Reemplazar todo cambia las cadenas mostradas.",
+    "replaced": "Texto reemplazado en {count} cadenas, en un solo paso.",
+    "exported": "{count} cadenas escritas en {name}.",
+    "imported": "Se cambiaron {count} cadenas, en un solo paso. Números fuera de la tabla: {skipped}.",
+    "importFailed": "No se pudo importar: {reason}",
     "uses": "Lugares donde se usa: {count}. Cambiar el texto los cambia todos. Para cambiar solo un uso, edita esa propiedad en su pestaña.",
     "title": "Cadenas",
     "filter": "Filtrar cadenas...",
@@ -1668,7 +1698,7 @@
     "vertices": "Vértices de la forma física",
     "vertexAdd": "Añadir vértice",
     "vertexSet": "Fijar vértice",
-    "removeEvent": "Quitar"
+    "removeEvent": "Eliminar"
   },
   "image": {
     "noFrames": "Este sprite no tiene fotogramas que editar.",
@@ -1738,11 +1768,10 @@
     "prev": "Anterior",
     "next": "Siguiente",
     "addFrame": "Duplicar fotograma",
-    "removeFrame": "Quitar fotograma",
+    "removeFrame": "Eliminar fotograma",
     "play": "Reproducir",
     "size": "{w} x {h}",
     "selection": "Selección",
-    "ok": "Aceptar",
     "menu": {
       "selection": "Selección",
       "transform": "Transformar",
@@ -2067,15 +2096,15 @@
     "audioKind": "{reason}\n\nEl sonido conserva su tipo y sus indicadores anteriores, así que el juego puede no reproducir audio de otro tipo. Deshacer devuelve el audio anterior hasta que guardes.",
     "pageSizeTitle": "¿Reemplazar la página con una imagen de otro tamaño?",
     "pageSize": "{reason}\n\nCada fotograma de sprite, glifo y tesela de esta página apunta a un rectángulo de ella. Con otro tamaño pueden mostrar la parte equivocada o nada. Deshacer devuelve la imagen anterior hasta que guardes.",
-    "lastFrameTitle": "¿Quitar el último fotograma de {name}?",
+    "lastFrameTitle": "¿Eliminar el último fotograma de {name}?",
     "lastFrame": "{reason}\n\nUn sprite sin fotogramas no dibuja nada, y el juego puede fallar donde usa {name}. Deshacer devuelve el fotograma hasta que guardes.",
-    "lastPointTitle": "¿Quitar el último punto de {name}?",
+    "lastPointTitle": "¿Eliminar el último punto de {name}?",
     "lastPoint": "{reason}\n\nUna ruta vacía puede hacer fallar el juego donde sigue {name}. Deshacer devuelve el punto hasta que guardes.",
     "importTypeTitle": "¿Importar {name} como script?",
     "importType": "{reason}\n\nSi sigues, Studio lee el archivo como texto y crea un script con él. Un archivo que no es GML no compilará tal cual. Deshacer quita el script hasta que guardes.",
     "copySizeTitle": "¿Copiar igualmente un paquete muy grande?",
     "copySize": "{reason}\n\nTodo el paquete se guarda en memoria y en el diario, así que Studio puede quedarse sin memoria o ir lento. Deshacer quita la copia hasta que guardes.",
-    "collisionTitle": "¿Eliminar {name} y quitar los eventos que apuntan a él?",
+    "collisionTitle": "¿Eliminar {name} y los eventos que apuntan a él?",
     "collision": "{reason}\n\nSi sigues, esos eventos de colisión y su código se quitan de los otros objetos. Deshacer los devuelve hasta que guardes.",
     "roomPngTitle": "¿Guardar una imagen reducida de la sala?",
     "roomPng": "{reason}\n\nSi sigues, la imagen se hace más pequeña para que su lado más largo mida 16384 píxeles. No será píxel por píxel.",
@@ -2263,7 +2292,12 @@
       "groups": "Grupos",
       "members": "Miembros",
       "kind": "Tipo",
-      "moved": "Se movieron {count} a {group}."
+      "moved": "Se movieron {count} a {group}.",
+      "newName": "Nombre del grupo",
+      "newGroup": "Nuevo grupo",
+      "renameGroup": "Renombrar grupo",
+      "created": "Grupo {name} creado.",
+      "renamed": "Grupo renombrado a {name}."
     }
   },
   "output": {
@@ -2368,6 +2402,7 @@
     "imported": "Chunk {name} reemplazado desde {file}. Se vuelve a cargar el archivo.",
     "none": "El archivo en disco no tiene chunks (no es un archivo FORM).",
     "unsavedReload": "Tienes cambios sin guardar. Tras escribir se vuelve a cargar el archivo y se pierden. Guarda antes si dudas.",
-    "reason": "Esto escribe bytes sin procesar en el archivo de datos en disco."
+    "reason": "Esto escribe bytes sin procesar en el archivo de datos en disco.",
+    "otherFile": "El archivo de datos en uso ya no es el de esta acción. No se escribió nada."
   }
 }

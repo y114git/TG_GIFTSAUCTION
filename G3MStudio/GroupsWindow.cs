@@ -23,6 +23,9 @@ public sealed class GroupsWindow : Window
     private readonly ComboBox _target = new() { Name = "GroupTarget", MinWidth = 180 };
     private readonly Button _move = new() { Name = "GroupMove" };
     private readonly TextBlock _message = new() { Name = "GroupMessage", TextWrapping = Avalonia.Media.TextWrapping.Wrap };
+    private readonly TextBox _name = new() { Name = "GroupName", MinWidth = 160 };
+    private readonly Button _new = new() { Name = "GroupNew" };
+    private readonly Button _rename = new() { Name = "GroupRename" };
     private bool _building;
 
     public GroupsWindow(Workspace workspace, bool audio)
@@ -35,6 +38,10 @@ public sealed class GroupsWindow : Window
         MinHeight = 300;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         _move.Content = Loc.Current["editors.groups.move"];
+        _new.Content = Loc.Current["editors.groups.newGroup"];
+        _rename.Content = Loc.Current["editors.groups.renameGroup"];
+        _name.PlaceholderText = Loc.Current["editors.groups.newName"];
+        _name.Labeled("editors.groups.newName");
         _groups.Labeled("editors.groups.groups");
         _members.Labeled("editors.groups.members");
         _kind.Labeled("editors.groups.kind");
@@ -43,16 +50,23 @@ public sealed class GroupsWindow : Window
         _kind.SelectedIndex = 0;
         _kind.IsVisible = !audio;
         var bar = new WrapPanel { ItemSpacing = 8, LineSpacing = 8, Children = { _kind, new TextBlock { Text = Loc.Current["editors.groups.moveTo"], VerticalAlignment = VerticalAlignment.Center }, _target, _move } };
+        var edit = new WrapPanel { ItemSpacing = 8, LineSpacing = 8, Margin = new Thickness(0, 0, 0, 8), Children = { _name, _new, _rename } };
+        DockPanel.SetDock(edit, Avalonia.Controls.Dock.Top);
         var panel = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(bar, Avalonia.Controls.Dock.Top);
         DockPanel.SetDock(_groups, Avalonia.Controls.Dock.Left);
         bar.Margin = new Thickness(0, 0, 0, 8);
         _groups.Margin = new Thickness(0, 0, 8, 0);
-        foreach (var child in new Control[] { bar, _groups, _members }) panel.Children.Add(child);
+        foreach (var child in new Control[] { edit, bar, _groups, _members }) panel.Children.Add(child);
         DialogFrame.Show(this, panel, [DialogFrame.Close(this)], _message);
         _groups.SelectionChanged += (_, _) => ShowMembers();
         _kind.SelectionChanged += (_, _) => ShowMembers();
         _move.Click += (_, _) => Move();
+        _new.Click += (_, _) => Change(new GroupListCommand(_audio, GroupListCommand.New, _name.Text?.Trim() ?? ""), "editors.groups.created");
+        _rename.Click += (_, _) =>
+        {
+            if (_groups.SelectedItem is string group) Change(new GroupListCommand(_audio, GroupListCommand.Rename, group, _name.Text?.Trim() ?? ""), "editors.groups.renamed");
+        };
         workspace.History.Changed += Refresh;
         Closed += (_, _) => workspace.History.Changed -= Refresh;
         Refresh();
@@ -87,6 +101,20 @@ public sealed class GroupsWindow : Window
     {
         if (_building) return;
         _members.ItemsSource = _groups.SelectedItem is string group ? Members(group) : [];
+    }
+
+    // The name box holds the new group's name, or the new name of the picked group.
+    internal void Change(GroupListCommand command, string doneKey)
+    {
+        try
+        {
+            _workspace.Edit(command);
+            _message.Text = Loc.Current.Format(doneKey, ("name", _name.Text?.Trim() ?? ""));
+        }
+        catch (InvalidOperationException e)
+        {
+            _message.Text = e.Message;
+        }
     }
 
     private void Move()

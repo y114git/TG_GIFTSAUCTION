@@ -26,4 +26,11 @@ public sealed class SheetMarkTests
             return Task.CompletedTask;
         });
     }
+
+    [Fact]
+    public void MarkStaysInsideTheUshortRange()
+    {
+        Assert.Equal((0, 0, 1, 65535), TextureItemView.ClampMark((-3, -1, 0, 70000)));
+        Assert.Equal((65535, 7, 5, 9), TextureItemView.ClampMark((65536, 7, 5, 9)));
+    }
 }

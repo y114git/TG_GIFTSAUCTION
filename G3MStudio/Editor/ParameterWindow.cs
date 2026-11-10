@@ -24,7 +24,7 @@ public sealed class ParameterWindow : Window
             rows.Add((label, box));
         }
 
-        var ok = DialogFrame.Action(this, Loc.Current["image.ok"], "ParameterOk", () => Close(true), DialogRole.Primary);
+        var ok = DialogFrame.Action(this, Loc.Current["common.ok"], "ParameterOk", () => Close(true), DialogRole.Primary);
         DialogFrame.Show(this, DialogFrame.Form([.. rows]), [ok, DialogFrame.Cancel(this, () => Close(false), "ParameterCancel")], scroll: DialogScroll.Vertical, dirty: DialogFrame.Snapshot([.. _fields]));
     }
 

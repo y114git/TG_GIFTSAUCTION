@@ -77,6 +77,20 @@
     <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
     <Setter Property="FontWeight" Value="Bold" />
   </Style>
+  <!-- A destructive confirm button (Delete): red fill, dark text (design/ux-standards.md, contrast). -->
+  <Style Selector="Button.danger">
+    <Setter Property="Background" Value="{DynamicResource Danger.Fill}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Danger}" />
+    <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
+  </Style>
+  <Style Selector="Button.danger /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Danger.Fill}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Danger}" />
+    <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
+  </Style>
+  <Style Selector="Button.danger:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.danger:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Danger}" />
+  </Style>
   <!-- The template paints the pressed and hover states on the presenter, so the fill is set there too: the primary button never falls back to grey. -->
   <Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource Accent.Fill}" />

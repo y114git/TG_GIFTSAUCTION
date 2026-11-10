@@ -34,19 +34,29 @@ public sealed class HexSourceTests
         Assert.Null(HexSource.ParseHexBytes("abc"));
     }
 
+    private static byte[] Exported(string path, string name)
+    {
+        using var to = new MemoryStream();
+        ChunkPatch.Export(path, name, to);
+        return to.ToArray();
+    }
+
     [Fact]
     public void AChunkIsExportedAndReplacedWithAnotherLength()
     {
         using var dir = new TempDir();
         var path = WriteForm(dir);
         Assert.Equal(["AAAA", "BBBB"], ChunkPatch.Names(path));
-        Assert.Equal([9, 9], ChunkPatch.Export(path, "BBBB"));
+        Assert.Equal([9, 9], Exported(path, "BBBB"));
         ChunkPatch.Replace(path, "AAAA", [7, 7, 7, 7, 7, 7]);
-        Assert.Equal([7, 7, 7, 7, 7, 7], ChunkPatch.Export(path, "AAAA"));
-        Assert.Equal([9, 9], ChunkPatch.Export(path, "BBBB"));
+        Assert.Equal([7, 7, 7, 7, 7, 7], Exported(path, "AAAA"));
+        Assert.Equal([9, 9], Exported(path, "BBBB"));
         var bytes = File.ReadAllBytes(path);
         Assert.Equal((uint)(bytes.Length - 8), BitConverter.ToUInt32(bytes, 4));
-        Assert.Throws<InvalidOperationException>(() => ChunkPatch.Export(path, "NONE"));
+        Assert.Throws<InvalidOperationException>(() => Exported(path, "NONE"));
+        Assert.Equal([1, 2, 3, 4], File.ReadAllBytes(path + ".bak")[16..20]); // the first replacement kept the original
+        ChunkPatch.Replace(path, "AAAA", [5]);
+        Assert.Equal(30, File.ReadAllBytes(path + ".bak").Length); // and a second one leaves that backup alone
     }
 
     [Fact]
@@ -176,5 +186,18 @@ public sealed class HexSourceTests
         var row = source.Row(15000); // far beyond the new end, in a block that was never read
         Assert.StartsWith("0003A980", row, StringComparison.Ordinal);
         Assert.Equal(-1, source.Find([1, 2, 3], 200000));
+    }
+
+    [Fact]
+    public void CommitRefusesAFileThatChangedAfterOpeningAndLeavesItAlone()
+    {
+        using var dir = new TempDir();
+        var path = WriteForm(dir);
+        using var source = new HexSource(path);
+        Assert.True(source.Patch(16, [0xAA]));
+        File.AppendAllText(path, "x");
+        Assert.Throws<IOException>(() => source.Commit(path));
+        Assert.Equal(1, File.ReadAllBytes(path)[16]);
+        Assert.False(File.Exists(path + ".hex.tmp"));
     }
 }

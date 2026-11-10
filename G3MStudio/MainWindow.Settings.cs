@@ -118,7 +118,10 @@ public partial class MainWindow
         foreach (var (user, other, gesture) in Registry.OverrideClashes())
         {
             if (_reportedClashes.Add($"{user.Id}|{other.Id}|{gesture}"))
-                Notify(NotificationLevel.Warning, Loc.Current.Format("settings.shortcutClash", ("shortcut", gesture), ("user", Loc.Current["cmd." + user.Id]), ("other", Loc.Current["cmd." + other.Id])));
+            {
+                var otherIsDefault = string.Equals(Registry.DefaultShortcut(other.Id), gesture, StringComparison.OrdinalIgnoreCase) && !Registry.IsOverridden(other.Id);
+                Notify(NotificationLevel.Warning, Loc.Current.Format(otherIsDefault ? "settings.shortcutClash" : "settings.shortcutClashUser", ("shortcut", gesture), ("user", Loc.Current["cmd." + user.Id]), ("other", Loc.Current["cmd." + other.Id])));
+            }
         }
 
         // The defaults for new projects also change the open one, but only when the defaults themselves changed.

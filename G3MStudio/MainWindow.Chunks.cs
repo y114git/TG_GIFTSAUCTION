@@ -7,9 +7,22 @@ namespace G3MStudio;
 /// <summary>Raw edits of the data file on disk: byte patches from the hex view and whole chunks exported or replaced. Each one writes the file and loads it again.</summary>
 public partial class MainWindow
 {
-    public void ExportChunk() => _ = ExportChunkAsync();
+    public void ExportChunk() => _ = GuardedAsync(ExportChunkAsync);
 
-    public void ImportChunk() => _ = ImportChunkAsync();
+    public void ImportChunk() => _ = GuardedAsync(ImportChunkAsync);
+
+    // These run without an awaiting caller: an escaped exception would end up unobserved, so it is reported here.
+    private async Task GuardedAsync(Func<Task> run)
+    {
+        try
+        {
+            await run();
+        }
+        catch (Exception e) when (e is not OutOfMemoryException)
+        {
+            Notify(NotificationLevel.Error, e.Message);
+        }
+    }
 
     private async Task ExportChunkAsync()
     {
@@ -17,7 +30,11 @@ public partial class MainWindow
         if (await PickPatchFile(Loc.Current["chunks.pickOut"], true, ".bin") is not { } output) return;
         try
         {
-            await File.WriteAllBytesAsync(output, ChunkPatch.Export(workspace.Path, name));
+            await Task.Run(() =>
+            {
+                using var file = new FileStream(output, FileMode.Create, FileAccess.Write);
+                ChunkPatch.Export(workspace.Path, name, file);
+            });
             Notify(NotificationLevel.Info, Loc.Current.Format("chunks.exported", ("name", name), ("file", Path.GetFileName(output))));
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException)
@@ -33,7 +50,9 @@ public partial class MainWindow
         if (!await RawWriteOkAsync(workspace, "risky.chunkImportTitle", "risky.chunkImport", name)) return;
         try
         {
-            ChunkPatch.Replace(workspace.Path, name, await File.ReadAllBytesAsync(input));
+            var data = await File.ReadAllBytesAsync(input);
+            if (!StillCurrent(workspace)) return; // the dialogs and the read let the user switch the open file
+            ChunkPatch.Replace(workspace.Path, name, data);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException)
         {
@@ -45,10 +64,25 @@ public partial class MainWindow
         await ReloadFromDiskAsync(workspace);
     }
 
-    /// <summary>Called by the hex view: warns, writes the patched bytes into the file and loads it again. True when the file was written.</summary>
-    internal async Task<bool> ApplyHexPatchAsync(Workspace workspace, HexSource source)
+    private bool StillCurrent(Workspace workspace)
     {
+        if (ReferenceEquals(Workspaces.Current, workspace)) return true;
+        Notify(NotificationLevel.Warning, Loc.Current["chunks.otherFile"]);
+        return false;
+    }
+
+    /// <summary>Called by the hex view: warns, writes the patched bytes into the file and loads it again. True when the file was written. The open data file is looked up by path now, since the view can outlive the one it was opened for.</summary>
+    internal async Task<bool> ApplyHexPatchAsync(string path, HexSource source)
+    {
+        var comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+        if (Workspaces.Current is not { } workspace || !string.Equals(Path.GetFullPath(workspace.Path), Path.GetFullPath(path), comparison))
+        {
+            Notify(NotificationLevel.Warning, Loc.Current["chunks.otherFile"]);
+            return false;
+        }
+
         if (!await RawWriteOkAsync(workspace, "risky.hexPatchTitle", "risky.hexPatch", Path.GetFileName(workspace.Path))) return false;
+        if (!StillCurrent(workspace)) return false;
         try
         {
             source.Commit(workspace.Path);
@@ -92,9 +126,18 @@ public partial class MainWindow
 
     private async Task ReloadFromDiskAsync(Workspace workspace)
     {
-        var path = workspace.Path;
-        Workspaces.Close();
-        File.Delete(Journal.FileFor(Workspaces.UserData, path));
-        await OpenAsync(path);
+        try
+        {
+            var path = workspace.Path;
+            Workspaces.Close();
+            // Set aside, not deleted: the recorded edits belong to the old bytes but may still be wanted.
+            var journal = Journal.FileFor(Workspaces.UserData, path);
+            if (File.Exists(journal)) File.Move(journal, journal + ".stale", true);
+            await OpenAsync(path);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            Notify(NotificationLevel.Error, e.Message);
+        }
     }
 }

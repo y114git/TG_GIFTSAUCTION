@@ -13,7 +13,8 @@ public sealed class HexSource : IDisposable
     public const int RowBytes = 16;
     private const int BlockSize = 64 * 1024;
 
-    private readonly FileStream _stream;
+    private FileStream _stream;
+    private DateTime _writtenAt;
     private byte[] _block = [];
     private long _blockStart = -1;
     private readonly Dictionary<long, byte> _patched = [];
@@ -22,9 +23,12 @@ public sealed class HexSource : IDisposable
 
     public HexSource(string path)
     {
-        _stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, 4096, FileOptions.RandomAccess);
+        _stream = Open(path);
         Length = _stream.Length;
+        _writtenAt = File.GetLastWriteTimeUtc(path);
     }
+
+    private static FileStream Open(string path) => new(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, 4096, FileOptions.RandomAccess);
 
     public long Length { get; }
 
@@ -78,18 +82,38 @@ public sealed class HexSource : IDisposable
         }
     }
 
-    /// <summary>Writes the patched bytes into the file and forgets the undo steps (the file is the new baseline).</summary>
+    /// <summary>
+    /// Writes the patched bytes into a copy of the file, which then replaces it, and forgets the undo steps (the file is the new baseline). Refuses with an
+    /// <see cref="IOException"/> when the file has another length or write time than when it was opened: the patches belong to bytes that are gone.
+    /// </summary>
     public void Commit(string path)
     {
-        using (var file = new FileStream(path, FileMode.Open, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete))
+        var info = new FileInfo(path);
+        if (!info.Exists || info.Length != Length || info.LastWriteTimeUtc != _writtenAt) throw new IOException("The file changed after the hex view opened it. Close the view and open it again.");
+        var temp = path + ".hex.tmp";
+        try
         {
-            foreach (var (offset, value) in _patched.OrderBy(p => p.Key))
+            File.Copy(path, temp, true);
+            using (var file = new FileStream(temp, FileMode.Open, FileAccess.Write))
             {
-                file.Position = offset;
-                file.WriteByte(value);
+                foreach (var (offset, value) in _patched.OrderBy(p => p.Key))
+                {
+                    file.Position = offset;
+                    file.WriteByte(value);
+                }
             }
+
+            // Windows will not replace a file this view still has open; the view reads the new bytes through a new handle.
+            _stream.Dispose();
+            File.Move(temp, path, true);
+        }
+        finally
+        {
+            if (File.Exists(temp)) File.Delete(temp);
+            _stream = Open(path);
         }
 
+        _writtenAt = File.GetLastWriteTimeUtc(path);
         _patched.Clear();
         _undo.Clear();
         _redo.Clear();

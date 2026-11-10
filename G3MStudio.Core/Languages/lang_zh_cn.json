@@ -6,6 +6,8 @@
   "common": {
     "cancel": "取消",
     "close": "关闭",
+    "ok": "确定",
+    "delete": "删除",
     "discardTitle": "放弃更改?",
     "discardMessage": "你在此窗口中修改了内容。现在关闭将丢失这些修改。",
     "discard": "放弃",
@@ -132,7 +134,12 @@
         "sounds": "新建声音...",
         "rooms": "新建房间...",
         "sprites": "新建精灵...",
-        "shaders": "新建着色器..."
+        "shaders": "新建着色器...",
+        "fonts": "新建字体...",
+        "sequences": "新建序列...",
+        "animationCurves": "新建动画曲线...",
+        "particleSystems": "新建粒子系统...",
+        "extensions": "新建扩展..."
       },
       "importPackage": "从包导入资源..."
     },
@@ -749,7 +756,10 @@
   "quick": {
     "goTo": {
       "title": "转到",
-      "placeholder": "输入名称。o: 对象,@ 符号,# 字符串,> 命令,t: 标签页"
+      "placeholder": "输入名称。o: 对象,@ 符号,# 字符串,> 命令,t: 标签页",
+      "results": "结果",
+      "preview": "预览",
+      "prefixes": "前缀:o: 对象,s: 精灵,r: 房间,x: 脚本,c: 代码,f: 函数,v: 变量,@ 符号,# 字符串,> 命令,t: 标签页,p: 设置"
     },
     "kind": {
       "resource": "资源",
@@ -858,6 +868,7 @@
     "profilesNote": "所选的运行配置会按数据文件分别记住。",
     "shortcutShared": "{shortcut} 也被以下命令使用：{commands}。",
     "shortcutClash": "{shortcut} 已设为“{user}”的快捷键，同时也是“{other}”的默认快捷键。按此键将执行“{user}”。",
+    "shortcutClashUser": "{shortcut} 已设为“{user}”的快捷键，“{other}”也在使用。按此键将执行“{user}”。",
     "addFont": "添加字体文件...",
     "removeFont": "移除",
     "fontFiles": "字体文件",
@@ -1116,7 +1127,9 @@
     "unrefFound": "有 {count} 个资源没有被任何地方使用。",
     "unrefNone": "没有未使用的资源。",
     "unrefFailed": "无法查找未使用的资源: {reason}",
-    "removeSelected": "移除所选",
+    "unrefNote": "游戏在运行时按名称查找的资产（asset_get_index、按名称启动的房间、第一个房间、按名称创建的对象）即使正在使用，也可能出现在此列表中。请在移除前先将其排除。",
+    "excludeSelected": "排除所选项",
+    "removeSelected": "删除所选",
     "searching": "正在查找 {name} 的用法...",
     "found": "{name} 在 {count} 处被使用。",
     "none": "{name} 未在任何地方使用。",
@@ -1136,7 +1149,6 @@
     "noFolders": "{folder} 中没有 Sprites 或 GameObjects 之类的资源文件夹。",
     "confirmTitle": "请确认",
     "confirmImport": "要从 {folder} 导入 {folders} 吗？打开的数据文件会在内存中更改，且无法撤销。保存以保留，或还原到已保存状态以丢弃。",
-    "ok": "确定",
     "title": "传输资源",
     "continue": "继续",
     "groupIn": "传入此数据文件",
@@ -1170,6 +1182,9 @@
     "codeTitle": "导入代码",
     "codePreview": "用文件替换 {count} 个条目的代码？\n{names}",
     "codeMisses": "{count} 个文件没有同名条目，将被跳过：{names}",
+    "codeCreateAsk": "{count} 个文件没有同名条目：{names}\n是：为每个文件添加一个空条目并用文件内容填充。否：跳过这些文件。",
+    "codeSkipAsk": "{failed} 个文件无法导入：\n{list}\n是：导入其余 {rest} 个文件并跳过这些。否：不导入任何内容。",
+    "codeSkipped": "因出错而跳过 {count} 个文件：{names}",
     "codeNone": "没有文件与此数据文件的代码条目同名。",
     "codeDone": "已替换 {count} 个条目的代码。撤销一次即可还原。",
     "codeFailed": "未导入任何内容：{reason}",
@@ -1385,6 +1400,21 @@
     "kindFunction": "函数",
     "kindOther": "其他",
     "kindUnused": "未使用",
+    "replaceWith": "替换为...",
+    "replaceAll": "全部替换",
+    "add": "添加",
+    "delete": "删除",
+    "export": "导出 CSV...",
+    "import": "导入 CSV...",
+    "noChange": "没有任何更改。",
+    "added": "已添加字符串。",
+    "deleted": "已删除字符串。",
+    "deleteUsed": "只能删除没有任何地方使用的字符串。请改为修改其文本，或等类型列准备好。",
+    "replaceNeedsFilter": "请先在筛选框输入要查找的文本。全部替换会更改显示出的字符串。",
+    "replaced": "已在 {count} 个字符串中替换文本（一步完成）。",
+    "exported": "已将 {count} 个字符串写入 {name}。",
+    "imported": "已更改 {count} 个字符串（一步完成）。不在表中的编号：{skipped}。",
+    "importFailed": "无法导入：{reason}",
     "uses": "在 {count} 处使用；更改文本会同时更改所有位置。若只想改一处，请在其自己的标签页中编辑该属性。",
     "title": "字符串",
     "filter": "筛选字符串...",
@@ -1668,7 +1698,7 @@
     "vertices": "物理形状顶点",
     "vertexAdd": "添加顶点",
     "vertexSet": "设置顶点",
-    "removeEvent": "移除"
+    "removeEvent": "删除"
   },
   "image": {
     "noFrames": "此精灵没有可编辑的帧。",
@@ -1742,7 +1772,6 @@
     "play": "播放",
     "size": "{w} x {h}",
     "selection": "选区",
-    "ok": "确定",
     "menu": {
       "selection": "选区",
       "transform": "变换",
@@ -2067,15 +2096,15 @@
     "audioKind": "{reason}\n\n声音会保留原来的类型和标志，所以游戏可能无法播放另一种类型的音频。保存之前，可用撤销换回原来的音频。",
     "pageSizeTitle": "用另一种尺寸的图片替换该页吗？",
     "pageSize": "{reason}\n\n此页上的每个精灵帧、字形和图块都指向页上的一个矩形。尺寸不同时，它们可能显示错误的部分或什么也不显示。保存之前，可用撤销换回原来的图片。",
-    "lastFrameTitle": "移除 {name} 的最后一帧吗？",
+    "lastFrameTitle": "删除 {name} 的最后一帧吗？",
     "lastFrame": "{reason}\n\n没有帧的精灵什么也不绘制，游戏在使用 {name} 的地方可能出错。保存之前，可用撤销把帧放回去。",
-    "lastPointTitle": "移除 {name} 的最后一个点吗？",
+    "lastPointTitle": "删除 {name} 的最后一个点吗？",
     "lastPoint": "{reason}\n\n空路径可能让游戏在沿 {name} 移动的地方出错。保存之前，可用撤销把点放回去。",
     "importTypeTitle": "将 {name} 作为脚本导入吗？",
     "importType": "{reason}\n\n继续的话，Studio 会把文件当作文本读取并据此创建脚本。不是 GML 的文件按原样无法编译。保存之前，可用撤销移除该脚本。",
     "copySizeTitle": "仍然复制很大的包吗？",
     "copySize": "{reason}\n\n整个包会保存在内存和日志中，Studio 可能内存不足或变慢。保存之前，可用撤销移除该副本。",
-    "collisionTitle": "删除 {name} 并移除指向它的事件吗？",
+    "collisionTitle": "删除 {name} 以及指向它的事件吗？",
     "collision": "{reason}\n\n继续的话，这些碰撞事件及其代码会从其他对象中移除。保存之前，可用撤销恢复它们。",
     "roomPngTitle": "保存房间的缩小图片吗？",
     "roomPng": "{reason}\n\n继续的话，图片会缩小，使较长的一边为 16384 像素。它不再是逐像素一致。",
@@ -2263,7 +2292,12 @@
       "groups": "组",
       "members": "成员",
       "kind": "类型",
-      "moved": "已将 {count} 项移到 {group}。"
+      "moved": "已将 {count} 项移到 {group}。",
+      "newName": "组名",
+      "newGroup": "新建组",
+      "renameGroup": "重命名组",
+      "created": "已创建组 {name}。",
+      "renamed": "组已重命名为 {name}。"
     }
   },
   "output": {
@@ -2368,6 +2402,7 @@
     "imported": "区块 {name} 已用 {file} 替换。文件将重新加载。",
     "none": "磁盘上的文件没有区块（不是 FORM 文件）。",
     "unsavedReload": "有未保存的更改。写入后会重新加载文件，更改将丢失。不确定时请先保存。",
-    "reason": "这会把原始字节写入磁盘上的数据文件。"
+    "reason": "这会把原始字节写入磁盘上的数据文件。",
+    "otherFile": "当前打开的数据文件已不是此操作开始时的文件。未写入任何内容。"
   }
 }

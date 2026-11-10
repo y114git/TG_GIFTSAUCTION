@@ -37,7 +37,7 @@ public sealed class ImageToTilesWindow : Window
         _set.SelectedIndex = 0;
         _name.Text = ImageToTiles.FreeLayerName(room, "Tiles");
         _path.Text = Loc.Current["rooms.imgNone"];
-        _ok.Content = Loc.Current["image.ok"];
+        _ok.Content = Loc.Current["common.ok"];
         var choose = new Button { Name = "TilesChoose", Content = Loc.Current["rooms.imgChoose"] };
         choose.Click += async (_, _) =>
         {

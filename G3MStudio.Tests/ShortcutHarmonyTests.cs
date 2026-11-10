@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Avalonia.Input;
 using Avalonia.Threading;
 using G3MStudio.Commands;
 using G3MStudio.Core.Commands;
@@ -146,4 +147,16 @@ public sealed partial class ShortcutHarmonyTests
         Assert.True(registry.IsOverridden("run.stop"));
         Assert.False(registry.IsOverridden("view.nextRegion"));
     }
+
+    [Fact]
+    public void AUserKeyWinsOnlyAsAPrimaryShortcutNotAsAnAlias()
+    {
+        var registry = AppCommands.Create(new FakeShell());
+        registry.SetShortcut("run.stop", "F9");
+        registry.SetAliases("run.stop", ["F6"]); // view.nextRegion has F6 as its primary
+        static KeyEventArgs Press(Key key) => new() { RoutedEvent = InputElement.KeyDownEvent, Key = key };
+        Assert.Equal("view.nextRegion", Shortcuts.Match(registry, Press(Key.F6))?.Id);
+        Assert.Equal("run.stop", Shortcuts.Match(registry, Press(Key.F9))?.Id);
+    }
 }
+

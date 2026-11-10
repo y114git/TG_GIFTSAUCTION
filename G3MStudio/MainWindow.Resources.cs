@@ -55,7 +55,7 @@ public partial class MainWindow
         }
 
         var key = Explorer.SelectedKey ?? (Docking.ActiveTabId is { } id ? Docking.Tabs.Get(id)?.Key : null);
-        if (key is null || ResourceTypes.SplitKey(key) is not var (type, name) || !ResourceDuplicate.Types.Contains(type)) return;
+        if (key is null || ResourceTypes.SplitKey(key) is not var (type, name) || !ResourceDuplicate.All.Contains(type)) return;
         _ = new RenameWindow("", copy => CopyResource(workspace, type, name, copy), Loc.Current.Format("explorer.duplicateTitle", ("name", name)), Loc.Current["explorer.duplicateLabel"], Loc.Current["explorer.newOk"]).AskAsync(this);
     }
 
@@ -64,6 +64,15 @@ public partial class MainWindow
         try
         {
             // The copy's code is decompiled from the model first; a name that is taken or not valid is refused by the command's first step before anything changes.
+            bool viaCopier;
+            using (workspace.Lock.Read()) viaCopier = ResourceDuplicate.NeedsCopier(workspace.Data, type, name);
+            if (viaCopier)
+            {
+                // The package is made off the UI thread: the dialog closes now and a failure is reported as a message.
+                _ = DuplicateViaCopierAsync(workspace, [(type, name, copy)], ResourceTypes.KeyOf(type, copy));
+                return null;
+            }
+
             EditCommand command;
             using (workspace.Lock.Read()) command = ResourceDuplicate.Build(workspace.Data, type, name, copy);
             workspace.Edit(command);
@@ -77,6 +86,24 @@ public partial class MainWindow
         Explorer.Select(key);
         Docking.OpenTab("resource", key, false);
         return null;
+    }
+
+    // Duplicates through the copy between files, with this file as source and target; the copy is one undo step. A name check that fails is reported here, as the dialog is gone.
+    private async Task DuplicateViaCopierAsync(Workspace workspace, IReadOnlyList<(string Type, string Name, string Copy)> items, string openKey)
+    {
+        try
+        {
+            var command = await ResourceDuplicate.BuildCopyAsync(workspace, items);
+            await workspace.EditInBackground(command);
+        }
+        catch (Exception e) when (e is InvalidOperationException or IOException or InvalidDataException)
+        {
+            Notify(NotificationLevel.Error, e.Message);
+            return;
+        }
+
+        Explorer.Select(openKey);
+        Docking.OpenTab("resource", openKey, false);
     }
 
     /// <summary>Deletes the selected resource after a question, or says why it cannot go: a resource that something uses stays.</summary>
@@ -109,7 +136,7 @@ public partial class MainWindow
 
         var list = string.Join(Environment.NewLine, items.Take(8).Select(i => "  " + i.Name)) + (items.Count > 8 ? Environment.NewLine + $"  ... +{items.Count - 8}" : "");
         var uses = places.Count == 0 ? "" : Environment.NewLine + Loc.Current.Format("explorer.deleteManyUses", ("count", places.Count), ("places", string.Join(Environment.NewLine, places.Take(8)) + (places.Count > 8 ? Environment.NewLine + $"  ... +{places.Count - 8}" : "")));
-        if (!await Confirm(Prompts.DeleteMany, Loc.Current.Format("explorer.deleteManyTitle", ("count", items.Count)), Loc.Current.Format("explorer.deleteMany", ("count", items.Count), ("names", list)) + uses)) return;
+        if (!await Confirm(Prompts.DeleteMany, Loc.Current.Format("explorer.deleteManyTitle", ("count", items.Count)), Loc.Current.Format("explorer.deleteMany", ("count", items.Count), ("names", list)) + uses, "common.delete")) return;
         if (!await EditOrForceAsync(workspace, keep => BulkResources.Delete(used, keep), string.Join(", ", items.Take(3).Select(i => i.Name)))) return;
 
         foreach (var tab in Docking.Tabs.Tabs.Where(t => ResourceTypes.SplitKey(t.Key ?? "") is var (type, name) && chosen.Contains((type, name))).ToList()) Docking.CloseTab(tab.Id);
@@ -123,11 +150,24 @@ public partial class MainWindow
         {
             EditCommand command;
             IReadOnlyList<string> keys;
-            using (workspace.Lock.Read()) command = BulkResources.Duplicate(workspace.Data, items, out keys);
-            if (keys.Count == 0) return;
-            workspace.Edit(command);
-            Notify(NotificationLevel.Info, Loc.Current.Format("explorer.duplicatedMany", ("count", keys.Count)));
-            Explorer.Select(keys[^1]);
+            List<(string Type, string Name, string Copy)> viaCopier = [];
+            using (workspace.Lock.Read())
+            {
+                var taken = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var (type, name) in items.Where(i => ResourceDuplicate.All.Contains(i.Type) && ResourceDuplicate.NeedsCopier(workspace.Data, i.Type, i.Name)))
+                    viaCopier.Add((type, name, BulkResources.CopyName(workspace.Data, name, taken)));
+                var plain = items.Where(i => ResourceDuplicate.Types.Contains(i.Type) && !ResourceDuplicate.NeedsCopier(workspace.Data, i.Type, i.Name)).ToList();
+                command = BulkResources.Duplicate(workspace.Data, plain, out keys);
+            }
+
+            if (keys.Count > 0)
+            {
+                workspace.Edit(command);
+                Notify(NotificationLevel.Info, Loc.Current.Format("explorer.duplicatedMany", ("count", keys.Count)));
+                Explorer.Select(keys[^1]);
+            }
+
+            if (viaCopier.Count > 0) _ = DuplicateViaCopierAsync(workspace, viaCopier, ResourceTypes.KeyOf(viaCopier[^1].Type, viaCopier[^1].Copy));
         }
         catch (Exception e) when (e is InvalidOperationException or CodeCompileException)
         {
@@ -165,7 +205,7 @@ public partial class MainWindow
         var question = hits.Count == 0
             ? (Loc.Current.Format("explorer.deleteTitle", ("name", name)), Loc.Current.Format("explorer.deleteBody", ("name", name)))
             : (Loc.Current.Format("explorer.deleteUsedTitle", ("name", name)), Loc.Current.Format("explorer.deleteUsed", ("name", name), ("count", hits.Count), ("places", places)));
-        if (!await Confirm(Prompts.DeleteResource, question.Item1, question.Item2)) return;
+        if (!await Confirm(Prompts.DeleteResource, question.Item1, question.Item2, "common.delete")) return;
         if (!await EditOrForceAsync(workspace, keep => hits.Count == 0 ? new ResourceListCommand(type, ResourceListCommand.Delete, name) : new GroupCommand([new ClearReferencesCommand(type, name, keep), new ResourceListCommand(type, ResourceListCommand.Delete, name)]), name)) return;
 
         foreach (var tab in Docking.Tabs.Tabs.Where(t => t.Key == key).ToList()) Docking.CloseTab(tab.Id);

@@ -141,7 +141,15 @@ public sealed partial class RoomPreview : DockPanel
     {
         View.CameraEdited += (slot, rect) => Edit([new GroupCommand([.. new (string Path, double Value)[] { ("ViewX", rect.X), ("ViewY", rect.Y), ("ViewWidth", rect.Width), ("ViewHeight", rect.Height) }
             .Select(c => new SetPropertyCommand("rooms", RoomName, $"Views[{slot}].{c.Path}", ((int)c.Value).ToString(System.Globalization.CultureInfo.InvariantCulture)))])]);
-        workspace.History.Changed += ShowCameras; // an undo or redo puts the outlines back
+        // An undo or redo puts the outlines back; the handler goes with the tab, the history outlives it.
+        workspace.History.Changed += ShowCameras;
+        DetachedFromVisualTree += (_, _) => workspace.History.Changed -= ShowCameras;
+        AttachedToVisualTree += (_, _) =>
+        {
+            workspace.History.Changed -= ShowCameras;
+            workspace.History.Changed += ShowCameras;
+            ShowCameras();
+        };
         View.Moved += (elements, dx, dy) => Edit(elements.Select(e => ChangeOf(e, RoomInstanceCommand.Move, RoomElementCommand.Move, dx, dy)).OfType<EditCommand>());
         View.DeleteRequested += elements => Edit(elements.Select(e => ChangeOf(e, RoomInstanceCommand.Delete, RoomElementCommand.Delete, 0, 0)).OfType<EditCommand>());
         View.FlipRequested += (elements, horizontal) => Edit(elements.OfType<GameMakerRoom.GameObject>().Select(i => new RoomInstanceCommand(RoomName, horizontal ? RoomInstanceCommand.FlipX : RoomInstanceCommand.FlipY, i.InstanceID)));

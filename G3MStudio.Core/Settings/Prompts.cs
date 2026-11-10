@@ -9,7 +9,7 @@ public enum PromptChoice
 }
 
 /// <param name="Id">Stable id, also the key in settings.json.</param>
-/// <param name="CanSayNo">False when only "ask" and "always yes" make sense (the prompt picks between two actions, not between doing and not doing).</param>
+/// <param name="CanSayNo">False when only "ask" and "always yes" make sense (the prompt picks between two actions, not between doing and not doing), or when a remembered No would silently disable the action (delete). A stored No for such a prompt reads as Ask.</param>
 public sealed record PromptDef(string Id, bool CanSayNo = true);
 
 /// <summary>
@@ -43,8 +43,8 @@ public static class Prompts
         new(UnsavedChanges),
         new(CopyToSave),
         new(CopyKeepOrganize),
-        new(DeleteResource),
-        new(DeleteMany),
+        new(DeleteResource, false),
+        new(DeleteMany, false),
         new(ReplaceFont),
         new(RepackTextures),
         new(ImportResources),

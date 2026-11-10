@@ -241,7 +241,7 @@ internal static class ProjectDialogs
             Children =
             {
                 new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap },
-                Buttons(Btn(window, "transfer.ok", "Ok", () => { answer = true; window.Close(); }), Btn(window, "common.cancel", "Cancel", window.Close)),
+                Buttons(Btn(window, "common.ok", "Ok", () => { answer = true; window.Close(); }), Btn(window, "common.cancel", "Cancel", window.Close)),
             },
         });
         await window.ShowDialog(owner);
@@ -267,22 +267,31 @@ internal static class ProjectDialogs
         return remembered;
     }
 
-    /// <summary>A yes or no question with a "Don't ask again" box; the answer, and whether the box was checked. Cancel and the close button answer no.</summary>
-    public static async Task<(bool Answer, bool Remember)> AskConfirmRememberAsync(Window owner, string title, string message)
+    /// <summary>
+    /// A yes or no question with a "Don't ask again" box; the answer, and whether the box was checked. Cancel and the close button answer no.
+    /// With <paramref name="verbKey"/> the confirm button carries that verb with the danger look, and Cancel is the default button and takes the focus.
+    /// </summary>
+    public static async Task<(bool Answer, bool Remember)> AskConfirmRememberAsync(Window owner, string title, string message, string? verbKey = null)
     {
         var window = Shell("transfer.confirmTitle");
         window.Title = title;
         var answer = false;
         var remember = new CheckBox { Name = "DontAskAgain", Content = Loc.Current["prompts.dontAsk"] };
+        var ok = Btn(window, verbKey ?? "common.ok", "Ok", () => { answer = true; window.Close(); });
+        var cancel = Btn(window, "common.cancel", "Cancel", window.Close);
+        if (verbKey is not null)
+        {
+            ok.IsDefault = false;
+            ok.Classes.Remove("primary");
+            ok.Classes.Add("danger");
+            cancel.IsDefault = true;
+            window.Opened += (_, _) => cancel.Focus();
+        }
+
         Frame(window, new StackPanel
         {
             Spacing = Mods.ModsUi.Space(4),
-            Children =
-            {
-                new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap },
-                remember,
-                Buttons(Btn(window, "transfer.ok", "Ok", () => { answer = true; window.Close(); }), Btn(window, "common.cancel", "Cancel", window.Close)),
-            },
+            Children = { new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap }, remember, Buttons(ok, cancel) },
         });
         await window.ShowDialog(owner);
         return (answer, remember.IsChecked == true);
@@ -326,7 +335,7 @@ internal static class ProjectDialogs
             {
                 caption,
                 box,
-                Buttons(Btn(window, "transfer.ok", "Ok", () => { answer = box.Text ?? string.Empty; window.Close(); }), Btn(window, "common.cancel", "Cancel", window.Close)),
+                Buttons(Btn(window, "common.ok", "Ok", () => { answer = box.Text ?? string.Empty; window.Close(); }), Btn(window, "common.cancel", "Cancel", window.Close)),
             },
         }, DialogFrame.Snapshot(box));
         await window.ShowDialog(owner);
@@ -355,7 +364,7 @@ internal static class ProjectDialogs
             {
                 caption,
                 list,
-                Buttons(Btn(window, "transfer.ok", "Ok", () => { if (list.SelectedIndex >= 0) answer = list.SelectedIndex; window.Close(); }), Btn(window, "common.cancel", "Cancel", window.Close)),
+                Buttons(Btn(window, "common.ok", "Ok", () => { if (list.SelectedIndex >= 0) answer = list.SelectedIndex; window.Close(); }), Btn(window, "common.cancel", "Cancel", window.Close)),
             },
         };
         if (columns is not null) body.Children.Insert(1, ChoiceRow([.. columns], true));

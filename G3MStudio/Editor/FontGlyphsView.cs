@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using G3MLib.DataFile.Models;
+using G3MStudio.Core.Notifications;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
 using G3MStudio.Theme;
@@ -11,7 +12,7 @@ public sealed class FontGlyphsView : StackPanel
     private readonly GameMakerFont _font;
     private readonly Workspace? _workspace;
     private readonly TextBox _filter = new() { Name = "GlyphFilter" };
-    private readonly TextBox _newCharacter = new() { Name = "GlyphNew", Width = 90 };
+    private readonly TextBox _newCharacter = new() { Name = "GlyphNew", MinWidth = 70 };
     private readonly ListBox _list = new() { Name = "FontGlyphs", MaxHeight = 150 };
     private readonly TextBlock _count = new() { Classes = { "muted" } };
     private readonly ContentControl _glyph = new() { Name = "GlyphProperties", MaxHeight = 260 };
@@ -32,6 +33,9 @@ public sealed class FontGlyphsView : StackPanel
             _replace.IsEnabled = value is not null;
         }
     }
+
+    /// <summary>Reports a refused edit; without it the refusal is silent.</summary>
+    public Action<NotificationLevel, string>? Notify { get; init; }
 
     /// <summary>The picture of the font's texture, when the tab shows one: a picked glyph is outlined on it and a click on it picks a glyph.</summary>
     public TextureItemView? Sheet
@@ -83,10 +87,10 @@ public sealed class FontGlyphsView : StackPanel
             _replace.IsEnabled = ReplaceRequested is not null;
             Avalonia.Controls.ToolTip.SetTip(_replace, Loc.Current["fonts.replaceTip"]);
             _replace.Click += (_, _) => ReplaceRequested?.Invoke(font.Name.Content ?? "");
-            Children.Add(new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 6, Children = { _newCharacter, add, remove, _replace } });
+            Children.Add(new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Children = { _newCharacter, add, remove, _replace } });
             var deleteRange = new Button { Name = "GlyphDeleteRange", Content = Loc.Current["fonts.deleteRange"] };
             deleteRange.Click += (_, _) => DeleteRange(_newCharacter.Text ?? "");
-            var presets = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 6, Children = { deleteRange } };
+            var presets = new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Children = { deleteRange } };
             foreach (var (name, key) in new[] { ("Normal", "fonts.presetNormal"), ("Digits", "fonts.presetDigits"), ("Letters", "fonts.presetLetters") })
             {
                 var button = new Button { Name = "GlyphPreset" + name, Content = Loc.Current[key] };
@@ -123,8 +127,16 @@ public sealed class FontGlyphsView : StackPanel
         var path = $"Glyphs[{_shown[row]}].";
         var name = _font.Name.Content ?? "";
         static string Text(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        _workspace.Edit(new GroupCommand([new SetPropertyCommand("fonts", name, path + "SourceX", Text(r.X)), new SetPropertyCommand("fonts", name, path + "SourceY", Text(r.Y)),
-            new SetPropertyCommand("fonts", name, path + "SourceWidth", Text(r.W)), new SetPropertyCommand("fonts", name, path + "SourceHeight", Text(r.H))]));
+        try
+        {
+            _workspace.Edit(new GroupCommand([new SetPropertyCommand("fonts", name, path + "SourceX", Text(r.X)), new SetPropertyCommand("fonts", name, path + "SourceY", Text(r.Y)),
+                new SetPropertyCommand("fonts", name, path + "SourceWidth", Text(r.W)), new SetPropertyCommand("fonts", name, path + "SourceHeight", Text(r.H))]));
+        }
+        catch (InvalidOperationException e)
+        {
+            Notify?.Invoke(NotificationLevel.Error, e.Message);
+            ShowOnSheet(); // the outline goes back to the stored rectangle
+        }
     }
 
     private void ShowOnSheet()
@@ -244,8 +256,8 @@ public sealed class KerningView : StackPanel
     private readonly int _glyph;
     private readonly Workspace _workspace;
     private readonly ListBox _list = new() { Name = "KerningPairs", MaxHeight = 120 };
-    private readonly TextBox _character = new() { Name = "KerningCharacter", Width = 110 };
-    private readonly TextBox _shift = new() { Name = "KerningShift", Width = 80 };
+    private readonly TextBox _character = new() { Name = "KerningCharacter", MinWidth = 90 };
+    private readonly TextBox _shift = new() { Name = "KerningShift", MinWidth = 70 };
 
     public KerningView(GameMakerFont font, int glyph, Workspace workspace)
     {
@@ -263,7 +275,7 @@ public sealed class KerningView : StackPanel
         };
         Children.Add(new TextBlock { Text = Loc.Current["fonts.kerning"], Classes = { "muted" } });
         Children.Add(_list);
-        Children.Add(new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 6, Children = { _character, _shift, set, remove } });
+        Children.Add(new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Children = { _character, _shift, set, remove } });
         AttachedToVisualTree += (_, _) => workspace.History.Changed += Reload;
         DetachedFromVisualTree += (_, _) => workspace.History.Changed -= Reload;
         Reload();

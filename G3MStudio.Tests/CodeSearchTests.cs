@@ -244,6 +244,38 @@ public sealed class CodeSearchTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public async Task ExcludedRowsLeaveTheUnreferencedListAndStayInTheFile()
+    {
+        using var dir = new TempDir();
+        var path = TestData.WriteSample(dir, objects: 1, withCode: true);
+        await HeadlessApp.Run(async () =>
+        {
+            var window = TabsWorkspaceTests.NewWindow(dir);
+            try
+            {
+                await window.OpenAsync(path);
+                var workspace = window.Workspaces.Current!;
+                workspace.Data.GameObjects.Add(new G3MLib.DataFile.Models.GameMakerGameObject { Name = workspace.Data.Strings.MakeString("obj_child", out _), ParentId = workspace.Data.GameObjects[0] });
+                window.Registry.Execute("edit.findUnreferenced");
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+                var panel = window.GetVisualDescendants().OfType<UsagesPanel>().Single();
+                for (var i = 0; i < 300 && !panel.Hits.Any(h => h.OwnerName == "obj_child"); i++)
+                {
+                    Dispatcher.UIThread.RunJobs();
+                    await Task.Delay(10, TestContext.Current.CancellationToken);
+                }
+
+                panel.SelectAllRows();
+                panel.ExcludeSelected();
+                Assert.Empty(panel.Hits);
+                Assert.Contains(workspace.Data.GameObjects, o => o.Name.Content == "obj_child");
+            }
+            finally { window.Close(); }
+        });
+    }
+
+    [Fact]
     public async Task TheCodeTabSwitchesToTheAssemblyOfAnEntryAndAssemblesEditsWithUndo()
     {
         using var dir = new TempDir();

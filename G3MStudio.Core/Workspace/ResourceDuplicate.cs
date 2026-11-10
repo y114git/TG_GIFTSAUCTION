@@ -54,10 +54,44 @@ public sealed class CopyPropertiesCommand(string type, string source, string tar
     }
 }
 
-/// <summary>Builds the one undoable edit that copies an object (properties and events with their code) or a script (its code) under a new name.</summary>
+/// <summary>
+/// Builds the one undoable edit that copies a resource under a new name. An object (properties, events with one action each, their code) or a script is copied
+/// by plain edits; every other type, and an object with a multi-action event, goes through the copy between files (<see cref="CopyResourcesCommand"/>) with the
+/// same file as source and target. The links of the copy (sprite, parent, textures) point at the same assets as the original.
+/// </summary>
 public static class ResourceDuplicate
 {
+    /// <summary>Types copied by plain edits.</summary>
     public static readonly string[] Types = ["objects", "scripts"];
+
+    /// <summary>Every type that can be duplicated.</summary>
+    // shortcut: tile sets are left out: the copy package carries them but the import adds nothing back (checked on the fixture); upgrade when the library imports them.
+    public static readonly string[] All = [.. CopyPlanner.Supported.Where(t => t is not ("code" or "tileSets"))];
+
+    /// <summary>True when <see cref="Build"/> cannot copy the item and <see cref="BuildCopyAsync"/> must: not an object or script, or an object with a multi-action event.</summary>
+    public static bool NeedsCopier(GameMakerData data, string type, string name) =>
+        !Types.Contains(type) || type == "objects" && data.GameObjects.FirstOrDefault(o => o.Name.Content == name) is { } o && o.Events.SelectMany(e => e).Any(e => e.Actions.Count > 1);
+
+    /// <summary>
+    /// The edit that copies each item under its new name in the same data file, built from the package the copy between files makes. Nothing changes until the edit is applied.
+    /// A name that is taken or unusable is refused here, before any work is done.
+    /// </summary>
+    public static Task<CopyResourcesCommand> BuildCopyAsync(Workspace workspace, IReadOnlyList<(string Type, string Name, string Copy)> items, CancellationToken cancellationToken = default)
+    {
+        using (workspace.Lock.Read())
+        {
+            foreach (var (type, name, copy) in items)
+            {
+                if (!All.Contains(type)) throw new InvalidOperationException($"A {type} entry cannot be duplicated.");
+                if (!ResourceListCommand.IsValidName(copy) && !CopyPackage.IsSafeName(copy)) throw new InvalidOperationException($"'{copy}' cannot be a name: it is empty, too long, or has characters that a file name cannot hold.");
+                if (CopyPlanner.NameTaken(workspace.Data, type, copy)) throw new InvalidOperationException($"A resource or code entry named '{copy}' exists already.");
+                if (CopyPlanner.ItemRefusal(workspace.Data, workspace.Data, type, name) is { } refusal) throw new InvalidOperationException(refusal);
+            }
+        }
+
+        var entries = items.Select(i => new PlanEntry(i.Type, i.Name, i.Copy, CopyAction.Rename, null, new CopyFacts(false, true, true, []))).ToList();
+        return ResourceCopier.BuildAsync(workspace, workspace, new CopyPlan(entries, [], null), null, cancellationToken);
+    }
 
     public static EditCommand Build(GameMakerData data, string type, string source, string copy)
     {

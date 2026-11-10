@@ -32,6 +32,7 @@ public sealed partial class RoomView
     private void DragCamera(Point room)
     {
         if (_cameraDrag is not { } drag) return;
+        if (drag.Slot >= Views.Count) return;
         var (dx, dy) = (Math.Round(room.X - drag.From.X), Math.Round(room.Y - drag.From.Y));
         var next = drag.Resize
             ? new Rect(drag.Start.X, drag.Start.Y, Math.Max(1, drag.Start.Width + dx), Math.Max(1, drag.Start.Height + dy))
@@ -45,6 +46,18 @@ public sealed partial class RoomView
     {
         if (_cameraDrag is not { } drag) return;
         _cameraDrag = null;
+        if (drag.Slot >= Views.Count || drag.Slot >= ViewSlots.Count) return; // the views were replaced during the drag
         if (Views[drag.Slot] != drag.Start) CameraEdited?.Invoke(ViewSlots[drag.Slot], Views[drag.Slot]);
+    }
+
+    // Alt-tab or a dialog ends the drag without a release: the rectangle goes back to where it started and no edit is raised.
+    private void CancelCameraDrag()
+    {
+        if (_cameraDrag is not { } drag) return;
+        _cameraDrag = null;
+        if (drag.Slot >= Views.Count) return;
+        var views = Views.ToList();
+        views[drag.Slot] = drag.Start;
+        Views = views;
     }
 }

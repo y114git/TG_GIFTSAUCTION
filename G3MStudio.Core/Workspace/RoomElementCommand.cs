@@ -76,6 +76,12 @@ public static class RoomElements
 /// <summary>An asset-layer element: the room, the layer id, the kind (see <see cref="RoomElements"/>) and the element's name.</summary>
 public sealed record ElementRef(string Room, uint Layer, string Kind, string Name);
 
+/// <summary>How a particle system element added by copying looks: the blend color (alpha first), the scale and the rotation. <see cref="Opaque"/> is the default: opaque white at normal size.</summary>
+public readonly record struct ParticleLook(uint Color, float ScaleX, float ScaleY, float Rotation)
+{
+    public static ParticleLook Opaque { get; } = new(0xFFFFFFFF, 1, 1, 0);
+}
+
 /// <summary>
 /// Moves, deletes or adds one asset-layer element. Sprite elements (from a sprite name) and particle system elements (from a particle system name, in the
 /// same argument) can be added; sequences and text items can be moved and deleted.
@@ -97,10 +103,12 @@ public sealed class RoomElementCommand : EditCommand
     private IList? _list;
     private int _index;
     private (int X, int Y) _old;
+    private readonly ParticleLook _look;
 
-    // sprite: for an add, the sprite the new element shows.
-    public RoomElementCommand(ElementRef target, string operation, int x = 0, int y = 0, string sprite = "")
+    // sprite: for an add, the sprite (or particle system) the new element shows; look: for a particle system add, copied from the element it duplicates.
+    public RoomElementCommand(ElementRef target, string operation, int x = 0, int y = 0, string sprite = "", ParticleLook? look = null)
     {
+        _look = look ?? ParticleLook.Opaque;
         (_target, _operation, _x, _y, _sprite) = (target, operation, x, y, sprite);
         Args = new Dictionary<string, string>
         {
@@ -113,6 +121,17 @@ public sealed class RoomElementCommand : EditCommand
             ["y"] = y.ToString(CultureInfo.InvariantCulture),
             ["sprite"] = sprite,
         };
+        // Written only when it differs from the default, so older journal records and their arguments stay the same.
+        if (_look != ParticleLook.Opaque)
+        {
+            Args = new Dictionary<string, string>(Args)
+            {
+                ["color"] = _look.Color.ToString(CultureInfo.InvariantCulture),
+                ["scaleX"] = _look.ScaleX.ToString("R", CultureInfo.InvariantCulture),
+                ["scaleY"] = _look.ScaleY.ToString("R", CultureInfo.InvariantCulture),
+                ["rotation"] = _look.Rotation.ToString("R", CultureInfo.InvariantCulture),
+            };
+        }
     }
 
     public override string Kind => Name;
@@ -124,7 +143,8 @@ public sealed class RoomElementCommand : EditCommand
     public override IReadOnlyList<ProjectTouch>? Touches => [new("Rooms", _target.Room), new("Strings", null)];
 
     public static RoomElementCommand FromArgs(IReadOnlyDictionary<string, string> a) => new(new ElementRef(a["room"], uint.Parse(a["layer"], CultureInfo.InvariantCulture), a["kind"], a["name"]), a["operation"],
-        int.Parse(a["x"], CultureInfo.InvariantCulture), int.Parse(a["y"], CultureInfo.InvariantCulture), a["sprite"]);
+        int.Parse(a["x"], CultureInfo.InvariantCulture), int.Parse(a["y"], CultureInfo.InvariantCulture), a["sprite"],
+        a.ContainsKey("color") ? new ParticleLook(uint.Parse(a["color"], CultureInfo.InvariantCulture), float.Parse(a["scaleX"], CultureInfo.InvariantCulture), float.Parse(a["scaleY"], CultureInfo.InvariantCulture), float.Parse(a["rotation"], CultureInfo.InvariantCulture)) : null);
 
     public override void Apply(GameMakerData data)
     {
@@ -136,7 +156,7 @@ public sealed class RoomElementCommand : EditCommand
             if (_target.Kind == RoomElements.Particle)
             {
                 var system = data.ParticleSystems.FirstOrDefault(s => s.Name.Content == _sprite) ?? throw new InvalidOperationException($"Particle system '{_sprite}' does not exist.");
-                _element = new ParticleSystemInstance { Name = data.Strings.MakeString(_target.Name, out _), ParticleSystem = system, X = _x, Y = _y, ScaleX = 1, ScaleY = 1 };
+                _element = new ParticleSystemInstance { Name = data.Strings.MakeString(_target.Name, out _), ParticleSystem = system, X = _x, Y = _y, ScaleX = _look.ScaleX, ScaleY = _look.ScaleY, Color = _look.Color, Rotation = _look.Rotation };
                 _index = _list.Count;
                 _list.Add(_element);
                 return;

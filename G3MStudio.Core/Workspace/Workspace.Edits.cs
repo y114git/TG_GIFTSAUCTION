@@ -72,21 +72,35 @@ public sealed partial class Workspace
         History.Frozen = true;
         try
         {
-            await Task.Run(() =>
+            try
             {
-                using (Lock.Write())
+                await Task.Run(() =>
                 {
-                    _decompileContext = null;
-                    command.Apply(Data);
-                }
-            }, CancellationToken.None);
+                    using (Lock.Write())
+                    {
+                        _decompileContext = null;
+                        command.Apply(Data);
+                    }
+                }, CancellationToken.None);
+            }
+            finally
+            {
+                EndBackground();
+            }
+
+            using (Lock.Write()) History.Commit(command);
         }
         finally
         {
-            History.Frozen = false;
+            // Edits made while this one ran were queued; they follow it in the history.
+            if (!_hold) ApplyQueued();
         }
+    }
 
-        using (Lock.Write()) History.Commit(command);
+    // A hold that began meanwhile (save, export) keeps the history frozen until ReleaseEdits.
+    private void EndBackground()
+    {
+        if (!_hold) History.Frozen = false;
     }
 
     /// <summary>
@@ -107,14 +121,24 @@ public sealed partial class Workspace
                     _decompileContext = null;
                     foreach (var command in commands)
                     {
+                        // An apply that throws leaves the model as before (see EditHistory.Execute); only a revert that throws can leave it changed, and that is reported too.
                         try
                         {
                             command.Apply(Data);
+                        }
+                        catch (Exception e) when (e is not OutOfMemoryException)
+                        {
+                            failures.Add((command, Failure(e)));
+                            continue;
+                        }
+
+                        try
+                        {
                             command.Revert(Data);
                         }
-                        catch (InvalidOperationException e)
+                        catch (Exception e) when (e is not OutOfMemoryException)
                         {
-                            failures.Add((command, e));
+                            failures.Add((command, Failure(e)));
                         }
                     }
 
@@ -126,9 +150,12 @@ public sealed partial class Workspace
         }
         finally
         {
-            History.Frozen = false;
+            EndBackground();
+            if (!_hold) ApplyQueued();
         }
     }
+
+    private static InvalidOperationException Failure(Exception e) => e as InvalidOperationException ?? new InvalidOperationException(e.Message, e);
 
     /// <summary>Counts decompiler setting changes, which are not edits but alter the text of every code entry.</summary>
     public int DecompilerRevision { get; private set; }

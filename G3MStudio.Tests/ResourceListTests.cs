@@ -109,6 +109,32 @@ public sealed class ResourceListTests
     }
 
     [Fact]
+    public async Task NewFontSequenceCurveParticleSystemAndExtensionOpenInTheirTabs()
+    {
+        var file = Corpus.Files(Corpus.Folder).First();
+        using var dir = new TempDir();
+        await HeadlessApp.Run(async () =>
+        {
+            var window = TabsWorkspaceTests.NewWindow(dir);
+            try
+            {
+                await window.OpenAsync(file);
+                var workspace = window.Workspaces.Current!;
+                foreach (var type in ResourceListCommand.Creatable.Skip(8))
+                {
+                    Assert.Null(window.CreateResource(workspace, type, "zz_new_" + type));
+                    Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+                    Assert.Contains(window.Docking.Tabs.Tabs, t => t.Key == ResourceTypes.KeyOf(type, "zz_new_" + type));
+                }
+
+                workspace.Undo();
+                Assert.Null(ResourceTypes.Find(workspace.Data, ResourceTypes.KeyOf("extensions", "zz_new_extensions")));
+            }
+            finally { window.Close(); }
+        });
+    }
+
+    [Fact]
     public async Task NewSoundAndNewRoomComeFromTheirTemplatesAndUndo()
     {
         var folder = Corpus.Folder;

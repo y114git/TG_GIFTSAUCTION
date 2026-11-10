@@ -44,7 +44,7 @@ public sealed class SheetImportWindow : Window
         _height.Value = stripCount is null ? Math.Min(picture.Width, picture.Height) : picture.Height;
         _replace.Content = Loc.Current["sprites.sheetReplace"];
         _replace.IsChecked = (_gif ? picture.Width : (int)_width.Value, _gif ? picture.Height : (int)_height.Value) != sprite;
-        _ok.Content = Loc.Current["image.ok"];
+        _ok.Content = Loc.Current["common.ok"];
         // Typing in a box fires a change per keystroke; the cut runs once the typing pauses (reading Frames or pressing OK runs it at once).
         _debounce.Tick += (_, _) => Flush();
         foreach (var box in new[] { _columns, _rows, _width, _height, _count, _offsetX, _offsetY, _gapX, _gapY })

@@ -21,8 +21,8 @@ public sealed class GoToWindow : Window
     private readonly Func<GoToEntry, Task<string>> _preview;
     private readonly TextBox _input = new() { Name = "Input", PlaceholderText = Loc.Current["quick.goTo.placeholder"] };
     private readonly ListBox _results = new() { Name = "Results", MinHeight = 280, MaxHeight = 360 };
-    private readonly TextBlock _empty = new() { Name = "Empty", Classes = { "muted" }, IsVisible = false };
-    private readonly TextBlock _previewText = new() { Name = "Preview", TextWrapping = Avalonia.Media.TextWrapping.Wrap, FontFamily = Avalonia.Media.FontFamily.Parse("monospace") };
+    private readonly TextBlock _empty = new() { Name = "Empty", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap };
+    private readonly TextBlock _previewText = new() { Name = "Preview", TextWrapping = Avalonia.Media.TextWrapping.Wrap };
     private int _previewRun;
 
     public GoToWindow(Func<string, IReadOnlyList<GoToEntry>> search, Func<GoToEntry, Task<string>> preview)
@@ -42,21 +42,21 @@ public sealed class GoToWindow : Window
         grid.Children.Add(left);
         Grid.SetColumn(right, 1);
         grid.Children.Add(right);
+        _previewText.FontFamily = Editor.EditorOptions.Family ?? (Avalonia.Media.FontFamily?)Application.Current?.FindResource("Font.Code") ?? Avalonia.Media.FontFamily.Default;
+        Avalonia.Automation.AutomationProperties.SetName(_input, Title);
+        Avalonia.Automation.AutomationProperties.SetName(_results, Loc.Current["quick.goTo.results"]);
+        Avalonia.Automation.AutomationProperties.SetName(right, Loc.Current["quick.goTo.preview"]);
         ToolTip.SetTip(_input, _input.PlaceholderText); // the hint is longer than the box in some languages
         var body = new DockPanel { Margin = new Thickness(gap), Children = { Docked(_input, Avalonia.Controls.Dock.Top, gap), grid } };
         Content = new ScrollViewer { Name = "GoToScroll", Content = body, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto };
         _input.TextChanged += (_, _) => Refresh();
         _results.SelectionChanged += (_, _) => _ = ShowPreviewAsync();
-        _input.AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
+        // On the window, so the keys work after a click or Tab moved the focus into the list; Escape is closed by DialogSizing.
+        AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
+        AddHandler(TextInputEvent, OnTextInput, RoutingStrategies.Tunnel);
         _results.DoubleTapped += (_, _) => Choose(GoToMode.Open);
         Opened += (_, _) =>
         {
-            // The window sizes to its content; it never grows past the screen it is on.
-            if (Screens.ScreenFromWindow(this) is { } screen)
-            {
-                MaxHeight = screen.WorkingArea.Height / screen.Scaling * 0.9;
-                MaxWidth = screen.WorkingArea.Width / screen.Scaling * 0.9;
-            }
             _input.Focus();
         };
         Refresh();
@@ -139,8 +139,10 @@ public sealed class GoToWindow : Window
         var items = _search(text);
         _results.ItemsSource = items;
         _results.SelectedIndex = items.Count > 0 ? 0 : -1;
-        _empty.IsVisible = items.Count == 0 && text.Trim().Length > 0;
-        _empty.Text = Loc.Current.Format("palette.empty", ("text", text));
+        var prefixes = Loc.Current["quick.goTo.prefixes"];
+        var none = items.Count == 0 && text.Trim().Length > 0;
+        _empty.IsVisible = none || text.Trim().Length == 0;
+        _empty.Text = none ? Loc.Current.Format("palette.empty", ("text", text)) + "\n" + prefixes : prefixes;
         if (items.Count == 0) _previewText.Text = "";
     }
 
@@ -175,10 +177,21 @@ public sealed class GoToWindow : Window
             case Key.Down: Move(1); break;
             case Key.Up: Move(-1); break;
             case Key.Enter: Choose(e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? GoToMode.Beside : GoToMode.Open); break;
-            case Key.Escape: Close(); break;
+            case Key.Back when !_input.IsFocused && Text.Length > 0:
+                Text = Text[..^1];
+                _input.Focus();
+                break;
             default: return;
         }
 
+        e.Handled = true;
+    }
+
+    private void OnTextInput(object? sender, TextInputEventArgs e)
+    {
+        if (_input.IsFocused || string.IsNullOrEmpty(e.Text)) return;
+        Text += e.Text;
+        _input.Focus();
         e.Handled = true;
     }
 

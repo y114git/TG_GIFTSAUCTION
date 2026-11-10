@@ -6,6 +6,8 @@
   "common": {
     "cancel": "取消",
     "close": "關閉",
+    "ok": "確定",
+    "delete": "刪除",
     "discardTitle": "要捨棄變更嗎?",
     "discardMessage": "你在此視窗中修改了內容。現在關閉會遺失這些修改。",
     "discard": "捨棄",
@@ -132,7 +134,12 @@
         "sounds": "新增聲音...",
         "rooms": "新增房間...",
         "sprites": "新增精靈...",
-        "shaders": "新增著色器..."
+        "shaders": "新增著色器...",
+        "fonts": "新增字型...",
+        "sequences": "新增序列...",
+        "animationCurves": "新增動畫曲線...",
+        "particleSystems": "新增粒子系統...",
+        "extensions": "新增擴充功能..."
       },
       "importPackage": "從套件匯入資源..."
     },
@@ -749,7 +756,10 @@
   "quick": {
     "goTo": {
       "title": "前往",
-      "placeholder": "輸入名稱。o: 物件,@ 符號,# 字串,> 命令,t: 分頁"
+      "placeholder": "輸入名稱。o: 物件,@ 符號,# 字串,> 命令,t: 分頁",
+      "results": "結果",
+      "preview": "預覽",
+      "prefixes": "前綴:o: 物件,s: 精靈,r: 房間,x: 指令碼,c: 程式碼,f: 函式,v: 變數,@ 符號,# 字串,> 命令,t: 分頁,p: 設定"
     },
     "kind": {
       "resource": "資源",
@@ -858,6 +868,7 @@
     "profilesNote": "所選的執行設定檔會依資料檔案分別記住。",
     "shortcutShared": "{shortcut} 也被以下命令使用：{commands}。",
     "shortcutClash": "{shortcut} 已設為「{user}」的快速鍵，同時也是「{other}」的預設快速鍵。按此鍵將執行「{user}」。",
+    "shortcutClashUser": "{shortcut} 已設為「{user}」的快速鍵，「{other}」也在使用。按此鍵將執行「{user}」。",
     "addFont": "新增字型檔案...",
     "removeFont": "移除",
     "fontFiles": "字型檔案",
@@ -1116,7 +1127,9 @@
     "unrefFound": "有 {count} 個資源沒有被任何地方使用。",
     "unrefNone": "沒有未使用的資源。",
     "unrefFailed": "無法尋找未使用的資源: {reason}",
-    "removeSelected": "移除所選",
+    "unrefNote": "遊戲在執行時依名稱尋找的資產（asset_get_index、依名稱啟動的房間、第一個房間、依名稱建立的物件）即使正在使用，也可能出現在此清單中。請在移除前先將其排除。",
+    "excludeSelected": "排除所選項目",
+    "removeSelected": "刪除所選",
     "searching": "正在尋找 {name} 的用法...",
     "found": "{name} 在 {count} 處被使用。",
     "none": "{name} 未在任何地方使用。",
@@ -1136,7 +1149,6 @@
     "noFolders": "{folder} 中沒有 Sprites 或 GameObjects 之類的資源資料夾。",
     "confirmTitle": "請確認",
     "confirmImport": "要從 {folder} 匯入 {folders} 嗎？開啟的資料檔案會在記憶體中變更，且無法復原。儲存以保留，或還原到已儲存狀態以捨棄。",
-    "ok": "確定",
     "title": "傳輸資源",
     "continue": "繼續",
     "groupIn": "傳入此資料檔案",
@@ -1170,6 +1182,9 @@
     "codeTitle": "匯入程式碼",
     "codePreview": "用檔案取代 {count} 個項目的程式碼？\n{names}",
     "codeMisses": "{count} 個檔案沒有同名項目，將被略過：{names}",
+    "codeCreateAsk": "{count} 個檔案沒有同名項目：{names}\n是：為每個檔案新增一個空項目並以檔案內容填入。否：略過這些檔案。",
+    "codeSkipAsk": "{failed} 個檔案無法匯入：\n{list}\n是：匯入其餘 {rest} 個檔案並略過這些。否：不匯入任何內容。",
+    "codeSkipped": "因錯誤而略過 {count} 個檔案：{names}",
     "codeNone": "沒有檔案與此資料檔的程式碼項目同名。",
     "codeDone": "已取代 {count} 個項目的程式碼。復原一次即可還原。",
     "codeFailed": "未匯入任何內容：{reason}",
@@ -1385,6 +1400,21 @@
     "kindFunction": "函式",
     "kindOther": "其他",
     "kindUnused": "未使用",
+    "replaceWith": "取代為...",
+    "replaceAll": "全部取代",
+    "add": "新增",
+    "delete": "刪除",
+    "export": "匯出 CSV...",
+    "import": "匯入 CSV...",
+    "noChange": "沒有任何變更。",
+    "added": "已新增字串。",
+    "deleted": "已刪除字串。",
+    "deleteUsed": "只能刪除沒有任何地方使用的字串。請改為修改其文字，或等類型欄準備好。",
+    "replaceNeedsFilter": "請先在篩選欄輸入要尋找的文字。全部取代會變更顯示出的字串。",
+    "replaced": "已在 {count} 個字串中取代文字（一步完成）。",
+    "exported": "已將 {count} 個字串寫入 {name}。",
+    "imported": "已變更 {count} 個字串（一步完成）。不在表中的編號：{skipped}。",
+    "importFailed": "無法匯入：{reason}",
     "uses": "在 {count} 處使用；變更文字會同時變更所有位置。若只想改一處，請在其自己的分頁中編輯該屬性。",
     "title": "字串",
     "filter": "篩選字串...",
@@ -1668,7 +1698,7 @@
     "vertices": "物理形狀頂點",
     "vertexAdd": "新增頂點",
     "vertexSet": "設定頂點",
-    "removeEvent": "移除"
+    "removeEvent": "刪除"
   },
   "image": {
     "noFrames": "此精靈沒有可編輯的影格。",
@@ -1742,7 +1772,6 @@
     "play": "播放",
     "size": "{w} x {h}",
     "selection": "選取範圍",
-    "ok": "確定",
     "menu": {
       "selection": "選取範圍",
       "transform": "變形",
@@ -2067,15 +2096,15 @@
     "audioKind": "{reason}\n\n聲音會保留原來的類型和旗標，所以遊戲可能無法播放另一種類型的音訊。儲存之前，可用復原換回原來的音訊。",
     "pageSizeTitle": "用另一種尺寸的圖片取代該頁嗎？",
     "pageSize": "{reason}\n\n此頁上的每個精靈影格、字形和圖塊都指向頁上的一個矩形。尺寸不同時，它們可能顯示錯誤的部分或什麼也不顯示。儲存之前，可用復原換回原來的圖片。",
-    "lastFrameTitle": "移除 {name} 的最後一個影格嗎？",
+    "lastFrameTitle": "刪除 {name} 的最後一個影格嗎？",
     "lastFrame": "{reason}\n\n沒有影格的精靈什麼也不繪製，遊戲在使用 {name} 的地方可能出錯。儲存之前，可用復原把影格放回去。",
-    "lastPointTitle": "移除 {name} 的最後一個點嗎？",
+    "lastPointTitle": "刪除 {name} 的最後一個點嗎？",
     "lastPoint": "{reason}\n\n空路徑可能讓遊戲在沿 {name} 移動的地方出錯。儲存之前，可用復原把點放回去。",
     "importTypeTitle": "將 {name} 作為指令碼匯入嗎？",
     "importType": "{reason}\n\n繼續的話，Studio 會把檔案當作文字讀取並據此建立指令碼。不是 GML 的檔案照原樣無法編譯。儲存之前，可用復原移除該指令碼。",
     "copySizeTitle": "仍然複製很大的套件嗎？",
     "copySize": "{reason}\n\n整個套件會保存在記憶體和日誌中，Studio 可能記憶體不足或變慢。儲存之前，可用復原移除該副本。",
-    "collisionTitle": "刪除 {name} 並移除指向它的事件嗎？",
+    "collisionTitle": "刪除 {name} 以及指向它的事件嗎？",
     "collision": "{reason}\n\n繼續的話，這些碰撞事件及其程式碼會從其他物件中移除。儲存之前，可用復原還原它們。",
     "roomPngTitle": "儲存房間的縮小圖片嗎？",
     "roomPng": "{reason}\n\n繼續的話，圖片會縮小，使較長的一邊為 16384 像素。它不再是逐像素一致。",
@@ -2263,7 +2292,12 @@
       "groups": "群組",
       "members": "成員",
       "kind": "類型",
-      "moved": "已將 {count} 項移到 {group}。"
+      "moved": "已將 {count} 項移到 {group}。",
+      "newName": "群組名稱",
+      "newGroup": "新增群組",
+      "renameGroup": "重新命名群組",
+      "created": "已建立群組 {name}。",
+      "renamed": "群組已重新命名為 {name}。"
     }
   },
   "output": {
@@ -2368,6 +2402,7 @@
     "imported": "區塊 {name} 已用 {file} 取代。檔案將重新載入。",
     "none": "磁碟上的檔案沒有區塊（不是 FORM 檔案）。",
     "unsavedReload": "有未儲存的變更。寫入後會重新載入檔案，變更將遺失。不確定時請先儲存。",
-    "reason": "這會把原始位元組寫入磁碟上的資料檔案。"
+    "reason": "這會把原始位元組寫入磁碟上的資料檔案。",
+    "otherFile": "目前開啟的資料檔已不是此操作開始時的檔案。未寫入任何內容。"
   }
 }

@@ -88,7 +88,7 @@ public sealed partial class MainWindow
     public void ShowHexView()
     {
 #pragma warning disable CA2000 // the window disposes its file stream when it closes
-        if (Workspaces.Current is { } workspace && File.Exists(workspace.Path)) new HexViewWindow(workspace.Path, source => ApplyHexPatchAsync(workspace, source)).Show(this);
+        if (Workspaces.Current is { } workspace && File.Exists(workspace.Path)) new HexViewWindow(workspace.Path, source => ApplyHexPatchAsync(workspace.Path, source)).Show(this);
 #pragma warning restore CA2000
     }
 

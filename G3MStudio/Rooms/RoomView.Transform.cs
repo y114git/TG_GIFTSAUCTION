@@ -94,6 +94,7 @@ public sealed partial class RoomView
     protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
     {
         base.OnPointerCaptureLost(e);
+        CancelCameraDrag();
         // Alt-tab or a dialog ends the drag without a release; dropping it keeps a later click from committing the old transform.
         if (_handle == Handle.None) return;
         (_handle, _transform, _scaling, _turn) = (Handle.None, null, null, 0);

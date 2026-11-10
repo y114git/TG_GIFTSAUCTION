@@ -20,14 +20,14 @@ public sealed partial class MainWindow
 
     /// <summary>
     /// A yes or no question that can be silenced. A remembered answer is used without asking; otherwise the dialog has a "Don't ask again" box
-    /// that writes the answer into the settings under <paramref name="promptId"/>. Only ids of <see cref="Prompts.All"/> are remembered.
+    /// that writes the answer into the settings under <paramref name="promptId"/>. Only ids of <see cref="Prompts.All"/> are remembered. <paramref name="verbKey"/> marks a destructive question: its button says the verb and Cancel is the default.
     /// </summary>
-    internal async Task<bool> Confirm(string promptId, string title, string message)
+    internal async Task<bool> Confirm(string promptId, string title, string message, string? verbKey = null)
     {
         var choice = Prompts.Get(Workspaces.Settings.Current, promptId);
         if (choice != PromptChoice.Ask) return choice == PromptChoice.Yes;
         if (Confirmer is { } test) return await test(title, message);
-        var (answer, remember) = await ProjectDialogs.AskConfirmRememberAsync(this, title, message);
+        var (answer, remember) = await ProjectDialogs.AskConfirmRememberAsync(this, title, message, verbKey);
         if (remember) Workspaces.Settings.Update(s => Prompts.Set(s, promptId, answer ? PromptChoice.Yes : PromptChoice.No));
         return answer;
     }

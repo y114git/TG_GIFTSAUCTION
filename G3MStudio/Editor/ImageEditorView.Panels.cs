@@ -26,14 +26,14 @@ public sealed partial class ImageEditorView
     private readonly Border _secondary = new() { Name = "SecondarySwatch", Width = 40, Height = 40, BorderThickness = new Thickness(2) };
     private readonly TextBox _hex = new() { Name = "ImageColour", Width = 100 };
     private readonly WrapPanel _recentPanel = new() { MaxWidth = 200, MinHeight = 26 }; // recent colours sit above the palette so the tall palette never pushes them out of view
-    private readonly NumericUpDown _size = new() { Name = "ImageSize", Minimum = 1, Maximum = 256, Value = 1, Increment = 1, FormatString = "0", Width = 150 };
+    private readonly NumericUpDown _size = new() { Name = "ImageSize", Minimum = 1, Maximum = 256, Value = 1, Increment = 1, FormatString = "0", MinWidth = 110 };
     private readonly ComboBox _style = new() { Name = "ImageStyle", Width = 110 };
     private readonly ToggleButton _round = new() { Name = "ImageRound" };
-    private readonly NumericUpDown _tolerance = new() { Name = "ImageTolerance", Minimum = 0, Maximum = 255, Value = 0, Increment = 5, FormatString = "0", Width = 150 };
+    private readonly NumericUpDown _tolerance = new() { Name = "ImageTolerance", Minimum = 0, Maximum = 255, Value = 0, Increment = 5, FormatString = "0", MinWidth = 110 };
     private readonly CheckBox _contiguous = new() { Name = "ImageContiguous", IsChecked = true };
     private readonly Slider _sizeSlider = new() { Name = "ImageSizeSlider", Minimum = 1, Maximum = 64, Value = 1, Width = 110, VerticalAlignment = VerticalAlignment.Center };
     private readonly TextBox _text = new() { Name = "ImageText", Width = 140, MaxLength = 200 };
-    private readonly NumericUpDown _textSize = new() { Name = "ImageTextSize", Minimum = 4, Maximum = 256, Value = 16, Increment = 1, FormatString = "0", Width = 150 };
+    private readonly NumericUpDown _textSize = new() { Name = "ImageTextSize", Minimum = 4, Maximum = 256, Value = 16, Increment = 1, FormatString = "0", MinWidth = 110 };
     private ToggleButton _smoothToggle = new(), _gridToggle = new(), _mirrorX = new(), _mirrorY = new(), _tilesToggle = new(), _onionToggle = new(), _playToggle = new();
     private readonly StackPanel _frames = new() { Name = "ImageFrames", Width = 120, Spacing = 4, Margin = new Thickness(6) };
 

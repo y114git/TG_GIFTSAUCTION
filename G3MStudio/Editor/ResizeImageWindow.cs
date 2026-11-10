@@ -55,7 +55,7 @@ public sealed class ResizeImageWindow : Window
             grid.Children.Add(anchor);
         }
 
-        var ok = DialogFrame.Action(this, Loc.Current["image.ok"], "ResizeOk", () => Close(true), DialogRole.Primary);
+        var ok = DialogFrame.Action(this, Loc.Current["common.ok"], "ResizeOk", () => Close(true), DialogRole.Primary);
         _mode.SelectionChanged += (_, _) => grid.IsEnabled = _mode.SelectedIndex == 1;
         grid.IsEnabled = !scale;
         _unit.SelectionChanged += (_, _) => SetValues(_size.Width, _size.Height);

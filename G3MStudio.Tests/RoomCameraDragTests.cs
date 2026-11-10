@@ -32,4 +32,26 @@ public sealed class RoomCameraDragTests
             Assert.Equal(2, seen.Count);
         });
     }
+
+    [Fact]
+    public async Task LosingTheCaptureMidDragPutsTheCameraBackAndRaisesNothing()
+    {
+        await HeadlessApp.Run(() =>
+        {
+            var view = new RoomView { Scene = new RoomScene { Width = 1000, Height = 1000, Items = [] }, Views = [new Rect(100, 100, 200, 100)], ViewSlots = [3], ShowViews = true };
+            var window = new Window { Content = view, Width = 600, Height = 400 };
+            window.Show();
+            var seen = new List<(int Slot, Rect Rect)>();
+            view.CameraEdited += (slot, rect) => seen.Add((slot, rect));
+
+            window.MouseDown(new Point(200, 100), MouseButton.Left);
+            window.MouseMove(new Point(260, 160));
+            Assert.NotEqual(new Rect(100, 100, 200, 100), view.Views[0]);
+            view.RaiseEvent(new PointerCaptureLostEventArgs(view, new Pointer(Pointer.GetNextFreeId(), PointerType.Mouse, true)));
+            Assert.Equal(new Rect(100, 100, 200, 100), view.Views[0]);
+            window.MouseUp(new Point(260, 160), MouseButton.Left);
+            Assert.Empty(seen);
+        });
+    }
 }
+
