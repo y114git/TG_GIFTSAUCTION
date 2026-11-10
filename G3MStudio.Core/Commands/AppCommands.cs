@@ -96,6 +96,12 @@ public interface IShell : IOrganizeShell
 
     void WriteOffsetMap();
 
+    /// <summary>Copies the raw bytes of one chunk of the data file on disk to a file.</summary>
+    void ExportChunk();
+
+    /// <summary>Replaces the raw bytes of one chunk of the data file on disk from a file, after a warning, and loads the file again.</summary>
+    void ImportChunk();
+
     void WriteDebugData();
 
     void ReplaceFrame();

@@ -68,6 +68,8 @@ internal sealed class FakeShell : IShell
     public void RestartGame() { }
     public void RunWithRuntime() { }
     public void WriteOffsetMap() { }
+    public void ExportChunk() { }
+    public void ImportChunk() { }
 
     public void WriteDebugData() { }
     public void ReplaceFrame() { }

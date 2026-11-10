@@ -129,7 +129,7 @@ public sealed partial class MainWindow
                 GameMakerExtension extension => new ExtensionView(extension, workspace, (build, name) => EditOrForceAsync(workspace, build, name)),
                 GameMakerShader shader => new ShaderSourceView(shader, workspace),
                 GameMakerTimeline timeline => new TimelineStepsView(timeline, workspace, OpenEntry),
-                GameMakerEmbeddedTexture page => new TexturePagePreview(page, _textures, workspace.History, workspace.Data.TexturePageItems, (ExportPage, ReplacePage, () => new GroupsWindow(workspace, false).Show(this))),
+                GameMakerEmbeddedTexture page => new TexturePagePreview(page, _textures, workspace.History, workspace.Data.TexturePageItems, (ExportPage, ReplacePage, () => new GroupsWindow(workspace, false).Show(this))) { FindRequested = item => FindUsagesOfKey(ResourceTypes.KeyOf("texturePageItems", ResourceTypes.NameOf(item))) },
                 _ => null,
             };
             // A plugin editor adds a view for any resource type that has no built-in one above.
@@ -137,6 +137,7 @@ public sealed partial class MainWindow
             header ??= _plugins?.CreateEditorView(kind, resource) as Control;
             var grid = new PropertyGridTab(workspace, kind, entry, header);
             grid.OpenRequested += OpenEntry;
+            grid.FindUsagesRequested += FindUsagesOfKey;
             return grid;
         }
 

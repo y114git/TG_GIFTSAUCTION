@@ -92,6 +92,9 @@ public sealed class PropertyGridTab : DockPanel
     /// <summary>A reference was clicked: the Explorer key of the entry to open.</summary>
     public event Action<string>? OpenRequested;
 
+    /// <summary>Find Usages was chosen on a reference field; the key of the entry it points at.</summary>
+    public event Action<string>? FindUsagesRequested;
+
     private void OnHistoryChanged()
     {
         if (!_applying) Fill(false);
@@ -338,7 +341,19 @@ public sealed class PropertyGridTab : DockPanel
     private StackPanel ReferenceEditor(PropertyRow row)
     {
         var link = new Button { Name = "Open_" + row.Path, Content = row.Value.Length > 0 ? row.Value : Loc.Current["explorer.noValue"], Classes = { "link" }, HorizontalAlignment = HorizontalAlignment.Left, IsEnabled = row.Target is not null };
-        if (row.Target is { } target) link.Click += (_, _) => OpenRequested?.Invoke(target);
+        if (row.Target is { } target)
+        {
+            link.Click += (_, _) => OpenRequested?.Invoke(target);
+            // A button ignores the middle button, which opens the entry in a tab of its own like in the Explorer.
+            link.PointerReleased += (_, e) =>
+            {
+                if (e.InitialPressMouseButton == Avalonia.Input.MouseButton.Middle) OpenRequested?.Invoke(target);
+            };
+            var find = new MenuItem { Header = Loc.Current["cmd.edit.findUsages"] };
+            find.Click += (_, _) => FindUsagesRequested?.Invoke(target);
+            link.ContextMenu = new ContextMenu { Items = { find } };
+        }
+
         var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Background = Avalonia.Media.Brushes.Transparent, Children = { link } };
         if (!row.Reference) return panel;
         var clear = new Button { Name = "Clear_" + row.Path, Content = "×", IsEnabled = row.Target is not null };

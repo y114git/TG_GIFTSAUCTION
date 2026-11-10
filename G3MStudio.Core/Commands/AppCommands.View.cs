@@ -32,6 +32,8 @@ public static partial class AppCommands
         Add("tools.audioGroups", null, shell.ShowAudioGroups, WorkspaceOpen);
         Add("tools.hexView", null, shell.ShowHexView, WorkspaceOpen);
         Add("tools.offsetMap", null, shell.WriteOffsetMap, WorkspaceOpen);
+        Add("tools.exportChunk", null, shell.ExportChunk, WorkspaceOpen);
+        Add("tools.importChunk", null, shell.ImportChunk, WorkspaceOpen);
         Add("tools.writeDebugData", null, shell.WriteDebugData, WorkspaceOpen);
         Add("tools.disassemble", null, shell.ShowDisassembly, WorkspaceOpen);
         Add("help.gettingStarted", null, shell.ShowOnboarding);

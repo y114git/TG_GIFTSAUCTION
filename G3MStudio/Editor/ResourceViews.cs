@@ -83,8 +83,24 @@ public sealed class TextureItemView : DockPanel
         {
             if (_image.Source is null || !e.GetCurrentPoint(_image).Properties.IsLeftButtonPressed) return;
             var at = e.GetPosition(_image);
+            if (BeginMarkDrag((int)(at.X / Zoom), (int)(at.Y / Zoom), at))
+            {
+                e.Pointer.Capture(_image);
+                _scroll.Focus();
+                return;
+            }
+
             Picked?.Invoke((int)(at.X / Zoom), (int)(at.Y / Zoom));
         };
+        _image.PointerMoved += (_, e) => DragMark(e.GetPosition(_image));
+        _image.PointerReleased += (_, e) =>
+        {
+            if (_drag is null) return;
+            e.Pointer.Capture(null);
+            EndMarkDrag();
+        };
+        _scroll.Focusable = true;
+        _scroll.KeyDown += (_, e) => e.Handled = NudgeMark(e.Key, e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Shift));
         Ready = ShowAsync(item, textures);
     }
 
@@ -94,6 +110,48 @@ public sealed class TextureItemView : DockPanel
     public event Action<int, int>? Picked;
 
     private (int X, int Y, int W, int H)? _marked;
+    private ((int X, int Y, int W, int H) Start, Point From, bool Resize)? _drag;
+
+    /// <summary>When true the outlined part can be dragged (its bottom right corner resizes it) and nudged with the arrow keys (Shift resizes); each gesture raises <see cref="MarkEdited"/> once.</summary>
+    public bool MarkEditable { get; set; }
+
+    /// <summary>The outlined part was moved or resized to this rectangle (pixels of the item).</summary>
+    public event Action<(int X, int Y, int W, int H)>? MarkEdited;
+
+    private bool BeginMarkDrag(int x, int y, Point at)
+    {
+        if (!MarkEditable || _marked is not { } m || x < m.X || y < m.Y || x >= m.X + m.W || y >= m.Y + m.H) return false;
+        _drag = (m, at, x >= m.X + m.W - Math.Max(1, 6 / (int)Zoom) && y >= m.Y + m.H - Math.Max(1, 6 / (int)Zoom));
+        return true;
+    }
+
+    private void DragMark(Point at)
+    {
+        if (_drag is not { } d) return;
+        int dx = (int)Math.Round((at.X - d.From.X) / Zoom), dy = (int)Math.Round((at.Y - d.From.Y) / Zoom);
+        _marked = d.Resize ? (d.Start.X, d.Start.Y, Math.Max(1, d.Start.W + dx), Math.Max(1, d.Start.H + dy)) : (d.Start.X + dx, d.Start.Y + dy, d.Start.W, d.Start.H);
+        PlaceMark();
+    }
+
+    private void EndMarkDrag()
+    {
+        if (_drag is not { } d) return;
+        _drag = null;
+        if (_marked is { } now && now != d.Start) MarkEdited?.Invoke(now);
+    }
+
+    /// <summary>Moves the outlined part one pixel (or resizes it with <paramref name="resize"/>) for an arrow key; false when the key is not one or nothing is editable.</summary>
+    public bool NudgeMark(Avalonia.Input.Key key, bool resize)
+    {
+        if (!MarkEditable || _marked is not { } m) return false;
+        var (dx, dy) = key switch { Avalonia.Input.Key.Left => (-1, 0), Avalonia.Input.Key.Right => (1, 0), Avalonia.Input.Key.Up => (0, -1), Avalonia.Input.Key.Down => (0, 1), _ => (0, 0) };
+        if (dx == 0 && dy == 0) return false;
+        var next = resize ? (m.X, m.Y, Math.Max(1, m.W + dx), Math.Max(1, m.H + dy)) : (m.X + dx, m.Y + dy, m.W, m.H);
+        _marked = next;
+        PlaceMark();
+        MarkEdited?.Invoke(next);
+        return true;
+    }
 
     /// <summary>Outlines a part of the picture (pixels of the item), or nothing for null.</summary>
     public void Highlight((int X, int Y, int W, int H)? area)

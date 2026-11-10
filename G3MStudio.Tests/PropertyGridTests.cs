@@ -122,6 +122,28 @@ public sealed class PropertyGridTests
     }
 
     [Fact]
+    public async Task AReferenceLinkHasFindUsagesInItsMenu()
+    {
+        using var dir = new TempDir();
+        using var workspace = await Open(dir);
+        workspace.Data.GameObjects[1].ParentId = workspace.Data.GameObjects[0];
+        await HeadlessApp.Run(() =>
+        {
+            var tab = new PropertyGridTab(workspace, "objects", "obj_1");
+            var window = new Window { Content = tab, Width = 700, Height = 500 };
+            window.Show();
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+            string? found = null;
+            tab.FindUsagesRequested += key => found = key;
+            var link = tab.GetVisualDescendants().OfType<Button>().Single(b => b.Name == "Open_ParentId");
+            link.ContextMenu!.Items.OfType<MenuItem>().Single().RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(MenuItem.ClickEvent));
+            Assert.Equal("objects:obj_0", found);
+            window.Close();
+        });
+    }
+
+    [Fact]
     public async Task EveryResourceOpensInThePropertyGridFromTheExplorer()
     {
         using var dir = new TempDir();

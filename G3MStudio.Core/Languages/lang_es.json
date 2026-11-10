@@ -262,7 +262,9 @@
       "writeDebugData": "Escribir datos de depuración...",
       "repackTextures": "Reempaquetar páginas de texturas...",
       "exportPage": "Exportar página de texturas...",
-      "replacePage": "Reemplazar página de texturas..."
+      "replacePage": "Reemplazar página de texturas...",
+      "exportChunk": "Exportar chunk sin procesar...",
+      "importChunk": "Reemplazar chunk desde archivo..."
     },
     "img": {
       "brushBigger": "Pincel más grande",
@@ -1915,7 +1917,14 @@
     "beyond": "El desplazamiento 0x{offset} está más allá del final (0x{end}).",
     "noMatch": "Sin coincidencias para '{text}'.",
     "foundAt": "Encontrado en 0x{offset}.",
-    "size": "{bytes} bytes en disco. Solo lectura: es el archivo guardado, sin cambios sin guardar."
+    "size": "{bytes} bytes en disco. Es el archivo guardado, sin cambios sin guardar. Los parches cambian el archivo solo al escribirlos.",
+    "bytes": "Bytes a escribir (hex)",
+    "set": "Parchear en el desplazamiento",
+    "undo": "Deshacer parche",
+    "redo": "Rehacer parche",
+    "apply": "Escribir en el archivo...",
+    "badPatch": "Escribe los bytes como pares hex y un desplazamiento que deje sitio en el archivo.",
+    "patched": "{count} bytes parcheados, el último en 0x{offset}. Aún sin escribir."
   },
   "colors": {
     "Diff": {
@@ -2072,7 +2081,11 @@
     "roomPng": "{reason}\n\nSi sigues, la imagen se hace más pequeña para que su lado más largo mida 16384 píxeles. No será píxel por píxel.",
     "unsavedTitle": "¿Seguir con cambios sin guardar?",
     "unsavedBulk": "Tienes cambios sin guardar. Esta acción no se puede deshacer, así que se borra el historial de deshacer. Los cambios sin guardar siguen en el archivo abierto pero ya no se pueden deshacer, y la recuperación tras un fallo empieza desde aquí. Si dudas, guarda primero.",
-    "unsavedExport": "Tienes cambios sin guardar. El mod o parche se hace con el archivo guardado en disco, así que no estarán en él. Guarda primero para incluirlos."
+    "unsavedExport": "Tienes cambios sin guardar. El mod o parche se hace con el archivo guardado en disco, así que no estarán en él. Guarda primero para incluirlos.",
+    "hexPatchTitle": "¿Escribir los bytes parcheados en {name}?",
+    "hexPatch": "{reason}\n\nUn byte incorrecto puede dejar el archivo ilegible o hacer fallar el juego. No se puede deshacer: el archivo cambia en disco y se vuelve a cargar. Haz antes una copia.",
+    "chunkImportTitle": "¿Reemplazar el chunk {name} con el archivo?",
+    "chunkImport": "{reason}\n\nSi los bytes nuevos tienen otra longitud, los chunks siguientes se desplazan y los desplazamientos guardados en el archivo no se ajustan, así que puede no cargar. No se puede deshacer: haz antes una copia."
   },
   "roomEditor": {
     "duplicateLayer": "Duplicar capa",
@@ -2344,5 +2357,17 @@
     "cleared": "La caché de bases de mods está vacía.",
     "lost": "La copia guardada del original falta o está dañada. Elija el archivo original.",
     "mismatch": "Ese archivo no coincide con el original guardado (el hash es distinto). No se exportó nada."
+  },
+  "chunks": {
+    "exportTitle": "Exportar chunk",
+    "importTitle": "Reemplazar chunk",
+    "pick": "Chunk del archivo de datos en disco",
+    "pickOut": "Guardar los bytes del chunk como",
+    "pickIn": "Archivo con los bytes nuevos del chunk",
+    "exported": "Chunk {name} escrito en {file}.",
+    "imported": "Chunk {name} reemplazado desde {file}. Se vuelve a cargar el archivo.",
+    "none": "El archivo en disco no tiene chunks (no es un archivo FORM).",
+    "unsavedReload": "Tienes cambios sin guardar. Tras escribir se vuelve a cargar el archivo y se pierden. Guarda antes si dudas.",
+    "reason": "Esto escribe bytes sin procesar en el archivo de datos en disco."
   }
 }

@@ -4,6 +4,51 @@ namespace G3MStudio.Tests;
 
 public sealed class HexSourceTests
 {
+    private static string WriteForm(TempDir dir)
+    {
+        var path = dir.File("form.bin");
+        static byte[] chunk(string name, byte[] data) => [.. System.Text.Encoding.ASCII.GetBytes(name), .. BitConverter.GetBytes((uint)data.Length), .. data];
+        byte[] body = [.. chunk("AAAA", [1, 2, 3, 4]), .. chunk("BBBB", [9, 9])];
+        File.WriteAllBytes(path, [.. "FORM"u8.ToArray(), .. BitConverter.GetBytes((uint)body.Length), .. body]);
+        return path;
+    }
+
+    [Fact]
+    public void PatchesShowInTheRowsUndoAndRedoAndReachTheFileOnlyOnCommit()
+    {
+        using var dir = new TempDir();
+        var path = WriteForm(dir);
+        using var source = new HexSource(path);
+        Assert.False(source.Patch(source.Length - 1, [1, 2]));
+        Assert.True(source.Patch(16, [0xAA, 0xBB]));
+        Assert.Equal(2, source.PatchedCount);
+        Assert.Equal([0xAA, 0xBB], source.Read(16, 2));
+        Assert.Equal(1, File.ReadAllBytes(path)[16]);
+        source.Undo();
+        Assert.Equal(0, source.PatchedCount);
+        source.Redo();
+        source.Commit(path);
+        Assert.Equal([0xAA, 0xBB], File.ReadAllBytes(path)[16..18]);
+        Assert.False(source.CanUndo);
+        Assert.Equal([1, 2], HexSource.ParseHexBytes("0x01 02"));
+        Assert.Null(HexSource.ParseHexBytes("abc"));
+    }
+
+    [Fact]
+    public void AChunkIsExportedAndReplacedWithAnotherLength()
+    {
+        using var dir = new TempDir();
+        var path = WriteForm(dir);
+        Assert.Equal(["AAAA", "BBBB"], ChunkPatch.Names(path));
+        Assert.Equal([9, 9], ChunkPatch.Export(path, "BBBB"));
+        ChunkPatch.Replace(path, "AAAA", [7, 7, 7, 7, 7, 7]);
+        Assert.Equal([7, 7, 7, 7, 7, 7], ChunkPatch.Export(path, "AAAA"));
+        Assert.Equal([9, 9], ChunkPatch.Export(path, "BBBB"));
+        var bytes = File.ReadAllBytes(path);
+        Assert.Equal((uint)(bytes.Length - 8), BitConverter.ToUInt32(bytes, 4));
+        Assert.Throws<InvalidOperationException>(() => ChunkPatch.Export(path, "NONE"));
+    }
+
     [Fact]
     public void ChunksAreFoundFromTheHeadersAndPointAtTheirNames()
     {

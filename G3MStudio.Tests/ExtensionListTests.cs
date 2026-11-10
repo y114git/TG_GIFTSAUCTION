@@ -17,6 +17,19 @@ public sealed class ExtensionListTests
     }
 
     [Fact]
+    public void ANewFileTakesTheKindOfItsTemplateAndAnUnknownKindIsADll()
+    {
+        using var data = TestData.Create(0);
+        var extension = Build(data);
+        var history = new EditHistory(data);
+        var js = new ExtensionListCommand("ext_a", "Files", ExtensionListCommand.Add, -1, -1, false, "Js");
+        history.Execute(js);
+        history.Execute(new ExtensionListCommand("ext_a", "Files", ExtensionListCommand.Add, -1, -1, false, "Nope"));
+        Assert.Equal([GameMakerExtensionKind.Js, GameMakerExtensionKind.Dll], extension.Files.Select(f => f.Kind));
+        Assert.Equal("Js", EditCommand.Create(js.Kind, js.Args).Args["fileKind"]);
+    }
+
+    [Fact]
     public void FilesFunctionsArgumentsAndOptionsAreAddedEditedMovedRemovedAndUndone()
     {
         using var data = TestData.Create(0);

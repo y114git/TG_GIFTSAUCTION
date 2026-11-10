@@ -40,7 +40,10 @@ public sealed class FontGlyphsView : StackPanel
         init
         {
             field = value;
-            if (value is { } sheet) sheet.Picked += (x, y) => PickAt(x, y);
+            if (value is not { } sheet) return;
+            sheet.Picked += (x, y) => PickAt(x, y);
+            sheet.MarkEditable = _workspace is not null;
+            sheet.MarkEdited += SetRectangle;
         }
     }
 
@@ -112,6 +115,17 @@ public sealed class FontGlyphsView : StackPanel
     }
 
     public int Shown => _list.ItemCount;
+
+    // A dragged, resized or nudged outline is the glyph's new place on the sheet: four numbers set as one undo step.
+    private void SetRectangle((int X, int Y, int W, int H) r)
+    {
+        if (_workspace is null || _list.SelectedIndex is not (>= 0 and var row) || row >= _shown.Count) return;
+        var path = $"Glyphs[{_shown[row]}].";
+        var name = _font.Name.Content ?? "";
+        static string Text(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        _workspace.Edit(new GroupCommand([new SetPropertyCommand("fonts", name, path + "SourceX", Text(r.X)), new SetPropertyCommand("fonts", name, path + "SourceY", Text(r.Y)),
+            new SetPropertyCommand("fonts", name, path + "SourceWidth", Text(r.W)), new SetPropertyCommand("fonts", name, path + "SourceHeight", Text(r.H))]));
+    }
 
     private void ShowOnSheet()
     {

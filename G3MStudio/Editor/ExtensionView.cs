@@ -17,6 +17,7 @@ public sealed class ExtensionView : StackPanel
     private readonly Func<Func<bool, EditCommand>, string, Task<bool>>? _edit;
     private readonly List<(TextBlock Label, Func<string> Text)> _labels = [];
     private string _shape = "";
+    private string _fileKind = nameof(GameMakerExtensionKind.Dll); // the kind a new file starts as
 
     public ExtensionView(GameMakerExtension extension, Workspace workspace, Func<Func<bool, EditCommand>, string, Task<bool>>? edit = null)
     {
@@ -56,7 +57,9 @@ public sealed class ExtensionView : StackPanel
         summary.Text = _labels[^1].Text();
         Children.Add(summary);
         for (var i = 0; i < _extension.Files.Count; i++) Children.Add(FileBlock(i));
-        Children.Add(AddButton("ExtFileAdd", "editors.extAddFile", "Files"));
+        var kind = new ComboBox { Name = "ExtFileKind", ItemsSource = Enum.GetNames<GameMakerExtensionKind>(), SelectedItem = _fileKind };
+        kind.SelectionChanged += (_, _) => _fileKind = kind.SelectedItem as string ?? _fileKind;
+        Children.Add(new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 6, Children = { AddButton("ExtFileAdd", "editors.extAddFile", "Files"), kind } });
         for (var i = 0; i < _extension.Options.Count; i++)
         {
             var at = i;
@@ -134,7 +137,7 @@ public sealed class ExtensionView : StackPanel
     }
 
     /// <summary>Adds a new entry at the end of the list; false when the edit is refused (more than 17 arguments).</summary>
-    public bool Add(string list) => Run(new ExtensionListCommand(ExtensionName, list, ExtensionListCommand.Add, -1));
+    public bool Add(string list) => Run(new ExtensionListCommand(ExtensionName, list, ExtensionListCommand.Add, -1, -1, false, list == "Files" ? _fileKind : ""));
 
     public bool Move(string list, int from, int to) => Run(new ExtensionListCommand(ExtensionName, list, ExtensionListCommand.Move, from, to));
 

@@ -1,0 +1,79 @@
+
+namespace G3MStudio.Core.Workspace;
+
+/// <summary>
+/// The raw bytes of one chunk of a data file on disk: copied out to a file, or replaced from a file. A replacement of another length moves every chunk after it,
+/// and the offsets stored inside the file are not adjusted, so the game can fail to load it.
+/// </summary>
+public static class ChunkPatch
+{
+    /// <summary>The names of the chunks in file order.</summary>
+    public static IReadOnlyList<string> Names(string path)
+    {
+        using var source = new HexSource(path);
+        return [.. source.Chunks().Select(c => c.Name)];
+    }
+
+    /// <summary>The data of the chunk, without its eight byte header.</summary>
+    public static byte[] Export(string path, string name)
+    {
+        using var source = new HexSource(path);
+        var (offset, length) = Find(source, name);
+        return source.Read(offset + 8, (int)length);
+    }
+
+    /// <summary>The chunk with a new length is written to a temporary file next to the original, which then replaces it; the length in the FORM header follows.</summary>
+    public static void Replace(string path, string name, byte[] data)
+    {
+        long offset, length, total;
+        using (var source = new HexSource(path))
+        {
+            (offset, length) = Find(source, name);
+            total = source.Length;
+        }
+
+        var temp = path + ".chunk.tmp";
+        try
+        {
+            using (var input = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+            using (var output = new FileStream(temp, FileMode.Create, FileAccess.Write))
+            {
+                Copy(input, output, 0, offset + 4);
+                output.Write(BitConverter.GetBytes((uint)data.Length));
+                output.Write(data);
+                Copy(input, output, offset + 8 + length, total);
+                output.Position = 4;
+                output.Write(BitConverter.GetBytes((uint)(output.Length - 8)));
+            }
+
+            File.Move(temp, path, true);
+        }
+        finally
+        {
+            if (File.Exists(temp)) File.Delete(temp);
+        }
+    }
+
+    private static (long Offset, long Length) Find(HexSource source, string name)
+    {
+        foreach (var (chunk, offset) in source.Chunks())
+        {
+            if (chunk == name) return (offset, BitConverter.ToUInt32(source.Read(offset + 4, 4)));
+        }
+
+        throw new InvalidOperationException($"The file has no {name} chunk.");
+    }
+
+    private static void Copy(Stream from, Stream to, long start, long end)
+    {
+        var buffer = new byte[81920];
+        from.Position = start;
+        for (var left = end - start; left > 0;)
+        {
+            var read = from.Read(buffer, 0, (int)Math.Min(buffer.Length, left));
+            if (read == 0) throw new EndOfStreamException("The file is shorter than its chunk headers say.");
+            to.Write(buffer, 0, read);
+            left -= read;
+        }
+    }
+}

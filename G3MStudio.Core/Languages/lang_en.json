@@ -262,7 +262,9 @@
       "writeDebugData": "Write Debug Data...",
       "repackTextures": "Repack Texture Pages...",
       "exportPage": "Export Texture Page...",
-      "replacePage": "Replace Texture Page..."
+      "replacePage": "Replace Texture Page...",
+      "exportChunk": "Export Raw Chunk...",
+      "importChunk": "Replace Chunk from File..."
     },
     "img": {
       "brushBigger": "Bigger brush",
@@ -1915,7 +1917,14 @@
     "beyond": "Offset 0x{offset} is beyond the end (0x{end}).",
     "noMatch": "No match for '{text}'.",
     "foundAt": "Found at 0x{offset}.",
-    "size": "{bytes} bytes on disk. Read-only: this is the saved file, not unsaved edits."
+    "size": "{bytes} bytes on disk. This is the saved file, not unsaved edits. Patches change the file only when you write them.",
+    "bytes": "Bytes to write (hex)",
+    "set": "Patch at offset",
+    "undo": "Undo patch",
+    "redo": "Redo patch",
+    "apply": "Write to file...",
+    "badPatch": "Enter the bytes as hex pairs, and an offset that leaves room for them in the file.",
+    "patched": "{count} bytes patched, last at 0x{offset}. Not written yet."
   },
   "colors": {
     "Diff": {
@@ -2072,7 +2081,11 @@
     "roomPng": "{reason}\n\nIf you go on, the picture is made smaller so that its longer side is 16384 pixels. It is not pixel for pixel.",
     "unsavedTitle": "Go on with unsaved changes?",
     "unsavedBulk": "You have unsaved changes. This action cannot be undone, so the undo history is cleared. The unsaved changes stay in the file in memory but can no longer be undone, and crash recovery starts again from here. Save first if you are unsure.",
-    "unsavedExport": "You have unsaved changes. The mod or patch is made from the saved file on disk, so they are not in it. Save first to include them."
+    "unsavedExport": "You have unsaved changes. The mod or patch is made from the saved file on disk, so they are not in it. Save first to include them.",
+    "hexPatchTitle": "Write the patched bytes into {name}?",
+    "hexPatch": "{reason}\n\nA wrong byte can make the file unreadable or the game fail. This cannot be undone: the file is changed on disk and loaded again. Keep a copy first.",
+    "chunkImportTitle": "Replace chunk {name} with the file?",
+    "chunkImport": "{reason}\n\nIf the new bytes have another length, every chunk after it moves and the offsets stored inside the file are not adjusted, so the file may not load. This cannot be undone: keep a copy first."
   },
   "roomEditor": {
     "duplicateLayer": "Duplicate layer",
@@ -2344,5 +2357,17 @@
     "cleared": "The mod base cache is empty.",
     "lost": "The saved copy of the original is missing or damaged. Choose the original file.",
     "mismatch": "That file does not match the saved original (the hash differs). Nothing was exported."
+  },
+  "chunks": {
+    "exportTitle": "Export chunk",
+    "importTitle": "Replace chunk",
+    "pick": "Chunk of the data file on disk",
+    "pickOut": "Save the chunk bytes as",
+    "pickIn": "File with the new chunk bytes",
+    "exported": "Chunk {name} written to {file}.",
+    "imported": "Chunk {name} replaced from {file}. The file is loaded again.",
+    "none": "The file on disk has no chunks (it is not a FORM file).",
+    "unsavedReload": "You have unsaved changes. The file is loaded again after this write, so they are dropped. Save first if you are unsure.",
+    "reason": "This writes raw bytes into the data file on disk."
   }
 }

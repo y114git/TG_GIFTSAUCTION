@@ -66,7 +66,8 @@ public sealed class TexturePagePreview : Border
         stack.PointerMoved += (_, e) =>
         {
             var at = e.GetPosition(_image);
-            if (ItemAt(page, items, at.X, at.Y) is not { } item)
+            _hovered = ItemAt(page, items, at.X, at.Y);
+            if (_hovered is not { } item)
             {
                 _hover.IsVisible = false;
                 ToolTip.SetTip(stack, null);
@@ -77,6 +78,12 @@ public sealed class TexturePagePreview : Border
             ToolTip.SetTip(stack, Loc.Current.Format("pages.item", ("x", item.SourceX), ("y", item.SourceY), ("width", item.SourceWidth), ("height", item.SourceHeight)));
         };
         stack.PointerExited += (_, _) => _hover.IsVisible = false;
+        var find = new MenuItem { Header = Loc.Current["cmd.edit.findUsages"] };
+        find.Click += (_, _) =>
+        {
+            if (_hovered is { } item) FindRequested?.Invoke(item);
+        };
+        stack.ContextMenu = new ContextMenu { Items = { find } };
         return stack;
     }
 
@@ -84,6 +91,11 @@ public sealed class TexturePagePreview : Border
     public (int Width, int Height)? PictureSize => _image.Source is { } source ? ((int)source.Size.Width, (int)source.Size.Height) : null;
 
     public Task Ready { get; private set; }
+
+    /// <summary>Find Usages was chosen on the page item under the pointer.</summary>
+    public Action<GameMakerTexturePageItem>? FindRequested { get; init; }
+
+    private GameMakerTexturePageItem? _hovered;
 
     private async Task ShowAsync(GameMakerEmbeddedTexture page, TextureBitmaps textures) => _image.Source = await textures.GetAsync(page);
 }

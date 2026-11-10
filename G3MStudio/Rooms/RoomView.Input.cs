@@ -38,6 +38,12 @@ public sealed partial class RoomView
             return;
         }
 
+        if (point.IsLeftButtonPressed && !_space && BeginCameraDrag(ToRoom(at)))
+        {
+            e.Pointer.Capture(this);
+            return;
+        }
+
         if (Tool is not (RoomTool.None or RoomTool.Place) && !_space && point.IsLeftButtonPressed && TileCell(ToRoom(at)) is { } first)
         {
             (_stroke, _strokeCells) = ([first], [first]);
@@ -105,6 +111,10 @@ public sealed partial class RoomView
         {
             DragTransform(here, e.KeyModifiers);
         }
+        else if (_cameraDrag is not null)
+        {
+            DragCamera(here);
+        }
         else if (_paintSource is not null)
         {
             var next = PaintPoint(ToRoom(at));
@@ -149,6 +159,13 @@ public sealed partial class RoomView
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
+        if (_cameraDrag is not null)
+        {
+            EndCameraDrag();
+            e.Pointer.Capture(null);
+            return;
+        }
+
         if (_handle != Handle.None)
         {
             EndTransform();

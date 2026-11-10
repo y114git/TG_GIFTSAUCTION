@@ -132,6 +132,13 @@ public sealed partial class MainWindow
     }
 
     /// <summary>Opens the entry an Explorer key names, in its code editor or its property editor.</summary>
+    private void FindUsagesOfKey(string key)
+    {
+        if (Workspaces.Current is not { } workspace || ResourceTypes.SplitKey(key) is not var (type, name) || !ApplyCodeEditors()) return;
+        Docking.ShowPanel("Usages");
+        _ = _usages.ShowAsync(name, UsageSearch.FindAsync(workspace, type, name));
+    }
+
     private void OpenEntry(string key)
     {
         if (ResourceTypes.SplitKey(key) is not var (type, name)) return;

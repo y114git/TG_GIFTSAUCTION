@@ -16,6 +16,7 @@ namespace G3MStudio.Editor;
 public sealed partial class RoomPreview : DockPanel
 {
     private readonly GameMakerRoom _room;
+    private readonly ContentControl _elementHost = new() { Name = "RoomElementProps", MaxHeight = 300 };
     private readonly TextureBitmaps _textures;
     private readonly Workspace? _workspace;
     private List<(string Object, int X, int Y, float ScaleX, float ScaleY, float Rotation)> _clipboard = [];
@@ -49,7 +50,7 @@ public sealed partial class RoomPreview : DockPanel
             if (RoomOptions.GridOverride || !_gridEdited) ApplyGrid();
         };
         DetachedFromVisualTree += (_, _) => RoomOptions.Changed -= ApplyGrid;
-        View.Views = [.. room.Views.Where(v => v.Enabled).Select(v => new Avalonia.Rect(v.ViewX, v.ViewY, v.ViewWidth, v.ViewHeight))];
+        ShowCameras();
         View.ShowViews = View.Views.Count > 0;
         ClipToBounds = true;
         if (workspace is not null)
@@ -74,10 +75,14 @@ public sealed partial class RoomPreview : DockPanel
                 var layers = _layers = new RoomLayersPanel(room, workspace);
                 layers.LockChanged += ApplyLocks;
                 _inspector = new InstanceInspector(workspace, RoomName, instanceCode);
-                SidePanel = new StackPanel { Name = "RoomSidePanel", Spacing = 8, Children = { layers, _inspector, _paletteHost } };
+                SidePanel = new StackPanel { Name = "RoomSidePanel", Spacing = 8, Children = { layers, _inspector, _elementHost, _paletteHost } };
                 if (creationOrder is not null && creationCode is not null) ((StackPanel)SidePanel).Children.Insert(1, CodeButtons(creationOrder, creationCode));
 
-                View.SelectionChanged += () => _inspector.Show([.. View.Selection.OfType<GameMakerRoom.GameObject>()]);
+                View.SelectionChanged += () =>
+                {
+                    _inspector.Show([.. View.Selection.OfType<GameMakerRoom.GameObject>()]);
+                    ShowElementProperties();
+                };
                 layers.SelectionChanged += () =>
                 {
                     ChooseTileLayer(layers.Selected);
@@ -134,6 +139,9 @@ public sealed partial class RoomPreview : DockPanel
 
     private void WireEdits(Workspace workspace)
     {
+        View.CameraEdited += (slot, rect) => Edit([new GroupCommand([.. new (string Path, double Value)[] { ("ViewX", rect.X), ("ViewY", rect.Y), ("ViewWidth", rect.Width), ("ViewHeight", rect.Height) }
+            .Select(c => new SetPropertyCommand("rooms", RoomName, $"Views[{slot}].{c.Path}", ((int)c.Value).ToString(System.Globalization.CultureInfo.InvariantCulture)))])]);
+        workspace.History.Changed += ShowCameras; // an undo or redo puts the outlines back
         View.Moved += (elements, dx, dy) => Edit(elements.Select(e => ChangeOf(e, RoomInstanceCommand.Move, RoomElementCommand.Move, dx, dy)).OfType<EditCommand>());
         View.DeleteRequested += elements => Edit(elements.Select(e => ChangeOf(e, RoomInstanceCommand.Delete, RoomElementCommand.Delete, 0, 0)).OfType<EditCommand>());
         View.FlipRequested += (elements, horizontal) => Edit(elements.OfType<GameMakerRoom.GameObject>().Select(i => new RoomInstanceCommand(RoomName, horizontal ? RoomInstanceCommand.FlipX : RoomInstanceCommand.FlipY, i.InstanceID)));
@@ -201,6 +209,26 @@ public sealed partial class RoomPreview : DockPanel
     private string RoomName => _room.Name.Content ?? "";
 
     /// <summary>A single edit goes in as it is; several become one undo step.</summary>
+    /// <summary>A single selected asset-layer element (a sprite, sequence, particle system or text item) gets all its fields in a property list, so a text item's text, font and colour can be edited.</summary>
+    private void ShowElementProperties()
+    {
+        _elementHost.Content = null;
+        if (_workspace is null || View.Selection.Count != 1 || View.Selection.First() is not { } element || RoomElements.KindOf(element) is not { } kind) return;
+        var layers = _room.Layers ?? [];
+        var layer = RoomElements.LayerOf(_room, element);
+        var list = layer is null ? null : RoomElements.ListOf(layer, kind);
+        var member = kind switch { RoomElements.Sprite => "Sprites", RoomElements.Sequence => "Sequences", RoomElements.Particle => "ParticleSystems", _ => "TextItems" };
+        if (layer is null || list is null) return;
+        _elementHost.Content = new PropertyGridTab(_workspace, "rooms", RoomName, null, $"Layers[{layers.IndexOf(layer)}].AssetsData.{member}[{list.IndexOf(element)}]");
+    }
+
+    private void ShowCameras()
+    {
+        var enabled = _room.Views.Select((v, i) => (v, i)).Where(p => p.v.Enabled).ToList();
+        View.ViewSlots = [.. enabled.Select(p => p.i)];
+        View.Views = [.. enabled.Select(p => new Avalonia.Rect(p.v.ViewX, p.v.ViewY, p.v.ViewWidth, p.v.ViewHeight))];
+    }
+
     private void Edit(IEnumerable<EditCommand> commands)
     {
         var list = commands.ToList();

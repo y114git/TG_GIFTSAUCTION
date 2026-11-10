@@ -10,7 +10,7 @@ namespace G3MStudio.Core.Workspace;
 /// the same list (UTMT-AST-04 to 06). A new entry has empty names and the type defaults; its values are then edited as properties. Removing a function, or a file that has functions,
 /// that code calls is refused with <see cref="CodeUseException"/> until <c>force</c> is set. Undo puts the very same entry back at its place.
 /// </summary>
-public sealed class ExtensionListCommand(string extension, string list, string operation, int index, int to = -1, bool force = false) : EditCommand
+public sealed class ExtensionListCommand(string extension, string list, string operation, int index, int to = -1, bool force = false, string fileKind = "") : EditCommand
 {
     public const string Name = "extensionList";
     public const string Add = "add";
@@ -30,9 +30,9 @@ public sealed class ExtensionListCommand(string extension, string list, string o
 
     public override string Editor => "extensions";
 
-    public override IReadOnlyDictionary<string, string> Args { get; } = BuildArgs(extension, list, operation, index, to, force);
+    public override IReadOnlyDictionary<string, string> Args { get; } = BuildArgs(extension, list, operation, index, to, force, fileKind);
 
-    private static Dictionary<string, string> BuildArgs(string extension, string list, string operation, int index, int to, bool force)
+    private static Dictionary<string, string> BuildArgs(string extension, string list, string operation, int index, int to, bool force, string fileKind)
     {
         var args = new Dictionary<string, string>
         {
@@ -43,13 +43,14 @@ public sealed class ExtensionListCommand(string extension, string list, string o
             ["to"] = to.ToString(CultureInfo.InvariantCulture),
         };
         if (force) args["force"] = "1";
+        if (fileKind.Length > 0) args["fileKind"] = fileKind;
         return args;
     }
 
     public override IReadOnlyList<ProjectTouch>? Touches => _touches;
 
     public static ExtensionListCommand FromArgs(IReadOnlyDictionary<string, string> a) =>
-        new(a["extension"], a["list"], a["operation"], int.Parse(a["index"], CultureInfo.InvariantCulture), int.Parse(a["to"], CultureInfo.InvariantCulture), a.ContainsKey("force"));
+        new(a["extension"], a["list"], a["operation"], int.Parse(a["index"], CultureInfo.InvariantCulture), int.Parse(a["to"], CultureInfo.InvariantCulture), a.ContainsKey("force"), a.GetValueOrDefault("fileKind", ""));
 
     private IList ListOf(GameMakerData data, out object root)
     {
@@ -65,7 +66,7 @@ public sealed class ExtensionListCommand(string extension, string list, string o
             case Add:
                 if (list.EndsWith("Arguments", StringComparison.Ordinal) && items.Count >= MaxArguments) throw new InvalidOperationException($"A function can have at most {MaxArguments} arguments.");
                 _at = items.Count;
-                items.Add(NewEntry(data, items, root));
+                items.Add(NewEntry(data, items, root, fileKind));
                 break;
             case Remove:
                 Check(items, index);
@@ -128,7 +129,7 @@ public sealed class ExtensionListCommand(string extension, string list, string o
     }
 
     // A new entry: empty strings from the table and the first valid value of every type field, so the entry can be written to the file as it is.
-    private static object NewEntry(GameMakerData data, IList items, object root)
+    private static object NewEntry(GameMakerData data, IList items, object root, string fileKind)
     {
         var type = items.GetType().GetInterfaces().First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IList<>)).GetGenericArguments()[0];
         var entry = Activator.CreateInstance(type)!;
@@ -136,7 +137,8 @@ public sealed class ExtensionListCommand(string extension, string list, string o
         switch (entry)
         {
             case GameMakerExtensionFile file:
-                file.Kind = GameMakerExtensionKind.Dll;
+                // The template of a new file: its kind (DLL, GML, JS, ...); anything unknown is a DLL.
+                file.Kind = Enum.TryParse<GameMakerExtensionKind>(fileKind, out var kind) && Enum.IsDefined(kind) ? kind : GameMakerExtensionKind.Dll;
                 break;
             case GameMakerExtensionFunction function:
                 function.RetType = GameMakerExtensionVarType.Double;

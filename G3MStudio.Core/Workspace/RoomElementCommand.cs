@@ -51,6 +51,16 @@ public static class RoomElements
     public static Layer? LayerOf(GameMakerRoom room, object element) =>
         KindOf(element) is { } kind ? (room.Layers ?? []).FirstOrDefault(l => ListOf(l, kind)?.Contains(element) == true) : null;
 
+    /// <summary>A name for a pasted particle system instance that no element of the room has: <c>particle_</c> and eight random hex digits.</summary>
+    public static string NewParticleName(GameMakerRoom room)
+    {
+        var taken = (room.Layers ?? []).SelectMany(l => l.AssetsData?.ParticleSystems ?? []).Select(p => p.Name?.Content).ToHashSet();
+        string name;
+        do name = "particle_" + System.Security.Cryptography.RandomNumberGenerator.GetInt32(int.MaxValue).ToString("x8", CultureInfo.InvariantCulture);
+        while (taken.Contains(name));
+        return name;
+    }
+
     public static void SetPosition(object element, int x, int y)
     {
         switch (element)
@@ -67,8 +77,8 @@ public static class RoomElements
 public sealed record ElementRef(string Room, uint Layer, string Kind, string Name);
 
 /// <summary>
-/// Moves, deletes or adds one asset-layer element. Only sprite elements can be added (from a sprite name);
-/// sequences, particle systems and text items can be moved and deleted.
+/// Moves, deletes or adds one asset-layer element. Sprite elements (from a sprite name) and particle system elements (from a particle system name, in the
+/// same argument) can be added; sequences and text items can be moved and deleted.
 /// </summary>
 #pragma warning disable CA1001 // the element belongs to the layer or is put back into it; the model disposes it
 public sealed class RoomElementCommand : EditCommand
@@ -123,7 +133,16 @@ public sealed class RoomElementCommand : EditCommand
         _list = RoomElements.ListOf(layer, _target.Kind) ?? throw new InvalidOperationException($"Layer {_target.Layer} cannot hold {_target.Kind} elements.");
         if (_operation == Add)
         {
-            if (_target.Kind != RoomElements.Sprite) throw new InvalidOperationException("Only sprite elements can be added.");
+            if (_target.Kind == RoomElements.Particle)
+            {
+                var system = data.ParticleSystems.FirstOrDefault(s => s.Name.Content == _sprite) ?? throw new InvalidOperationException($"Particle system '{_sprite}' does not exist.");
+                _element = new ParticleSystemInstance { Name = data.Strings.MakeString(_target.Name, out _), ParticleSystem = system, X = _x, Y = _y, ScaleX = 1, ScaleY = 1 };
+                _index = _list.Count;
+                _list.Add(_element);
+                return;
+            }
+
+            if (_target.Kind != RoomElements.Sprite) throw new InvalidOperationException("Only sprite and particle system elements can be added.");
             var sprite = data.Sprites.FirstOrDefault(s => s.Name.Content == _sprite) ?? throw new InvalidOperationException($"Sprite '{_sprite}' does not exist.");
             _element = new SpriteInstance { Name = data.Strings.MakeString(_target.Name, out _), Sprite = sprite, X = _x, Y = _y };
             _index = _list.Count;

@@ -5,7 +5,8 @@ namespace G3MStudio.Core.Workspace;
 
 /// <summary>
 /// The bytes of a file as rows of a hex view: offset, 16 bytes in groups of four, and the ASCII text. Reads on demand from the file (one block is kept), so a
-/// file of hundreds of megabytes costs no memory. Read-only.
+/// file of hundreds of megabytes costs no memory. The file itself is never written until <see cref="Commit"/>: byte patches are kept apart, shown in the rows
+/// and can be undone and redone until then.
 /// </summary>
 public sealed class HexSource : IDisposable
 {
@@ -15,6 +16,9 @@ public sealed class HexSource : IDisposable
     private readonly FileStream _stream;
     private byte[] _block = [];
     private long _blockStart = -1;
+    private readonly Dictionary<long, byte> _patched = [];
+    private readonly List<(long Offset, byte[] Old, byte[] New)> _undo = [];
+    private readonly List<(long Offset, byte[] Old, byte[] New)> _redo = [];
 
     public HexSource(string path)
     {
@@ -24,10 +28,92 @@ public sealed class HexSource : IDisposable
 
     public long Length { get; }
 
+    /// <summary>How many bytes differ from the file until the patches are committed.</summary>
+    public int PatchedCount => _patched.Count;
+
+    public bool CanUndo => _undo.Count > 0;
+
+    public bool CanRedo => _redo.Count > 0;
+
+    public bool IsPatched(long offset) => _patched.ContainsKey(offset);
+
+    /// <summary>Overwrites bytes at the offset (the file does not grow); false when they would pass the end. One call is one undo step.</summary>
+    public bool Patch(long offset, byte[] bytes)
+    {
+        if (bytes.Length == 0 || offset < 0 || offset + bytes.Length > Length) return false;
+        var old = Read(offset, bytes.Length);
+        if (old.Length != bytes.Length) return false; // the file was shortened under the view
+        _undo.Add((offset, old, bytes));
+        _redo.Clear();
+        Apply(offset, bytes);
+        return true;
+    }
+
+    public void Undo()
+    {
+        if (_undo.Count == 0) return;
+        var step = _undo[^1];
+        _undo.RemoveAt(_undo.Count - 1);
+        _redo.Add(step);
+        Apply(step.Offset, step.Old);
+    }
+
+    public void Redo()
+    {
+        if (_redo.Count == 0) return;
+        var step = _redo[^1];
+        _redo.RemoveAt(_redo.Count - 1);
+        _undo.Add(step);
+        Apply(step.Offset, step.New);
+    }
+
+    // A byte put back to what the file holds is no patch any more.
+    private void Apply(long offset, byte[] bytes)
+    {
+        var onDisk = ReadDisk(offset, bytes.Length);
+        for (var i = 0; i < bytes.Length; i++)
+        {
+            if (i < onDisk.Length && onDisk[i] == bytes[i]) _patched.Remove(offset + i);
+            else _patched[offset + i] = bytes[i];
+        }
+    }
+
+    /// <summary>Writes the patched bytes into the file and forgets the undo steps (the file is the new baseline).</summary>
+    public void Commit(string path)
+    {
+        using (var file = new FileStream(path, FileMode.Open, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete))
+        {
+            foreach (var (offset, value) in _patched.OrderBy(p => p.Key))
+            {
+                file.Position = offset;
+                file.WriteByte(value);
+            }
+        }
+
+        _patched.Clear();
+        _undo.Clear();
+        _redo.Clear();
+        _blockStart = -1;
+    }
+
     public int RowCount => (int)Math.Min(int.MaxValue, (Length + RowBytes - 1) / RowBytes);
 
-    /// <summary>The bytes at the offset (fewer at the end of the file).</summary>
+    /// <summary>The bytes at the offset (fewer at the end of the file), with the patches in place.</summary>
     public byte[] Read(long offset, int count)
+    {
+        var bytes = ReadDisk(offset, count);
+        if (_patched.Count > 0)
+        {
+            for (var i = 0; i < bytes.Length; i++)
+            {
+                if (_patched.TryGetValue(offset + i, out var value)) bytes[i] = value;
+            }
+        }
+
+        return bytes;
+    }
+
+    private byte[] ReadDisk(long offset, int count)
     {
         if (offset < 0 || offset >= Length) return [];
         var wanted = (int)Math.Min(count, Length - offset);
@@ -110,6 +196,14 @@ public sealed class HexSource : IDisposable
         if (tokens.Length >= 2 && tokens.All(t => t.Length == 2 && byte.TryParse(t, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out _)))
             return [.. tokens.Select(t => byte.Parse(t, NumberStyles.HexNumber, CultureInfo.InvariantCulture))];
         return Encoding.UTF8.GetBytes(text);
+    }
+
+    /// <summary>Hex byte pairs ("DE AD", "DEAD" or "0xDE 0xAD") as bytes; null when empty or not hex.</summary>
+    public static byte[]? ParseHexBytes(string? text)
+    {
+        var digits = (text ?? "").Replace("0x", "", StringComparison.OrdinalIgnoreCase).Replace(" ", "", StringComparison.Ordinal);
+        if (digits.Length == 0 || digits.Length % 2 != 0 || !digits.All(char.IsAsciiHexDigit)) return null;
+        return Convert.FromHexString(digits);
     }
 
     /// <summary>The chunks of a data file in file order (name and offset of the chunk header), found by walking the headers only; empty when the file is not a FORM file or a header is cut off.</summary>
