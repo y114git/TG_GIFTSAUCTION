@@ -207,8 +207,10 @@ public sealed partial class RoomPreview
             if (i.ObjectDefinition?.Name.Content is { } name)
                 commands.Add(new RoomInstanceCommand(RoomName, RoomInstanceCommand.Add, 0, i.X + (int)offset.X, i.Y + (int)offset.Y, name) { ScaleX = i.ScaleX, ScaleY = i.ScaleY, Rotation = i.Rotation });
         // A pasted particle system instance gets a random name, as GameMaker names the ones it makes.
-        var copies = elements.OfType<ParticleSystemInstance>().Where(p => p.ParticleSystem?.Name.Content is not null && RoomElements.LayerOf(_room, p) is not null)
-            .Select(p => new RoomElementCommand(new ElementRef(RoomName, RoomElements.LayerOf(_room, p)!.LayerId, RoomElements.Particle, RoomElements.NewParticleName(_room)), RoomElementCommand.Add, p.X + (int)offset.X, p.Y + (int)offset.Y, p.ParticleSystem!.Name.Content!)).ToList();
+        var copies = new List<RoomElementCommand>();
+        foreach (var p in elements.OfType<ParticleSystemInstance>())
+            if (p.ParticleSystem?.Name.Content is { } particle && RoomElements.LayerOf(_room, p) is { } layer)
+                copies.Add(new RoomElementCommand(new ElementRef(RoomName, layer.LayerId, RoomElements.Particle, RoomElements.NewParticleName(_room)), RoomElementCommand.Add, p.X + (int)offset.X, p.Y + (int)offset.Y, particle));
         if (commands.Count == 0 && copies.Count == 0) return;
         Edit([.. commands, .. copies]);
         if (commands.Count == 0) return;

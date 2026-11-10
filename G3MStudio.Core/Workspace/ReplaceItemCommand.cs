@@ -11,7 +11,7 @@ public sealed class ReplaceItemCommand(string type, string name, byte[] picture)
 {
     public new const string Name = "replaceItem";
 
-    /// <summary>The types whose texture item can be replaced.</summary>
+    /// <summary>Resource types that keep their picture as a texture page item, so a new image can be put in its place.</summary>
     public static readonly string[] Types = ["fonts", "tileSets"];
 
     public override string Kind => Name;

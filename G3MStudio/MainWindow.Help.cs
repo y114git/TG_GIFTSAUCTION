@@ -120,7 +120,7 @@ public sealed partial class MainWindow
     private async Task RemoveUnreferencedAsync(IReadOnlyList<UsageHit> hits)
     {
         if (Workspaces.Current is not { } workspace || !ApplyCodeEditors()) return;
-        await DeleteManyAsync(workspace, [.. hits.Where(h => h.OwnerType is not null).Select(h => (h.OwnerType!, h.OwnerName))]);
+        await DeleteManyAsync(workspace, [.. hits.SelectMany(h => h.OwnerType is { } type ? new[] { (type, h.OwnerName) } : [])]);
         FindUnreferenced();
     }
 

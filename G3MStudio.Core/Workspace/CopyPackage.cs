@@ -184,7 +184,7 @@ public static partial class CopyPackage
                 continue;
             }
 
-            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(target) ?? root);
             using var source = entry.Open();
             using var output = File.Create(target);
             var buffer = new byte[81920];

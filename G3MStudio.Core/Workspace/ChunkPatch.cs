@@ -7,7 +7,7 @@ namespace G3MStudio.Core.Workspace;
 /// </summary>
 public static class ChunkPatch
 {
-    /// <summary>The names of the chunks in file order.</summary>
+    /// <summary>Reads only the chunk headers of the data file at <paramref name="path"/>, so a large file is not loaded; the names come in file order.</summary>
     public static IReadOnlyList<string> Names(string path)
     {
         using var source = new HexSource(path);

@@ -28,7 +28,7 @@ internal static class DialogFrame
     public static Button Action(Window window, string text, string name, Action click, DialogRole role = DialogRole.Normal) =>
         Wire(window, new Button { Content = text, Name = name }, click, role);
 
-    /// <summary>The same for a button the dialog already holds in a field.</summary>
+    /// <summary>Applies the role (default button, Escape, shared primary look) and the commit or leave handling to a button the dialog created itself.</summary>
     public static Button Wire(Window window, Button button, Action click, DialogRole role)
     {
         button.IsDefault = role == DialogRole.Primary;

@@ -57,29 +57,8 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
         FoldLeft.Click += (_, _) => Registry?.Execute("dock.toggleLeft");
         FoldRight.Click += (_, _) => Registry?.Execute("dock.toggleRight");
         FoldBottom.Click += (_, _) => Registry?.Execute("dock.toggleBottom");
-        Explorer.MenuRequested += ShowExplorerMenu;
-        Explorer.EditQuick = EditQuick;
-        Explorer.DropOnto = DropOntoRow;
-        Explorer.ViewToggleRequested += ToggleFolderView;
-        Explorer.CommandRequested += id => Registry?.Execute(id);
-        Explorer.Thumbnail = LoadThumbnailAsync;
-        Explorer.OpenRequested += (row, preview) => Docking.OpenTab(row.Key == "code" ? "code" : "resource", ResourceTypes.KeyOf(row.Key, row.Text), preview);
-        Explorer.SelectionChanged += SaveView;
-        Explorer.SelectionChanged += ShowInInspector;
-        // Teardown of the dock after the last save must not overwrite it.
-        Closing += (_, e) =>
-        {
-            if (!_closeConfirmed && Workspaces.Current is { IsDirty: true })
-            {
-                e.Cancel = true;
-                _ = ExitAsync();
-                return;
-            }
-
-            SaveWindowPlacement();
-            SaveView();
-            _viewPath = null;
-        };
+        WireExplorer();
+        WireClosing();
         AskClose = AskCloseAsync;
         Toasts.Bind(Notifications);
         InitRun();

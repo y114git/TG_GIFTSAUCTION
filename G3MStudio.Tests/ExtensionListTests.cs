@@ -22,9 +22,9 @@ public sealed class ExtensionListTests
         using var data = TestData.Create(0);
         var extension = Build(data);
         var history = new EditHistory(data);
-        var js = new ExtensionListCommand("ext_a", "Files", ExtensionListCommand.Add, -1, -1, false, "Js");
+        var js = new ExtensionListCommand("ext_a", "Files", ExtensionListCommand.Add, -1) { FileKind = "Js" };
         history.Execute(js);
-        history.Execute(new ExtensionListCommand("ext_a", "Files", ExtensionListCommand.Add, -1, -1, false, "Nope"));
+        history.Execute(new ExtensionListCommand("ext_a", "Files", ExtensionListCommand.Add, -1) { FileKind = "Nope" });
         Assert.Equal([GameMakerExtensionKind.Js, GameMakerExtensionKind.Dll], extension.Files.Select(f => f.Kind));
         Assert.Equal("Js", EditCommand.Create(js.Kind, js.Args).Args["fileKind"]);
     }

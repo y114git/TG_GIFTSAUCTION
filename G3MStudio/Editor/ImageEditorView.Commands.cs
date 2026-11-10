@@ -15,7 +15,7 @@ public sealed partial class ImageEditorView
         else if (id.EndsWith("Filled", StringComparison.Ordinal) && ToolCommands.TryGetValue(id[..^"Filled".Length], out var shape)) ChooseTool(shape, true);
         else if (RunAction(id) || RunSelection(id) || RunTransform(id) || RunLayer(id))
         {
-            if (_modeMenus.Any(m => ((MenuItem[])m.Tag!).Any(i => i.Tag as string == id))) _lastMenuCommand = id;
+            if (_modeMenus.Any(m => (m.Tag as MenuItem[] ?? []).Any(i => i.Tag as string == id))) _lastMenuCommand = id;
             MarkMenus();
         }
         else return false;

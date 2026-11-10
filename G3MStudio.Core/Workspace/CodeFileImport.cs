@@ -51,7 +51,7 @@ public static class CodeFileImport
     /// </summary>
     public static Task<EditCommand> BuildAsync(IReadOnlyList<CodeFileMatch> matches, CancellationToken cancellationToken = default) => Task.Run<EditCommand>(() =>
     {
-        var twice = matches.GroupBy(m => m.Entry, StringComparer.Ordinal).FirstOrDefault(g => g.Count() > 1);
+        var twice = matches.GroupBy(m => m.Entry, StringComparer.Ordinal).FirstOrDefault(g => g.Skip(1).Any());
         if (twice is not null) throw new InvalidOperationException($"More than one file names the entry '{twice.Key}'.");
         var items = new List<EditCommand>();
         foreach (var match in matches)

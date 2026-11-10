@@ -96,7 +96,7 @@ public sealed class SearchPanel : UserControl
     /// <summary>Puts the cursor in the replace box (Ctrl+Shift+H).</summary>
     public void FocusReplace() => _replace.Focus();
 
-    /// <summary>The previewed lines whose check box is on.</summary>
+    /// <summary>The lines a replace will change: previewed hits that have a replacement and whose check box the user left on.</summary>
     public IReadOnlyList<CodeHit> Chosen => [.. Hits.Where(h => h.Replaced is not null && !_unchecked.Contains(h))];
 
     /// <summary>Unchecks a previewed line, as a click on its box does.</summary>

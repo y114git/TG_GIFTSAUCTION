@@ -34,7 +34,7 @@ public sealed partial class ImageEditorView
     {
         for (var i = 0; i < _modeMenus.Count; i++)
         {
-            var items = (MenuItem[])_modeMenus[i].Tag!;
+            var items = _modeMenus[i].Tag as MenuItem[] ?? [];
             foreach (var item in items) item.IsChecked = _lastMenuCommand is not null && item.Tag as string == _lastMenuCommand;
             var selecting = i == 0 && Tool is ImageTool.Select or ImageTool.Lasso or ImageTool.Wand or ImageTool.Move;
             _modeMenus[i].Classes.Set("active", selecting || items.Any(item => item.IsChecked));

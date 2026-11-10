@@ -80,8 +80,10 @@ public sealed class CommandRegistry
 
     /// <summary>The gestures a user's own primary shortcut shares with another command (for example a new default that landed on an old saved key). The user's command wins when a key is pressed.</summary>
     public IEnumerable<(Command User, Command Other, string Gesture)> OverrideClashes() =>
-        _commands.Values.Where(c => IsOverridden(c.Id)).OrderBy(c => c.Id, StringComparer.Ordinal)
-            .SelectMany(c => UsersOf(c.Shortcut!, c.Id).OrderBy(o => o.Id, StringComparer.Ordinal).Select(o => (c, o, c.Shortcut!)));
+        _commands.Values.OrderBy(c => c.Id, StringComparer.Ordinal)
+            .SelectMany(c => c.Shortcut is { } gesture && IsOverridden(c.Id)
+                ? UsersOf(gesture, c.Id).OrderBy(o => o.Id, StringComparer.Ordinal).Select(o => (c, o, gesture))
+                : Enumerable.Empty<(Command User, Command Other, string Gesture)>());
 
     public bool HasContext(string key) => _context.Contains(key);
 

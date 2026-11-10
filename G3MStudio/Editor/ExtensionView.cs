@@ -63,7 +63,7 @@ public sealed class ExtensionView : StackPanel
         for (var i = 0; i < _extension.Options.Count; i++)
         {
             var at = i;
-            Children.Add(Block(Label(() => $"{_extension.Options.ElementAtOrDefault(at)?.Name?.Content} = {_extension.Options.ElementAtOrDefault(at)?.Value?.Content}"), "Options", i, _extension.Options.Count, "ExtOption", $"Options[{i}]"));
+            Children.Add(Block(Label(() => $"{_extension.Options.ElementAtOrDefault(at)?.Name?.Content} = {_extension.Options.ElementAtOrDefault(at)?.Value?.Content}"), new ListRow("Options", i, _extension.Options.Count, "ExtOption"), $"Options[{i}]"));
         }
 
         Children.Add(AddButton("ExtOptionAdd", "editors.extAddOption", "Options"));
@@ -77,7 +77,7 @@ public sealed class ExtensionView : StackPanel
         body.Children.Add(new PropertyGridTab(_workspace, "extensions", ExtensionName, null, path));
         for (var j = 0; j < file.Functions.Count; j++) body.Children.Add(FunctionBlock(path, j, file.Functions.Count));
         body.Children.Add(AddButton("ExtFunctionAdd_" + i, "editors.extAddFunction", path + ".Functions"));
-        return Block(Label(() => $"{_extension.Files.ElementAtOrDefault(i)?.Filename?.Content} ({_extension.Files.ElementAtOrDefault(i)?.Kind})"), "Files", i, _extension.Files.Count, "ExtFile", null, body);
+        return Block(Label(() => $"{_extension.Files.ElementAtOrDefault(i)?.Filename?.Content} ({_extension.Files.ElementAtOrDefault(i)?.Kind})"), new ListRow("Files", i, _extension.Files.Count, "ExtFile"), null, body);
     }
 
     private Expander FunctionBlock(string filePath, int j, int count)
@@ -90,19 +90,22 @@ public sealed class ExtensionView : StackPanel
         for (var k = 0; function is not null && k < function.Arguments.Count; k++)
         {
             var at = k;
-            body.Children.Add(Buttons(Label(() => $"[{at}] {(PropertyModel.FindRoot(_workspace.Data, "extensions", ExtensionName) is { } r && PropertyModel.ReadRaw(r, args) is System.Collections.IList l && at < l.Count ? ((GameMakerExtensionFunctionArg)l[at]!).Type : null)}"), args, k, function.Arguments.Count, "ExtArgument"));
+            body.Children.Add(Buttons(Label(() => $"[{at}] {(PropertyModel.FindRoot(_workspace.Data, "extensions", ExtensionName) is { } r && PropertyModel.ReadRaw(r, args) is System.Collections.IList l && at < l.Count && l[at] is GameMakerExtensionFunctionArg arg ? arg.Type : null)}"), args, k, function.Arguments.Count, "ExtArgument"));
         }
 
         body.Children.Add(AddButton("ExtArgumentAdd_" + j, "editors.extAddArgument", args));
-        return Block(Label(() => function is null ? "" : $"{function.Name?.Content}({string.Join(", ", function.Arguments.Select(a => a.Type))}) : {function.RetType}"), $"{filePath}.Functions", j, count, "ExtFunction", null, body);
+        return Block(Label(() => function is null ? "" : $"{function.Name?.Content}({string.Join(", ", function.Arguments.Select(a => a.Type))}) : {function.RetType}"), new ListRow($"{filePath}.Functions", j, count, "ExtFunction"), null, body);
     }
 
+    /// <summary>One entry of an extension list: the list path, its place, the list size and the prefix of its control names.</summary>
+    private readonly record struct ListRow(string List, int Index, int Count, string Name);
+
     /// <summary>A header with move and remove buttons; the body is the given content, or the property list of <paramref name="subPath"/>.</summary>
-    private Expander Block(TextBlock label, string list, int index, int count, string name, string? subPath, Control? body = null)
+    private Expander Block(TextBlock label, ListRow row, string? subPath, Control? body = null)
     {
-        var expander = new Expander { Header = Buttons(label, list, index, count, name), HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch, HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Stretch, Margin = new Thickness(0, 0, 0, 2) };
+        var expander = new Expander { Header = Buttons(label, row.List, row.Index, row.Count, row.Name), HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch, HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Stretch, Margin = new Thickness(0, 0, 0, 2) };
         if (body is not null) expander.Content = body;
-        else expander.Expanded += (_, _) => expander.Content ??= new PropertyGridTab(_workspace, "extensions", ExtensionName, null, subPath!);
+        else if (subPath is not null) expander.Expanded += (_, _) => expander.Content ??= new PropertyGridTab(_workspace, "extensions", ExtensionName, null, subPath);
         return expander;
     }
 
@@ -137,14 +140,14 @@ public sealed class ExtensionView : StackPanel
     }
 
     /// <summary>Adds a new entry at the end of the list; false when the edit is refused (more than 17 arguments).</summary>
-    public bool Add(string list) => Run(new ExtensionListCommand(ExtensionName, list, ExtensionListCommand.Add, -1, -1, false, list == "Files" ? _fileKind : ""));
+    public bool Add(string list) => Run(new ExtensionListCommand(ExtensionName, list, ExtensionListCommand.Add, -1) { FileKind = list == "Files" ? _fileKind : "" });
 
     public bool Move(string list, int from, int to) => Run(new ExtensionListCommand(ExtensionName, list, ExtensionListCommand.Move, from, to));
 
     /// <summary>Removes an entry; code that calls a removed function asks the owner first.</summary>
     public async Task<bool> Remove(string list, int index)
     {
-        if (_edit is { } edit) return await edit(force => new ExtensionListCommand(ExtensionName, list, ExtensionListCommand.Remove, index, -1, force), ExtensionName);
+        if (_edit is { } edit) return await edit(force => new ExtensionListCommand(ExtensionName, list, ExtensionListCommand.Remove, index, force: force), ExtensionName);
         return Run(new ExtensionListCommand(ExtensionName, list, ExtensionListCommand.Remove, index));
     }
 

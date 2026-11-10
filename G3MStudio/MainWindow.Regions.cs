@@ -27,7 +27,9 @@ public sealed partial class MainWindow
 
     public void FocusRegion(int direction)
     {
-        var regions = Regions().Select(r => (r.Key, Root: r.Root!)).Where(r => r.Root is { IsEffectivelyVisible: true }).ToList();
+        var regions = new List<(string Key, Control Root)>();
+        foreach (var region in Regions())
+            if (region.Root is { IsEffectivelyVisible: true } visible) regions.Add((region.Key, visible));
         if (regions.Count == 0) return;
         var focused = TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement() as Visual;
         var at = regions.FindIndex(r => focused is not null && (focused == r.Root || r.Root.IsVisualAncestorOf(focused)));

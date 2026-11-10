@@ -56,12 +56,16 @@ public static class PropertyModel
     public static IReadOnlyList<PropertyRow> Describe(object root)
     {
         var rows = new List<PropertyRow>();
-        Walk(root, "", 0, rows, new HashSet<object>(ReferenceEqualityComparer.Instance) { root });
+        Walk(root, "", 0, new RowSink(rows, new HashSet<object>(ReferenceEqualityComparer.Instance) { root }));
         return rows;
     }
 
-    private static void Walk(object owner, string prefix, int depth, List<PropertyRow> rows, HashSet<object> seen)
+    /// <summary>The rows collected so far and the objects already shown, which are not walked twice.</summary>
+    private sealed record RowSink(List<PropertyRow> Rows, HashSet<object> Seen);
+
+    private static void Walk(object owner, string prefix, int depth, RowSink sink)
     {
+        var (rows, seen) = sink;
         foreach (var property in owner.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance).OrderBy(p => p.MetadataToken))
         {
             if (!property.CanRead || property.GetIndexParameters().Length > 0 || InternalMembers.Contains(property.Name)) continue;
@@ -112,7 +116,7 @@ public static class PropertyModel
                     {
                         var at = rows.Count;
                         if (strings) rows.Add(new PropertyRow($"{path}[{i}]", $"[{i}]", PropertyKind.GmString, Format(list[i]), depth + 1, false));
-                        else Describe(list[i], $"{path}[{i}]", $"[{i}]", depth + 1, rows, seen, editable);
+                        else Describe(list[i], $"{path}[{i}]", $"[{i}]", depth + 1, sink, editable);
                         if (editable && rows.Count > at) rows[at] = rows[at] with { Removable = true, CanMoveUp = i > 0, CanMoveDown = i < list.Count - 1 };
                     }
             }
@@ -122,13 +126,14 @@ public static class PropertyModel
             }
             else if (type.IsClass && !typeof(Delegate).IsAssignableFrom(type) && !typeof(Stream).IsAssignableFrom(type))
             {
-                Describe(value, path, property.Name, depth, rows, seen);
+                Describe(value, path, property.Name, depth, sink);
             }
         }
     }
 
-    private static void Describe(object? item, string path, string title, int depth, List<PropertyRow> rows, HashSet<object> seen, bool editable = false)
+    private static void Describe(object? item, string path, string title, int depth, RowSink sink, bool editable = false)
     {
+        var (rows, seen) = sink;
         if (item is null) return;
         if (KindOf(item.GetType()) is { } simple)
         {
@@ -140,7 +145,7 @@ public static class PropertyModel
         if (!seen.Add(item)) return;
 
         rows.Add(new PropertyRow(path, title, PropertyKind.Group, "", depth, true));
-        if (depth < MaxDepth) Walk(item, path + ".", depth + 1, rows, seen);
+        if (depth < MaxDepth) Walk(item, path + ".", depth + 1, sink);
     }
 
     /// <summary>The unsigned fields that hold a color as 0xAABBGGRR; the others named like a color (a depth) are plain numbers.</summary>
