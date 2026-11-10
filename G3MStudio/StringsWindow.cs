@@ -54,16 +54,17 @@ public sealed class StringsWindow : Window
         var tools = new WrapPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Children = { _add, _delete, _export, _import } };
         foreach (var button in tools.Children) button.Margin = new Avalonia.Thickness(0, 0, 6, 0);
         var bottom = new StackPanel { Spacing = 6, Margin = new Avalonia.Thickness(0, 8, 0, 0), Children = { _uses, _text, replaceRow, tools, _note } };
-        var panel = new DockPanel();
+        // The minimum height keeps the list usable; a smaller window scrolls the whole form instead of pushing the list out of view.
+        var panel = new Grid { MinHeight = 520, RowDefinitions = new RowDefinitions("Auto,*,Auto") };
         top.Margin = new Avalonia.Thickness(0, 0, 0, 8);
-        DockPanel.SetDock(top, Avalonia.Controls.Dock.Top);
-        DockPanel.SetDock(bottom, Avalonia.Controls.Dock.Bottom);
+        Grid.SetRow(_list, 1);
+        Grid.SetRow(bottom, 2);
         panel.Children.Add(top);
-        panel.Children.Add(bottom);
         panel.Children.Add(_list);
+        panel.Children.Add(bottom);
         _apply.Classes.Add("primary");
         _count.TextWrapping = Avalonia.Media.TextWrapping.Wrap;
-        DialogFrame.Show(this, panel, [_apply, DialogFrame.Close(this, isDefault: false)], _count, dirty: () => _selected is not null && _text.Text != _selected.Text);
+        DialogFrame.Show(this, panel, [_apply, DialogFrame.Close(this, isDefault: false)], _count, DialogScroll.Vertical, dirty: () => _selected is not null && _text.Text != _selected.Text);
         _filter.PropertyChanged += (_, e) =>
         {
             if (e.Property == TextBox.TextProperty) Refresh();
