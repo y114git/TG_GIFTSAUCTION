@@ -31,6 +31,9 @@ public sealed class HexSourceTests
         Assert.Equal([0xAA, 0xBB], File.ReadAllBytes(path)[16..18]);
         Assert.Equal(1, File.ReadAllBytes(path + ".bak")[16]);
         Assert.False(source.CanUndo);
+        Assert.True(source.Patch(16, [0xCC]));
+        source.Commit(path);
+        Assert.Equal(0xAA, File.ReadAllBytes(path + ".bak")[16]); // a later commit refreshes the backup
         Assert.Equal([1, 2], HexSource.ParseHexBytes("0x01 02"));
         Assert.Null(HexSource.ParseHexBytes("abc"));
     }
@@ -57,7 +60,7 @@ public sealed class HexSourceTests
         Assert.Throws<InvalidOperationException>(() => Exported(path, "NONE"));
         Assert.Equal([1, 2, 3, 4], File.ReadAllBytes(path + ".bak")[16..20]); // the first replacement kept the original
         ChunkPatch.Replace(path, "AAAA", [5]);
-        Assert.Equal(30, File.ReadAllBytes(path + ".bak").Length); // and a second one leaves that backup alone
+        Assert.Equal([7, 7, 7, 7, 7, 7], File.ReadAllBytes(path + ".bak")[16..22]); // and a second one refreshes the backup
     }
 
     [Fact]

@@ -72,7 +72,7 @@ public partial class MainWindow
         {
             var data = await File.ReadAllBytesAsync(input);
             if (!StillCurrent(workspace)) return; // the dialogs and the read let the user switch the open file
-            ChunkPatch.Replace(workspace.Path, name, data);
+            await Task.Run(() => ChunkPatch.Replace(workspace.Path, name, data));
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException)
         {
@@ -105,7 +105,7 @@ public partial class MainWindow
         if (!StillCurrent(workspace)) return false;
         try
         {
-            source.Commit(workspace.Path);
+            await Task.Run(() => source.Commit(workspace.Path));
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
@@ -158,6 +158,12 @@ public partial class MainWindow
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
             Notify(NotificationLevel.Error, e.Message);
+        }
+
+        // The raw write already happened: say where the file from before it is when the reopen did not succeed.
+        if (Workspaces.Current is not { } reopened || !string.Equals(Path.GetFullPath(reopened.Path), Path.GetFullPath(workspace.Path), PathComparison))
+        {
+            Notify(NotificationLevel.Warning, Loc.Current.Format("chunks.reloadFailed", ("file", Path.GetFileName(workspace.Path) + ".bak")));
         }
     }
 }

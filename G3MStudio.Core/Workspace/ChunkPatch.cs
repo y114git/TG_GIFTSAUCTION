@@ -23,7 +23,7 @@ public static class ChunkPatch
         Copy(input, to, offset + 8, offset + 8 + length);
     }
 
-    /// <summary>The chunk with a new length is written to a temporary file next to the original, which then replaces it; the length in the FORM header follows. The first replacement keeps the original as <c>.bak</c>.</summary>
+    /// <summary>The chunk with a new length is written to a temporary file next to the original, which then replaces it; the length in the FORM header follows. The original is copied to <c>.bak</c> first, replacing an older backup.</summary>
     public static void Replace(string path, string name, byte[] data)
     {
         long offset, length, total;
@@ -33,11 +33,11 @@ public static class ChunkPatch
             total = source.Length;
         }
 
-        var temp = path + ".chunk.tmp";
+        var temp = $"{path}.{Guid.NewGuid():N}.tmp";
         try
         {
             using (var input = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
-            using (var output = new FileStream(temp, FileMode.Create, FileAccess.Write))
+            using (var output = new FileStream(temp, FileMode.CreateNew, FileAccess.Write))
             {
                 Copy(input, output, 0, offset + 4);
                 output.Write(BitConverter.GetBytes((uint)data.Length));
@@ -47,7 +47,7 @@ public static class ChunkPatch
                 output.Write(BitConverter.GetBytes((uint)(output.Length - 8)));
             }
 
-            if (!File.Exists(path + ".bak")) File.Copy(path, path + ".bak");
+            File.Copy(path, path + ".bak", true);
             File.Move(temp, path, true);
         }
         finally

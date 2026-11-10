@@ -2473,6 +2473,7 @@
     "none": "The file on disk has no chunks (it is not a FORM file).",
     "unsavedReload": "You have unsaved changes. The file is loaded again after this write, so they are dropped. Save first if you are unsure.",
     "reason": "This writes raw bytes into the data file on disk.",
-    "otherFile": "The data file in use is no longer the one this action started with. Nothing was written."
+    "otherFile": "The data file in use is no longer the one this action started with. Nothing was written.",
+    "reloadFailed": "The data file could not be opened again after the write. The backup {file} holds the file from before the write."
   }
 }

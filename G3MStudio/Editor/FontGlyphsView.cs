@@ -243,14 +243,20 @@ public sealed class FontGlyphsView : StackPanel
 
     private void Reload()
     {
+        var selected = SelectedCharacter();
         _rows.Clear();
         _rows.AddRange(_font.Glyphs.Select((g, i) => (g.Character, string.Create(System.Globalization.CultureInfo.InvariantCulture,
             $"U+{g.Character:X4}  {(char.IsControl((char)g.Character) ? ' ' : (char)g.Character)}   {g.SourceX},{g.SourceY}  {g.SourceWidth}x{g.SourceHeight}  shift {g.Shift}  offset {g.Offset}"), i)));
         _count.Text = Loc.Current.Format("fonts.glyphCount", ("count", _rows.Count));
-        Refresh();
+        Refresh(selected);
     }
 
-    private void Refresh()
+    // The list is rebuilt from the rows, which still describe what was shown until Reload replaces them.
+    internal int? SelectedCharacter() => _list.SelectedIndex is >= 0 and var row && row < _shown.Count ? _rows.Where(r => r.Index == _shown[row]).Select(r => (int?)r.Character).FirstOrDefault() : null;
+
+    private void Refresh() => Refresh(SelectedCharacter());
+
+    private void Refresh(int? selected)
     {
         var text = (_filter.Text ?? "").Trim();
         var code = ParseCharacter(text);
@@ -258,6 +264,7 @@ public sealed class FontGlyphsView : StackPanel
         _shown.Clear();
         _shown.AddRange(matching.Select(r => r.Index));
         _list.ItemsSource = matching.Select(r => r.Text).ToList();
+        _list.SelectedIndex = selected is { } c ? matching.FindIndex(r => r.Character == c) : -1;
     }
 }
 

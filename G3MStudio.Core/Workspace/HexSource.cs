@@ -83,18 +83,18 @@ public sealed class HexSource : IDisposable
     }
 
     /// <summary>
-    /// Writes the patched bytes into a copy of the file, which then replaces it (the first commit keeps the original as <c>.bak</c>), and forgets the undo steps (the file is the new baseline). Refuses with an
+    /// Writes the patched bytes into a copy of the file, which then replaces it (the original is copied to <c>.bak</c> first, replacing an older backup), and forgets the undo steps (the file is the new baseline). Refuses with an
     /// <see cref="IOException"/> when the file has another length or write time than when it was opened: the patches belong to bytes that are gone.
     /// </summary>
     public void Commit(string path)
     {
         var info = new FileInfo(path);
         if (!info.Exists || info.Length != Length || info.LastWriteTimeUtc != _writtenAt) throw new IOException("The file changed after the hex view opened it. Close the view and open it again.");
-        var temp = path + ".hex.tmp";
+        var temp = $"{path}.{Guid.NewGuid():N}.tmp";
         var moved = false;
         try
         {
-            File.Copy(path, temp, true);
+            File.Copy(path, temp);
             using (var file = new FileStream(temp, FileMode.Open, FileAccess.Write))
             {
                 foreach (var (offset, value) in _patched.OrderBy(p => p.Key))
@@ -104,7 +104,7 @@ public sealed class HexSource : IDisposable
                 }
             }
 
-            if (!File.Exists(path + ".bak")) File.Copy(path, path + ".bak");
+            File.Copy(path, path + ".bak", true);
             // Windows will not replace a file this view still has open; the view reads the new bytes through a new handle.
             _stream.Dispose();
             File.Move(temp, path, true);

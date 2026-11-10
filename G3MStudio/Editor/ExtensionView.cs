@@ -94,7 +94,9 @@ public sealed class ExtensionView : StackPanel
     private Expander FunctionBlock(string filePath, int j, int count)
     {
         var path = $"{filePath}.Functions[{j}]";
-        var function = (PropertyModel.FindRoot(_workspace.Data, "extensions", ExtensionName) is { } root ? PropertyModel.ReadRaw(root, path) : null) as GameMakerExtensionFunction;
+        // Looked up again on every label refresh: undo, redo and moves replace the function object.
+        GameMakerExtensionFunction? Find() => (PropertyModel.FindRoot(_workspace.Data, "extensions", ExtensionName) is { } root ? PropertyModel.ReadRaw(root, path) : null) as GameMakerExtensionFunction;
+        var function = Find();
         var body = new StackPanel { Spacing = 4 };
         body.Children.Add(new PropertyGridTab(_workspace, "extensions", ExtensionName, null, path));
         var args = path + ".Arguments";
@@ -105,7 +107,7 @@ public sealed class ExtensionView : StackPanel
         }
 
         body.Children.Add(AddButton("ExtArgumentAdd_" + j, "editors.extAddArgument", args));
-        return Block(Label(() => function is null ? "" : $"{function.Name?.Content}({string.Join(", ", function.Arguments.Select(a => a.Type))}) : {function.RetType}"), new ListRow($"{filePath}.Functions", j, count, "ExtFunction"), null, body);
+        return Block(Label(() => Find() is { } f ? $"{f.Name?.Content}({string.Join(", ", f.Arguments.Select(a => a.Type))}) : {f.RetType}" : ""), new ListRow($"{filePath}.Functions", j, count, "ExtFunction"), null, body);
     }
 
     /// <summary>One entry of an extension list: the list path, its place, the list size and the prefix of its control names.</summary>

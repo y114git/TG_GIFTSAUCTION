@@ -64,7 +64,17 @@ public sealed class HexViewWindow : Window, IDisposable
         _apply.IsVisible = apply is not null;
         _apply.Click += async (_, _) =>
         {
-            if (apply is null || _source.PatchedCount == 0 || !await apply(_source)) return;
+            if (apply is null || _source.PatchedCount == 0) return;
+            IsEnabled = false; // the commit runs off the UI thread and the rows read the source
+            try
+            {
+                if (!await apply(_source)) return;
+            }
+            finally
+            {
+                IsEnabled = true;
+            }
+
             Refresh();
         };
         Refresh();

@@ -2473,6 +2473,7 @@
     "none": "El archivo en disco no tiene chunks (no es un archivo FORM).",
     "unsavedReload": "Tienes cambios sin guardar. Tras escribir se vuelve a cargar el archivo y se pierden. Guarda antes si dudas.",
     "reason": "Esto escribe bytes sin procesar en el archivo de datos en disco.",
-    "otherFile": "El archivo de datos en uso ya no es el de esta acción. No se escribió nada."
+    "otherFile": "El archivo de datos en uso ya no es el de esta acción. No se escribió nada.",
+    "reloadFailed": "No se pudo volver a abrir el archivo de datos tras la escritura. La copia de seguridad {file} conserva el archivo de antes de la escritura."
   }
 }

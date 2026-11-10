@@ -116,6 +116,19 @@ public sealed class MaskTests
                 filter.Text = ((int)first).ToString(System.Globalization.CultureInfo.InvariantCulture);
                 Assert.Equal(font.Glyphs.Count(g => g.Character == first), view.Shown);
 
+                filter.Text = "";
+                if (font.Glyphs.FirstOrDefault(g => g.SourceWidth > 0 && g.SourceHeight > 0) is { } sized)
+                {
+                    Assert.True(view.PickAt(sized.SourceX, sized.SourceY));
+                    var picked = view.SelectedCharacter();
+                    Assert.NotNull(picked);
+                    filter.Text = picked.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    Assert.Equal(picked, view.SelectedCharacter()); // the rebuilt list keeps the glyph while it is still shown
+                    filter.Text = ((picked.Value + 1) % 65536).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    if (view.Shown == 0) Assert.Null(view.SelectedCharacter());
+                    filter.Text = "";
+                }
+
                 var old = font.Glyphs[0].Shift;
                 var set = new SetPropertyCommand("fonts", font.Name.Content ?? string.Empty, "Glyphs[0].Shift", (old + 1).ToString(System.Globalization.CultureInfo.InvariantCulture));
                 set.Apply(data);
