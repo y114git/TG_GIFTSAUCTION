@@ -1,15 +1,15 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Avalonia.Controls;
-using Avalonia.Platform.Storage;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
 using G3MStudio.Theme;
+using StringUse = G3MLib.DataFile.References.StringUse;
 
 namespace G3MStudio;
 
 /// <summary>The string table of the data file: filter it, pick an entry and change its text for every place that uses it (one undo step).</summary>
-public sealed class StringsWindow : Window
+public sealed partial class StringsWindow : Window
 {
     private readonly Workspace _workspace;
     private G3MLib.DataFile.References.ReferenceIndex? _index;
@@ -24,6 +24,7 @@ public sealed class StringsWindow : Window
     private readonly TextBlock _uses = new() { Name = "StringUses", Classes = { "muted" } };
     private readonly TextBox _replaceWith = new() { Name = "StringReplaceWith", PlaceholderText = Loc.Current["strings.replaceWith"] };
     private readonly Button _replaceAll = new() { Name = "StringReplaceAll", Content = Loc.Current["strings.replaceAll"] };
+    private readonly TextBox _newText = new() { Name = "StringNewText", PlaceholderText = Loc.Current["strings.newText"] };
     private readonly Button _add = new() { Name = "StringAdd", Content = Loc.Current["strings.add"] };
     private readonly Button _delete = new() { Name = "StringDelete", Content = Loc.Current["strings.delete"], IsEnabled = false };
     private readonly Button _export = new() { Name = "StringExport", Content = Loc.Current["strings.export"] };
@@ -31,6 +32,10 @@ public sealed class StringsWindow : Window
     private readonly TextBlock _note = new() { Name = "StringNote", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap };
     private int _countVersion;
     private Row? _selected;
+    private bool _refreshing;
+
+    // A CSV is read whole; a table of 100,000 strings is a few megabytes.
+    private const long MaxCsvBytes = 64L * 1024 * 1024;
 
     /// <summary>True while the program runs in low-memory mode; the kind column then uses the names and no index is built.</summary>
     public Func<bool>? IsLowMemory { get; set; }
@@ -51,9 +56,28 @@ public sealed class StringsWindow : Window
         DockPanel.SetDock(_regex, Avalonia.Controls.Dock.Right);
         var replaceRow = new DockPanel { Children = { _replaceAll, _replaceWith } };
         DockPanel.SetDock(_replaceAll, Avalonia.Controls.Dock.Right);
-        var tools = new WrapPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Children = { _add, _delete, _export, _import } };
+        var addRow = new DockPanel { Children = { _add, _newText } };
+        DockPanel.SetDock(_add, Avalonia.Controls.Dock.Right);
+        _add.Margin = _replaceAll.Margin = new Avalonia.Thickness(6, 0, 0, 0);
+        var tools = new WrapPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Children = { _delete, _export, _import } };
         foreach (var button in tools.Children) button.Margin = new Avalonia.Thickness(0, 0, 6, 0);
-        var bottom = new StackPanel { Spacing = 6, Margin = new Avalonia.Thickness(0, 8, 0, 0), Children = { _uses, _text, replaceRow, tools, _note } };
+        ToolTip.SetShowOnDisabled(_delete, true);
+        var bottom = new StackPanel { Spacing = 6, Margin = new Avalonia.Thickness(0, 8, 0, 0), Children = { _uses, _text, replaceRow, addRow, tools, _note } };
+        // The kind sits in a fixed column, so a long name of it in another language cannot push the text out.
+        _list.ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<Row>((row, _) =>
+        {
+            var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("56,110,*") };
+            if (row is null) return grid;
+            var kind = new TextBlock { Text = row.Kind, Classes = { "muted" }, TextTrimming = Avalonia.Media.TextTrimming.CharacterEllipsis, Margin = new Avalonia.Thickness(0, 0, 8, 0) };
+            ToolTip.SetTip(kind, row.Kind);
+            var text = new TextBlock { Text = row.Text.ReplaceLineEndings(" "), TextTrimming = Avalonia.Media.TextTrimming.CharacterEllipsis };
+            Grid.SetColumn(kind, 1);
+            Grid.SetColumn(text, 2);
+            grid.Children.Add(new TextBlock { Text = row.Index.ToString(CultureInfo.InvariantCulture) });
+            grid.Children.Add(kind);
+            grid.Children.Add(text);
+            return grid;
+        });
         // The minimum height keeps the list usable; a smaller window scrolls the whole form instead of pushing the list out of view.
         var panel = new Grid { MinHeight = 520, RowDefinitions = new RowDefinitions("Auto,*,Auto") };
         top.Margin = new Avalonia.Thickness(0, 0, 0, 8);
@@ -70,18 +94,11 @@ public sealed class StringsWindow : Window
             if (e.Property == TextBox.TextProperty) Refresh();
         };
         _regex.IsCheckedChanged += (_, _) => Refresh();
-        _list.SelectionChanged += (_, _) =>
-        {
-            _selected = _list.SelectedItem as Row;
-            _text.Text = _selected?.Text ?? "";
-            _apply.IsEnabled = _selected is not null;
-            _delete.IsEnabled = _selected is not null;
-            _ = ShowUsesAsync();
-        };
+        _list.SelectionChanged += (_, _) => OnSelected();
         _apply.Click += (_, _) => Apply();
         _add.Click += (_, _) => Add();
         _delete.Click += (_, _) => DeleteSelected();
-        _replaceAll.Click += (_, _) => ReplaceAll();
+        _replaceAll.Click += async (_, _) => await ReplaceAllAsync();
         _export.Click += async (_, _) => await ExportAsync();
         _import.Click += async (_, _) => await ImportAsync();
         workspace.History.Changed += Refresh;
@@ -97,6 +114,34 @@ public sealed class StringsWindow : Window
         };
         Refresh();
     }
+
+    private void OnSelected()
+    {
+        var next = _list.SelectedItem as Row;
+        if (_refreshing) _selected = next; // the list was rebuilt: Refresh puts back what was typed
+        else
+        {
+            var previous = _selected;
+            var typed = _text.Text;
+            _selected = next;
+            _text.Text = next?.Text ?? "";
+            // Moving to another string keeps the edit as its own step instead of dropping it.
+            if (previous is not null && next is not null && next.Index != previous.Index && typed is not null && typed != previous.Text)
+                TryEdit(new EditStringCommand(previous.Index, typed), "strings.noChange");
+            _selected = _list.SelectedItem as Row; // an applied edit rebuilds the list
+            _text.Text = _selected?.Text ?? "";
+        }
+
+        _apply.IsEnabled = _delete.IsEnabled = _selected is not null;
+        UpdateDeleteTip();
+        _ = ShowUsesAsync();
+    }
+
+    private bool IndexCurrent => _index is not null && _indexVersion == _workspace.History.Version;
+
+    private void UpdateDeleteTip() => ToolTip.SetTip(_delete, _selected is null ? Loc.Current["strings.deleteNeedsPick"] : _selected.Use == StringUse.Unused ? null : DeleteRefusal(_selected));
+
+    private string DeleteRefusal(Row row) => row.Use is null ? Loc.Current[IsLowMemory?.Invoke() == true ? "strings.deleteUnavailable" : "strings.deleteUnknown"] : Loc.Current["strings.deleteUsed"];
 
     private async Task ShowUsesAsync()
     {
@@ -138,89 +183,34 @@ public sealed class StringsWindow : Window
 
     internal void Add()
     {
-        if (_text.Text is not { Length: > 0 } text) return;
-        if (TryEdit(new StringAddCommand(text), "strings.noChange")) _note.Text = Loc.Current["strings.added"];
+        if (_newText.Text is not { Length: > 0 } text)
+        {
+            _note.Text = Loc.Current["strings.addNeedsText"];
+            _newText.Focus();
+            return;
+        }
+
+        if (!TryEdit(new StringAddCommand(text), "strings.noChange")) return;
+        _note.Text = Loc.Current["strings.added"];
+        _newText.Text = "";
     }
 
-    // Only a string nothing uses is deleted: the kind column shows "unused" once the reference index is ready.
+    // Only a string nothing uses is deleted, and only when the reference index of the current data says so; without it the use is unknown and the string stays.
     internal void DeleteSelected()
     {
-        if (_selected is null) return;
-        if (_selected.Kind != Loc.Current["strings.kindUnused"])
+        if (_selected is null)
         {
-            _note.Text = Loc.Current["strings.deleteUsed"];
+            _note.Text = Loc.Current["strings.deleteNeedsPick"];
+            return;
+        }
+
+        if (_selected.Use != StringUse.Unused || !IndexCurrent)
+        {
+            _note.Text = DeleteRefusal(IndexCurrent ? _selected : _selected with { Use = null });
             return;
         }
 
         if (TryEdit(new StringDeleteCommand(_selected.Index), "strings.noChange")) _note.Text = Loc.Current["strings.deleted"];
-    }
-
-    internal void ReplaceAll()
-    {
-        if (_filter.Text is not { Length: > 0 } needle)
-        {
-            _note.Text = Loc.Current["strings.replaceNeedsFilter"];
-            return;
-        }
-
-        try
-        {
-            var pattern = new Regex(_regex.IsChecked == true ? needle : Regex.Escape(needle), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2));
-            var with = _regex.IsChecked == true ? _replaceWith.Text ?? "" : (_replaceWith.Text ?? "").Replace("$", "$$", StringComparison.Ordinal);
-            var edit = StringTable.ReplaceEdits(_workspace.Data, Shown.Select(r => r.Index), pattern, with);
-            var count = Shown.Count(r => pattern.Replace(r.Text, with) != r.Text);
-            if (TryEdit(edit, "strings.noChange")) _note.Text = Loc.Current.Format("strings.replaced", ("count", count));
-        }
-        catch (Exception e) when (e is ArgumentException or RegexMatchTimeoutException)
-        {
-            _note.Text = e.Message;
-        }
-    }
-
-    /// <summary>Writes the shown strings as CSV (index, text).</summary>
-    internal void ExportTo(string path)
-    {
-        File.WriteAllText(path, StringTable.ToCsv(Shown.Select(r => (r.Index, r.Text))), new System.Text.UTF8Encoding(true));
-        _note.Text = Loc.Current.Format("strings.exported", ("count", Shown.Count), ("name", Path.GetFileName(path)));
-    }
-
-    /// <summary>Sets the text of the strings the CSV names by number, as one undo step.</summary>
-    internal void ImportFrom(string path)
-    {
-        try
-        {
-            var rows = StringTable.ParseCsv(File.ReadAllText(path));
-            var edit = StringTable.ImportEdits(_workspace.Data, rows, out var skipped);
-            var changed = rows.Count(r => r.Index >= 0 && r.Index < _workspace.Data.Strings.Count && _workspace.Data.Strings[r.Index].Content != r.Text);
-            if (TryEdit(edit, "strings.noChange")) _note.Text = Loc.Current.Format("strings.imported", ("count", changed), ("skipped", skipped));
-        }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException)
-        {
-            _note.Text = Loc.Current.Format("strings.importFailed", ("reason", e.Message));
-        }
-    }
-
-    private async Task ExportAsync()
-    {
-        var file = await StorageProvider.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
-        {
-            Title = Loc.Current["strings.export"].TrimEnd('.'),
-            DefaultExtension = "csv",
-            SuggestedFileName = "string_table.csv",
-            FileTypeChoices = [new Avalonia.Platform.Storage.FilePickerFileType("CSV") { Patterns = ["*.csv"] }],
-        });
-        if (file?.TryGetLocalPath() is { } path) ExportTo(path);
-    }
-
-    private async Task ImportAsync()
-    {
-        var files = await StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
-        {
-            Title = Loc.Current["strings.import"].TrimEnd('.'),
-            AllowMultiple = false,
-            FileTypeFilter = [new Avalonia.Platform.Storage.FilePickerFileType("CSV") { Patterns = ["*.csv"] }],
-        });
-        if (files.Count == 1 && files[0].TryGetLocalPath() is { } path) ImportFrom(path);
     }
 
     private void Refresh()
@@ -260,7 +250,10 @@ public sealed class StringsWindow : Window
             var text = _workspace.Data.Strings[i].Content ?? "";
             try
             {
-                if (match(text)) rows.Add(new Row(i, text, index is not null ? KindOf(index.ClassifyString(_workspace.Data.Strings[i]), kinds) : names.Contains(text) ? kindName : kindText));
+                if (!match(text)) continue;
+                // Use stays null while the index is missing or older than the data: the string is then neither used nor unused as far as anyone knows.
+                StringUse? use = index is not null ? index.ClassifyString(_workspace.Data.Strings[i]) : names.Contains(text) ? StringUse.ResourceName : null;
+                rows.Add(new Row(i, text, index is not null && use is { } known ? KindOf(known, kinds) : use is null ? kindText : kindName, use));
             }
             catch (RegexMatchTimeoutException)
             {
@@ -269,8 +262,20 @@ public sealed class StringsWindow : Window
         }
 
         var keep = _selected?.Index;
-        _list.ItemsSource = rows;
-        _list.SelectedItem = rows.FirstOrDefault(r => r.Index == keep);
+        var typed = _selected is not null && _text.Text != _selected.Text ? _text.Text : null;
+        _refreshing = true;
+        try
+        {
+            _list.ItemsSource = rows;
+            _list.SelectedItem = rows.FirstOrDefault(r => r.Index == keep);
+        }
+        finally
+        {
+            _refreshing = false;
+        }
+
+        if (typed is not null && _selected?.Index == keep) _text.Text = typed; // an unapplied edit survives a new filter or an edit elsewhere
+        UpdateDeleteTip();
         _count.Text = Loc.Current.Format("strings.count", ("shown", rows.Count.ToString("N0", System.Globalization.CultureInfo.CurrentCulture)), ("total", _workspace.Data.Strings.Count.ToString("N0", System.Globalization.CultureInfo.CurrentCulture)));
     }
 
@@ -338,7 +343,7 @@ public sealed class StringsWindow : Window
         }, TaskScheduler.Default);
     }
 
-    private sealed record Row(int Index, string Text, string Kind)
+    private sealed record Row(int Index, string Text, string Kind, StringUse? Use)
     {
         public override string ToString() => string.Create(CultureInfo.InvariantCulture, $"{Index}  [{Kind}]  ") + Text.ReplaceLineEndings(" ");
     }

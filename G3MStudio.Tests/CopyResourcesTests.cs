@@ -133,14 +133,14 @@ public sealed class CopyResourcesTests : IDisposable
 
         Assert.True(items.Count >= 5);
         var before = ResourceTypes.Counts(workspace.Data);
-        var command = await ResourceDuplicate.BuildCopyAsync(workspace, items, TestContext.Current.CancellationToken);
+        var command = await ResourceDuplicate.BuildCopyAsync(workspace, items, cancellationToken: TestContext.Current.CancellationToken);
         await workspace.EditInBackground(command);
         var missing = items.Where(i => ResourceTypes.Find(workspace.Data, ResourceTypes.KeyOf(i.Type, i.Copy)) is null || ResourceTypes.Find(workspace.Data, ResourceTypes.KeyOf(i.Type, i.Name)) is null).Select(i => i.Type).ToList();
         Assert.Empty(missing);
 
         workspace.Undo();
         Assert.Equal(before, ResourceTypes.Counts(workspace.Data));
-        Assert.Throws<InvalidOperationException>(() => { _ = ResourceDuplicate.BuildCopyAsync(workspace, [(items[0].Type, items[0].Name, items[0].Name)], TestContext.Current.CancellationToken); });
+        Assert.Throws<InvalidOperationException>(() => { _ = ResourceDuplicate.BuildCopyAsync(workspace, [(items[0].Type, items[0].Name, items[0].Name)], cancellationToken: TestContext.Current.CancellationToken); });
     }
 
     [Fact]
@@ -152,7 +152,7 @@ public sealed class CopyResourcesTests : IDisposable
             var source = workspace.Data.GameObjects.FirstOrDefault(o => o.Events.SelectMany(e => e).Any(e => e.Actions.Count > 1));
             if (source is null) continue;
             Assert.True(ResourceDuplicate.NeedsCopier(workspace.Data, "objects", source.Name.Content!));
-            await workspace.EditInBackground(await ResourceDuplicate.BuildCopyAsync(workspace, [("objects", source.Name.Content!, "zz_multi")], TestContext.Current.CancellationToken));
+            await workspace.EditInBackground(await ResourceDuplicate.BuildCopyAsync(workspace, [("objects", source.Name.Content!, "zz_multi")], cancellationToken: TestContext.Current.CancellationToken));
             var copy = workspace.Data.GameObjects.Single(o => o.Name.Content == "zz_multi");
             Assert.Equal(source.Events.SelectMany(e => e).Select(e => e.Actions.Count), copy.Events.SelectMany(e => e).Select(e => e.Actions.Count));
             return;

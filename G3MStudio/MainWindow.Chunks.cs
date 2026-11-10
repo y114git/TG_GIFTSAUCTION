@@ -28,12 +28,29 @@ public partial class MainWindow
     {
         if (Workspaces.Current is not { } workspace || await AskChunkAsync(workspace, "chunks.exportTitle") is not { } name) return;
         if (await PickPatchFile(Loc.Current["chunks.pickOut"], true, ".bin") is not { } output) return;
+        var comparison = OperatingSystem.IsWindows() || OperatingSystem.IsMacOS() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+        var target = Path.GetFullPath(output);
+        if (string.Equals(target, Path.GetFullPath(workspace.Path), comparison) || string.Equals(target, Path.GetFullPath(workspace.Path + ".bak"), comparison))
+        {
+            Notify(NotificationLevel.Warning, Loc.Current["chunks.sameFile"]);
+            return;
+        }
+
         try
         {
             await Task.Run(() =>
             {
-                using var file = new FileStream(output, FileMode.Create, FileAccess.Write);
-                ChunkPatch.Export(workspace.Path, name, file);
+                // Written beside the target first, so a failed export leaves an existing file untouched.
+                var temp = target + ".tmp";
+                try
+                {
+                    using (var file = new FileStream(temp, FileMode.Create, FileAccess.Write)) ChunkPatch.Export(workspace.Path, name, file);
+                    File.Move(temp, target, true);
+                }
+                finally
+                {
+                    File.Delete(temp);
+                }
             });
             Notify(NotificationLevel.Info, Loc.Current.Format("chunks.exported", ("name", name), ("file", Path.GetFileName(output))));
         }

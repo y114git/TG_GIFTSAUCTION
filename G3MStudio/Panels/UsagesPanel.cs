@@ -13,6 +13,7 @@ public sealed class UsagesPanel : UserControl
     private readonly Button _remove = new Button { Name = "UsagesRemove", IsVisible = false }.Tr(ContentControl.ContentProperty, "usages.removeSelected");
     private readonly Button _exclude = new Button { Name = "UsagesExclude", IsVisible = false }.Tr(ContentControl.ContentProperty, "usages.excludeSelected");
     private readonly TextBlock _note = new TextBlock { Name = "UsagesNote", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap, IsVisible = false }.Tr(TextBlock.TextProperty, "usages.unrefNote");
+    private readonly TextBlock _excludeNote = new TextBlock { Name = "UsagesExcludeNote", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap, IsVisible = false }.Tr(TextBlock.TextProperty, "usages.excludeNote");
     private int _generation;
 
     public UsagesPanel()
@@ -27,10 +28,12 @@ public sealed class UsagesPanel : UserControl
         DockPanel.SetDock(_remove, Avalonia.Controls.Dock.Top);
         DockPanel.SetDock(_exclude, Avalonia.Controls.Dock.Top);
         DockPanel.SetDock(_note, Avalonia.Controls.Dock.Top);
+        DockPanel.SetDock(_excludeNote, Avalonia.Controls.Dock.Top);
         layout.Children.Add(_status);
         layout.Children.Add(_note);
         layout.Children.Add(_remove);
         layout.Children.Add(_exclude);
+        layout.Children.Add(_excludeNote);
         layout.Children.Add(_list);
         Content = layout;
     }

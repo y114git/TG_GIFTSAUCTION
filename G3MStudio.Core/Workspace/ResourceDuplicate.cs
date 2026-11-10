@@ -76,14 +76,14 @@ public static class ResourceDuplicate
     /// The edit that copies each item under its new name in the same data file, built from the package the copy between files makes. Nothing changes until the edit is applied.
     /// A name that is taken or unusable is refused here, before any work is done.
     /// </summary>
-    public static Task<CopyResourcesCommand> BuildCopyAsync(Workspace workspace, IReadOnlyList<(string Type, string Name, string Copy)> items, CancellationToken cancellationToken = default)
+    public static Task<CopyResourcesCommand> BuildCopyAsync(Workspace workspace, IReadOnlyList<(string Type, string Name, string Copy)> items, bool allowUnusual = false, CancellationToken cancellationToken = default)
     {
         using (workspace.Lock.Read())
         {
             foreach (var (type, name, copy) in items)
             {
                 if (!All.Contains(type)) throw new InvalidOperationException($"A {type} entry cannot be duplicated.");
-                if (!ResourceListCommand.IsValidName(copy) && !CopyPackage.IsSafeName(copy)) throw new InvalidOperationException($"'{copy}' cannot be a name: it is empty, too long, or has characters that a file name cannot hold.");
+                CheckCopyName(copy, allowUnusual);
                 if (CopyPlanner.NameTaken(workspace.Data, type, copy)) throw new InvalidOperationException($"A resource or code entry named '{copy}' exists already.");
                 if (CopyPlanner.ItemRefusal(workspace.Data, workspace.Data, type, name) is { } refusal) throw new InvalidOperationException(refusal);
             }
@@ -93,9 +93,16 @@ public static class ResourceDuplicate
         return ResourceCopier.BuildAsync(workspace, workspace, new CopyPlan(entries, [], null), null, cancellationToken);
     }
 
-    public static EditCommand Build(GameMakerData data, string type, string source, string copy)
+    /// <summary>Refuses a name that cannot be a file name; a name that is safe but not a plain GML name is refused with <see cref="UnusualNameException"/> unless the owner allows it.</summary>
+    public static void CheckCopyName(string copy, bool allowUnusual)
     {
-        List<EditCommand> steps = [new ResourceListCommand(type, ResourceListCommand.New, copy)];
+        if (!CopyPackage.IsSafeName(copy)) throw new InvalidOperationException($"'{copy}' cannot be a name: it is empty, too long, or has characters that a file name cannot hold.");
+        if (!allowUnusual && !ResourceListCommand.IsValidName(copy)) throw new UnusualNameException($"'{copy}' is not a plain name: letters, digits and underscores, not starting with a digit. Code cannot use other names. Allow risky actions in Settings > Advanced to use it anyway.");
+    }
+
+    public static EditCommand Build(GameMakerData data, string type, string source, string copy, bool force = false)
+    {
+        List<EditCommand> steps = [new ResourceListCommand(type, ResourceListCommand.New, copy, force)];
         var context = new G3MLib.DataFile.Decompiler.GlobalDecompileContext(data);
         switch (type)
         {

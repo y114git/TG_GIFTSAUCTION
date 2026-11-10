@@ -142,15 +142,43 @@ public static class StringTable
     /// <summary>One edit that sets the text of every listed entry that differs. Null when nothing differs. <paramref name="skipped"/> counts numbers outside the table.</summary>
     public static EditCommand? ImportEdits(GameMakerData data, IEnumerable<(int Index, string Text)> rows, out int skipped)
     {
-        var edits = new List<EditCommand>();
-        skipped = 0;
+        var changes = ImportChanges(data, rows, out skipped, out _);
+        return changes.Count == 0 ? null : ToEdit(changes);
+    }
+
+    public static EditCommand ToEdit(IEnumerable<(int Index, string Text)> changes) => new GroupCommand([.. changes.Select(c => new EditStringCommand(c.Index, c.Text))]);
+
+    /// <summary>
+    /// The entries a CSV changes, one per number: the last row of a number wins. <paramref name="skipped"/> counts distinct numbers outside the table;
+    /// <paramref name="held"/> counts changes left out because another entry has the text already (the table holds each text once).
+    /// </summary>
+    public static IReadOnlyList<(int Index, string Text)> ImportChanges(GameMakerData data, IEnumerable<(int Index, string Text)> rows, out int skipped, out int held)
+    {
+        var last = new Dictionary<int, string>();
+        var outside = new HashSet<int>();
         foreach (var (index, text) in rows)
         {
-            if (index < 0 || index >= data.Strings.Count) skipped++;
-            else if (data.Strings[index].Content != text) edits.Add(new EditStringCommand(index, text));
+            if (index < 0 || index >= data.Strings.Count) outside.Add(index);
+            else last[index] = text;
         }
 
-        return edits.Count == 0 ? null : new GroupCommand(edits);
+        var owner = new Dictionary<string, int>(StringComparer.Ordinal);
+        for (var i = 0; i < data.Strings.Count; i++) owner.TryAdd(data.Strings[i].Content ?? "", i);
+        var changes = new List<(int, string)>();
+        held = 0;
+        foreach (var (index, text) in last.OrderBy(p => p.Key))
+        {
+            if ((data.Strings[index].Content ?? "") == text) continue;
+            if (owner.ContainsKey(text)) held++;
+            else
+            {
+                owner[text] = index;
+                changes.Add((index, text));
+            }
+        }
+
+        skipped = outside.Count;
+        return changes;
     }
 
     /// <summary>One edit that replaces every match of the pattern in the listed entries. Null when nothing matches.</summary>

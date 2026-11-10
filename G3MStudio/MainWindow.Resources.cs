@@ -64,18 +64,28 @@ public partial class MainWindow
         try
         {
             // The copy's code is decompiled from the model first; a name that is taken or not valid is refused by the command's first step before anything changes.
+            // An unusual name is warned about once in the dialog; the same name sent again, or the setting that allows risky actions, goes through.
+            var choice = RiskPolicy.Of(Workspaces.Settings.Current);
+            var allow = choice == RiskChoice.Allow || choice == RiskChoice.Ask && _unusualName == copy;
             bool viaCopier;
             using (workspace.Lock.Read()) viaCopier = ResourceDuplicate.NeedsCopier(workspace.Data, type, name);
             if (viaCopier)
             {
                 // The package is made off the UI thread: the dialog closes now and a failure is reported as a message.
-                _ = DuplicateViaCopierAsync(workspace, [(type, name, copy)], ResourceTypes.KeyOf(type, copy));
+                ResourceDuplicate.CheckCopyName(copy, allow);
+                _ = GuardedAsync(() => DuplicateViaCopierAsync(workspace, [(type, name, copy)], ResourceTypes.KeyOf(type, copy), allow));
                 return null;
             }
 
             EditCommand command;
-            using (workspace.Lock.Read()) command = ResourceDuplicate.Build(workspace.Data, type, name, copy);
+            using (workspace.Lock.Read()) command = ResourceDuplicate.Build(workspace.Data, type, name, copy, allow);
             workspace.Edit(command);
+        }
+        catch (UnusualNameException e)
+        {
+            if (RiskPolicy.Of(Workspaces.Settings.Current) == RiskChoice.Refuse) return e.Message;
+            _unusualName = copy;
+            return Loc.Current.Format(e.Taken ? "explorer.nameTaken" : "explorer.nameUnusual", ("name", copy));
         }
         catch (Exception e) when (e is InvalidOperationException or CodeCompileException)
         {
@@ -89,11 +99,11 @@ public partial class MainWindow
     }
 
     // Duplicates through the copy between files, with this file as source and target; the copy is one undo step. A name check that fails is reported here, as the dialog is gone.
-    private async Task DuplicateViaCopierAsync(Workspace workspace, IReadOnlyList<(string Type, string Name, string Copy)> items, string openKey)
+    private async Task DuplicateViaCopierAsync(Workspace workspace, IReadOnlyList<(string Type, string Name, string Copy)> items, string openKey, bool allowUnusual = false)
     {
         try
         {
-            var command = await ResourceDuplicate.BuildCopyAsync(workspace, items);
+            var command = await ResourceDuplicate.BuildCopyAsync(workspace, items, allowUnusual);
             await workspace.EditInBackground(command);
         }
         catch (Exception e) when (e is InvalidOperationException or IOException or InvalidDataException)
@@ -167,7 +177,7 @@ public partial class MainWindow
                 Explorer.Select(keys[^1]);
             }
 
-            if (viaCopier.Count > 0) _ = DuplicateViaCopierAsync(workspace, viaCopier, ResourceTypes.KeyOf(viaCopier[^1].Type, viaCopier[^1].Copy));
+            if (viaCopier.Count > 0) _ = GuardedAsync(() => DuplicateViaCopierAsync(workspace, viaCopier, ResourceTypes.KeyOf(viaCopier[^1].Type, viaCopier[^1].Copy), RiskPolicy.Of(Workspaces.Settings.Current) == RiskChoice.Allow));
         }
         catch (Exception e) when (e is InvalidOperationException or CodeCompileException)
         {

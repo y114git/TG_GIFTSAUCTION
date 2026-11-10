@@ -46,11 +46,15 @@ public sealed class GroupsWindow : Window
         _members.Labeled("editors.groups.members");
         _kind.Labeled("editors.groups.kind");
         _target.Labeled("editors.groups.moveTo");
-        _kind.ItemsSource = Kinds.Select(k => Loc.Current["explorer.type." + (k == "tilesets" ? "backgrounds" : k)]).ToList();
+        _kind.ItemsSource = Kinds.Select(k => Loc.Current["explorer.type." + (k == "tilesets" ? "tileSets" : k)]).ToList();
         _kind.SelectedIndex = 0;
         _kind.IsVisible = !audio;
-        var bar = new WrapPanel { ItemSpacing = 8, LineSpacing = 8, Children = { _kind, new TextBlock { Text = Loc.Current["editors.groups.moveTo"], VerticalAlignment = VerticalAlignment.Center }, _target, _move } };
-        var edit = new WrapPanel { ItemSpacing = 8, LineSpacing = 8, Margin = new Thickness(0, 0, 0, 8), Children = { _name, _new, _rename } };
+        // The label stays with its box when the row wraps.
+        var moveTo = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { new TextBlock { Text = Loc.Current["editors.groups.moveTo"], VerticalAlignment = VerticalAlignment.Center }, _target } };
+        var bar = new WrapPanel { ItemSpacing = 8, LineSpacing = 8, Children = { _kind, moveTo, _move } };
+        var nameBox = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { new TextBlock { Text = Loc.Current["editors.groups.nameLabel"], VerticalAlignment = VerticalAlignment.Center, TextWrapping = Avalonia.Media.TextWrapping.Wrap, MaxWidth = 220 }, _name } };
+        var edit = new WrapPanel { ItemSpacing = 8, LineSpacing = 8, Margin = new Thickness(0, 0, 0, 8), Children = { nameBox, _new, _rename } };
+        foreach (var button in new[] { _new, _rename, _move }) ToolTip.SetShowOnDisabled(button, true);
         DockPanel.SetDock(edit, Avalonia.Controls.Dock.Top);
         var panel = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(bar, Avalonia.Controls.Dock.Top);
@@ -62,7 +66,16 @@ public sealed class GroupsWindow : Window
         _groups.SelectionChanged += (_, _) => ShowMembers();
         _kind.SelectionChanged += (_, _) => ShowMembers();
         _move.Click += (_, _) => Move();
-        _new.Click += (_, _) => Change(new GroupListCommand(_audio, GroupListCommand.New, _name.Text?.Trim() ?? ""), "editors.groups.created");
+        _new.Click += (_, _) => CreateGroup();
+        _name.KeyDown += (_, e) =>
+        {
+            if (e.Key != Avalonia.Input.Key.Enter) return;
+            e.Handled = true;
+            CreateGroup();
+        };
+        _name.TextChanged += (_, _) => UpdateButtons();
+        _members.SelectionChanged += (_, _) => UpdateButtons();
+        _target.SelectionChanged += (_, _) => UpdateButtons();
         _rename.Click += (_, _) =>
         {
             if (_groups.SelectedItem is string group) Change(new GroupListCommand(_audio, GroupListCommand.Rename, group, _name.Text?.Trim() ?? ""), "editors.groups.renamed");
@@ -70,6 +83,26 @@ public sealed class GroupsWindow : Window
         workspace.History.Changed += Refresh;
         Closed += (_, _) => workspace.History.Changed -= Refresh;
         Refresh();
+        UpdateButtons();
+    }
+
+    private void CreateGroup()
+    {
+        if (_new.IsEnabled) Change(new GroupListCommand(_audio, GroupListCommand.New, _name.Text?.Trim() ?? ""), "editors.groups.created");
+    }
+
+    // A button that cannot work yet is disabled and its tip says what is missing.
+    private void UpdateButtons()
+    {
+        var named = !string.IsNullOrWhiteSpace(_name.Text);
+        _new.IsEnabled = named;
+        ToolTip.SetTip(_new, named ? null : Loc.Current["editors.groups.hintName"]);
+        var picked = _groups.SelectedItem is string;
+        _rename.IsEnabled = named && picked;
+        ToolTip.SetTip(_rename, !named ? Loc.Current["editors.groups.hintName"] : picked ? null : Loc.Current["editors.groups.hintRename"]);
+        var ready = _target.SelectedItem is string && _members.SelectedItems is { Count: > 0 };
+        _move.IsEnabled = ready;
+        ToolTip.SetTip(_move, ready ? null : Loc.Current["editors.groups.hintMove"]);
     }
 
     private IReadOnlyList<string> GroupNames => _audio
@@ -88,6 +121,7 @@ public sealed class GroupsWindow : Window
         _groups.SelectedItem = picked is not null && names.Contains(picked) ? picked : (names.Count > 0 ? names[0] : null);
         _building = false;
         ShowMembers();
+        UpdateButtons();
     }
 
     private List<string> Members(string group)

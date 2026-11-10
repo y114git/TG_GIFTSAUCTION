@@ -6,6 +6,15 @@ namespace G3MStudio.Tests;
 public sealed class DuplicateTests
 {
     [Fact]
+    public void AnUnusualCopyNameNeedsPermissionAndAnUnsafeOneIsAlwaysRefused()
+    {
+        ResourceDuplicate.CheckCopyName("obj_copy", false);
+        Assert.Throws<UnusualNameException>(() => ResourceDuplicate.CheckCopyName("my copy", false));
+        ResourceDuplicate.CheckCopyName("my copy", true);
+        Assert.Throws<InvalidOperationException>(() => ResourceDuplicate.CheckCopyName("a/b", true));
+    }
+
+    [Fact]
     public async Task AnObjectIsCopiedWithItsPropertiesEventsAndCodeAndTheCopyUndoes()
     {
         var folder = Corpus.Folder;

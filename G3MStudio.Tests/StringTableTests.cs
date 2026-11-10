@@ -16,6 +16,19 @@ public sealed class StringTableTests
     }
 
     [Fact]
+    public async Task ImportKeepsTheLastRowPerNumberAndLeavesOutTextsAnotherEntryHolds()
+    {
+        using var data = await GameMakerIO.ReadAsync(Corpus.Files(Corpus.Folder).First(), cancellationToken: TestContext.Current.CancellationToken);
+        var count = data.Strings.Count;
+        new StringAddCommand("zz_one").Apply(data);
+        new StringAddCommand("zz_two").Apply(data);
+        var taken = data.Strings[1].Content ?? "";
+        var changes = StringTable.ImportChanges(data, [(count, "zz_x"), (count, "zz_y"), (count + 1, "zz_y"), (0, taken), (count + 99, "q"), (count + 99, "r")], out var skipped, out var held);
+        Assert.Equal([(count, "zz_y")], changes);
+        Assert.Equal((1, 2), (skipped, held));
+    }
+
+    [Fact]
     public async Task AddDeleteReplaceAndImportAreOneUndoStepEach()
     {
         using var data = await GameMakerIO.ReadAsync(Corpus.Files(Corpus.Folder).First(), cancellationToken: TestContext.Current.CancellationToken);
