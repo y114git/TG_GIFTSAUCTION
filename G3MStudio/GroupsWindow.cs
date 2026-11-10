@@ -30,7 +30,6 @@ public sealed class GroupsWindow : Window
     private readonly TextBlock _noGroups = new() { Name = "GroupsEmpty", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap, Margin = new Thickness(8), IsHitTestVisible = false };
     private readonly TextBlock _noMembers = new() { Name = "MembersEmpty", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap, Margin = new Thickness(8), IsHitTestVisible = false };
     private readonly Func<RiskChoice> _risk;
-    private string? _unusualName;
     private bool _building;
 
     // risk: what the owner chose for risky actions; without it a name that is not a plain name is refused.
@@ -76,19 +75,19 @@ public sealed class GroupsWindow : Window
         _groups.SelectionChanged += (_, _) => ShowMembers();
         _kind.SelectionChanged += (_, _) => ShowMembers();
         _move.Click += (_, _) => Move();
-        _new.Click += (_, _) => CreateGroup();
-        _name.KeyDown += (_, e) =>
+        _new.Click += async (_, _) => await CreateGroupAsync();
+        _name.KeyDown += async (_, e) =>
         {
             if (e.Key != Avalonia.Input.Key.Enter) return;
             e.Handled = true;
-            CreateGroup();
+            await CreateGroupAsync();
         };
         _name.TextChanged += (_, _) => UpdateButtons();
         _members.SelectionChanged += (_, _) => UpdateButtons();
         _target.SelectionChanged += (_, _) => UpdateButtons();
-        _rename.Click += (_, _) =>
+        _rename.Click += async (_, _) =>
         {
-            if (_groups.SelectedItem is string group) Change(force => new GroupListCommand(_audio, GroupListCommand.Rename, group, _name.Text?.Trim() ?? "", force), "editors.groups.renamed");
+            if (_groups.SelectedItem is string group) await ChangeAsync(force => new GroupListCommand(_audio, GroupListCommand.Rename, group, _name.Text?.Trim() ?? "", force), "editors.groups.renamed");
         };
         workspace.History.Changed += Refresh;
         Closed += (_, _) => workspace.History.Changed -= Refresh;
@@ -103,9 +102,9 @@ public sealed class GroupsWindow : Window
         return new DockPanel { Children = { header, new Grid { Children = { list, empty } } } };
     }
 
-    private void CreateGroup()
+    private async Task CreateGroupAsync()
     {
-        if (_new.IsEnabled) Change(force => new GroupListCommand(_audio, GroupListCommand.New, _name.Text?.Trim() ?? "", force: force), "editors.groups.created");
+        if (_new.IsEnabled) await ChangeAsync(force => new GroupListCommand(_audio, GroupListCommand.New, _name.Text?.Trim() ?? "", force: force), "editors.groups.created");
     }
 
     // A button that cannot work yet is disabled and its tip says what is missing.
@@ -158,29 +157,39 @@ public sealed class GroupsWindow : Window
         _noMembers.IsVisible = members.Count == 0;
     }
 
-    // The name box holds the new group's name, or the new name of the picked group. A name that is not a plain name is warned about once; the same name sent again, or the setting that allows risky actions, goes through.
-    internal void Change(Func<bool, GroupListCommand> build, string doneKey)
+    // The name box holds the new group's name, or the new name of the picked group. A name that is not a plain name is confirmed in a dialog; the setting that allows risky actions skips it.
+    internal async Task ChangeAsync(Func<bool, GroupListCommand> build, string doneKey)
     {
         var text = _name.Text?.Trim() ?? "";
         var choice = _risk();
-        try
+        var force = choice == RiskChoice.Allow;
+        while (true)
         {
-            var queued = !_workspace.Edit(build(choice == RiskChoice.Allow || choice == RiskChoice.Ask && _unusualName == text));
-            _unusualName = null;
-            _message.Text = queued ? Loc.Current["app.editQueued"] : Loc.Current.Format(doneKey, ("name", text));
-        }
-        catch (UnusualNameException e)
-        {
-            if (choice == RiskChoice.Refuse) _message.Text = e.Message;
-            else
+            UnusualNameException unusual;
+            try
             {
-                _unusualName = text;
-                _message.Text = Loc.Current.Format("explorer.nameUnusual", ("name", text));
+                var queued = !_workspace.Edit(build(force));
+                _message.Text = queued ? Loc.Current["app.editQueued"] : Loc.Current.Format(doneKey, ("name", text));
+                return;
             }
-        }
-        catch (InvalidOperationException e)
-        {
-            _message.Text = e.Message;
+            catch (UnusualNameException e)
+            {
+                unusual = e;
+            }
+            catch (InvalidOperationException e)
+            {
+                _message.Text = e.Message;
+                return;
+            }
+
+            if (force || choice == RiskChoice.Refuse)
+            {
+                _message.Text = unusual.Message;
+                return;
+            }
+
+            if (!await ProjectDialogs.AskConfirmAsync(this, Loc.Current["editors.groups.unusualTitle"], Loc.Current.Format("editors.groups.unusualConfirm", ("name", text)))) return;
+            force = true;
         }
     }
 

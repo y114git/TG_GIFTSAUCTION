@@ -45,6 +45,24 @@ public sealed class StringTableTests
     }
 
     [Fact]
+    public async Task AChangeThatFreesATextLetsALaterChangeOfTheSameBatchTakeIt()
+    {
+        using var data = await GameMakerIO.ReadAsync(Corpus.Files(Corpus.Folder).First(), cancellationToken: TestContext.Current.CancellationToken);
+        var count = data.Strings.Count;
+        foreach (var text in new[] { "zz_ab", "zz_abb" }) new StringAddCommand(text).Apply(data);
+        var pattern = new Regex("b$", RegexOptions.None, TimeSpan.FromSeconds(1));
+        var replace = StringTable.ReplaceChanges(data, [count, count + 1], pattern, "", out var held);
+        Assert.Equal([(count, "zz_a"), (count + 1, "zz_ab")], replace);
+        Assert.Equal(0, held);
+        replace = StringTable.ReplaceChanges(data, [count + 1, count], pattern, "", out held);
+        Assert.Equal([(count, "zz_a")], replace); // zz_ab is not free yet when zz_abb is tried
+        Assert.Equal(1, held);
+        var swap = StringTable.ImportChanges(data, [(count, "zz_c"), (count + 1, "zz_ab")], out _, out held);
+        Assert.Equal([(count, "zz_c"), (count + 1, "zz_ab")], swap);
+        Assert.Equal(0, held);
+    }
+
+    [Fact]
     public async Task AddDeleteReplaceAndImportAreOneUndoStepEach()
     {
         using var data = await GameMakerIO.ReadAsync(Corpus.Files(Corpus.Folder).First(), cancellationToken: TestContext.Current.CancellationToken);

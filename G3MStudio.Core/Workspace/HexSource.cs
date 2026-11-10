@@ -91,6 +91,7 @@ public sealed class HexSource : IDisposable
         var info = new FileInfo(path);
         if (!info.Exists || info.Length != Length || info.LastWriteTimeUtc != _writtenAt) throw new IOException("The file changed after the hex view opened it. Close the view and open it again.");
         var temp = path + ".hex.tmp";
+        var moved = false;
         try
         {
             File.Copy(path, temp, true);
@@ -107,12 +108,20 @@ public sealed class HexSource : IDisposable
             // Windows will not replace a file this view still has open; the view reads the new bytes through a new handle.
             _stream.Dispose();
             File.Move(temp, path, true);
+            moved = true;
         }
         finally
         {
             if (File.Exists(temp)) File.Delete(temp);
             _stream.Dispose(); // still open when the copy or the write failed above
-            _stream = Open(path);
+            try
+            {
+                _stream = Open(path);
+            }
+            catch (Exception e) when (!moved && e is IOException or UnauthorizedAccessException)
+            {
+                // The first failure is the one to report; the source stays closed and its rows show no bytes.
+            }
         }
 
         _writtenAt = File.GetLastWriteTimeUtc(path);
@@ -153,7 +162,7 @@ public sealed class HexSource : IDisposable
                 _stream.ReadExactly(block);
                 (_blockStart, _block) = (start, block);
             }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException or ObjectDisposedException)
             {
                 // The file was saved over, shortened or locked since it was opened: the row shows no bytes instead of taking the window down.
                 _blockStart = -1;

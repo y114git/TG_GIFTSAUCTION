@@ -57,7 +57,7 @@ public sealed partial class MainWindow
     public void ShowStrings()
     {
         if (Workspaces.Current is not { } workspace) return;
-        var window = _strings = new StringsWindow(workspace) { IsLowMemory = () => Memory.IsLow, AskRisky = AskRiskyAsync };
+        var window = _strings = new StringsWindow(workspace) { IsLowMemory = () => Memory.IsLow, AskRisky = AskRiskyAsync, Risk = RiskNow };
         window.Closed += (_, _) => { if (_strings == window) _strings = null; };
         window.Show(this);
     }

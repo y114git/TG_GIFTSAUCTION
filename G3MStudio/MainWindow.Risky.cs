@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using G3MStudio.Core.Notifications;
 using G3MStudio.Core.Settings;
 using G3MStudio.Core.Workspace;
@@ -43,14 +44,17 @@ public partial class MainWindow
     internal RiskChoice RiskNow() => RiskPolicy.Of(Workspaces.Settings.Current);
 
     /// <summary>True when the owner agrees to go on after the refusal, or has set Studio to go on without asking.</summary>
-    internal async Task<bool> AskRiskyAsync(RiskyRefusalException refusal, string name)
+    internal Task<bool> AskRiskyAsync(RiskyRefusalException refusal, string name) => AskRiskyAsync(refusal, name, null);
+
+    /// <summary>The same, with the question shown on <paramref name="owner"/> (a window that sits on top of the main window); null means the main window.</summary>
+    internal async Task<bool> AskRiskyAsync(RiskyRefusalException refusal, string name, Window? owner)
     {
         switch (RiskPolicy.Of(Workspaces.Settings.Current))
         {
             case RiskChoice.Allow:
                 return true;
             case RiskChoice.Ask:
-                return await Confirm(Prompts.RiskyAction, Loc.Current.Format(refusal.TitleKey, ("name", name)), Loc.Current.Format(refusal.BodyKey, ("reason", refusal.Message), ("name", name)));
+                return await Confirm(Prompts.RiskyAction, Loc.Current.Format(refusal.TitleKey, ("name", name)), Loc.Current.Format(refusal.BodyKey, ("reason", refusal.Message), ("name", name)), owner: owner);
             default:
                 Notify(NotificationLevel.Error, refusal.Message);
                 return false;

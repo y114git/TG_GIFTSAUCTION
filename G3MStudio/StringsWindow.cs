@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Avalonia.Controls;
+using G3MStudio.Core.Settings;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
 using G3MStudio.Theme;
@@ -15,16 +16,16 @@ public sealed partial class StringsWindow : Window
     private G3MLib.DataFile.References.ReferenceIndex? _index;
     private int _indexVersion = -1;
     private bool _building;
-    private readonly TextBox _filter = new() { Name = "StringFilter", PlaceholderText = Loc.Current["strings.filter"] };
+    private readonly TextBox _filter = new TextBox { Name = "StringFilter", PlaceholderText = Loc.Current["strings.filter"] }.Labeled("strings.filter");
     private readonly CheckBox _regex = new() { Name = "StringRegex", Content = Loc.Current["strings.regex"] };
     private readonly ListBox _list = new() { Name = "StringList", MinHeight = 160 };
-    private readonly TextBox _text = new() { Name = "StringText", AcceptsReturn = true, TextWrapping = Avalonia.Media.TextWrapping.Wrap, MinHeight = 90 };
+    private readonly TextBox _text = new TextBox { Name = "StringText", AcceptsReturn = true, TextWrapping = Avalonia.Media.TextWrapping.Wrap, MinHeight = 90 }.Labeled("strings.text");
     private readonly Button _apply = new() { Name = "StringApply", Content = Loc.Current["strings.apply"], IsEnabled = false };
     private readonly TextBlock _count = new() { Name = "StringCount", Classes = { "muted" } };
     private readonly TextBlock _uses = new() { Name = "StringUses", Classes = { "muted" } };
-    private readonly TextBox _replaceWith = new() { Name = "StringReplaceWith", PlaceholderText = Loc.Current["strings.replaceWith"] };
+    private readonly TextBox _replaceWith = new TextBox { Name = "StringReplaceWith", PlaceholderText = Loc.Current["strings.replaceWith"] }.Labeled("strings.replaceWith");
     private readonly Button _replaceAll = new() { Name = "StringReplaceAll", Content = Loc.Current["strings.replaceAll"] };
-    private readonly TextBox _newText = new() { Name = "StringNewText", PlaceholderText = Loc.Current["strings.newText"] };
+    private readonly TextBox _newText = new TextBox { Name = "StringNewText", PlaceholderText = Loc.Current["strings.newText"] }.Labeled("strings.newText");
     private readonly Button _add = new() { Name = "StringAdd", Content = Loc.Current["strings.add"] };
     private readonly Button _delete = new() { Name = "StringDelete", Content = Loc.Current["strings.delete"], IsEnabled = false };
     private readonly Button _export = new() { Name = "StringExport", Content = Loc.Current["strings.export"] };
@@ -40,8 +41,11 @@ public sealed partial class StringsWindow : Window
     /// <summary>True while the program runs in low-memory mode; the kind column then uses the names and no index is built.</summary>
     public Func<bool>? IsLowMemory { get; set; }
 
-    /// <summary>Asks the owner about a refusal they may overrule (the main window's risky-action question); without it a used string is not deleted.</summary>
-    public Func<RiskyRefusalException, string, Task<bool>>? AskRisky { get; set; }
+    /// <summary>Asks the owner about a refusal they may overrule (the main window's risky-action question, shown on this window); without it a used string is not deleted.</summary>
+    public Func<RiskyRefusalException, string, Window, Task<bool>>? AskRisky { get; set; }
+
+    /// <summary>What the owner chose for risky actions; with Refuse the Strings window says so itself, since the main window is behind it.</summary>
+    public Func<RiskChoice>? Risk { get; set; }
 
     /// <summary>Frees the reference index; the next refresh builds it again unless memory is low.</summary>
     public void DropIndex() => (_index, _indexVersion) = (null, -1);
@@ -62,7 +66,7 @@ public sealed partial class StringsWindow : Window
         var addRow = new DockPanel { Children = { _add, _newText } };
         DockPanel.SetDock(_add, Avalonia.Controls.Dock.Right);
         _add.Margin = _replaceAll.Margin = new Avalonia.Thickness(6, 0, 0, 0);
-        var tools = new WrapPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Children = { _delete, _export, _import } };
+        var tools = new WrapPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, LineSpacing = 6, Children = { _delete, _export, _import } };
         foreach (var button in tools.Children) button.Margin = new Avalonia.Thickness(0, 0, 6, 0);
         ToolTip.SetShowOnDisabled(_delete, true);
         var bottom = new StackPanel { Spacing = 6, Margin = new Avalonia.Thickness(0, 8, 0, 0), Children = { _uses, _text, replaceRow, addRow, tools, _note } };
@@ -175,6 +179,15 @@ public sealed partial class StringsWindow : Window
         return false;
     }
 
+    // Cut at 40 UTF-16 units without splitting a surrogate pair; a line break would break the sentence it is put in.
+    internal static string Shorten(string text)
+    {
+        text = text.ReplaceLineEndings(" ");
+        if (text.Length <= 40) return text;
+        var cut = char.IsHighSurrogate(text[39]) ? 39 : 40;
+        return text[..cut] + "...";
+    }
+
     private IReadOnlyList<Row> Shown => _list.ItemsSource as IReadOnlyList<Row> ?? [];
 
     // A failed batch shows its reason and changes nothing: the commands undo themselves.
@@ -188,8 +201,9 @@ public sealed partial class StringsWindow : Window
 
         try
         {
-            _workspace.Edit(command);
-            return true;
+            if (_workspace.Edit(command)) return true;
+            _note.Text = Loc.Current["app.editQueued"];
+            return false;
         }
         catch (InvalidOperationException e)
         {
@@ -232,7 +246,13 @@ public sealed partial class StringsWindow : Window
                 return;
             }
 
-            if (!await AskRisky(refusal, text.Length > 40 ? text[..40] + "..." : text)) return;
+            if (Risk?.Invoke() == RiskChoice.Refuse)
+            {
+                _note.Text = Loc.Current["strings.deleteRefused"];
+                return;
+            }
+
+            if (!await AskRisky(refusal, Shorten(text), this)) return;
             // The data may have changed while the question was open.
             bool same;
             using (_workspace.Lock.Read()) same = index < _workspace.Data.Strings.Count && (_workspace.Data.Strings[index].Content ?? "") == text;

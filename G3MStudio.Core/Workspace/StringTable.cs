@@ -168,10 +168,12 @@ public static class StringTable
         held = 0;
         foreach (var (index, text) in last.OrderBy(p => p.Key))
         {
-            if ((data.Strings[index].Content ?? "") == text) continue;
+            var old = data.Strings[index].Content ?? "";
+            if (old == text) continue;
             if (owner.ContainsKey(text)) held++;
             else
             {
+                if (owner.TryGetValue(old, out var was) && was == index) owner.Remove(old); // the change frees the old text for a later one
                 owner[text] = index;
                 changes.Add((index, text));
             }
@@ -193,7 +195,7 @@ public static class StringTable
     }
 
     /// <summary>
-    /// The entries a replace changes. A result that another entry (or an earlier change of this batch) holds already is left out and counted in <paramref name="held"/>.
+    /// The entries a replace changes. A result that another entry (or an earlier change of this batch, unless that change frees it) holds already is left out and counted in <paramref name="held"/>.
     /// </summary>
     public static IReadOnlyList<(int Index, string Text)> ReplaceChanges(GameMakerData data, IEnumerable<int> indexes, Regex pattern, string replacement, out int held)
     {
@@ -209,6 +211,7 @@ public static class StringTable
             if (owner.ContainsKey(changed)) held++;
             else
             {
+                if (owner.TryGetValue(old, out var was) && was == index) owner.Remove(old); // the change frees the old text for a later one
                 owner[changed] = index;
                 changes.Add((index, changed));
             }

@@ -2,20 +2,21 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using G3MStudio.Core.Projects;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio.Git;
 
 /// <summary>Branches, remotes and the diff of the selected change.</summary>
 public sealed partial class GitPanel
 {
-    private readonly ComboBox _branches = new() { Name = "GitBranch", MinWidth = 160 };
+    private readonly ComboBox _branches = new ComboBox { Name = "GitBranch", MinWidth = 160 }.Labeled("git.branch");
     private readonly Button _switch = new Button { Name = "GitSwitchBranch", IsEnabled = false }.Tr(ContentControl.ContentProperty, "git.switchBranch");
-    private readonly TextBox _newBranchName = new TextBox { Name = "GitNewBranchName", MinWidth = 140 }.Tr(TextBox.PlaceholderTextProperty, "git.newBranchName");
+    private readonly TextBox _newBranchName = new TextBox { Name = "GitNewBranchName", MinWidth = 140 }.Tr(TextBox.PlaceholderTextProperty, "git.newBranchName").Labeled("git.newBranchName");
     private readonly Button _newBranch = new Button { Name = "GitNewBranch" }.Tr(ContentControl.ContentProperty, "git.newBranch");
     private readonly Button _fetch = new Button { Name = "GitFetch" }.Tr(ContentControl.ContentProperty, "git.fetch");
     private readonly Button _pull = new Button { Name = "GitPull" }.Tr(ContentControl.ContentProperty, "git.pull");
     private readonly Button _push = new Button { Name = "GitPush" }.Tr(ContentControl.ContentProperty, "git.push");
-    private readonly TextBox _remoteUrl = new TextBox { Name = "GitRemoteUrl", MinWidth = 260 }.Tr(TextBox.PlaceholderTextProperty, "git.remoteUrl");
+    private readonly TextBox _remoteUrl = new TextBox { Name = "GitRemoteUrl", MinWidth = 260 }.Tr(TextBox.PlaceholderTextProperty, "git.remoteUrl").Labeled("git.remoteUrl");
     private readonly Button _addRemote = new Button { Name = "GitAddRemote" }.Tr(ContentControl.ContentProperty, "git.addRemote");
     private readonly TextBlock _sync = new() { Name = "GitSync", Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center };
     private readonly TextBox _diff = new() { Name = "GitDiff", IsReadOnly = true, IsVisible = false, MaxHeight = 240, FontFamily = "Consolas, Menlo, Liberation Mono, monospace" };
