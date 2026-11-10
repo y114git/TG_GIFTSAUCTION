@@ -374,6 +374,7 @@
     }
   },
   "palette": {
+    "showPanel": "Mostrar {panel}",
     "altApplyPatch": "Aplicar parche al archivo de datos actual, guardar archivo parcheado como nuevo",
     "altApplyMod": "Aplicar mod al archivo de datos actual, guardar archivo con mod como nuevo",
     "altRunScript": "Ejecutar script de la carpeta Scripts, ejecutar archivo de script",
@@ -399,6 +400,7 @@
     "clear": "Borrar abiertos recientemente"
   },
   "explorer": {
+    "noSection": "Este archivo de datos no tiene sección para {type}, así que no puede contener uno nuevo.",
     "noValue": "Ninguno",
     "thumbnails": "Miniaturas",
     "zoom": "Zoom de 50 a 250 por ciento",
@@ -661,6 +663,72 @@
     "rebuildFailed": "No se pudo reconstruir el archivo de datos: {reason}"
   },
   "history": {
+    "kind": {
+      "addString": "Añadir cadena",
+      "assembly": "Editar ensamblador",
+      "audioGroupMove": "Mover a grupo de audio",
+      "clearReferences": "Borrar referencias",
+      "code": "Editar código",
+      "codeEntry": "Nueva entrada de código",
+      "copyProperties": "Copiar propiedades",
+      "copyResources": "Copiar recursos",
+      "curvePoint": "Editar punto de curva",
+      "deleteString": "Eliminar cadena",
+      "editString": "Editar cadena",
+      "entryScripts": "Editar scripts de entrada",
+      "extensionList": "Editar extensión",
+      "fontGlyph": "Editar glifo de fuente",
+      "fontKerning": "Editar kerning de fuente",
+      "fontReplace": "Reemplazar fuente",
+      "frameList": "Editar fotogramas del sprite",
+      "frameOwnPicture": "Imagen propia del fotograma",
+      "framesImport": "Importar fotogramas",
+      "gameRoomOrder": "Cambiar orden de salas",
+      "group": "Grupo de ediciones",
+      "groupList": "Editar grupo",
+      "imageEdit": "Editar imagen",
+      "importMask": "Importar máscara",
+      "listEntry": "Editar elemento de lista",
+      "move": "Cambiar orden",
+      "nineSlice": "Editar nine-slice",
+      "objectEvent": "Editar evento de objeto",
+      "objectEventCopy": "Copiar evento de objeto",
+      "objectEventOrder": "Reordenar eventos de objeto",
+      "objectEventRetype": "Cambiar tipo de evento",
+      "objectParent": "Cambiar objeto padre",
+      "particleEmitter": "Editar emisor de partículas",
+      "pathEdit": "Editar ruta",
+      "pathPoints": "Editar puntos de ruta",
+      "physicsVertex": "Editar vértice de física",
+      "property": "Editar propiedad",
+      "recalcMask": "Recalcular máscara",
+      "rename": "Renombrar",
+      "replaceAudio": "Reemplazar audio",
+      "replaceFrame": "Reemplazar fotograma del sprite",
+      "replaceItem": "Reemplazar imagen",
+      "replacePage": "Reemplazar página de texturas",
+      "resourceList": "Editar la lista de recursos",
+      "roomCreationCode": "Editar código de creación de sala",
+      "roomElement": "Editar elemento de sala",
+      "roomInstance": "Editar instancia de sala",
+      "roomLayer": "Editar capa de sala",
+      "roomOrder": "Cambiar orden de creación",
+      "roomTile": "Editar tile de sala",
+      "roomTiles": "Pintar tiles",
+      "sequenceEvent": "Editar evento de secuencia",
+      "sequenceKeyframe": "Editar fotograma clave",
+      "sequenceTrack": "Editar pista de secuencia",
+      "spriteMask": "Editar máscara de colisión",
+      "spriteOrigin": "Mover origen del sprite",
+      "textureGroupMove": "Mover a grupo de texturas",
+      "tileAnimation": "Editar animación de tile",
+      "timelineAction": "Editar acción de línea de tiempo",
+      "timelineMoment": "Editar momento de línea de tiempo",
+      "timelineMomentCopy": "Copiar momento de línea de tiempo",
+      "timelineShift": "Desplazar momentos de línea de tiempo",
+      "uiLayer": "Editar capa de interfaz",
+      "varCounts": "Cambiar recuento de variables"
+    },
     "newResource": "Nuevo {type}: {name}",
     "newResources": "Nuevos {count} recursos",
     "deleteResources": "Eliminar {count} recursos",
@@ -997,11 +1065,21 @@
     "addRemote": "Añadir remoto",
     "aheadBehind": "{ahead} por delante, {behind} por detrás",
     "newFile": "Archivo nuevo, aún sin seguimiento.",
-    "switchBranch": "Cambiar",
+    "switchBranch": "Cambiar de rama",
     "switchTitle": "Cambiar de rama",
     "switchDirty": "Hay {count} cambios sin confirmar. ¿Cambiar a '{branch}' de todos modos?"
   },
   "properties": {
+    "label": {
+      "ParentId": "ID del padre",
+      "TextureMaskId": "ID de máscara de textura",
+      "PhysicsVertices": "Vértices de física",
+      "LastObj": "Último objeto",
+      "LastTile": "Último tile",
+      "IsDebuggerDisabled": "Depurador desactivado",
+      "AudioID": "ID de audio"
+    },
+    "noItems": "Sin elementos",
     "empty": "(vacío)",
     "addEntry": "Añadir entrada",
     "moveUp": "Subir",
@@ -1159,6 +1237,7 @@
     "mayLoseData": "Partes de este archivo de datos que el lector no pudo interpretar: {count}. Al guardar se pueden perder."
   },
   "usages": {
+    "empty": "Aún no hay usos que mostrar. Usa «Buscar usos» en un recurso.",
     "unrefSearching": "Buscando recursos que nada usa...",
     "unrefFound": "Recursos que no se usan en ningún sitio: {count}.",
     "unrefNone": "Ningún recurso está sin usar.",
@@ -1415,6 +1494,7 @@
     "downloading": "Descargando G3MStudio {version}..."
   },
   "sounds": {
+    "audioNone": "No reproduce audio: este sonido no tiene entrada de audio.",
     "noSound": "Selecciona primero un sonido.",
     "options": "Almacenamiento: {flags}, volumen {volume}, tono {pitch}",
     "pickAudio": "Elige un archivo WAV u OGG",
@@ -2272,7 +2352,8 @@
       "addMessage": "Añadir mensaje",
       "addKey": "Añadir fotograma clave en el cursor",
       "splitKey": "Dividir fotograma clave en el cursor",
-      "deleteKey": "Eliminar fotograma clave"
+      "deleteKey": "Eliminar fotograma clave",
+      "empty": "Esta secuencia aún no tiene pistas."
     },
     "particles": {
       "solo": "Solo",
@@ -2305,7 +2386,8 @@
       "channel": "Canal",
       "add": "Añadir punto",
       "delete": "Eliminar punto",
-      "value": "Valor"
+      "value": "Valor",
+      "empty": "Esta curva aún no tiene canales."
     },
     "path": {
       "reverse": "Invertir",

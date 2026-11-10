@@ -161,7 +161,7 @@ public sealed partial class ImageEditorView
             panel.Children.Add(button);
         }
 
-        return Section("image.brushes", panel);
+        return Section("image.brushes", panel, false); // the size box and slider above cover the common case; folded, the colours and recent row stay in view
     }
 
     private static Border BrushPreview(BrushShape shape, int size)
@@ -233,7 +233,7 @@ public sealed partial class ImageEditorView
     }
 
     /// <summary>A right column panel that folds under its header, so a folded panel gives its room to the others.</summary>
-    private static StackPanel Section(string key, Control body) => new() { Spacing = 2, Children = { new Expander { Name = "Section_" + key, IsExpanded = true, HorizontalAlignment = HorizontalAlignment.Stretch, Header = new TextBlock { Text = Loc.Current[key], FontWeight = FontWeight.SemiBold }, Content = body } } };
+    private static StackPanel Section(string key, Control body, bool open = true) => new() { Spacing = 2, Children = { new Expander { Name = "Section_" + key, IsExpanded = open, HorizontalAlignment = HorizontalAlignment.Stretch, Header = new TextBlock { Text = Loc.Current[key], FontWeight = FontWeight.SemiBold }, Content = body } } };
 
     private void BuildFrames()
     {

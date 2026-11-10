@@ -53,7 +53,7 @@ public sealed class ShortcutsEditor : UserControl
         var text = _filter.Text?.Trim() ?? "";
         foreach (var command in _registry.All.OrderBy(c => c.Id, StringComparer.Ordinal))
         {
-            var title = Loc.Current["cmd." + command.Id];
+            var title = command.Title ?? MainWindow.PaletteTitle(command.Id, Loc.Current);
             if (text.Length > 0 && !title.Contains(text, StringComparison.CurrentCultureIgnoreCase) && !command.Id.Contains(text, StringComparison.OrdinalIgnoreCase) && !command.Gestures.Any(g => g.Contains(text, StringComparison.OrdinalIgnoreCase) || G3MStudio.Commands.Shortcuts.Display(g).Contains(text, StringComparison.OrdinalIgnoreCase))) continue;
             var id = command.Id;
             var buttons = new StackPanel { [DockPanel.DockProperty] = Avalonia.Controls.Dock.Right, Orientation = Orientation.Horizontal, Spacing = 6 };
@@ -106,7 +106,7 @@ public sealed class ShortcutsEditor : UserControl
     {
         (_capturing, Capturing) = (null, false);
         aliases = [.. aliases.Where(a => !string.Equals(a, primary, StringComparison.OrdinalIgnoreCase)).Distinct(StringComparer.OrdinalIgnoreCase)];
-        var others = changed is null ? [] : _registry.UsersOf(changed, id).Select(c => Loc.Current["cmd." + c.Id]).ToList();
+        var others = changed is null ? [] : _registry.UsersOf(changed, id).Select(c => c.Title ?? MainWindow.PaletteTitle(c.Id, Loc.Current)).ToList();
         _note.Text = others.Count > 0 ? Loc.Current.Format("settings.shortcutShared", ("shortcut", changed ?? ""), ("commands", string.Join(", ", others))) : "";
         var sameAliases = aliases.SequenceEqual(_registry.DefaultAliases(id));
         _store.Update(s => s with

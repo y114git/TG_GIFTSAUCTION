@@ -15,6 +15,7 @@ public sealed partial class MainWindow
         Explorer.OpenRequested += (row, preview) => Docking.OpenTab(row.Key == "code" ? "code" : "resource", ResourceTypes.KeyOf(row.Key, row.Text), preview);
         Explorer.SelectionChanged += SaveView;
         Explorer.SelectionChanged += ShowInInspector;
+        Explorer.SelectionChanged += UpdateSelectionContext;
     }
 
     private void WireClosing()

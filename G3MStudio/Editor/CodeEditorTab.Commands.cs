@@ -312,7 +312,7 @@ public sealed partial class CodeEditorTab
     {
         _outlineButton.Content = Loc.Current["code.outlineButton"];
         _outlineButton.Click += (_, _) => ShowOutline();
-        Crumbs = new StackPanel { Name = "Breadcrumb", Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 8, Margin = new Thickness(8, 0), Children = { _outlineButton, _crumbText } };
+        Crumbs = new StackPanel { Name = "Breadcrumb", Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 8, Margin = new Thickness(8, 0), Children = { _crumbText } };
         _signaturePopup.Child = new Border { Child = new StackPanel { Spacing = 2, Children = { _signatureText, _signatureDoc } }, Padding = new Thickness(6, 2), Background = (IBrush?)Application.Current?.FindResource("Bg.Raised") };
         _signaturePopup.PlacementTarget = Editor.TextArea;
         Children.Add(_signaturePopup);
@@ -341,6 +341,7 @@ public sealed partial class CodeEditorTab
         }
 
         if (menu.Items.Count == 0) menu.Items.Add(new MenuItem { Header = Loc.Current["code.outlineEmpty"], IsEnabled = false });
+        menu.Placement = PlacementMode.Bottom;
         menu.Open(_outlineButton);
     }
 }

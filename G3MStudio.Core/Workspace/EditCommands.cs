@@ -33,6 +33,15 @@ public abstract class EditCommand
 
     public abstract void Revert(GameMakerData data);
 
+    /// <summary>Every kind a command class writes to the journal, found from the classes' Name constants.</summary>
+    public static IReadOnlyList<string> Kinds { get; } =
+    [
+        .. typeof(EditCommand).Assembly.GetTypes()
+            .Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(EditCommand)))
+            .Select(t => t.GetField("Name", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.DeclaredOnly)?.GetRawConstantValue() as string ?? "")
+            .Order(StringComparer.Ordinal),
+    ];
+
     public static EditCommand Create(string kind, IReadOnlyDictionary<string, string> args) => kind switch
     {
         RenameResourceCommand.Name => new RenameResourceCommand(args["type"], args["old"], args["new"]),

@@ -6,6 +6,23 @@ namespace G3MStudio.Tests;
 public sealed class HistoryDescribeTests
 {
     [Fact]
+    public void AGoToRowCarriesTheFullDescriptionInItsTip()
+    {
+        var text = "Converts a value to a string, using the current locale and the given number of decimals.";
+        var tip = GoToWindow.Tip(new G3MStudio.Core.Navigation.GoToEntry(G3MStudio.Core.Navigation.GoToKind.Reference, "string_format", "ref:string_format", "", text));
+        Assert.EndsWith(text, tip, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void EveryEditKindHasAReadableLabel()
+    {
+        var loaded = typeof(EditCommand).Assembly.GetTypes().Count(t => !t.IsAbstract && t.IsSubclassOf(typeof(EditCommand)));
+        Assert.Equal(loaded, EditCommand.Kinds.Count);
+        Assert.DoesNotContain("", EditCommand.Kinds);
+        Assert.All(EditCommand.Kinds, kind => Assert.NotEqual("history.kind." + kind, HistoryView.KindLabel(kind)));
+    }
+
+    [Fact]
     public void ResourceListEditsAndGroupsAroundThemReadAsWhatTheyDo()
     {
         var delete = new ResourceListCommand("objects", ResourceListCommand.Delete, "obj_a");

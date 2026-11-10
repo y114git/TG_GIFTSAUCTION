@@ -36,6 +36,24 @@ public sealed class GitPanelTests
     private static void Set(Window window, string name, string text) => Find<TextBox>(window, name).Text = text;
 
     [Fact]
+    public async Task WithoutAProjectNoBranchControlShows()
+    {
+        await HeadlessApp.Run(async () =>
+        {
+            var panel = new GitPanel(GitServiceTests.Identity);
+            var window = new Window { Content = panel };
+            window.Show();
+            try
+            {
+                await panel.BindAsync(null);
+                Assert.False(Find<Button>(window, "GitSwitchBranch").IsVisible);
+                Assert.False(Find<ComboBox>(window, "GitBranch").IsVisible);
+            }
+            finally { window.Close(); }
+        });
+    }
+
+    [Fact]
     public async Task ThePanelInitializesAndStagesAProjectFolder()
     {
         using var dir = new TempDir();

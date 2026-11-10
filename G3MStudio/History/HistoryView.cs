@@ -78,14 +78,16 @@ public sealed class HistoryView : UserControl
             ? Loc.Current.Format("history.copyResource", ("type", TypeLabel(copy.Steps[0].Type)), ("name", copy.Steps[0].Name))
             : Loc.Current.Format("history.copyResources", ("count", copy.Steps.Count)),
         GroupCommand group => DescribeGroup(group),
-        _ => command.Kind,
+        _ => KindLabel(command.Kind),
     };
+
+    internal static string KindLabel(string kind) => Loc.Current["history.kind." + kind];
 
     // A group made around resource lists (a delete that clears uses first, a copy with its code) is named by the list edits inside it.
     private static string DescribeGroup(GroupCommand group)
     {
         var lists = Flatten(group).OfType<ResourceListCommand>().ToList();
-        if (lists.Count == 0) return group.Kind;
+        if (lists.Count == 0) return KindLabel(group.Kind);
         var operation = lists[0].Args["operation"];
         if (lists.Count > 1 && lists.All(l => l.Args["operation"] == operation))
             return Loc.Current.Format(operation == ResourceListCommand.Delete ? "history.deleteResources" : "history.newResources", ("count", lists.Count));

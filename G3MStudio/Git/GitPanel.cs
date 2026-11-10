@@ -63,7 +63,7 @@ public sealed partial class GitPanel : UserControl
         var git = _git;
         var empty = git is null || !_installed || !git.IsRepository;
         _init.IsVisible = git is not null && _installed && !git.IsRepository;
-        foreach (var control in new Control[] { _changes, _message, _commit, _stage, _unstage, _refresh, _log, _branches, _newBranchName, _newBranch }) control.IsVisible = !empty;
+        foreach (var control in new Control[] { _changes, _message, _commit, _stage, _unstage, _refresh, _log, _branches, _switch, _newBranchName, _newBranch }) control.IsVisible = !empty;
         if (empty) foreach (var control in new Control[] { _fetch, _pull, _push, _sync, _remoteUrl, _addRemote, _diff }) control.IsVisible = false;
         _changes.ItemsSource = _log.ItemsSource = null;
         if (git is null) { Show("git.noProject"); return; }

@@ -57,7 +57,7 @@ public sealed class SoundPlayerView : StackPanel
     public string Status => _status.Text ?? "";
 
     /// <summary>Which audio entry the sound plays and from which audio group (UTMT-SND-03): the entry sits in this data file, or in the file of its group when the group is not the default one.</summary>
-    public string Reference => Loc.Current.Format(_sound.AudioFile is null && _sound.GroupID != 0 ? "sounds.audioRefGroup" : "sounds.audioRef", ("id", _sound.AudioID), ("group", _sound.AudioGroup?.Name?.Content ?? _sound.GroupID.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+    public string Reference => _sound.AudioID < 0 ? Loc.Current["sounds.audioNone"] : Loc.Current.Format(_sound.AudioFile is null && _sound.GroupID != 0 ? "sounds.audioRefGroup" : "sounds.audioRef", ("id", _sound.AudioID), ("group", _sound.AudioGroup?.Name?.Content ?? _sound.GroupID.ToString(System.Globalization.CultureInfo.InvariantCulture)));
 
     /// <summary>Storage and compression of the sound in words: where the audio sits, its flags, volume and pitch.</summary>
     public string Options => Loc.Current.Format("sounds.options", ("flags", _sound.Flags.ToString()), ("volume", _sound.Volume.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)), ("pitch", _sound.Pitch.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)));

@@ -37,7 +37,7 @@ public static class UiSizing
     public const double WindowShare = 0.85;
     public const double ExplorerShare = 0.19;
     public const double InspectorShare = 0.19;
-    public const double BottomShare = 0.2;
+    public const double BottomShare = 0.26;
 
     /// <summary>The window size in device-independent units for a work area given in physical pixels.</summary>
     public static (double Width, double Height) WindowSize(int workWidth, int workHeight, double scaling) =>

@@ -21,7 +21,7 @@ public sealed class RoomElementList : ListBox
     {
         _room = room;
         Name = "RoomElements";
-        Height = 76;
+        MinHeight = 76;
         SelectionMode = SelectionMode.Multiple | SelectionMode.Toggle;
         SelectionChanged += (_, _) =>
         {
@@ -50,7 +50,7 @@ public sealed class RoomElementList : ListBox
     /// <summary>Lists the elements of the layer, or of every layer when none is given.</summary>
     public void Show(Layer? layer)
     {
-        Elements = [.. (layer is null ? _room.Layers ?? [] : [layer]).SelectMany(Of)];
+        Elements = _room.Layers is null ? [.. _room.GameObjects ?? []] : [.. (layer is null ? _room.Layers : [layer]).SelectMany(Of)];
         IsVisible = Elements.Count > 0; // an empty list would only be a blank band under the canvas
         Refill([]);
     }

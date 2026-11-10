@@ -135,7 +135,13 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
         Registry?.SetContext(AppCommands.ImageTab, active is not null && _imageViews.ContainsKey(active));
         if (active is not null && Docking.Tabs.Get(active)?.Key is { } activeKey && activeKey != Explorer.SelectedKey) Explorer.Select(activeKey);
         ShowInInspector();
+        UpdateSelectionContext();
     }
+
+    /// <summary>Greys out Rename, Duplicate, Move, Delete and Copy Name until the Explorer or the tab in front holds a resource.</summary>
+    private void UpdateSelectionContext() =>
+        Registry?.SetContext(AppCommands.ResourceSelected, Workspaces.Current is not null
+            && (Explorer.SelectedKeys.Count > 0 || Explorer.SelectedRow is { Kind: ExplorerRowKind.Folder or ExplorerRowKind.Collection } || (Docking.ActiveTabId is { } id && Docking.Tabs.Get(id)?.Key is not null)));
 
     private string? _inspected;
 
@@ -227,6 +233,8 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
     private void ShowWorkspace(Workspace? workspace)
     {
         Registry.SetContext(AppCommands.WorkspaceOpen, workspace is not null);
+        foreach (var type in ResourceListCommand.Creatable) Registry.SetContext(AppCommands.CanNew(type), workspace is not null && ResourceListCommand.CanHold(workspace.Data, type));
+        UpdateSelectionContext();
         _inspected = null; // another file: whatever was shown no longer exists
         _ = _inspector.ShowAsync(workspace, null);
         Start.IsVisible = workspace is null;

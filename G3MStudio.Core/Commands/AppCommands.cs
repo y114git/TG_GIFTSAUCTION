@@ -4,6 +4,11 @@ public static partial class AppCommands
 {
     public const string WorkspaceOpen = "workspaceOpen";
 
+    /// <summary>Set while a resource is selected in the Explorer or open in the tab in front, which rename, duplicate, move, delete and copy name work on.</summary>
+    public static string CanNew(string type) => "canNew." + type;
+
+    public const string ResourceSelected = "resourceSelected";
+
     /// <summary>Set while the tab in front is a sprite or a room, which the commands of the Sprite and Room menus work on.</summary>
     public const string SpriteTab = "spriteTab", RoomTab = "roomTab", ProjectOn = "projectOn", ProjectOff = "projectOff";
 
@@ -97,21 +102,21 @@ public static partial class AppCommands
         Add("project.moveDataFile", null, shell.MoveDataFile, ProjectOn);
         Add("project.disable", null, shell.DisableProject, ProjectOn);
         foreach (var panel in Panels) Add("view.panel." + panel.ToLowerInvariant(), null, () => shell.ShowPanel(panel));
-        Add("edit.rename", "F2", shell.Rename, WorkspaceOpen);
-        Add("edit.delete", null, shell.DeleteResource, WorkspaceOpen);
-        Add("edit.duplicate", null, shell.DuplicateResource, WorkspaceOpen);
+        Add("edit.rename", "F2", shell.Rename, ResourceSelected);
+        Add("edit.delete", null, shell.DeleteResource, ResourceSelected);
+        Add("edit.duplicate", null, shell.DuplicateResource, ResourceSelected);
         Add("edit.copyToOtherFile", null, shell.CopyToOtherFile, WorkspaceOpen);
         Add("edit.reveal", null, shell.RevealInExplorer, WorkspaceOpen);
         Add("edit.toggleFavourite", null, shell.ToggleFavourite, WorkspaceOpen);
         Add("edit.addTag", null, shell.AddTag, WorkspaceOpen);
-        Add("edit.moveUp", null, shell.MoveResourceUp, WorkspaceOpen);
-        Add("edit.moveDown", null, shell.MoveResourceDown, WorkspaceOpen);
-        Add("edit.copyName", null, shell.CopyName, WorkspaceOpen);
+        Add("edit.moveUp", null, shell.MoveResourceUp, ResourceSelected);
+        Add("edit.moveDown", null, shell.MoveResourceDown, ResourceSelected);
+        Add("edit.copyName", null, shell.CopyName, ResourceSelected);
         Add("edit.findUnreferenced", null, shell.FindUnreferenced, WorkspaceOpen);
         Add("edit.findChildren", null, shell.FindChildren, WorkspaceOpen);
         Add("tabs.next", "Ctrl+Tab", shell.NextTab, WorkspaceOpen);
         Add("tabs.previous", "Ctrl+Shift+Tab", shell.PreviousTab, WorkspaceOpen);
-        foreach (var type in Workspace.ResourceListCommand.Creatable) Add("file.new." + type, null, () => shell.NewResource(type), WorkspaceOpen);
+        foreach (var type in Workspace.ResourceListCommand.Creatable) Add("file.new." + type, null, () => shell.NewResource(type), CanNew(type));
         Add("edit.selectAll", "Ctrl+A", shell.SelectAll, WorkspaceOpen);
         Add("edit.find", "Ctrl+F", shell.Find, WorkspaceOpen);
         Add("edit.findInCode", "Ctrl+Shift+F", shell.ShowSearch, WorkspaceOpen);

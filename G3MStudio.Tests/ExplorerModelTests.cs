@@ -28,6 +28,20 @@ public sealed class ExplorerModelTests(ITestOutputHelper output)
     private static ExplorerModel NewModel() => new(key => key);
 
     [Fact]
+    public void AFilterGivesTheDataGroupTheCountOfItsMatchesAndNoRowShowsZero()
+    {
+        using var data = Generate(8);
+        var model = NewModel();
+        model.Load(data);
+        model.SetFilter("text 1");
+        var strings = model.Rows.Single(r => r is { Kind: ExplorerRowKind.Type, Key: "strings" });
+        var group = model.Rows.Single(r => r is { Kind: ExplorerRowKind.Group, Key: ExplorerModel.DataGroup });
+        Assert.Equal(strings.Count, group.Count);
+        Assert.True(group.HasCount);
+        Assert.All(model.Rows.Where(r => r.IsHeader && r.Count == 0), r => Assert.False(r.HasCount));
+    }
+
+    [Fact]
     public void ListsResourceTypesThenTheDataGroupAndFiltersByNameAndTypePrefix()
     {
         using var data = TestData.Create(3, withCode: true);

@@ -374,6 +374,7 @@
     }
   },
   "palette": {
+    "showPanel": "显示{panel}",
     "altApplyPatch": "将补丁应用到当前数据文件，将打补丁的数据文件保存为新文件",
     "altApplyMod": "将模组应用到当前数据文件，将应用模组的数据文件保存为新文件",
     "altRunScript": "运行 Scripts 文件夹中的脚本，运行脚本文件",
@@ -399,6 +400,7 @@
     "clear": "清除最近打开的项目"
   },
   "explorer": {
+    "noSection": "此数据文件没有{type}部分，因此无法新建。",
     "noValue": "无",
     "thumbnails": "缩略图",
     "zoom": "缩放 50% 到 250%",
@@ -661,6 +663,72 @@
     "rebuildFailed": "无法重新生成数据文件：{reason}"
   },
   "history": {
+    "kind": {
+      "addString": "添加字符串",
+      "assembly": "编辑汇编",
+      "audioGroupMove": "移到音频组",
+      "clearReferences": "清除引用",
+      "code": "编辑代码",
+      "codeEntry": "新建代码条目",
+      "copyProperties": "复制属性",
+      "copyResources": "复制资源",
+      "curvePoint": "编辑曲线点",
+      "deleteString": "删除字符串",
+      "editString": "编辑字符串",
+      "entryScripts": "编辑条目脚本",
+      "extensionList": "编辑扩展",
+      "fontGlyph": "编辑字体字形",
+      "fontKerning": "编辑字体字距",
+      "fontReplace": "替换字体",
+      "frameList": "编辑精灵帧",
+      "frameOwnPicture": "为帧设置独立图片",
+      "framesImport": "导入帧",
+      "gameRoomOrder": "更改房间顺序",
+      "group": "一组编辑",
+      "groupList": "编辑组",
+      "imageEdit": "编辑图像",
+      "importMask": "导入遮罩",
+      "listEntry": "编辑列表项",
+      "move": "更改顺序",
+      "nineSlice": "编辑九宫格",
+      "objectEvent": "编辑对象事件",
+      "objectEventCopy": "复制对象事件",
+      "objectEventOrder": "调整对象事件顺序",
+      "objectEventRetype": "更改事件类型",
+      "objectParent": "更改父对象",
+      "particleEmitter": "编辑粒子发射器",
+      "pathEdit": "编辑路径",
+      "pathPoints": "编辑路径点",
+      "physicsVertex": "编辑物理顶点",
+      "property": "编辑属性",
+      "recalcMask": "重新计算遮罩",
+      "rename": "重命名",
+      "replaceAudio": "替换音频",
+      "replaceFrame": "替换精灵帧",
+      "replaceItem": "替换图片",
+      "replacePage": "替换纹理页",
+      "resourceList": "编辑资源列表",
+      "roomCreationCode": "编辑房间创建代码",
+      "roomElement": "编辑房间元素",
+      "roomInstance": "编辑房间实例",
+      "roomLayer": "编辑房间图层",
+      "roomOrder": "更改创建顺序",
+      "roomTile": "编辑房间图块",
+      "roomTiles": "绘制图块",
+      "sequenceEvent": "编辑序列事件",
+      "sequenceKeyframe": "编辑关键帧",
+      "sequenceTrack": "编辑序列轨道",
+      "spriteMask": "编辑碰撞遮罩",
+      "spriteOrigin": "移动精灵原点",
+      "textureGroupMove": "移到纹理组",
+      "tileAnimation": "编辑图块动画",
+      "timelineAction": "编辑时间线动作",
+      "timelineMoment": "编辑时间线时刻",
+      "timelineMomentCopy": "复制时间线时刻",
+      "timelineShift": "平移时间线时刻",
+      "uiLayer": "编辑 UI 图层",
+      "varCounts": "更改变量数量"
+    },
     "newResource": "新建{type}：{name}",
     "newResources": "新建 {count} 个资源",
     "deleteResources": "删除 {count} 个资源",
@@ -997,11 +1065,21 @@
     "addRemote": "添加远程",
     "aheadBehind": "领先 {ahead}，落后 {behind}",
     "newFile": "新文件，尚未跟踪。",
-    "switchBranch": "切换",
+    "switchBranch": "切换分支",
     "switchTitle": "切换分支",
     "switchDirty": "有 {count} 项未提交的更改。仍要切换到“{branch}”吗？"
   },
   "properties": {
+    "label": {
+      "ParentId": "父级 ID",
+      "TextureMaskId": "纹理遮罩 ID",
+      "PhysicsVertices": "物理顶点",
+      "LastObj": "最后一个对象",
+      "LastTile": "最后一个图块",
+      "IsDebuggerDisabled": "已禁用调试器",
+      "AudioID": "音频 ID"
+    },
+    "noItems": "无项目",
     "empty": "（空）",
     "addEntry": "添加条目",
     "moveUp": "上移",
@@ -1159,6 +1237,7 @@
     "mayLoseData": "无法解析此数据文件中的 {count} 个部分。保存时可能会丢失。"
   },
   "usages": {
+    "empty": "尚无可显示的用法。请对资源使用“查找用法”。",
     "unrefSearching": "正在查找没有被使用的资源...",
     "unrefFound": "有 {count} 个资源没有被任何地方使用。",
     "unrefNone": "没有未使用的资源。",
@@ -1415,6 +1494,7 @@
     "downloading": "正在下载 G3MStudio {version}..."
   },
   "sounds": {
+    "audioNone": "不播放音频：此声音没有音频条目。",
     "noSound": "请先选择一个声音。",
     "options": "存储: {flags}, 音量 {volume}, 音高 {pitch}",
     "pickAudio": "选择 WAV 或 OGG 文件",
@@ -2272,7 +2352,8 @@
       "addMessage": "添加消息",
       "addKey": "在播放头处添加关键帧",
       "splitKey": "在播放头处拆分关键帧",
-      "deleteKey": "删除关键帧"
+      "deleteKey": "删除关键帧",
+      "empty": "此序列还没有轨道。"
     },
     "particles": {
       "solo": "独奏",
@@ -2305,7 +2386,8 @@
       "channel": "通道",
       "add": "添加点",
       "delete": "删除点",
-      "value": "值"
+      "value": "值",
+      "empty": "此曲线还没有通道。"
     },
     "path": {
       "reverse": "反转顺序",

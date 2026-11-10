@@ -374,6 +374,7 @@
     }
   },
   "palette": {
+    "showPanel": "顯示{panel}",
     "altApplyPatch": "將修補程式套用到目前資料檔案，將已修補的資料檔案儲存為新檔案",
     "altApplyMod": "將模組套用到目前資料檔案，將已套用模組的資料檔案儲存為新檔案",
     "altRunScript": "執行 Scripts 資料夾中的指令碼，執行指令碼檔案",
@@ -399,6 +400,7 @@
     "clear": "清除最近開啟的項目"
   },
   "explorer": {
+    "noSection": "此資料檔案沒有{type}區段，因此無法新增。",
     "noValue": "無",
     "thumbnails": "縮圖",
     "zoom": "縮放 50% 到 250%",
@@ -661,6 +663,72 @@
     "rebuildFailed": "無法重新建置資料檔案：{reason}"
   },
   "history": {
+    "kind": {
+      "addString": "新增字串",
+      "assembly": "編輯組合語言",
+      "audioGroupMove": "移到音訊群組",
+      "clearReferences": "清除參照",
+      "code": "編輯程式碼",
+      "codeEntry": "新增程式碼項目",
+      "copyProperties": "複製屬性",
+      "copyResources": "複製資源",
+      "curvePoint": "編輯曲線點",
+      "deleteString": "刪除字串",
+      "editString": "編輯字串",
+      "entryScripts": "編輯項目指令碼",
+      "extensionList": "編輯擴充功能",
+      "fontGlyph": "編輯字型字形",
+      "fontKerning": "編輯字型字距",
+      "fontReplace": "取代字型",
+      "frameList": "編輯精靈影格",
+      "frameOwnPicture": "為影格設定獨立圖片",
+      "framesImport": "匯入影格",
+      "gameRoomOrder": "變更房間順序",
+      "group": "一組編輯",
+      "groupList": "編輯群組",
+      "imageEdit": "編輯影像",
+      "importMask": "匯入遮罩",
+      "listEntry": "編輯清單項目",
+      "move": "變更順序",
+      "nineSlice": "編輯九宮格",
+      "objectEvent": "編輯物件事件",
+      "objectEventCopy": "複製物件事件",
+      "objectEventOrder": "調整物件事件順序",
+      "objectEventRetype": "變更事件類型",
+      "objectParent": "變更父物件",
+      "particleEmitter": "編輯粒子發射器",
+      "pathEdit": "編輯路徑",
+      "pathPoints": "編輯路徑點",
+      "physicsVertex": "編輯物理頂點",
+      "property": "編輯屬性",
+      "recalcMask": "重新計算遮罩",
+      "rename": "重新命名",
+      "replaceAudio": "取代音訊",
+      "replaceFrame": "取代精靈影格",
+      "replaceItem": "取代圖片",
+      "replacePage": "取代紋理頁",
+      "resourceList": "編輯資源清單",
+      "roomCreationCode": "編輯房間建立程式碼",
+      "roomElement": "編輯房間元素",
+      "roomInstance": "編輯房間實例",
+      "roomLayer": "編輯房間圖層",
+      "roomOrder": "變更建立順序",
+      "roomTile": "編輯房間圖塊",
+      "roomTiles": "繪製圖塊",
+      "sequenceEvent": "編輯序列事件",
+      "sequenceKeyframe": "編輯關鍵影格",
+      "sequenceTrack": "編輯序列軌道",
+      "spriteMask": "編輯碰撞遮罩",
+      "spriteOrigin": "移動精靈原點",
+      "textureGroupMove": "移到紋理群組",
+      "tileAnimation": "編輯圖塊動畫",
+      "timelineAction": "編輯時間軸動作",
+      "timelineMoment": "編輯時間軸時刻",
+      "timelineMomentCopy": "複製時間軸時刻",
+      "timelineShift": "平移時間軸時刻",
+      "uiLayer": "編輯 UI 圖層",
+      "varCounts": "變更變數數量"
+    },
     "newResource": "新增{type}：{name}",
     "newResources": "新增 {count} 個資源",
     "deleteResources": "刪除 {count} 個資源",
@@ -997,11 +1065,21 @@
     "addRemote": "新增遠端",
     "aheadBehind": "領先 {ahead}，落後 {behind}",
     "newFile": "新檔案，尚未追蹤。",
-    "switchBranch": "切換",
+    "switchBranch": "切換分支",
     "switchTitle": "切換分支",
     "switchDirty": "有 {count} 項未提交的變更。仍要切換到「{branch}」嗎？"
   },
   "properties": {
+    "label": {
+      "ParentId": "父層 ID",
+      "TextureMaskId": "紋理遮罩 ID",
+      "PhysicsVertices": "物理頂點",
+      "LastObj": "最後一個物件",
+      "LastTile": "最後一個圖塊",
+      "IsDebuggerDisabled": "已停用偵錯器",
+      "AudioID": "音訊 ID"
+    },
+    "noItems": "無項目",
     "empty": "（空）",
     "addEntry": "新增項目",
     "moveUp": "上移",
@@ -1159,6 +1237,7 @@
     "mayLoseData": "無法解析此資料檔案中的 {count} 個部分。儲存時可能會遺失。"
   },
   "usages": {
+    "empty": "尚無可顯示的用法。請對資源使用「尋找用法」。",
     "unrefSearching": "正在尋找沒有被使用的資源...",
     "unrefFound": "有 {count} 個資源沒有被任何地方使用。",
     "unrefNone": "沒有未使用的資源。",
@@ -1415,6 +1494,7 @@
     "downloading": "正在下載 G3MStudio {version}..."
   },
   "sounds": {
+    "audioNone": "不播放音訊：此音效沒有音訊項目。",
     "noSound": "請先選擇一個聲音。",
     "options": "儲存: {flags}, 音量 {volume}, 音高 {pitch}",
     "pickAudio": "選擇 WAV 或 OGG 檔案",
@@ -2272,7 +2352,8 @@
       "addMessage": "新增訊息",
       "addKey": "在播放頭處新增關鍵影格",
       "splitKey": "在播放頭處分割關鍵影格",
-      "deleteKey": "刪除關鍵影格"
+      "deleteKey": "刪除關鍵影格",
+      "empty": "此序列尚無軌道。"
     },
     "particles": {
       "solo": "獨奏",
@@ -2305,7 +2386,8 @@
       "channel": "通道",
       "add": "新增點",
       "delete": "刪除點",
-      "value": "值"
+      "value": "值",
+      "empty": "此曲線尚無通道。"
     },
     "path": {
       "reverse": "反轉順序",

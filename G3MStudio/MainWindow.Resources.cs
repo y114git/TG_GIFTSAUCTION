@@ -13,6 +13,12 @@ public partial class MainWindow
     {
         if (Workspaces.Current is not { } workspace || !ResourceListCommand.Creatable.Contains(type)) return;
         var label = Loc.Current["explorer.typeOne." + type];
+        if (!ResourceListCommand.CanHold(workspace.Data, type))
+        {
+            Notify(NotificationLevel.Info, Loc.Current.Format("explorer.noSection", ("type", label)));
+            return;
+        }
+
         var dialog = new RenameWindow("", name => CreateResource(workspace, type, name), Loc.Current.Format("explorer.newTitle", ("type", label)), Loc.Current.Format("explorer.newLabel", ("type", label)), Loc.Current["explorer.newOk"]);
         _ = AskNameAsync(dialog);
     }
@@ -34,6 +40,7 @@ public partial class MainWindow
 
     internal string? CreateResource(Workspace workspace, string type, string name)
     {
+        if (!ResourceListCommand.CanHold(workspace.Data, type)) return Loc.Current.Format("explorer.noSection", ("type", Loc.Current["explorer.typeOne." + type]));
         try
         {
             // An unusual name is warned about once in the dialog; the same name sent again, or the setting that allows risky actions, goes through.

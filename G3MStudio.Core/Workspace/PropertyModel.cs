@@ -95,7 +95,7 @@ public static class PropertyModel
             else if (value is GameMakerNamedResource or GameMakerCode)
             {
                 // A reference to another entry (an object's sprite, a script's code): shown by name, edited in its own editor.
-                rows.Add(new PropertyRow(path, property.Name, PropertyKind.Info, ResourceTypes.NameOf(value), depth, true) { Reference = settable, Target = UsageSearch.TypeKeyOf(value) is { } targetType ? ResourceTypes.KeyOf(targetType, ResourceTypes.NameOf(value)) : null });
+                rows.Add(new PropertyRow(path, property.Name, PropertyKind.Info, ReferenceText(value), depth, true) { Reference = settable, Target = UsageSearch.TypeKeyOf(value) is { } targetType ? ResourceTypes.KeyOf(targetType, ResourceTypes.NameOf(value)) : null });
             }
             else if (value is byte[] bytes)
             {
@@ -130,6 +130,9 @@ public static class PropertyModel
             }
         }
     }
+
+    // A page item has only a generated name, so its size says more.
+    private static string ReferenceText(object value) => value is GameMakerTexturePageItem item ? $"{ResourceTypes.NameOf(item)} ({item.SourceWidth}x{item.SourceHeight})" : ResourceTypes.NameOf(value);
 
     private static void Describe(object? item, string path, string title, int depth, RowSink sink, bool editable = false)
     {

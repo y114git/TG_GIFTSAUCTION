@@ -77,6 +77,12 @@
   <Style Selector="ToolTip"><Setter Property="FontSize" Value="{DynamicResource Tooltip.Size}" /></Style>
   <Style Selector="PathIcon"><Setter Property="Width" Value="{DynamicResource Icon.Size}" /><Setter Property="Height" Value="{DynamicResource Icon.Size}" /></Style>
   <Style Selector="TabItem, dockc|DocumentTabStripItem, dockc|ToolTabStripItem"><Setter Property="MinHeight" Value="{DynamicResource Tab.Height}" /></Style>
+  <!-- The chosen tab is filled like a selected row, the others stay plain, so the six shader tabs and the settings tabs show where you are. -->
+  <Style Selector="TabItem:selected">
+    <Setter Property="Background" Value="{DynamicResource Selection.Bg}" />
+    <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
+    <Setter Property="FontWeight" Value="Bold" />
+  </Style>
   <Style Selector="GridSplitter"><Setter Property="Background" Value="{DynamicResource Border.Subtle}" /></Style>
   <Style Selector="Border.panel"><Setter Property="Padding" Value="{DynamicResource Panel.Padding}" /></Style>
   <Style Selector="TextBlock.muted"><Setter Property="Foreground" Value="{DynamicResource Text.Muted}" /></Style>

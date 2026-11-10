@@ -7,6 +7,15 @@ namespace G3MStudio.Tests;
 public sealed class ResourceListTests
 {
     [Fact]
+    public void ATypeWhoseSectionIsMissingCannotHoldANewOne()
+    {
+        using var data = TestData.Create();
+        Assert.Equal(data.ParticleSystems is not null, ResourceListCommand.CanHold(data, "particleSystems"));
+        Assert.Equal(data.GameObjects is not null, ResourceListCommand.CanHold(data, "objects"));
+        Assert.False(ResourceListCommand.CanHold(data, "noSuchType"));
+    }
+
+    [Fact]
     public async Task NewResourcesSurviveAWriteAndARead_AndDeletesUndo()
     {
         var folder = Corpus.Folder;

@@ -374,6 +374,7 @@
     }
   },
   "palette": {
+    "showPanel": "{panel}を表示",
     "altApplyPatch": "現在のデータファイルにパッチを適用、パッチ済みデータファイルを新規保存",
     "altApplyMod": "現在のデータファイルにMODを適用、MOD適用済みデータファイルを新規保存",
     "altRunScript": "Scripts フォルダーのスクリプトを実行、スクリプトファイルを実行",
@@ -399,6 +400,7 @@
     "clear": "最近開いた項目を消去"
   },
   "explorer": {
+    "noSection": "このデータファイルには{type}のセクションがないため、新規作成できません。",
     "noValue": "なし",
     "thumbnails": "サムネイル",
     "zoom": "ズーム 50 から 250 パーセント",
@@ -661,6 +663,72 @@
     "rebuildFailed": "データファイルを再構築できませんでした: {reason}"
   },
   "history": {
+    "kind": {
+      "addString": "文字列を追加",
+      "assembly": "アセンブリを編集",
+      "audioGroupMove": "オーディオグループへ移動",
+      "clearReferences": "参照を解除",
+      "code": "コードを編集",
+      "codeEntry": "新しいコードエントリ",
+      "copyProperties": "プロパティをコピー",
+      "copyResources": "リソースをコピー",
+      "curvePoint": "カーブの点を編集",
+      "deleteString": "文字列を削除",
+      "editString": "文字列を編集",
+      "entryScripts": "エントリのスクリプトを編集",
+      "extensionList": "拡張機能を編集",
+      "fontGlyph": "フォントのグリフを編集",
+      "fontKerning": "フォントのカーニングを編集",
+      "fontReplace": "フォントを置換",
+      "frameList": "スプライトのフレームを編集",
+      "frameOwnPicture": "フレームに専用画像を設定",
+      "framesImport": "フレームをインポート",
+      "gameRoomOrder": "ルームの順序を変更",
+      "group": "編集のグループ",
+      "groupList": "グループを編集",
+      "imageEdit": "画像を編集",
+      "importMask": "マスクをインポート",
+      "listEntry": "リスト項目を編集",
+      "move": "順序を変更",
+      "nineSlice": "9スライスを編集",
+      "objectEvent": "オブジェクトのイベントを編集",
+      "objectEventCopy": "オブジェクトのイベントをコピー",
+      "objectEventOrder": "オブジェクトのイベントを並べ替え",
+      "objectEventRetype": "イベントの種類を変更",
+      "objectParent": "親オブジェクトを変更",
+      "particleEmitter": "パーティクルエミッターを編集",
+      "pathEdit": "パスを編集",
+      "pathPoints": "パスの点を編集",
+      "physicsVertex": "物理の頂点を編集",
+      "property": "プロパティを編集",
+      "recalcMask": "マスクを再計算",
+      "rename": "名前の変更",
+      "replaceAudio": "オーディオを置き換え",
+      "replaceFrame": "スプライトのフレームを置換",
+      "replaceItem": "画像を置換",
+      "replacePage": "テクスチャページを置換",
+      "resourceList": "リソースの一覧を編集",
+      "roomCreationCode": "ルーム作成コードを編集",
+      "roomElement": "ルームの要素を編集",
+      "roomInstance": "ルームのインスタンスを編集",
+      "roomLayer": "ルームのレイヤーを編集",
+      "roomOrder": "作成順序を変更",
+      "roomTile": "ルームのタイルを編集",
+      "roomTiles": "タイルを描画",
+      "sequenceEvent": "シーケンスのイベントを編集",
+      "sequenceKeyframe": "キーフレームを編集",
+      "sequenceTrack": "シーケンスのトラックを編集",
+      "spriteMask": "衝突マスクを編集",
+      "spriteOrigin": "スプライトの原点を移動",
+      "textureGroupMove": "テクスチャグループへ移動",
+      "tileAnimation": "タイルのアニメーションを編集",
+      "timelineAction": "タイムラインのアクションを編集",
+      "timelineMoment": "タイムラインの時点を編集",
+      "timelineMomentCopy": "タイムラインの時点をコピー",
+      "timelineShift": "タイムラインの時点をずらす",
+      "uiLayer": "UIレイヤーを編集",
+      "varCounts": "変数の数を変更"
+    },
     "newResource": "新規 {type}: {name}",
     "newResources": "新規リソース {count} 件",
     "deleteResources": "{count} 件のリソースを削除",
@@ -997,11 +1065,21 @@
     "addRemote": "リモートを追加",
     "aheadBehind": "{ahead} 先行、{behind} 遅れ",
     "newFile": "新しいファイルです。まだ追跡されていません。",
-    "switchBranch": "切り替え",
+    "switchBranch": "ブランチを切り替え",
     "switchTitle": "ブランチの切り替え",
     "switchDirty": "未コミットの変更が{count}件あります。それでも「{branch}」に切り替えますか？"
   },
   "properties": {
+    "label": {
+      "ParentId": "親のID",
+      "TextureMaskId": "テクスチャマスクID",
+      "PhysicsVertices": "物理の頂点",
+      "LastObj": "最後のオブジェクト",
+      "LastTile": "最後のタイル",
+      "IsDebuggerDisabled": "デバッガー無効",
+      "AudioID": "オーディオID"
+    },
+    "noItems": "項目なし",
     "empty": "(空)",
     "addEntry": "エントリを追加",
     "moveUp": "上へ",
@@ -1159,6 +1237,7 @@
     "mayLoseData": "このデータファイルの {count} 件の部分を読み取れませんでした。保存すると失われる可能性があります。"
   },
   "usages": {
+    "empty": "表示する使用箇所はまだありません。リソースで「使用箇所を検索」を実行してください。",
     "unrefSearching": "どこからも使われていないアセットを検索中...",
     "unrefFound": "どこからも使われていないアセットが {count} 件あります。",
     "unrefNone": "未使用のアセットはありません。",
@@ -1415,6 +1494,7 @@
     "downloading": "G3MStudio {version} をダウンロード中..."
   },
   "sounds": {
+    "audioNone": "再生するオーディオはありません。このサウンドにはオーディオエントリがありません。",
     "noSound": "先にサウンドを選択してください。",
     "options": "保存: {flags}、音量 {volume}、ピッチ {pitch}",
     "pickAudio": "WAV または OGG ファイルを選択",
@@ -2272,7 +2352,8 @@
       "addMessage": "メッセージを追加",
       "addKey": "再生位置にキーフレームを追加",
       "splitKey": "再生位置でキーフレームを分割",
-      "deleteKey": "キーフレームを削除"
+      "deleteKey": "キーフレームを削除",
+      "empty": "このシーケンスにはまだトラックがありません。"
     },
     "particles": {
       "solo": "ソロ",
@@ -2305,7 +2386,8 @@
       "channel": "チャンネル",
       "add": "点を追加",
       "delete": "点を削除",
-      "value": "値"
+      "value": "値",
+      "empty": "このカーブにはまだチャンネルがありません。"
     },
     "path": {
       "reverse": "逆順",

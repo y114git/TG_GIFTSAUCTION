@@ -14,10 +14,13 @@ public sealed class UsagesPanel : UserControl
     private readonly Button _exclude = new Button { Name = "UsagesExclude", IsVisible = false }.Tr(ContentControl.ContentProperty, "usages.excludeSelected");
     private readonly TextBlock _note = new TextBlock { Name = "UsagesNote", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap, IsVisible = false }.Tr(TextBlock.TextProperty, "usages.unrefNote");
     private readonly TextBlock _excludeNote = new TextBlock { Name = "UsagesExcludeNote", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap, IsVisible = false }.Tr(TextBlock.TextProperty, "usages.excludeNote");
+    private readonly TextBlock _empty = new TextBlock { Name = "UsagesEmpty", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap }.Tr(TextBlock.TextProperty, "usages.empty");
     private int _generation;
 
     public UsagesPanel()
     {
+        // The hint shows until a search puts a line of its own into the status.
+        _status.PropertyChanged += (_, e) => { if (e.Property == TextBlock.TextProperty) _empty.IsVisible = string.IsNullOrEmpty(_status.Text); };
         _list.ItemTemplate = new FuncDataTemplate<UsageHit>((hit, _) => new TextBlock { Text = hit is null ? "" : $"{hit.OwnerName}  {hit.Where}".TrimEnd(), TextTrimming = Avalonia.Media.TextTrimming.CharacterEllipsis });
         _list.DoubleTapped += (_, _) => { if (_list.SelectedItem is UsageHit hit) OpenRequested?.Invoke(hit); };
         _list.KeyDown += (_, e) => { if (e.Key == Avalonia.Input.Key.Enter && _list.SelectedItem is UsageHit hit) { e.Handled = true; OpenRequested?.Invoke(hit); } };
@@ -29,7 +32,9 @@ public sealed class UsagesPanel : UserControl
         DockPanel.SetDock(_exclude, Avalonia.Controls.Dock.Top);
         DockPanel.SetDock(_note, Avalonia.Controls.Dock.Top);
         DockPanel.SetDock(_excludeNote, Avalonia.Controls.Dock.Top);
+        DockPanel.SetDock(_empty, Avalonia.Controls.Dock.Top);
         layout.Children.Add(_status);
+        layout.Children.Add(_empty);
         layout.Children.Add(_note);
         layout.Children.Add(_remove);
         layout.Children.Add(_exclude);

@@ -205,6 +205,7 @@ public sealed class CurveEditor : DockPanel
     private readonly ListBox _points = new() { Name = "CurvePoints", MaxHeight = 220 };
     private readonly NumericUpDown _x = new() { Name = "CurvePointX", FormatString = "0.###", Minimum = -1000000, Maximum = 1000000, Increment = 0.1M };
     private readonly NumericUpDown _value = new() { Name = "CurvePointValue", FormatString = "0.###", Minimum = -1000000, Maximum = 1000000, Increment = 0.1M };
+    private readonly TextBlock _empty;
     private bool _building;
 
     // Same order as CurvePresets.Names.
@@ -219,6 +220,10 @@ public sealed class CurveEditor : DockPanel
         var top = new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Margin = new Thickness(0, 0, 0, 6), Children = { new TextBlock { Text = Loc.Current["editors.curve.channel"], VerticalAlignment = VerticalAlignment.Center }, _channels, _type } };
         SetDock(top, Avalonia.Controls.Dock.Top);
         Children.Add(top);
+        // A new curve has no channel, so the boxes below stay empty; the line says why.
+        _empty = new TextBlock { Name = "CurveEmptyHint", Classes = { "muted" }, Text = Loc.Current["editors.curve.empty"], Margin = new Thickness(0, 0, 0, 6) };
+        SetDock(_empty, Avalonia.Controls.Dock.Top);
+        Children.Add(_empty);
         var add = new Button { Name = "CurvePointAdd", Content = Loc.Current["editors.curve.add"], IsEnabled = workspace is not null };
         var delete = new Button { Name = "CurvePointDelete", Content = Loc.Current["editors.curve.delete"], IsEnabled = workspace is not null };
         var presets = new ComboBox { Name = "CurvePreset", MinWidth = 140, IsEnabled = workspace is not null, PlaceholderText = Loc.Current["editors.curve.preset"], ItemsSource = PresetKeys.Select(k => Loc.Current[k]).ToList() };
@@ -306,6 +311,7 @@ public sealed class CurveEditor : DockPanel
 
     private void Refresh()
     {
+        _empty.IsVisible = _curve.Channels.Count == 0;
         _building = true;
         _channels.ItemsSource = _curve.Channels.Select((c, i) => c.Name?.Content ?? i.ToString(CultureInfo.InvariantCulture)).ToList();
         _channels.SelectedIndex = Math.Min(Graph.Channel, _curve.Channels.Count - 1);

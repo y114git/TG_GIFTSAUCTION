@@ -3,6 +3,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Editor;
+using G3MStudio.Localization;
 
 namespace G3MStudio.Tests;
 
@@ -169,5 +170,22 @@ public sealed class PropertyGridTests
     [InlineData("SVersion", "Special Version")]
     [InlineData("SSpriteType", "Special Sprite Type")]
     [InlineData("SDFSpread", "SDFSpread")]
+    [InlineData("ParentId", "Parent ID")]
+    [InlineData("LastObj", "Last Object")]
+    [InlineData("TextureMaskId", "Texture Mask ID")]
     public void LabelsAreReadable(string name, string label) => Assert.Equal(label, PropertyGridTab.Spaced(name));
+
+    [Theory]
+    [InlineData("Oneshot", "One shot")]
+    [InlineData("FramesPerSecond", "Frames per second")]
+    [InlineData("Automatic", "Automatic")]
+    public void ChoicesReadAsWords(string value, string shown) => Assert.Equal(shown, PropertyGridTab.ChoiceLabel(value));
+
+    [Fact]
+    public void KnownFieldsHaveALocalizedLabel()
+    {
+        Loc.Current.SetLanguage("en");
+        Assert.Equal("Debugger Disabled", PropertyGridTab.Label("IsDebuggerDisabled"));
+        Assert.Equal("Margin Left", PropertyGridTab.Label("MarginLeft"));
+    }
 }

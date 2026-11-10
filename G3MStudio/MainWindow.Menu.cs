@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using G3MStudio.Commands;
 using G3MStudio.Core.Commands;
+using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
 
 namespace G3MStudio;
@@ -56,6 +57,7 @@ public sealed partial class MainWindow
         }
 
         Registry.ContextChanged += ShowContextMenus;
+        Registry.ContextChanged += RefreshNewTips;
         Registry.ShortcutChanged += RefreshMenuTip;
         ShowContextMenus();
         RefreshMenuTips();
@@ -81,7 +83,22 @@ public sealed partial class MainWindow
 
     private void RefreshMenuTip(string id)
     {
-        if (_menuItems.TryGetValue(id, out var item)) ToolTip.SetTip(item, KeyTips.For(Registry, id, Loc.Current[AppCommands.TitleKey(id)]));
+        if (!_menuItems.TryGetValue(id, out var item)) return;
+        ToolTip.SetTip(item, KeyTips.For(Registry, id, Loc.Current[AppCommands.TitleKey(id)]));
+        ToolTip.SetShowOnDisabled(item, true);
+    }
+
+    // A New entry that is off while a file is open is off because the data file has no section for it: the tip says so.
+    private void RefreshNewTips()
+    {
+        foreach (var type in ResourceListCommand.Creatable)
+        {
+            var id = "file.new." + type;
+            if (!_menuItems.TryGetValue(id, out var item)) continue;
+            if (Registry.HasContext(AppCommands.WorkspaceOpen) && !Registry.HasContext(AppCommands.CanNew(type)))
+                ToolTip.SetTip(item, Loc.Current.Format("explorer.noSection", ("type", Loc.Current["explorer.typeOne." + type])));
+            else RefreshMenuTip(id);
+        }
     }
     private readonly MenuItem _recentMenu = new() { Name = "OpenRecent" };
 

@@ -48,6 +48,7 @@ public sealed partial class MainWindow
     public static string PaletteTitle(string id, Localizer loc)
     {
         var title = loc[AppCommands.TitleKey(id)];
+        if (id.StartsWith("view.panel.", StringComparison.Ordinal)) return loc.Format("palette.showPanel", ("panel", title));
         if (!id.StartsWith("img.", StringComparison.Ordinal)) return title;
         var group = AppCommands.Submenu("menu.image", id);
         return group is null ? $"{loc["menu.image"]} > {title}" : $"{loc["menu.image"]} > {loc["menu.sub." + group]} > {title}";

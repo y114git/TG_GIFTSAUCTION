@@ -81,6 +81,8 @@ public sealed partial class LocalizationTests
         var literals = KeyLiteral().Matches(text).Select(m => m.Groups[1].Value).Where(k => !k.EndsWith('.') && !k.EndsWith(".json", StringComparison.Ordinal) && !k.EndsWith(".exe", StringComparison.Ordinal) && !commandIds.Contains(k)).Concat(xamlKeys).ToHashSet();
         var derived = AppCommands.Create(new FakeShell()).All.Select(c => AppCommands.TitleKey(c.Id)).ToHashSet();
         var triggers = Enum.GetNames<Core.Projects.Trigger>().Select(n => "project.trigger." + n);
+        var labels = G3MStudio.Editor.PropertyGridTab.LabelFields.Select(f => "properties.label." + f);
+        var kinds = EditCommand.Kinds.Select(k => "history.kind." + k);
         var types = ResourceTypes.All.Select(t => "explorer.type." + t.Key).Append("explorer.type." + ExplorerModel.DataGroup).Append("explorer.type.backgrounds").Concat(Core.Workspace.ResourceListCommand.Creatable.Select(t => "explorer.typeOne." + t));
         var tools = Enum.GetNames<Rooms.RoomTool>().Select(n => "rooms.tool." + n).Concat(TourWindow.Steps.SelectMany(s => new[] { "tour." + s.Key + ".title", "tour." + s.Key + ".text" }));
         var painterKeys = Enum.GetNames<Editor.ImageTool>().SelectMany(n => new[] { "image.tool." + n, "image.hint." + n }).Concat(Enum.GetNames<Editor.ShapeStyle>().Select(n => "image.style." + n)).Concat(Enum.GetNames<Core.Workspace.BrushShape>().Select(n => "image.shape." + n)).Concat(Enum.GetNames<Core.Workspace.LayerBlend>().Select(n => "image.blend." + n));
@@ -90,7 +92,7 @@ public sealed partial class LocalizationTests
         var submenus = AppCommands.Menus.SelectMany(m => m.Ids.Select(id => AppCommands.Submenu(m.TitleKey, id)).OfType<string>()).Distinct().Select(group => "menu.sub." + group).Concat(ThemeColors.Editable.Select(k => "colors." + k)).Concat(ThemeColors.Groups.Select(g => g.Group)).Concat(ThemeSizes.All.Select(a => "settings.size." + a.Key)).Concat(["settings.size.CodeFont"]).Concat(UiSizing.Densities.Select(d => "settings.densityName." + d));
         var organizeKeys = OrganizeSuffixes.Select(k => "organize." + k).Concat(Enum.GetNames<Core.Workspace.RenameMode>().Select(n => "organize.mode." + n.ToLowerInvariant()));
         var uiKeys = new G3MLib.DataFile.Models.IGameMakerUINodeData[] { new G3MLib.DataFile.Models.GameMakerUILayer(), new G3MLib.DataFile.Models.GameMakerUIFlexPanel(), new G3MLib.DataFile.Models.GameMakerUITextItemInstance() }.SelectMany(Core.Workspace.UiLayerProps.For).SelectMany(p => new[] { "uiLayer.prop." + p.Name, "uiLayer.group." + p.Group });
-        var used = literals.Concat(organizeKeys).Concat(uiKeys).Concat(derived).Concat(submenus).Concat(triggers).Concat(types).Concat(tools).Concat(painterKeys).Concat(searchKeys).Concat(dockKeys).Concat(layerKeys).ToHashSet();
+        var used = literals.Concat(organizeKeys).Concat(uiKeys).Concat(derived).Concat(submenus).Concat(triggers).Concat(types).Concat(kinds).Concat(labels).Concat(tools).Concat(painterKeys).Concat(searchKeys).Concat(dockKeys).Concat(layerKeys).ToHashSet();
 
         Assert.True(english.IsSubsetOf(used), $"unused keys: {string.Join(", ", english.Except(used))}");
         Assert.True(used.All(english.Contains), $"unknown keys: {string.Join(", ", used.Except(english))}");

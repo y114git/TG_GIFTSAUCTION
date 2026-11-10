@@ -14,10 +14,10 @@ public sealed record ExplorerRow(ExplorerRowKind Kind, string Key, string Text, 
     /// <summary>#RRGGBB of a folder, collection or tag row, or empty.</summary>
     public string Colour { get; init; } = "";
 
-    /// <summary>False when the settings hide the counts.</summary>
+    /// <summary>False when the settings hide the counts. A count of 0 is never shown either.</summary>
     public bool ShowCount { get; init; } = true;
 
-    public bool HasCount => (IsHeader || Kind == ExplorerRowKind.Search) && ShowCount;
+    public bool HasCount => (IsHeader || Kind == ExplorerRowKind.Search) && ShowCount && Count > 0;
 
     public object? Item { get; init; }
 

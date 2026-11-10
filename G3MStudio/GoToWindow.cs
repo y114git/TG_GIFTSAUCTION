@@ -95,7 +95,7 @@ public sealed class GoToWindow : Window
     /// <summary>A short mark and the kind name on the right, so a script and its code of one name differ at a glance.</summary>
     private static DockPanel Row(GoToEntry entry)
     {
-        var kind = entry.Kind == GoToKind.Resource ? Loc.Current["explorer.type." + entry.Type] : Loc.Current[KindKey(entry.Kind)];
+        var kind = KindName(entry);
         var detail = entry.Detail.Length > 0 ? $"{kind}  {entry.Detail}" : kind;
         var row = new DockPanel
         {
@@ -106,9 +106,18 @@ public sealed class GoToWindow : Window
                 new TextBlock { Text = entry.Name, TextWrapping = Avalonia.Media.TextWrapping.Wrap },
             },
         };
-        ToolTip.SetTip(row, kind); // the two-letter mark is spelled out on hover
+        ToolTip.SetTip(row, Tip(entry));
         return row;
     }
+
+    /// <summary>The hover text of a row: the kind (the two-letter mark is spelled out) and the whole description, which the row cuts short.</summary>
+    internal static string Tip(GoToEntry entry)
+    {
+        var kind = KindName(entry);
+        return entry.Detail.Length > 0 ? $"{kind}\n{entry.Detail}" : kind;
+    }
+
+    private static string KindName(GoToEntry entry) => entry.Kind == GoToKind.Resource ? Loc.Current["explorer.type." + entry.Type] : Loc.Current[KindKey(entry.Kind)];
 
     /// <summary>A short mark in front of a row, so a script and the code of the same name differ at a glance and not by the right-hand label alone.</summary>
     public static string Badge(string type) => type switch

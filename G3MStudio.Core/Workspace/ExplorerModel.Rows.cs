@@ -93,7 +93,7 @@ public sealed partial class ExplorerModel
         if (dataRows.Count > 0)
         {
             var open = IsFiltering || _expanded.Contains(DataGroup);
-            var heading = new ExplorerRow(ExplorerRowKind.Group, DataGroup, Title(DataGroup), 1) { Expanded = open };
+            var heading = new ExplorerRow(ExplorerRowKind.Group, DataGroup, Title(DataGroup), 1) { Expanded = open, Count = dataRows.Where(r => r.Kind == ExplorerRowKind.Type).Sum(r => r.Count) };
             dataRows = open ? [heading, .. dataRows] : [heading];
         }
 

@@ -223,6 +223,8 @@ public sealed class CommandTests
         window.Registry.SetContext(AppCommands.WorkspaceOpen, true);
         window.Show();
         // After Show: the window sets these itself from the tabs it holds, and a fresh window has none.
+        window.Registry.SetContext(AppCommands.ResourceSelected, true);
+        foreach (var type in Core.Workspace.ResourceListCommand.Creatable) window.Registry.SetContext(AppCommands.CanNew(type), true);
         window.Registry.SetContext(AppCommands.SpriteTab, true);
         window.Registry.SetContext(AppCommands.RoomTab, true);
         window.Registry.SetContext(AppCommands.CodeTab, true);
@@ -300,10 +302,16 @@ public sealed class CommandTests
                 {
                     if (!AppCommands.TransferModes.Contains(id)) // a transfer mode has no menu entry of its own
                     {
-                        var item = MenuItems(window).Single(m => m.Command is RegistryCommand && (string?)m.Header == Loc.Current[AppCommands.TitleKey(id)]);
-                        Assert.True(item.Command!.CanExecute(null), id);
-                        item.Command.Execute(null);
-                        Assert.Equal([id], executed);
+                        // Two menus may share a title (Edit > Select All, Image > Selection > Select All): one of the items runs this command.
+                        var items = MenuItems(window).Where(m => m.Command is RegistryCommand && (string?)m.Header == Loc.Current[AppCommands.TitleKey(id)]).ToList();
+                        Assert.NotEmpty(items);
+                        Assert.Contains(items, item =>
+                        {
+                            executed.Clear();
+                            Assert.True(item.Command!.CanExecute(null), id);
+                            item.Command.Execute(null);
+                            return executed.SequenceEqual([id]);
+                        });
                     }
                 }
                 finally { CloseAll(window); }

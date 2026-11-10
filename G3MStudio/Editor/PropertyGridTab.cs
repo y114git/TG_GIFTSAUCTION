@@ -12,7 +12,7 @@ namespace G3MStudio.Editor;
 /// One editor for every resource: its properties as a filtered list. A change is committed when the box loses focus or Enter is pressed,
 /// as one undoable <see cref="SetPropertyCommand"/>. Text the property cannot hold is refused with a message and the old value stays.
 /// </summary>
-public sealed class PropertyGridTab : DockPanel
+public sealed partial class PropertyGridTab : DockPanel
 {
     private readonly Workspace _workspace;
     private readonly TextBox _filter = new() { Name = "PropertyFilter", PlaceholderText = Loc.Current["properties.filter"], Margin = new Thickness(8, 4) };
@@ -53,8 +53,8 @@ public sealed class PropertyGridTab : DockPanel
         {
             // A room, sequence or font editor is tall: the splitter lets the canvas and the properties share the tab at any window size.
             var tall = header is RoomPreview or SpriteEditorView || type is "fonts" or "uiLayers"; // a font's glyph list and a UI layer's tree, fields and preview need most of the tab, with a splitter instead of a cap
-            var top = new RowDefinition(tall ? new GridLength(header is RoomPreview ? 5 : header is SpriteEditorView ? 5 : 3, GridUnitType.Star) : GridLength.Auto) { MinHeight = tall ? (header is SpriteEditorView ? 320 : 200) : 0 };
-            var split = new Grid { RowDefinitions = { top, new RowDefinition(GridLength.Auto), new RowDefinition(2, GridUnitType.Star) { MinHeight = 120 } } };
+            var top = new RowDefinition(tall ? new GridLength(header is RoomPreview ? 4 : header is SpriteEditorView ? 5 : 3, GridUnitType.Star) : GridLength.Auto) { MinHeight = tall ? (header is SpriteEditorView ? 320 : header is RoomPreview ? 280 : 200) : 0 };
+            var split = new Grid { RowDefinitions = { top, new RowDefinition(GridLength.Auto), new RowDefinition(2, GridUnitType.Star) { MinHeight = header is RoomPreview ? 180 : 120 } } };
             var splitter = new GridSplitter { Height = 5, HorizontalAlignment = HorizontalAlignment.Stretch, ResizeDirection = GridResizeDirection.Rows, IsVisible = tall || type == "objects" };
             // A stacked header takes the room its content needs (an object tab too, with a splitter to give it more), at most 60% of the tab, and scrolls beyond that.
             if (!tall) split.SizeChanged += (_, e) => top.MaxHeight = e.NewSize.Height * 0.6;
@@ -225,9 +225,6 @@ public sealed class PropertyGridTab : DockPanel
 
     private readonly Dictionary<string, PropertyKind> _headings = [];
 
-    /// <summary>The field name as words: MarginLeft shows as "Margin Left", and the sprite fields SVersion and SSpriteType as "Special Version" and "Special Sprite Type". The path, filter and edits keep the field name.</summary>
-    public static string Spaced(string name) => name is ['S', >= 'A' and <= 'Z', >= 'a' and <= 'z', ..] ? "Special " + Spaced(name[1..]) : string.Concat(name.Select((c, i) => i > 0 && char.IsUpper(c) && (char.IsLower(name[i - 1]) || char.IsDigit(name[i - 1])) ? " " + c : c.ToString()));
-
     /// <summary>Opens or closes the group or list with this path (what a click on its heading does).</summary>
     public void Toggle(string path)
     {
@@ -260,7 +257,7 @@ public sealed class PropertyGridTab : DockPanel
     private DockPanel Build(PropertyRow row)
     {
         var heading = row.Kind is PropertyKind.Group or PropertyKind.List;
-        var label = new TextBlock { Text = heading ? (IsClosed(row) ? "▸ " : "▾ ") + Spaced(row.Name) : Spaced(row.Name), Margin = new Thickness(row.Depth * 16, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center, Classes = { row.Kind is PropertyKind.Group or PropertyKind.List ? "accent" : "plain" } };
+        var label = new TextBlock { Text = heading ? (IsClosed(row) ? "▸ " : "▾ ") + Label(row.Name) : Label(row.Name), Margin = new Thickness(row.Depth * 16, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center, Classes = { row.Kind is PropertyKind.Group or PropertyKind.List ? "accent" : "plain" } };
         // Read-only rows have no box, so they get the height of an editable row to keep the list evenly spaced.
         var line = new DockPanel { LastChildFill = true, MinHeight = heading ? 0 : 32 };
         SetDock(label, Avalonia.Controls.Dock.Left);
@@ -383,7 +380,7 @@ public sealed class PropertyGridTab : DockPanel
             case PropertyKind.Info when row.Target is not null || row.Reference:
                 return ReferenceEditor(row);
             case PropertyKind.List or PropertyKind.Info:
-                return new TextBlock { Text = row.Count is { } n ? Loc.Current.Format("properties.items", ("count", n)) : row.Value.Length > 0 ? row.Value : Loc.Current["explorer.noValue"], Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center };
+                return new TextBlock { Text = row.Count is { } n ? n == 0 ? Loc.Current["properties.noItems"] : Loc.Current.Format("properties.items", ("count", n)) : row.Value.Length > 0 ? row.Value : Loc.Current["explorer.noValue"], Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center };
             case PropertyKind.Bool:
                 var check = new CheckBox { Name = "Prop_" + row.Path, IsChecked = row.Value == "True", IsEnabled = !row.ReadOnly };
                 check.IsCheckedChanged += async (_, _) =>
@@ -421,7 +418,7 @@ public sealed class PropertyGridTab : DockPanel
 
                 return boxes;
             case PropertyKind.Enum:
-                var choices = new ComboBox { Name = "Prop_" + row.Path, ItemsSource = row.Choices, SelectedItem = row.Value, IsEnabled = !row.ReadOnly, MinWidth = 200 };
+                var choices = new ComboBox { Name = "Prop_" + row.Path, ItemsSource = row.Choices, SelectedItem = row.Value, IsEnabled = !row.ReadOnly, MinWidth = 200, ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<string>((s, _) => new TextBlock { Text = s is null ? "" : ChoiceLabel(s) }) };
                 choices.SelectionChanged += (_, _) => { if (choices.SelectedItem is string pick && pick != row.Value) Commit(row.Path, pick); };
                 return choices;
             default:

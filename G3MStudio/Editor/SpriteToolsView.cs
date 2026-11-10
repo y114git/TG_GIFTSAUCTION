@@ -57,7 +57,7 @@ public sealed class SpriteToolsView : StackPanel
         var slice = _sprite.V3NineSlice;
         Children.Add(Row(Label("editors.frame"), _frame));
         Children.Add(Section("editors.origin.title", true, Row(_preset)));
-        Children.Add(Section("editors.mask.title", true, Row(_mode, _shape, Label("editors.mask.tolerance"), _tolerance), Row([Label("editors.mask.box"), .. _bounds])));
+        Children.Add(Section("editors.mask.title", true, MaskForm()));
         Children.Add(Section("editors.slice.enabled", slice?.Enabled == true, Row([_sliceOn, .. _edges]), Row([.. _tiles])));
         Wire();
         Show();
@@ -74,6 +74,41 @@ public sealed class SpriteToolsView : StackPanel
     public void ShowFrame(int frame) => _frame.Value = frame;
 
     public Task Ready { get; }
+
+    // Mode and shape side by side, the tolerance with its label, then the four box edges under their label; nothing wraps at the panel's usual width.
+    private Grid MaskForm()
+    {
+        var form = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*"), RowDefinitions = new RowDefinitions("Auto,Auto,Auto,Auto"), RowSpacing = 6, ColumnSpacing = 6 };
+        var tolerance = new DockPanel { LastChildFill = true };
+        DockPanel.SetDock(_tolerance, Avalonia.Controls.Dock.Right);
+        _tolerance.Width = double.NaN;
+        _tolerance.MinWidth = 110;
+        var toleranceLabel = Label("editors.mask.tolerance");
+        toleranceLabel.Margin = new Thickness(0, 0, 8, 0);
+        DockPanel.SetDock(toleranceLabel, Avalonia.Controls.Dock.Left);
+        tolerance.Children.Add(toleranceLabel);
+        tolerance.Children.Add(_tolerance);
+        var edges = new Avalonia.Controls.Primitives.UniformGrid { Columns = 2 };
+        foreach (var box in _bounds)
+        {
+            box.Width = double.NaN;
+            box.Margin = new Thickness(0, 0, 4, 4);
+            edges.Children.Add(box);
+        }
+
+        var boxLabel = Label("editors.mask.box");
+        boxLabel.TextWrapping = Avalonia.Media.TextWrapping.Wrap;
+        foreach (var (control, row, column, span) in new (Control, int, int, int)[] { (_mode, 0, 0, 1), (_shape, 0, 1, 1), (tolerance, 1, 0, 2), (boxLabel, 2, 0, 2), (edges, 3, 0, 2) })
+        {
+            control.HorizontalAlignment = HorizontalAlignment.Stretch;
+            Grid.SetRow(control, row);
+            Grid.SetColumn(control, column);
+            Grid.SetColumnSpan(control, span);
+            form.Children.Add(control);
+        }
+
+        return form;
+    }
 
     private static NumericUpDown Box(string name, int min, int max, double width = 150) => new() { Name = name, FormatString = "0", Minimum = min, Maximum = max, Width = width };
 

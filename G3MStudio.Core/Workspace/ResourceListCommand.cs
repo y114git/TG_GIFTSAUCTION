@@ -21,6 +21,9 @@ public sealed partial class ResourceListCommand : EditCommand
     public const string Delete = "delete";
 
     /// <summary>Types that can be created from nothing.</summary>
+    /// <summary>False when the data file has no section for the type (an older game has no particle systems), so a new one cannot be added.</summary>
+    public static bool CanHold(GameMakerData data, string type) => ResourceTypes.All.FirstOrDefault(t => t.Key == type)?.Items(data) is not null;
+
     public static readonly string[] Creatable = ["objects", "scripts", "paths", "timelines", "sounds", "rooms", "sprites", "shaders", "fonts", "sequences", "animationCurves", "particleSystems", "extensions"];
 
     /// <summary>Types that can be deleted.</summary>

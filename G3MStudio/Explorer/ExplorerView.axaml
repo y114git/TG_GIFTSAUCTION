@@ -5,12 +5,13 @@
              xmlns:ws="using:G3MStudio.Core.Workspace"
              x:Class="G3MStudio.Explorer.ExplorerView">
   <DockPanel>
-    <TextBlock Name="Header" DockPanel.Dock="Top" Margin="8,6" TextTrimming="CharacterEllipsis" />
-    <DockPanel DockPanel.Dock="Top" Margin="8,0,8,6">
+    <!-- The buttons share the title row so the filter box keeps the full width of a narrow dock. -->
+    <DockPanel DockPanel.Dock="Top" Margin="8,6,8,0">
       <Button Name="FilterOptions" DockPanel.Dock="Right" Margin="4,0,0,0" Content="&#x25BE;" />
       <Button Name="ViewToggle" DockPanel.Dock="Right" Margin="4,0,0,0" />
-      <TextBox Name="FilterBox" PlaceholderText="{loc:Tr explorer.filter}" AutomationProperties.Name="{loc:Tr explorer.filter}" />
+      <TextBlock Name="Header" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
     </DockPanel>
+    <TextBox Name="FilterBox" DockPanel.Dock="Top" Margin="8,6,8,6" PlaceholderText="{loc:Tr explorer.filter}" AutomationProperties.Name="{loc:Tr explorer.filter}" />
     <ScrollViewer Name="BreadcrumbScroll" DockPanel.Dock="Top" Margin="8,0,8,6" IsVisible="False" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
       <StackPanel Name="Breadcrumb" Orientation="Horizontal" Spacing="2" />
     </ScrollViewer>

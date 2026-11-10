@@ -78,13 +78,21 @@ public sealed class ReferencePanel : UserControl
         top.Children.Add(_category);
         top.Children.Add(_search);
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { _insert, _manual } };
-        var detail = new StackPanel { Spacing = 4, Margin = new Thickness(0, 8, 0, 0), Children = { _title, new ScrollViewer { MaxHeight = 190, Content = _detail }, buttons } };
+        // Results on the left, the detail beside them: a short dock still shows a scrolling list.
+        var detail = new DockPanel { Margin = new Thickness(8, 0, 0, 0) };
+        DockPanel.SetDock(_title, Avalonia.Controls.Dock.Top);
+        DockPanel.SetDock(buttons, Avalonia.Controls.Dock.Bottom);
+        detail.Children.Add(_title);
+        detail.Children.Add(buttons);
+        detail.Children.Add(new ScrollViewer { Content = _detail });
         var layout = new DockPanel { Margin = new Thickness(8) };
         DockPanel.SetDock(top, Avalonia.Controls.Dock.Top);
-        DockPanel.SetDock(detail, Avalonia.Controls.Dock.Bottom);
+        var body = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*") };
+        Grid.SetColumn(detail, 1);
+        body.Children.Add(_list);
+        body.Children.Add(detail);
         layout.Children.Add(top);
-        layout.Children.Add(detail);
-        layout.Children.Add(_list);
+        layout.Children.Add(body);
         Content = layout;
         Refresh();
     }

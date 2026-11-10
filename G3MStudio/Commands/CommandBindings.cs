@@ -24,8 +24,11 @@ public sealed class RegistryCommand : ICommand
     public void Execute(object? parameter) => _registry.Execute(_command.Id);
 }
 
-public static class Shortcuts
+public static partial class Shortcuts
 {
+    [System.Text.RegularExpressions.GeneratedRegex(@"(?<![A-Za-z])D(\d)(?![A-Za-z0-9])")]
+    private static partial System.Text.RegularExpressions.Regex DigitKey();
+
     private static readonly Dictionary<string, KeyGesture?> Cache = [];
 
     private static readonly (string Key, string Shown)[] KeyNames =
@@ -37,6 +40,7 @@ public static class Shortcuts
     internal static string Display(string? shortcut, bool macOS)
     {
         var text = KeyNames.Aggregate(shortcut ?? "", (text, k) => text.Replace(k.Key, k.Shown, StringComparison.Ordinal));
+        text = DigitKey().Replace(text, "$1"); // Avalonia names the top-row digits D0 to D9
         return macOS ? text.Replace("Ctrl", "Cmd", StringComparison.Ordinal) : text;
     }
 

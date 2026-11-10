@@ -67,7 +67,16 @@ public sealed class SequencePlayerView : StackPanel
         var graph = new SequenceGraphView(sequence, workspace) { IsVisible = false };
         var mode = new ToggleButton { Name = "SequenceGraphMode", Content = Loc.Current["editors.sequence.graphMode"], HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left };
         mode.IsCheckedChanged += (_, _) => (timeline.IsVisible, graph.IsVisible) = (mode.IsChecked != true, mode.IsChecked == true);
-        var panel = new StackPanel { Spacing = 8, Children = { player, mode, timeline, graph, message } };
+        var hint = new TextBlock { Name = "SequenceEmptyHint", Classes = { "muted" }, Text = Loc.Current["editors.sequence.empty"] };
+        var panel = new StackPanel { Spacing = 8, Children = { hint, player, mode, timeline, graph, message } };
+        void SyncHint() => hint.IsVisible = (sequence.Tracks ?? []).Count == 0;
+        SyncHint();
+        if (workspace is not null)
+        {
+            panel.AttachedToVisualTree += (_, _) => workspace.History.Changed += SyncHint;
+            panel.DetachedFromVisualTree += (_, _) => workspace.History.Changed -= SyncHint;
+        }
+
         if (workspace is not null) panel.Children.Add(new SequenceEventsView(sequence, workspace));
         panel.Children.Add(new SequenceTracksView(sequence, workspace));
         return panel;

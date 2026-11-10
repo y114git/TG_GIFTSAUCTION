@@ -89,14 +89,21 @@ public sealed partial class RoomPreview : DockPanel
                     _shownLayer = layers.Selected?.LayerId;
                     _elements.Show(layers.Selected);
                 };
-                var search = new TextBox { Name = "RoomElementSearch", PlaceholderText = Loc.Current["rooms.elementSearch"] };
-                search.TextChanged += (_, _) => _elements.Filter = search.Text ?? "";
-                var listPanel = new DockPanel { Children = { search, _elements } };
-                DockPanel.SetDock(search, Avalonia.Controls.Dock.Top);
-                SetDock(listPanel, Avalonia.Controls.Dock.Bottom);
-                Children.Add(listPanel);
-                LinkElementList();
             }
+
+            // A room without layers (GameMaker Studio 1) lists its instances the same way.
+            var search = new TextBox { Name = "RoomElementSearch", PlaceholderText = Loc.Current["rooms.elementSearch"] };
+            search.TextChanged += (_, _) => _elements.Filter = search.Text ?? "";
+            var listPanel = new DockPanel { Width = 260, Children = { search, _elements } };
+            DockPanel.SetDock(search, Avalonia.Controls.Dock.Top);
+            // Beside the canvas, so the picture keeps the height of the tab.
+            SetDock(listPanel, Avalonia.Controls.Dock.Right);
+            _elements.PropertyChanged += (_, e) =>
+            {
+                if (e.Property == IsVisibleProperty) listPanel.IsVisible = _elements.IsVisible;
+            };
+            Children.Add(listPanel);
+            LinkElementList();
 
             WireEdits(workspace);
         }

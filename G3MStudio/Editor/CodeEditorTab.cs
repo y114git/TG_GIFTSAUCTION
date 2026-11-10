@@ -63,7 +63,7 @@ public sealed partial class CodeEditorTab : DockPanel
         {
             if (e.Property == AvaloniaEdit.Editing.TextArea.OverstrikeModeProperty) mode.Text = Loc.Current[e.NewValue is true ? "editor.typingOverwrite" : "editor.typingInsert"];
         };
-        var buttons = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 8, Children = { _apply, _revert, _assembly } };
+        var buttons = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 8, Children = { _apply, _revert, _assembly, _outlineButton } };
         var bar = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto,Auto"), ColumnSpacing = 8, Margin = new Thickness(8, 4), Children = { buttons, _message, _copyDetails, mode } };
         Grid.SetColumn(_message, 1);
         Grid.SetColumn(_copyDetails, 2);
@@ -72,6 +72,7 @@ public sealed partial class CodeEditorTab : DockPanel
         SetDock(bar, Avalonia.Controls.Dock.Top);
         Children.Add(bar);
         Children.Add(BuildBanner());
+        SetDock(Crumbs, Avalonia.Controls.Dock.Top);
         Children.Add(Crumbs);
         Children.Add(DiffPanel());
         Children.Add(Editor);

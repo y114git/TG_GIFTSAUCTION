@@ -29,7 +29,7 @@ public sealed partial class SettingsPage
         var debugOutput = new CheckBox { Name = "RunDebugOutput", Tag = Loc.Current["settings.runDebugOutput"], Content = Loc.Current["settings.runDebugOutput"], IsChecked = s.RunDebugOutput };
         debugOutput.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { RunDebugOutput = debugOutput.IsChecked == true }); };
 
-        var profiles = new ComboBox { Name = "RunProfiles", MinWidth = Wide(12.5), ItemsSource = s.RunProfiles.Select(p => p.Name).ToList(), SelectedItem = s.RunProfiles.Any(p => p.Name == s.ActiveRunProfile) ? s.ActiveRunProfile : null };
+        var profiles = new ComboBox { Name = "RunProfiles", MinWidth = Wide(12.5), PlaceholderText = Loc.Current["settings.profiles"], ItemsSource = s.RunProfiles.Select(p => p.Name).ToList(), SelectedItem = s.RunProfiles.Any(p => p.Name == s.ActiveRunProfile) ? s.ActiveRunProfile : null };
         profiles.SelectionChanged += (_, _) =>
         {
             if (_building || profiles.SelectedItem is not string pick || _store.Current.RunProfiles.FirstOrDefault(p => p.Name == pick) is not { } profile) return;

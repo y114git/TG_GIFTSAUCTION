@@ -15,7 +15,6 @@ public sealed class ShaderSourceView : TabControl
     public ShaderSourceView(GameMakerShader shader, Workspace? workspace = null)
     {
         Name = "ShaderSources";
-        Height = 360;
         Margin = new Thickness(0, 0, 0, 8); // keeps the editor off the property filter below
         (string Title, string Property, string? Text)[] all =
         [
@@ -24,6 +23,7 @@ public sealed class ShaderSourceView : TabControl
             ("HLSL9 vertex", nameof(GameMakerShader.HLSL9_Vertex), shader.HLSL9_Vertex?.Content), ("HLSL9 fragment", nameof(GameMakerShader.HLSL9_Fragment), shader.HLSL9_Fragment?.Content),
         ];
         var present = all.Where(s => !string.IsNullOrWhiteSpace(s.Text)).ToList();
+        Height = Math.Clamp(present.Select(s => (s.Text ?? "").Count(c => c == '\n') + 1).DefaultIfEmpty(0).Max() * 20 + 110, 180, 360); // a short source does not leave a blank band above the status line
         Sources = [.. present.Select(s => (s.Title, Text: s.Text ?? string.Empty))];
         foreach (var (title, property, text) in present)
         {
