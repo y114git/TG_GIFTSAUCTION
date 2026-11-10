@@ -52,7 +52,7 @@ public sealed class PropertyGridTab : DockPanel
         {
             // A room, sequence or font editor is tall: the splitter lets the canvas and the properties share the tab at any window size.
             var tall = header is RoomPreview or SpriteEditorView || type is "fonts" or "uiLayers"; // a font's glyph list and a UI layer's tree, fields and preview need most of the tab, with a splitter instead of a cap
-            var top = new RowDefinition(tall ? new GridLength(header is RoomPreview ? 5 : header is SpriteEditorView ? 4 : 3, GridUnitType.Star) : GridLength.Auto) { MinHeight = tall ? 200 : 0 };
+            var top = new RowDefinition(tall ? new GridLength(header is RoomPreview ? 5 : header is SpriteEditorView ? 5 : 3, GridUnitType.Star) : GridLength.Auto) { MinHeight = tall ? (header is SpriteEditorView ? 320 : 200) : 0 };
             var split = new Grid { RowDefinitions = { top, new RowDefinition(GridLength.Auto), new RowDefinition(2, GridUnitType.Star) { MinHeight = 120 } } };
             var splitter = new GridSplitter { Height = 5, HorizontalAlignment = HorizontalAlignment.Stretch, ResizeDirection = GridResizeDirection.Rows, IsVisible = tall || type == "objects" };
             // A stacked header takes the room its content needs (an object tab too, with a splitter to give it more), at most 60% of the tab, and scrolls beyond that.
@@ -261,7 +261,7 @@ public sealed class PropertyGridTab : DockPanel
         var heading = row.Kind is PropertyKind.Group or PropertyKind.List;
         var label = new TextBlock { Text = heading ? (IsClosed(row) ? "▸ " : "▾ ") + Spaced(row.Name) : Spaced(row.Name), Margin = new Thickness(row.Depth * 16, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center, Classes = { row.Kind is PropertyKind.Group or PropertyKind.List ? "accent" : "plain" } };
         // Read-only rows have no box, so they get the height of an editable row to keep the list evenly spaced.
-        var line = new DockPanel { LastChildFill = true, MinHeight = heading ? 0 : 34 };
+        var line = new DockPanel { LastChildFill = true, MinHeight = heading ? 0 : 32 };
         SetDock(label, Avalonia.Controls.Dock.Left);
         label.Width = 220;
         if (heading)
@@ -356,7 +356,7 @@ public sealed class PropertyGridTab : DockPanel
 
         var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Background = Avalonia.Media.Brushes.Transparent, Children = { link } };
         if (!row.Reference) return panel;
-        var clear = new Button { Name = "Clear_" + row.Path, Content = "×", IsEnabled = row.Target is not null };
+        var clear = new Button { Name = "Clear_" + row.Path, Content = "×", Classes = { "icon" }, IsEnabled = row.Target is not null };
         Avalonia.Automation.AutomationProperties.SetName(clear, Loc.Current["timelines.remove"]);
         clear.Click += (_, _) => Commit(row.Path, "");
         panel.Children.Add(clear);
@@ -422,7 +422,7 @@ public sealed class PropertyGridTab : DockPanel
                 choices.SelectionChanged += (_, _) => { if (choices.SelectedItem is string pick && pick != row.Value) Commit(row.Path, pick); };
                 return choices;
             default:
-                var box = new TextBox { Name = "Prop_" + row.Path, Text = row.Value, IsReadOnly = row.ReadOnly };
+                var box = new TextBox { Name = "Prop_" + row.Path, Text = row.Value, IsReadOnly = row.ReadOnly, PlaceholderText = row.ReadOnly ? null : Loc.Current["properties.empty"] };
                 void Done()
                 {
                     if (!row.ReadOnly && box.Text != row.Value && !Commit(row.Path, box.Text ?? "")) box.Text = row.Value;

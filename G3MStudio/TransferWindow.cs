@@ -1,4 +1,3 @@
-using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Media;
@@ -25,14 +24,13 @@ public sealed class TransferWindow : Window
         SizeToContent = SizeToContent.WidthAndHeight;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         _modes.Labeled("cmd.file.transfer");
-        var muted = (IBrush?)Application.Current?.FindResource("Text.Muted");
         foreach (var (titleKey, ids) in Core.Commands.AppCommands.TransferGroups)
         {
             _modes.Items.Add(new ListBoxItem { IsEnabled = false, Focusable = false, Content = new TextBlock { Text = Loc.Current[titleKey], FontWeight = FontWeight.SemiBold } });
             foreach (var id in ids)
             {
                 var label = Loc.Current["cmd." + id];
-                var caption = new TextBlock { Text = Loc.Current["transfer.about." + id[(id.IndexOf('.', StringComparison.Ordinal) + 1)..]], TextWrapping = TextWrapping.Wrap, Foreground = muted }.TextSize("FontSize.Small");
+                var caption = new TextBlock { Text = Loc.Current["transfer.about." + id[(id.IndexOf('.', StringComparison.Ordinal) + 1)..]], TextWrapping = TextWrapping.Wrap, Classes = { "muted" } }.TextSize("FontSize.Small");
                 var item = new ListBoxItem { Tag = id, Content = new StackPanel { Children = { new TextBlock { Text = label }, caption } } };
                 AutomationProperties.SetName(item, label);
                 _modes.Items.Add(item);

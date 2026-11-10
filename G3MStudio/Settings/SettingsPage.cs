@@ -189,7 +189,7 @@ public sealed partial class SettingsPage : UserControl
         var s = _store.Current;
         var search = new TextBox { Name = "SettingsSearch", Text = _search, PlaceholderText = Loc.Current["settings.search"] };
         Avalonia.Automation.AutomationProperties.SetName(search, Loc.Current["settings.search"]);
-        var clear = new Button { Name = "SettingsSearchClear", Content = "×", Padding = new Thickness(6, 0), MinWidth = 24, IsVisible = _search.Length > 0 }.Labeled("settings.searchClear");
+        var clear = new Button { Name = "SettingsSearchClear", Content = "×", Classes = { "icon" }, MinWidth = 24, MinHeight = 24, Width = 24, Height = 24, Margin = new Thickness(0, 0, 4, 0), VerticalAlignment = VerticalAlignment.Center, IsVisible = _search.Length > 0 }.Labeled("settings.searchClear");
         clear.Click += (_, _) =>
         {
             search.Text = "";
@@ -221,7 +221,19 @@ public sealed partial class SettingsPage : UserControl
             var found = Filter(page, text, _section);
             nothing.IsVisible = text.Trim().Length > 0 && !found;
             nav.SelectedIndex = nothing.IsVisible ? -1 : _section; // no category stays lit when the search hides all of them
+            MarkNav();
         }
+
+        // During a search the categories without a match are dimmed, so the list shows where the hits are.
+        void MarkNav()
+        {
+            var hits = page.Children.OfType<TextBlock>().Where(t => t.Classes.Contains("accent")).Select(t => t.IsVisible).ToList();
+            var searching = (search.Text ?? "").Trim().Length > 0;
+            for (var i = 0; i < hits.Count; i++)
+                if (nav.ContainerFromIndex(i) is { } item) item.Opacity = !searching || hits[i] ? 1 : 0.4;
+        }
+
+        nav.ContainerPrepared += (_, _) => MarkNav();
 
         search.TextChanged += (_, _) => Refresh();
         search.KeyDown += (_, e) =>

@@ -421,6 +421,21 @@
     "deleteCode": "{reason}\n\nそれでも削除すると、そのコードは存在しないものを指したままになります。コードの実行時にゲームがクラッシュしたり、誤動作したりすることがあります。保存するまでは、「元に戻す」ですべて戻せます。",
     "nameUnusual": "「{name}」は単純な名前（英数字とアンダースコア、先頭は数字不可）ではありません。GML コードでは使えず、他のツールでも問題が起きることがあります。それでも使うには、もう一度ボタンを押してください。保存するまでは「元に戻す」で取り消せます。",
     "nameTaken": "'{name}' という名前のリソースまたはコードエントリはすでにあります。同じ名前が2つあると、エディタと削除は最初のものにしか届きません。それでも同じ名前を使うには、もう一度ボタンを押してください。保存するまでは「元に戻す」で取り除けます。",
+    "typeOne": {
+      "objects": "オブジェクト",
+      "scripts": "スクリプト",
+      "paths": "パス",
+      "timelines": "タイムライン",
+      "sounds": "サウンド",
+      "rooms": "ルーム",
+      "sprites": "スプライト",
+      "shaders": "シェーダー",
+      "fonts": "フォント",
+      "sequences": "シーケンス",
+      "animationCurves": "アニメーションカーブ",
+      "particleSystems": "パーティクルシステム",
+      "extensions": "拡張機能"
+    },
     "type": {
       "general": "ゲーム",
       "sprites": "スプライト",
@@ -645,6 +660,8 @@
     "rebuildFailed": "データファイルを再構築できませんでした: {reason}"
   },
   "history": {
+    "newResource": "新規 {type}: {name}",
+    "deleteResource": "{name} を削除",
     "start": "開いた時点の状態",
     "rename": "{old} を {new} に名前変更",
     "code": "{entry} にコードを適用"
@@ -755,6 +772,7 @@
   },
   "quick": {
     "goTo": {
+      "paletteTitle": "コマンド",
       "title": "移動",
       "placeholder": "名前を入力。o: オブジェクト、@ シンボル、# 文字列、> コマンド、t: タブ",
       "results": "結果",
@@ -912,6 +930,8 @@
     "imageOnion": "オニオンスキンのフレーム数と不透明度 (パーセント)",
     "imageChecker": "市松模様の色 (明、暗)",
     "imageBackground": "キャンバスの背景色",
+    "imageColourDefault": "テーマの色",
+    "imageFontDefault": "インターフェイスのフォント",
     "sound": "サウンド",
     "soundDevice": "出力デバイス",
     "soundVolume": "プレーヤーの初期音量(パーセント)",
@@ -967,6 +987,7 @@
     "newFile": "新しいファイルです。まだ追跡されていません。"
   },
   "properties": {
+    "empty": "(空)",
     "addEntry": "エントリを追加",
     "moveUp": "上へ",
     "moveDown": "下へ",
@@ -2286,6 +2307,10 @@
     "extAddFunction": "関数を追加",
     "extAddArgument": "引数を追加",
     "extAddOption": "オプションを追加",
+    "extFiles": "ファイル",
+    "extOptions": "オプション",
+    "extNoFiles": "この拡張機能にはまだファイルがありません。下で追加してください。",
+    "extNoOptions": "この拡張機能にはオプションがありません。",
     "extUp": "上へ",
     "extDown": "下へ",
     "shaderCheck": {
@@ -2305,7 +2330,11 @@
       "kind": "種類",
       "moved": "{count} 件を {group} に移動しました。",
       "newName": "グループ名",
-      "nameLabel": "「新しいグループ」と「グループ名を変更」で使う名前",
+      "nameLabel": "名前",
+      "targetPlaceholder": "グループを選択",
+      "noGroups": "このデータファイルにはグループがありません。",
+      "noMembers": "このグループにはこの種類のメンバーがありません。",
+      "pickGroup": "グループを選ぶとメンバーが表示されます。",
       "hintName": "先にグループ名を入力してください。",
       "hintRename": "先にリストからグループを選んでください。",
       "hintMove": "先に移動先のグループとメンバーを 1 つ以上選んでください。",

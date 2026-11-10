@@ -18,7 +18,7 @@ public sealed class SpriteEditorView : ScrollViewer
 {
     public const double MinCanvasHeight = 260;
     public const double WideWidth = 900;
-    private const double PanelWidth = 340;
+    private const double PanelWidth = 420;
     private double ZoomBarHeight => this.Size("Control.Height", 30) + 6; // the canvas below it keeps the full minimum
 
     private readonly Grid _body = new();

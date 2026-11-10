@@ -28,6 +28,12 @@ public static class Shortcuts
 {
     private static readonly Dictionary<string, KeyGesture?> Cache = [];
 
+    private static readonly (string Key, string Shown)[] KeyNames =
+    [("OemComma", ","), ("OemPeriod", "."), ("OemPlus", "+"), ("OemMinus", "-"), ("OemQuestion", "/"), ("OemSemicolon", ";"), ("OemOpenBrackets", "["), ("OemCloseBrackets", "]"), ("OemPipe", "\\"), ("OemQuotes", "'"), ("OemTilde", "`")];
+
+    /// <summary>The text a person reads for a shortcut: punctuation keys as the character, not the key enum name.</summary>
+    public static string Display(string? shortcut) => KeyNames.Aggregate(shortcut ?? "", (text, k) => text.Replace(k.Key, k.Shown, StringComparison.Ordinal));
+
     /// <summary>Registry shortcuts are written with Ctrl; macOS uses Cmd for the same keys.</summary>
     public static KeyGesture? Parse(string? shortcut)
     {

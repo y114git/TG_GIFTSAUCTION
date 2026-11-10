@@ -421,6 +421,21 @@
     "deleteCode": "{reason}\n\nIf you delete it anyway, that code keeps pointing at something that no longer exists. The game can crash or act wrongly when the code runs. Undo brings everything back until you save.",
     "nameUnusual": "'{name}' is not a plain name (letters, digits and underscores, not starting with a digit). GML code cannot use it, and other tools may fail on it. Press the button again to use it anyway. Undo removes it until you save.",
     "nameTaken": "A resource or code entry named '{name}' exists already. With two of one name, the editor and delete reach only the first. Press the button again to use the name twice anyway. Undo removes it until you save.",
+    "typeOne": {
+      "objects": "Object",
+      "scripts": "Script",
+      "paths": "Path",
+      "timelines": "Timeline",
+      "sounds": "Sound",
+      "rooms": "Room",
+      "sprites": "Sprite",
+      "shaders": "Shader",
+      "fonts": "Font",
+      "sequences": "Sequence",
+      "animationCurves": "Animation Curve",
+      "particleSystems": "Particle System",
+      "extensions": "Extension"
+    },
     "type": {
       "general": "Game",
       "sprites": "Sprites",
@@ -645,6 +660,8 @@
     "rebuildFailed": "Could not rebuild the data file: {reason}"
   },
   "history": {
+    "newResource": "New {type}: {name}",
+    "deleteResource": "Delete {name}",
     "start": "Opened state",
     "rename": "Rename {old} to {new}",
     "code": "Apply code to {entry}"
@@ -755,6 +772,7 @@
   },
   "quick": {
     "goTo": {
+      "paletteTitle": "Commands",
       "title": "Go To",
       "placeholder": "Type a name. o: objects, @ symbols, # strings, > commands, t: tabs",
       "results": "Results",
@@ -912,6 +930,8 @@
     "imageOnion": "Onion skin frames and opacity (percent)",
     "imageChecker": "Checkerboard colours (light, dark)",
     "imageBackground": "Canvas background colour",
+    "imageColourDefault": "Theme colour",
+    "imageFontDefault": "Interface font",
     "sound": "Sound",
     "soundDevice": "Output device",
     "soundVolume": "Start volume of the player (percent)",
@@ -967,6 +987,7 @@
     "newFile": "New file, not tracked yet."
   },
   "properties": {
+    "empty": "(empty)",
     "addEntry": "Add entry",
     "moveUp": "Up",
     "moveDown": "Down",
@@ -2286,6 +2307,10 @@
     "extAddFunction": "Add function",
     "extAddArgument": "Add argument",
     "extAddOption": "Add option",
+    "extFiles": "Files",
+    "extOptions": "Options",
+    "extNoFiles": "This extension has no files yet. Add one below.",
+    "extNoOptions": "This extension has no options.",
     "extUp": "Move up",
     "extDown": "Move down",
     "shaderCheck": {
@@ -2305,7 +2330,11 @@
       "kind": "Kind",
       "moved": "Moved {count} to {group}.",
       "newName": "Group name",
-      "nameLabel": "Name for New group and Rename group",
+      "nameLabel": "Name",
+      "targetPlaceholder": "Pick a group",
+      "noGroups": "This data file has no groups.",
+      "noMembers": "This group has no members of this kind.",
+      "pickGroup": "Pick a group to see its members.",
       "hintName": "Type a group name first.",
       "hintRename": "Pick a group in the list first.",
       "hintMove": "Pick a target group and at least one member first.",

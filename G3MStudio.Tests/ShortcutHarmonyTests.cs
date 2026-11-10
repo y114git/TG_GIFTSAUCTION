@@ -158,5 +158,12 @@ public sealed partial class ShortcutHarmonyTests
         Assert.Equal("view.nextRegion", Shortcuts.Match(registry, Press(Key.F6))?.Id);
         Assert.Equal("run.stop", Shortcuts.Match(registry, Press(Key.F9))?.Id);
     }
-}
 
+    [Fact]
+    public void PunctuationKeysAreShownAsTheCharacter()
+    {
+        Assert.Equal("Ctrl+,", Shortcuts.Display("Ctrl+OemComma"));
+        Assert.Equal("Ctrl+Shift+P", Shortcuts.Display("Ctrl+Shift+P"));
+        Assert.Equal("", Shortcuts.Display(null));
+    }
+}

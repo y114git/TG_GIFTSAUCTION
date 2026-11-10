@@ -81,7 +81,7 @@ public sealed partial class LocalizationTests
         var literals = KeyLiteral().Matches(text).Select(m => m.Groups[1].Value).Where(k => !k.EndsWith('.') && !k.EndsWith(".json", StringComparison.Ordinal) && !k.EndsWith(".exe", StringComparison.Ordinal) && !commandIds.Contains(k)).Concat(xamlKeys).ToHashSet();
         var derived = AppCommands.Create(new FakeShell()).All.Select(c => AppCommands.TitleKey(c.Id)).ToHashSet();
         var triggers = Enum.GetNames<Core.Projects.Trigger>().Select(n => "project.trigger." + n);
-        var types = ResourceTypes.All.Select(t => "explorer.type." + t.Key).Append("explorer.type." + ExplorerModel.DataGroup).Append("explorer.type.backgrounds");
+        var types = ResourceTypes.All.Select(t => "explorer.type." + t.Key).Append("explorer.type." + ExplorerModel.DataGroup).Append("explorer.type.backgrounds").Concat(Core.Workspace.ResourceListCommand.Creatable.Select(t => "explorer.typeOne." + t));
         var tools = Enum.GetNames<Rooms.RoomTool>().Select(n => "rooms.tool." + n).Concat(TourWindow.Steps.SelectMany(s => new[] { "tour." + s.Key + ".title", "tour." + s.Key + ".text" }));
         var painterKeys = Enum.GetNames<Editor.ImageTool>().SelectMany(n => new[] { "image.tool." + n, "image.hint." + n }).Concat(Enum.GetNames<Editor.ShapeStyle>().Select(n => "image.style." + n)).Concat(Enum.GetNames<Core.Workspace.BrushShape>().Select(n => "image.shape." + n)).Concat(Enum.GetNames<Core.Workspace.LayerBlend>().Select(n => "image.blend." + n));
         var searchKeys = G3MStudio.Editor.SearchPanelTexts.Keys;

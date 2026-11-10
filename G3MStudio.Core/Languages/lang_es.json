@@ -421,6 +421,21 @@
     "deleteCode": "{reason}\n\nSi lo eliminas igualmente, ese código seguirá apuntando a algo que ya no existe. El juego puede cerrarse o fallar al ejecutar ese código. Deshacer lo devuelve todo hasta que guardes.",
     "nameUnusual": "'{name}' no es un nombre simple (letras, dígitos y guiones bajos, sin empezar por un dígito). El código GML no puede usarlo y otras herramientas pueden fallar. Pulsa el botón otra vez para usarlo igualmente. Deshacer lo quita hasta que guardes.",
     "nameTaken": "Ya existe un recurso o entrada de código llamado '{name}'. Con dos del mismo nombre, el editor y eliminar solo llegan al primero. Pulsa el botón otra vez para usar el nombre dos veces. Deshacer lo quita hasta que guardes.",
+    "typeOne": {
+      "objects": "Objeto",
+      "scripts": "Script",
+      "paths": "Ruta",
+      "timelines": "Línea de tiempo",
+      "sounds": "Sonido",
+      "rooms": "Sala",
+      "sprites": "Sprite",
+      "shaders": "Shader",
+      "fonts": "Fuente",
+      "sequences": "Secuencia",
+      "animationCurves": "Curva de animación",
+      "particleSystems": "Sistema de partículas",
+      "extensions": "Extensión"
+    },
     "type": {
       "general": "Juego",
       "sprites": "Sprites",
@@ -645,6 +660,8 @@
     "rebuildFailed": "No se pudo reconstruir el archivo de datos: {reason}"
   },
   "history": {
+    "newResource": "Nuevo {type}: {name}",
+    "deleteResource": "Eliminar {name}",
     "start": "Estado abierto",
     "rename": "Renombrar {old} a {new}",
     "code": "Aplicar código a {entry}"
@@ -755,6 +772,7 @@
   },
   "quick": {
     "goTo": {
+      "paletteTitle": "Comandos",
       "title": "Ir a",
       "placeholder": "Escribe un nombre. o: objetos, @ símbolos, # cadenas, > comandos, t: pestañas",
       "results": "Resultados",
@@ -912,6 +930,8 @@
     "imageOnion": "Fotogramas de papel cebolla y opacidad (porcentaje)",
     "imageChecker": "Colores del tablero (claro, oscuro)",
     "imageBackground": "Color de fondo del lienzo",
+    "imageColourDefault": "Color del tema",
+    "imageFontDefault": "Fuente de la interfaz",
     "sound": "Sonido",
     "soundDevice": "Dispositivo de salida",
     "soundVolume": "Volumen inicial del reproductor (porcentaje)",
@@ -967,6 +987,7 @@
     "newFile": "Archivo nuevo, aún sin seguimiento."
   },
   "properties": {
+    "empty": "(vacío)",
     "addEntry": "Añadir entrada",
     "moveUp": "Subir",
     "moveDown": "Bajar",
@@ -2286,6 +2307,10 @@
     "extAddFunction": "Añadir función",
     "extAddArgument": "Añadir argumento",
     "extAddOption": "Añadir opción",
+    "extFiles": "Archivos",
+    "extOptions": "Opciones",
+    "extNoFiles": "Esta extensión aún no tiene archivos. Añade uno abajo.",
+    "extNoOptions": "Esta extensión no tiene opciones.",
     "extUp": "Subir",
     "extDown": "Bajar",
     "shaderCheck": {
@@ -2305,7 +2330,11 @@
       "kind": "Tipo",
       "moved": "Se movieron {count} a {group}.",
       "newName": "Nombre del grupo",
-      "nameLabel": "Nombre para Nuevo grupo y Renombrar grupo",
+      "nameLabel": "Nombre",
+      "targetPlaceholder": "Elige un grupo",
+      "noGroups": "Este archivo de datos no tiene grupos.",
+      "noMembers": "Este grupo no tiene miembros de este tipo.",
+      "pickGroup": "Elige un grupo para ver sus miembros.",
       "hintName": "Escribe primero un nombre de grupo.",
       "hintRename": "Elige primero un grupo de la lista.",
       "hintMove": "Elige primero un grupo de destino y al menos un miembro.",

@@ -55,7 +55,12 @@ public sealed class PhysicsVerticesView : StackPanel
 
     public void SetBoxes(string x, string y) => (_x.Text, _y.Text) = (x, y);
 
-    private void Reload() => _list.ItemsSource = _object.PhysicsVertices.Select((v, i) => $"{i}:  {Format(v.X)}, {Format(v.Y)}").ToList();
+    private void Reload()
+    {
+        _list.ItemsSource = _object.PhysicsVertices.Select((v, i) => $"{i}:  {Format(v.X)}, {Format(v.Y)}").ToList();
+        // Without a physics shape the editor only takes room; vertices that already exist stay visible.
+        IsVisible = _object.UsesPhysics || Count > 0;
+    }
 }
 
 /// <summary>The tile layout of a tile set in one line: tile size, columns, count, the border the exporter adds around each tile and the separation between tiles (UTMT-BG-05). Follows edits.</summary>

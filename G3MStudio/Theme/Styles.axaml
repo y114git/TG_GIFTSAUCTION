@@ -51,6 +51,10 @@
                   TreeViewItem:selected TextBlock.muted, TreeViewItem:selected TextBlock.accent">
     <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
   </Style>
+  <!-- Grey caption text inside a button turns to the normal text colour on the grey hover and pressed fills (2.2:1 otherwise). -->
+  <Style Selector="Button:pointerover TextBlock.muted, Button:pressed TextBlock.muted">
+    <Setter Property="Foreground" Value="{DynamicResource Text}" />
+  </Style>
   <!-- Inset shadow: the bar sits in the row's left padding, so the text does not move. -->
   <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter,
                   ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter,
@@ -59,6 +63,14 @@
   </Style>
   <!-- Sizes come from the tokens (Tokens.axaml, ThemeSizes): the density presets and Settings > Appearance > Sizes move them. -->
   <Style Selector="Button, ToggleButton, ComboBox, NumericUpDown"><Setter Property="MinHeight" Value="{DynamicResource Control.Height}" /></Style>
+  <!-- A button with only a glyph (the event menu, a reference clear) is as tall as any control and as wide as it is tall. -->
+  <Style Selector="Button.icon">
+    <Setter Property="MinWidth" Value="{DynamicResource Control.Height}" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="FontSize" Value="16" />
+  </Style>
   <Style Selector="TextBox"><Setter Property="MinHeight" Value="{DynamicResource Control.Height}" /><Setter Property="FontSize" Value="{DynamicResource FontSize.Editor}" /></Style>
   <Style Selector="ScrollBar:vertical"><Setter Property="Width" Value="{DynamicResource Scrollbar.Width}" /></Style>
   <Style Selector="ScrollBar:horizontal"><Setter Property="Height" Value="{DynamicResource Scrollbar.Width}" /></Style>

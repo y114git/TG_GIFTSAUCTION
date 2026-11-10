@@ -12,7 +12,7 @@ public partial class MainWindow
     public void NewResource(string type)
     {
         if (Workspaces.Current is not { } workspace || !ResourceListCommand.Creatable.Contains(type)) return;
-        var label = Loc.Current["explorer.type." + type];
+        var label = Loc.Current["explorer.typeOne." + type];
         var dialog = new RenameWindow("", name => CreateResource(workspace, type, name), Loc.Current.Format("explorer.newTitle", ("type", label)), Loc.Current.Format("explorer.newLabel", ("type", label)), Loc.Current["explorer.newOk"]);
         _ = dialog.AskAsync(this);
     }

@@ -33,10 +33,10 @@ public sealed class SpriteToolsView : StackPanel
     private readonly ComboBox _preset = new() { Name = "SpriteOriginPreset" };
     private readonly ComboBox _mode = new() { Name = "SpriteMaskMode" };
     private readonly ComboBox _shape = new() { Name = "SpriteMaskShape" };
-    private readonly NumericUpDown _tolerance = Box("SpriteMaskTolerance", 0, 255);
-    private readonly NumericUpDown[] _bounds = [Box("SpriteMaskLeft", 0, 65535), Box("SpriteMaskTop", 0, 65535), Box("SpriteMaskRight", 0, 65535), Box("SpriteMaskBottom", 0, 65535)];
+    private readonly NumericUpDown _tolerance = Box("SpriteMaskTolerance", 0, 255, 110);
+    private readonly NumericUpDown[] _bounds = [Box("SpriteMaskLeft", 0, 65535, 96), Box("SpriteMaskTop", 0, 65535, 96), Box("SpriteMaskRight", 0, 65535, 96), Box("SpriteMaskBottom", 0, 65535, 96)];
     private readonly CheckBox _sliceOn = new() { Name = "SpriteSliceOn", Content = Loc.Current["editors.slice.enabled"] };
-    private readonly NumericUpDown[] _edges = [Box("SpriteSliceLeft", 0, 65535), Box("SpriteSliceTop", 0, 65535), Box("SpriteSliceRight", 0, 65535), Box("SpriteSliceBottom", 0, 65535)];
+    private readonly NumericUpDown[] _edges = [Box("SpriteSliceLeft", 0, 65535, 96), Box("SpriteSliceTop", 0, 65535, 96), Box("SpriteSliceRight", 0, 65535, 96), Box("SpriteSliceBottom", 0, 65535, 96)];
     private readonly ComboBox[] _tiles = [.. Enumerable.Range(0, 5).Select(i => new ComboBox { Name = $"SpriteSliceTile{i}", ItemsSource = TileKeys.Select(k => Loc.Current[k]).ToList() })];
     private readonly NumericUpDown _frame = Box("SpriteToolsFrame", 0, 0);
     private bool _building;
@@ -52,6 +52,8 @@ public sealed class SpriteToolsView : StackPanel
         _mode.ItemsSource = ModeKeys.Select(k => Loc.Current[k]).ToList();
         _shape.ItemsSource = ShapeKeys.Select(k => Loc.Current[k]).ToList();
         _frame.Maximum = Math.Max(0, sprite.Textures.Count - 1);
+        _frame.Value = 0; // an unset box shows blank; the tolerance is not stored in the file, so it starts at 0
+        _tolerance.Value = 0;
         var slice = _sprite.V3NineSlice;
         Children.Add(Row(Label("editors.frame"), _frame));
         Children.Add(Section("editors.origin.title", true, Row(_preset)));
@@ -73,7 +75,7 @@ public sealed class SpriteToolsView : StackPanel
 
     public Task Ready { get; }
 
-    private static NumericUpDown Box(string name, int min, int max) => new() { Name = name, FormatString = "0", Minimum = min, Maximum = max, Width = 150 };
+    private static NumericUpDown Box(string name, int min, int max, double width = 150) => new() { Name = name, FormatString = "0", Minimum = min, Maximum = max, Width = width };
 
     private static TextBlock Label(string key) => new() { Text = Loc.Current[key], VerticalAlignment = VerticalAlignment.Center };
 

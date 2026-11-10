@@ -17,7 +17,7 @@ public sealed partial class StringsWindow : Window
     private bool _building;
     private readonly TextBox _filter = new() { Name = "StringFilter", PlaceholderText = Loc.Current["strings.filter"] };
     private readonly CheckBox _regex = new() { Name = "StringRegex", Content = Loc.Current["strings.regex"] };
-    private readonly ListBox _list = new() { Name = "StringList", MinHeight = 200 };
+    private readonly ListBox _list = new() { Name = "StringList", MinHeight = 160 };
     private readonly TextBox _text = new() { Name = "StringText", AcceptsReturn = true, TextWrapping = Avalonia.Media.TextWrapping.Wrap, MinHeight = 90 };
     private readonly Button _apply = new() { Name = "StringApply", Content = Loc.Current["strings.apply"], IsEnabled = false };
     private readonly TextBlock _count = new() { Name = "StringCount", Classes = { "muted" } };
@@ -48,7 +48,7 @@ public sealed partial class StringsWindow : Window
         _workspace = workspace;
         Title = Loc.Current["strings.title"];
         Width = 560;
-        Height = 560;
+        Height = 720;
         MinWidth = 420;
         MinHeight = 480;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
@@ -78,9 +78,10 @@ public sealed partial class StringsWindow : Window
             grid.Children.Add(text);
             return grid;
         });
-        // The minimum height keeps the list usable; a smaller window scrolls the whole form instead of pushing the list out of view.
-        var panel = new Grid { MinHeight = 520, RowDefinitions = new RowDefinitions("Auto,*,Auto") };
-        top.Margin = new Avalonia.Thickness(0, 0, 0, 8);
+        // The minimum height keeps the list usable and the controls below it in view.
+        var panel = new Grid { MinHeight = 480, RowDefinitions = new RowDefinitions("Auto,*,Auto") };
+        top.Margin = new Avalonia.Thickness(0, 0, 0, 12);
+        _regex.Margin = new Avalonia.Thickness(12, 0, 0, 0);
         Grid.SetRow(_list, 1);
         Grid.SetRow(bottom, 2);
         panel.Children.Add(top);
@@ -88,7 +89,10 @@ public sealed partial class StringsWindow : Window
         panel.Children.Add(bottom);
         _apply.Classes.Add("primary");
         _count.TextWrapping = Avalonia.Media.TextWrapping.Wrap;
-        DialogFrame.Show(this, panel, [_apply, DialogFrame.Close(this, isDefault: false)], _count, DialogScroll.Vertical, dirty: () => _selected is not null && _text.Text != _selected.Text);
+        // A star row inside a scroller measures with unlimited height and the list would take all of it, so the form is as tall as the window, and only a window below its minimum scrolls.
+        var scroller = new ScrollViewer { Name = "DialogScroll", Content = panel, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto };
+        scroller.SizeChanged += (_, e) => panel.Height = Math.Max(panel.MinHeight, e.NewSize.Height);
+        DialogFrame.Show(this, scroller, [_apply, DialogFrame.Close(this, isDefault: false)], _count, dirty: () => _selected is not null && _text.Text != _selected.Text);
         _filter.PropertyChanged += (_, e) =>
         {
             if (e.Property == TextBox.TextProperty) Refresh();

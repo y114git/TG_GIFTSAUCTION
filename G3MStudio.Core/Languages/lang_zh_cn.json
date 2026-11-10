@@ -421,6 +421,21 @@
     "deleteCode": "{reason}\n\n仍然删除的话，这些代码会继续指向已不存在的内容。代码运行时游戏可能崩溃或出错。保存之前，撤销可以恢复一切。",
     "nameUnusual": "“{name}”不是简单名称（字母、数字和下划线，且不以数字开头）。GML 代码无法使用它，其他工具也可能出错。要仍然使用，请再按一次按钮。保存之前可以撤销。",
     "nameTaken": "已经有名为“{name}”的资源或代码条目。同名的有两个时，编辑器和删除只会碰到第一个。要仍然使用该名称，请再按一次按钮。保存之前，可用撤销移除它。",
+    "typeOne": {
+      "objects": "对象",
+      "scripts": "脚本",
+      "paths": "路径",
+      "timelines": "时间线",
+      "sounds": "声音",
+      "rooms": "房间",
+      "sprites": "精灵",
+      "shaders": "着色器",
+      "fonts": "字体",
+      "sequences": "序列",
+      "animationCurves": "动画曲线",
+      "particleSystems": "粒子系统",
+      "extensions": "扩展"
+    },
     "type": {
       "general": "游戏",
       "sprites": "精灵",
@@ -645,6 +660,8 @@
     "rebuildFailed": "无法重新生成数据文件：{reason}"
   },
   "history": {
+    "newResource": "新建{type}：{name}",
+    "deleteResource": "删除 {name}",
     "start": "打开时的状态",
     "rename": "将 {old} 重命名为 {new}",
     "code": "将代码应用到 {entry}"
@@ -755,6 +772,7 @@
   },
   "quick": {
     "goTo": {
+      "paletteTitle": "命令",
       "title": "转到",
       "placeholder": "输入名称。o: 对象,@ 符号,# 字符串,> 命令,t: 标签页",
       "results": "结果",
@@ -912,6 +930,8 @@
     "imageOnion": "洋葱皮帧数和不透明度 (百分比)",
     "imageChecker": "棋盘格颜色 (浅色、深色)",
     "imageBackground": "画布背景色",
+    "imageColourDefault": "主题颜色",
+    "imageFontDefault": "界面字体",
     "sound": "声音",
     "soundDevice": "输出设备",
     "soundVolume": "播放器初始音量(百分比)",
@@ -967,6 +987,7 @@
     "newFile": "新文件，尚未跟踪。"
   },
   "properties": {
+    "empty": "（空）",
     "addEntry": "添加条目",
     "moveUp": "上移",
     "moveDown": "下移",
@@ -2286,6 +2307,10 @@
     "extAddFunction": "添加函数",
     "extAddArgument": "添加参数",
     "extAddOption": "添加选项",
+    "extFiles": "文件",
+    "extOptions": "选项",
+    "extNoFiles": "此扩展还没有文件。请在下面添加。",
+    "extNoOptions": "此扩展没有选项。",
     "extUp": "上移",
     "extDown": "下移",
     "shaderCheck": {
@@ -2305,7 +2330,11 @@
       "kind": "类型",
       "moved": "已将 {count} 项移到 {group}。",
       "newName": "组名",
-      "nameLabel": "“新建组”和“重命名组”使用的名称",
+      "nameLabel": "名称",
+      "targetPlaceholder": "选择组",
+      "noGroups": "此数据文件没有组。",
+      "noMembers": "此组没有这类成员。",
+      "pickGroup": "选择一个组即可查看其成员。",
       "hintName": "请先输入组名。",
       "hintRename": "请先在列表中选择一个组。",
       "hintMove": "请先选择目标组和至少一个成员。",

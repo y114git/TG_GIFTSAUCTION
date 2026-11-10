@@ -421,6 +421,21 @@
     "deleteCode": "{reason}\n\n仍然刪除的話，這些程式碼會繼續指向已不存在的內容。程式碼執行時遊戲可能當機或出錯。儲存之前，復原可以還原一切。",
     "nameUnusual": "「{name}」不是簡單名稱（字母、數字和底線，且不以數字開頭）。GML 程式碼無法使用它，其他工具也可能出錯。要仍然使用，請再按一次按鈕。儲存之前可以復原。",
     "nameTaken": "已經有名為「{name}」的資源或程式碼項目。同名的有兩個時，編輯器和刪除只會碰到第一個。要仍然使用該名稱，請再按一次按鈕。儲存之前，可用復原移除它。",
+    "typeOne": {
+      "objects": "物件",
+      "scripts": "指令碼",
+      "paths": "路徑",
+      "timelines": "時間軸",
+      "sounds": "音效",
+      "rooms": "房間",
+      "sprites": "精靈",
+      "shaders": "著色器",
+      "fonts": "字型",
+      "sequences": "序列",
+      "animationCurves": "動畫曲線",
+      "particleSystems": "粒子系統",
+      "extensions": "擴充功能"
+    },
     "type": {
       "general": "遊戲",
       "sprites": "精靈",
@@ -645,6 +660,8 @@
     "rebuildFailed": "無法重新建置資料檔案：{reason}"
   },
   "history": {
+    "newResource": "新增{type}：{name}",
+    "deleteResource": "刪除 {name}",
     "start": "開啟時的狀態",
     "rename": "將 {old} 重新命名為 {new}",
     "code": "將程式碼套用到 {entry}"
@@ -755,6 +772,7 @@
   },
   "quick": {
     "goTo": {
+      "paletteTitle": "命令",
       "title": "前往",
       "placeholder": "輸入名稱。o: 物件,@ 符號,# 字串,> 命令,t: 分頁",
       "results": "結果",
@@ -912,6 +930,8 @@
     "imageOnion": "洋蔥皮影格數與不透明度 (百分比)",
     "imageChecker": "棋盤格顏色 (淺色、深色)",
     "imageBackground": "畫布背景色",
+    "imageColourDefault": "主題顏色",
+    "imageFontDefault": "介面字型",
     "sound": "聲音",
     "soundDevice": "輸出裝置",
     "soundVolume": "播放器初始音量(百分比)",
@@ -967,6 +987,7 @@
     "newFile": "新檔案，尚未追蹤。"
   },
   "properties": {
+    "empty": "（空）",
     "addEntry": "新增項目",
     "moveUp": "上移",
     "moveDown": "下移",
@@ -2286,6 +2307,10 @@
     "extAddFunction": "新增函式",
     "extAddArgument": "新增參數",
     "extAddOption": "新增選項",
+    "extFiles": "檔案",
+    "extOptions": "選項",
+    "extNoFiles": "此擴充功能還沒有檔案。請在下方新增。",
+    "extNoOptions": "此擴充功能沒有選項。",
     "extUp": "上移",
     "extDown": "下移",
     "shaderCheck": {
@@ -2305,7 +2330,11 @@
       "kind": "類型",
       "moved": "已將 {count} 項移到 {group}。",
       "newName": "群組名稱",
-      "nameLabel": "「新增群組」和「重新命名群組」使用的名稱",
+      "nameLabel": "名稱",
+      "targetPlaceholder": "選擇群組",
+      "noGroups": "此資料檔案沒有群組。",
+      "noMembers": "此群組沒有這類成員。",
+      "pickGroup": "選擇一個群組即可查看其成員。",
       "hintName": "請先輸入群組名稱。",
       "hintRename": "請先在清單中選擇一個群組。",
       "hintMove": "請先選擇目標群組和至少一個成員。",

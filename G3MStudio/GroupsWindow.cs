@@ -26,6 +26,8 @@ public sealed class GroupsWindow : Window
     private readonly TextBox _name = new() { Name = "GroupName", MinWidth = 160 };
     private readonly Button _new = new() { Name = "GroupNew" };
     private readonly Button _rename = new() { Name = "GroupRename" };
+    private readonly TextBlock _noGroups = new() { Name = "GroupsEmpty", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap, Margin = new Thickness(8), IsHitTestVisible = false };
+    private readonly TextBlock _noMembers = new() { Name = "MembersEmpty", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap, Margin = new Thickness(8), IsHitTestVisible = false };
     private bool _building;
 
     public GroupsWindow(Workspace workspace, bool audio)
@@ -46,6 +48,8 @@ public sealed class GroupsWindow : Window
         _members.Labeled("editors.groups.members");
         _kind.Labeled("editors.groups.kind");
         _target.Labeled("editors.groups.moveTo");
+        _target.PlaceholderText = Loc.Current["editors.groups.targetPlaceholder"];
+        _noGroups.Text = Loc.Current["editors.groups.noGroups"];
         _kind.ItemsSource = Kinds.Select(k => Loc.Current["explorer.type." + (k == "tilesets" ? "tileSets" : k)]).ToList();
         _kind.SelectedIndex = 0;
         _kind.IsVisible = !audio;
@@ -58,10 +62,12 @@ public sealed class GroupsWindow : Window
         DockPanel.SetDock(edit, Avalonia.Controls.Dock.Top);
         var panel = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(bar, Avalonia.Controls.Dock.Top);
-        DockPanel.SetDock(_groups, Avalonia.Controls.Dock.Left);
         bar.Margin = new Thickness(0, 0, 0, 8);
-        _groups.Margin = new Thickness(0, 0, 8, 0);
-        foreach (var child in new Control[] { edit, bar, _groups, _members }) panel.Children.Add(child);
+        // Each list has a header and a hint that shows while it is empty.
+        var groupsColumn = Column("editors.groups.groups", _groups, _noGroups);
+        groupsColumn.Margin = new Thickness(0, 0, 8, 0);
+        DockPanel.SetDock(groupsColumn, Avalonia.Controls.Dock.Left);
+        foreach (var child in new Control[] { edit, bar, groupsColumn, Column("editors.groups.members", _members, _noMembers) }) panel.Children.Add(child);
         DialogFrame.Show(this, panel, [DialogFrame.Close(this)], _message);
         _groups.SelectionChanged += (_, _) => ShowMembers();
         _kind.SelectionChanged += (_, _) => ShowMembers();
@@ -84,6 +90,13 @@ public sealed class GroupsWindow : Window
         Closed += (_, _) => workspace.History.Changed -= Refresh;
         Refresh();
         UpdateButtons();
+    }
+
+    private static DockPanel Column(string headerKey, ListBox list, TextBlock empty)
+    {
+        var header = new TextBlock { Text = Loc.Current[headerKey], Classes = { "muted" }, Margin = new Thickness(0, 0, 0, 4) };
+        DockPanel.SetDock(header, Avalonia.Controls.Dock.Top);
+        return new DockPanel { Children = { header, new Grid { Children = { list, empty } } } };
     }
 
     private void CreateGroup()
@@ -118,6 +131,7 @@ public sealed class GroupsWindow : Window
         var names = GroupNames;
         _groups.ItemsSource = names.ToList();
         _target.ItemsSource = names.ToList();
+        _noGroups.IsVisible = names.Count == 0;
         _groups.SelectedItem = picked is not null && names.Contains(picked) ? picked : (names.Count > 0 ? names[0] : null);
         _building = false;
         ShowMembers();
@@ -134,7 +148,10 @@ public sealed class GroupsWindow : Window
     private void ShowMembers()
     {
         if (_building) return;
-        _members.ItemsSource = _groups.SelectedItem is string group ? Members(group) : [];
+        var members = _groups.SelectedItem is string group ? Members(group) : [];
+        _members.ItemsSource = members;
+        _noMembers.Text = Loc.Current[_groups.SelectedItem is string ? "editors.groups.noMembers" : "editors.groups.pickGroup"];
+        _noMembers.IsVisible = members.Count == 0;
     }
 
     // The name box holds the new group's name, or the new name of the picked group.

@@ -71,6 +71,8 @@ public sealed class HistoryView : UserControl
     private static string Describe(EditCommand command) => command switch
     {
         RenameResourceCommand => Loc.Current.Format("history.rename", ("old", command.Args["old"]), ("new", command.Args["new"])),
+        ResourceListCommand when command.Args["operation"] == ResourceListCommand.New => Loc.Current.Format("history.newResource", ("type", Loc.Current["explorer.typeOne." + command.Args["type"]]), ("name", command.Args["name"])),
+        ResourceListCommand => Loc.Current.Format("history.deleteResource", ("name", command.Args["name"])),
         EditCodeCommand => Loc.Current.Format("history.code", ("entry", command.Args["entry"])),
         _ => command.Kind,
     };

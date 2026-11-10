@@ -12,7 +12,7 @@ public sealed partial class ObjectEventsView
     private Button EventTools(uint kind, uint subtype)
     {
         var name = _object.Name.Content ?? "";
-        var button = new Button { Name = $"EventMenu_{kind}_{subtype}", Content = "\u22EF", VerticalAlignment = VerticalAlignment.Center };
+        var button = new Button { Name = $"EventMenu_{kind}_{subtype}", Content = "\u22EF", Classes = { "icon" }, VerticalAlignment = VerticalAlignment.Center };
         ToolTip.SetTip(button, Loc.Current["editors.object.eventMenu"]);
         button.Click += (_, _) =>
         {

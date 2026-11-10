@@ -59,7 +59,7 @@ public sealed class ShortcutsEditor : UserControl
             var buttons = new StackPanel { [DockPanel.DockProperty] = Avalonia.Controls.Dock.Right, Orientation = Orientation.Horizontal, Spacing = 6 };
             Button Slot(string name, int slot, string label)
             {
-                var button = new Button { Name = name, MinWidth = 100, Content = _capturing == id && _slot == slot ? Loc.Current["settings.pressKeys"] : label };
+                var button = new Button { Name = name, MinWidth = 100, Content = _capturing == id && _slot == slot ? Loc.Current["settings.pressKeys"] : G3MStudio.Commands.Shortcuts.Display(label) };
                 button.Click += (_, _) => { (_capturing, _slot) = (id, slot); Fill(); };
                 if (_capturing == id && _slot == slot) focus = button;
                 return button;

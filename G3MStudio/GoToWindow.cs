@@ -23,23 +23,25 @@ public sealed class GoToWindow : Window
     private readonly ListBox _results = new() { Name = "Results", MinHeight = 280, MaxHeight = 360 };
     private readonly TextBlock _empty = new() { Name = "Empty", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap };
     private readonly TextBlock _previewText = new() { Name = "Preview", TextWrapping = Avalonia.Media.TextWrapping.Wrap };
+    private readonly DockPanel _left;
+    private readonly ScrollViewer _previewScroll;
     private int _previewRun;
 
     public GoToWindow(Func<string, IReadOnlyList<GoToEntry>> search, Func<GoToEntry, Task<string>> preview)
     {
         (_search, _preview) = (search, preview);
         Title = Loc.Current["quick.goTo.title"];
-        Width = 720;
+        Width = 880;
         SizeToContent = SizeToContent.Height;
         CanResize = false;
         ShowInTaskbar = false;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         _results.ItemTemplate = new FuncDataTemplate<GoToEntry>((entry, _) => entry is null ? new TextBlock() : Row(entry));
         var gap = Space("Space.2");
-        var left = new DockPanel { Children = { Docked(_empty, Avalonia.Controls.Dock.Bottom, gap), _results } };
-        var right = new ScrollViewer { Name = "PreviewScroll", Content = _previewText, MinHeight = 280, MaxHeight = 360 };
+        _left = new DockPanel { Children = { Docked(_empty, Avalonia.Controls.Dock.Bottom, gap), _results } };
+        var right = _previewScroll = new ScrollViewer { Name = "PreviewScroll", Content = _previewText, MinHeight = 280, MaxHeight = 360 };
         var grid = new Grid { ColumnSpacing = gap, ColumnDefinitions = { new ColumnDefinition(1.2, GridUnitType.Star), new ColumnDefinition(1, GridUnitType.Star) } };
-        grid.Children.Add(left);
+        grid.Children.Add(_left);
         Grid.SetColumn(right, 1);
         grid.Children.Add(right);
         _previewText.FontFamily = Editor.EditorOptions.Family ?? (Avalonia.Media.FontFamily?)Application.Current?.FindResource("Font.Code") ?? Avalonia.Media.FontFamily.Default;
@@ -101,7 +103,7 @@ public sealed class GoToWindow : Window
             {
                 new TextBlock { Text = detail, Classes = { "muted" }, [DockPanel.DockProperty] = Avalonia.Controls.Dock.Right, TextTrimming = Avalonia.Media.TextTrimming.CharacterEllipsis, MaxWidth = 200 },
                 new TextBlock { Text = entry.Kind is GoToKind.Resource or GoToKind.Code ? Badge(entry.Type) : "", Width = 28, FontWeight = Avalonia.Media.FontWeight.Bold, Classes = { "muted" }, [DockPanel.DockProperty] = Avalonia.Controls.Dock.Left },
-                new TextBlock { Text = entry.Name, TextTrimming = Avalonia.Media.TextTrimming.CharacterEllipsis },
+                new TextBlock { Text = entry.Name, TextWrapping = Avalonia.Media.TextWrapping.Wrap },
             },
         };
         ToolTip.SetTip(row, kind); // the two-letter mark is spelled out on hover
@@ -142,6 +144,11 @@ public sealed class GoToWindow : Window
         var prefixes = Loc.Current["quick.goTo.prefixes"];
         var none = items.Count == 0 && text.Trim().Length > 0;
         _empty.IsVisible = none || text.Trim().Length == 0;
+        // With nothing to list, the hint takes the whole width instead of a bare list and half a column.
+        var bare = items.Count == 0;
+        _results.IsVisible = !bare;
+        _previewScroll.IsVisible = !bare;
+        Grid.SetColumnSpan(_left, bare ? 2 : 1);
         _empty.Text = none ? Loc.Current.Format("palette.empty", ("text", text)) + "\n" + prefixes : prefixes;
         if (items.Count == 0) _previewText.Text = "";
     }

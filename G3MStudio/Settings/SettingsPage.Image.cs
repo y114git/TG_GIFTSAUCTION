@@ -16,9 +16,9 @@ public sealed partial class SettingsPage
             return box;
         }
 
-        TextBox Text(string name, string value, Func<ImageOptions, string, ImageOptions> set)
+        TextBox Text(string name, string value, Func<ImageOptions, string, ImageOptions> set, string placeholder = "settings.imageColourDefault")
         {
-            var box = new TextBox { Name = name, Text = value, Width = 120 };
+            var box = new TextBox { Name = name, Text = value, Width = 160, PlaceholderText = Loc.Current[placeholder] };
             box.LostFocus += (_, _) => { if (!_building) _store.Update(x => x with { Image = set(x.Image, box.Text ?? "") }); };
             return box;
         }
@@ -33,7 +33,7 @@ public sealed partial class SettingsPage
             Check("ImageOptSmooth", "settings.imageSmooth", o.Smooth, (i, v) => i with { Smooth = v }),
             Row("settings.imageTolerance", Num("ImageOptTolerance", 0, 255, o.Tolerance, (i, n) => i with { Tolerance = n })),
             Check("ImageOptContiguous", "settings.imageContiguous", o.Contiguous, (i, v) => i with { Contiguous = v }),
-            Row("settings.imageTextSize", Num("ImageOptTextSize", 4, 256, o.TextSize, (i, n) => i with { TextSize = n }), Text("ImageOptTextFont", o.TextFont, (i, t) => i with { TextFont = t })),
+            Row("settings.imageTextSize", Num("ImageOptTextSize", 4, 256, o.TextSize, (i, n) => i with { TextSize = n }), Text("ImageOptTextFont", o.TextFont, (i, t) => i with { TextFont = t }, "settings.imageFontDefault")),
             Check("ImageOptLayerAutosave", "settings.imageLayerAutosave", o.LayerAutosave, (i, v) => i with { LayerAutosave = v }),
             Check("ImageOptGrid", "settings.imageGrid", o.ShowGrid, (i, v) => i with { ShowGrid = v }),
             Row("settings.imageGridCell", Num("ImageOptGridCell", 0, 1024, o.GridCell, (i, n) => i with { GridCell = n }), Text("ImageOptGridColour", o.GridColour, (i, t) => i with { GridColour = t })),

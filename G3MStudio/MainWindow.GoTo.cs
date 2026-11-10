@@ -35,12 +35,13 @@ public sealed partial class MainWindow
         GoToBox.Closed += (_, _) => GoToBox = null;
         GoToBox.Chosen += OpenGoTo;
         if (text.Length > 0) GoToBox.Text = text;
+        if (text == ">") GoToBox.Title = Loc.Current["quick.goTo.paletteTitle"];
         _ = GoToBox.ShowDialog(this);
     }
 
     /// <summary>The enabled commands as Go To entries; the extra search text of a command that took over a removed duplicate's job is matched too.</summary>
     public static IEnumerable<GoToEntry> CommandEntries(CommandRegistry registry, Localizer loc) =>
-        registry.All.Where(registry.IsEnabled).Select(c => new GoToEntry(GoToKind.Command, c.Title ?? PaletteTitle(c.Id, loc), c.Id, "", Shortcuts.Parse(c.Shortcut)?.ToString() ?? "",
+        registry.All.Where(registry.IsEnabled).Select(c => new GoToEntry(GoToKind.Command, c.Title ?? PaletteTitle(c.Id, loc), c.Id, "", Shortcuts.Display(Shortcuts.Parse(c.Shortcut)?.ToString()),
             AppCommands.PaletteAlt.TryGetValue(c.Id, out var alt) ? loc[alt] : ""));
 
     /// <summary>The palette name of a command. The image editor's names repeat the main ones (Copy, Paste), so they carry their menu path: Image > Selection > Copy.</summary>

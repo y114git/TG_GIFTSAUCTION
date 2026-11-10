@@ -14,7 +14,7 @@ public sealed class HexViewWindow : Window, IDisposable
 {
     private readonly HexSource _source;
     private readonly ListBox _rows = new() { Name = "HexRows", FontFamily = (Avalonia.Media.FontFamily?)Avalonia.Application.Current?.FindResource("Font.Code") ?? Avalonia.Media.FontFamily.Default };
-    private readonly TextBox _goTo = new() { Name = "HexGoTo", Width = 150, PlaceholderText = Loc.Current["hex.goTo"] };
+    private readonly TextBox _goTo = new() { Name = "HexGoTo", Width = 250, PlaceholderText = Loc.Current["hex.goTo"] };
     private readonly TextBox _find = new() { Name = "HexFind", Width = 220, PlaceholderText = Loc.Current["hex.find"] };
     private readonly TextBox _bytes = new() { Name = "HexBytes", Width = 220, PlaceholderText = Loc.Current["hex.bytes"] };
     private readonly Button _undo = new() { Name = "HexUndo", Content = Loc.Current["hex.undo"] };
@@ -51,6 +51,7 @@ public sealed class HexViewWindow : Window, IDisposable
             FindNext();
             e.Handled = true;
         };
+        ToolTip.SetTip(_goTo, _goTo.PlaceholderText); // the hint is longer than the box in some languages
         var list = _source.Chunks();
         var chunks = new ComboBox { Name = "HexChunks", Width = 140, PlaceholderText = Loc.Current["hex.chunk"], ItemsSource = list.Select(c => c.Name + " " + c.Offset.ToString("X", System.Globalization.CultureInfo.InvariantCulture)).ToList() };
         chunks.SelectionChanged += (_, _) =>

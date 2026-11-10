@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using G3MLib.DataFile.Models;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio.Editor;
 
@@ -56,10 +57,15 @@ public sealed class ExtensionView : StackPanel
         _labels.Add((summary, () => Loc.Current.Format("editors.extensionSummary", ("name", ExtensionName), ("version", _extension.Version?.Content ?? ""), ("files", _extension.Files.Count), ("options", _extension.Options.Count))));
         summary.Text = _labels[^1].Text();
         Children.Add(summary);
+        Children.Add(Heading("editors.extFiles"));
+        if (_extension.Files.Count == 0) Children.Add(new TextBlock { Name = "ExtFilesEmpty", Text = Loc.Current["editors.extNoFiles"], Classes = { "muted" } });
         for (var i = 0; i < _extension.Files.Count; i++) Children.Add(FileBlock(i));
-        var kind = new ComboBox { Name = "ExtFileKind", ItemsSource = Enum.GetNames<GameMakerExtensionKind>(), SelectedItem = _fileKind };
-        kind.SelectionChanged += (_, _) => _fileKind = kind.SelectedItem as string ?? _fileKind;
+        var kinds = Enum.GetNames<GameMakerExtensionKind>();
+        var kind = new ComboBox { Name = "ExtFileKind", ItemsSource = kinds.Select(KindText).ToList(), SelectedIndex = Math.Max(0, Array.IndexOf(kinds, _fileKind)) };
+        kind.SelectionChanged += (_, _) => _fileKind = kind.SelectedIndex >= 0 ? kinds[kind.SelectedIndex] : _fileKind;
         Children.Add(new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 6, Children = { AddButton("ExtFileAdd", "editors.extAddFile", "Files"), kind } });
+        Children.Add(Heading("editors.extOptions"));
+        if (_extension.Options.Count == 0) Children.Add(new TextBlock { Name = "ExtOptionsEmpty", Text = Loc.Current["editors.extNoOptions"], Classes = { "muted" } });
         for (var i = 0; i < _extension.Options.Count; i++)
         {
             var at = i;
@@ -69,6 +75,11 @@ public sealed class ExtensionView : StackPanel
         Children.Add(AddButton("ExtOptionAdd", "editors.extAddOption", "Options"));
     }
 
+    private static TextBlock Heading(string key) => new TextBlock { Text = Loc.Current[key], Margin = new Thickness(0, 8, 0, 0), Classes = { "accent" } }.TextSize("FontSize.Body");
+
+    /// <summary>The kind as a person writes it: DLL in capitals.</summary>
+    private static string KindText(string kind) => kind == "Dll" ? "DLL" : kind;
+
     private Expander FileBlock(int i)
     {
         var path = $"Files[{i}]";
@@ -77,7 +88,7 @@ public sealed class ExtensionView : StackPanel
         body.Children.Add(new PropertyGridTab(_workspace, "extensions", ExtensionName, null, path));
         for (var j = 0; j < file.Functions.Count; j++) body.Children.Add(FunctionBlock(path, j, file.Functions.Count));
         body.Children.Add(AddButton("ExtFunctionAdd_" + i, "editors.extAddFunction", path + ".Functions"));
-        return Block(Label(() => $"{_extension.Files.ElementAtOrDefault(i)?.Filename?.Content} ({_extension.Files.ElementAtOrDefault(i)?.Kind})"), new ListRow("Files", i, _extension.Files.Count, "ExtFile"), null, body);
+        return Block(Label(() => $"{_extension.Files.ElementAtOrDefault(i)?.Filename?.Content} ({KindText(_extension.Files.ElementAtOrDefault(i)?.Kind.ToString() ?? "")})"), new ListRow("Files", i, _extension.Files.Count, "ExtFile"), null, body);
     }
 
     private Expander FunctionBlock(string filePath, int j, int count)
