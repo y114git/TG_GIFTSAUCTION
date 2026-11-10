@@ -4,6 +4,7 @@ using Avalonia.Input.Platform;
 using G3MLib.DataFile.Models;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio.Editor;
 /// <summary>The vertices of an object's physics shape as a list with X and Y boxes: Add puts a vertex at the end, Set moves the picked one, Remove deletes it (UTMT-OBJ-03).</summary>
@@ -121,7 +122,7 @@ public sealed class ParticleEmittersView : StackPanel
         var name = _system.Name.Content ?? "";
         var items = Lines.Select((line, i) =>
         {
-            var remove = new Button { Name = "EmitterRemove_" + i, Content = Loc.Current["timelines.remove"] };
+            var remove = new Button { Name = "EmitterRemove_" + i, Content = Loc.Current["timelines.remove"] }.NamedFor("timelines.remove", line);
             remove.Click += (_, _) => workspace.Edit(new ParticleEmitterCommand(name, ParticleEmitterCommand.Remove, i));
             var copy = new Button { Name = "EmitterDuplicate_" + i, Content = Loc.Current["editors.particles.duplicate"] };
             copy.Click += (_, _) => workspace.Edit(new ParticleEmitterCommand(name, ParticleEmitterCommand.Duplicate, i));

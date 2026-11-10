@@ -83,14 +83,21 @@ public sealed class FontGlyphsView : StackPanel
             {
                 if (_list.SelectedIndex is >= 0 and var row && row < _shown.Count) workspace.Edit(new FontGlyphCommand(font.Name.Content ?? "", FontGlyphCommand.Remove, _shown[row]));
             };
+            var deleteRange = new Button { Name = "GlyphDeleteRange", Content = Loc.Current["fonts.deleteRange"] };
+            deleteRange.Click += async (_, _) =>
+            {
+                var text = _newCharacter.Text ?? "";
+                // A long range is hard to undo by eye, so it is confirmed first.
+                if (MatchingGlyphs(text) > ConfirmAbove && TopLevel.GetTopLevel(this) is Window owner
+                    && !await ProjectDialogs.AskConfirmAsync(owner, Loc.Current["fonts.deleteRange"], Loc.Current.Format("fonts.deleteRangeConfirm", ("count", MatchingGlyphs(text)), ("font", font.Name.Content ?? "")))) return;
+                DeleteRange(text);
+            };
             _replace.Content = Loc.Current["fonts.replace"];
             _replace.IsEnabled = ReplaceRequested is not null;
             Avalonia.Controls.ToolTip.SetTip(_replace, Loc.Current["fonts.replaceTip"]);
             _replace.Click += (_, _) => ReplaceRequested?.Invoke(font.Name.Content ?? "");
-            Children.Add(new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Children = { _newCharacter, add, remove, _replace } });
-            var deleteRange = new Button { Name = "GlyphDeleteRange", Content = Loc.Current["fonts.deleteRange"] };
-            deleteRange.Click += (_, _) => DeleteRange(_newCharacter.Text ?? "");
-            var presets = new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Children = { deleteRange } };
+            Children.Add(new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Children = { _newCharacter, add, remove, deleteRange, _replace } });
+            var presets = new WrapPanel { ItemSpacing = 6, LineSpacing = 6 };
             foreach (var (name, key) in new[] { ("Normal", "fonts.presetNormal"), ("Digits", "fonts.presetDigits"), ("Letters", "fonts.presetLetters") })
             {
                 var button = new Button { Name = "GlyphPreset" + name, Content = Loc.Current[key] };
@@ -201,6 +208,11 @@ public sealed class FontGlyphsView : StackPanel
         var missing = sample.Where(c => !char.IsControl(c)).Distinct().Where(c => _font.Glyphs.All(g => g.Character != c)).ToList();
         return missing.Count == 0 ? "" : Loc.Current.Format("fonts.sampleMissing", ("characters", string.Concat(missing)));
     }
+
+    public const int ConfirmAbove = 20;
+
+    /// <summary>How many glyphs of the font a range such as <c>A-Z</c> would remove; 0 when the text is no range.</summary>
+    public int MatchingGlyphs(string text) => ParseRange(text) is { } codes ? codes.Count(code => _font.Glyphs.Any(g => g.Character == code)) : 0;
 
     /// <summary>Removes every glyph of a range such as <c>A-Z</c> in one undo step; false when the text is no range or nothing matched.</summary>
     public bool DeleteRange(string text)

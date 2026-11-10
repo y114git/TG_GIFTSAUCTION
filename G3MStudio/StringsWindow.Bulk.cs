@@ -20,17 +20,18 @@ public sealed partial class StringsWindow
         {
             var pattern = new Regex(_regex.IsChecked == true ? needle : Regex.Escape(needle), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2));
             var with = _regex.IsChecked == true ? _replaceWith.Text ?? "" : (_replaceWith.Text ?? "").Replace("$", "$$", StringComparison.Ordinal);
-            EditCommand? edit;
-            int count, risky;
+            IReadOnlyList<(int Index, string Text)> changes;
+            int risky, held;
             using (_workspace.Lock.Read())
             {
-                edit = StringTable.ReplaceEdits(_workspace.Data, Shown.Select(r => r.Index), pattern, with);
-                var changed = Shown.Where(r => pattern.Replace(r.Text, with) != r.Text).ToList();
-                (count, risky) = (changed.Count, changed.Count(r => IsRisky(r.Index)));
+                changes = StringTable.ReplaceChanges(_workspace.Data, Shown.Select(r => r.Index), pattern, with, out held);
+                risky = changes.Count(c => IsRisky(c.Index));
             }
 
-            if (edit is not null && !await ConfirmChangeAsync(count, risky)) return;
-            if (TryEdit(edit, "strings.noChange")) _note.Text = Loc.Current.Format("strings.replaced", ("count", count));
+            if (changes.Count > 0 && !await ConfirmChangeAsync(changes.Count, risky)) return;
+            var done = TryEdit(changes.Count == 0 ? null : StringTable.ToEdit(changes), "strings.noChange");
+            if (done) _note.Text = Loc.Current.Format("strings.replaced", ("count", changes.Count));
+            if (held > 0 && (done || changes.Count == 0)) _note.Text += " " + Loc.Current.Format("strings.importHeld", ("held", held));
         }
         catch (Exception e) when (e is ArgumentException or RegexMatchTimeoutException)
         {
@@ -38,11 +39,24 @@ public sealed partial class StringsWindow
         }
     }
 
-    /// <summary>Writes the shown strings as CSV (index, text).</summary>
+    /// <summary>Writes the shown strings as CSV (index, text). A failure is shown in the note; an existing file stays whole until the new one is complete.</summary>
     internal void ExportTo(string path)
     {
-        File.WriteAllText(path, StringTable.ToCsv(Shown.Select(r => (r.Index, r.Text))), new System.Text.UTF8Encoding(true));
-        _note.Text = Loc.Current.Format("strings.exported", ("count", Shown.Count), ("name", Path.GetFileName(path)));
+        var temp = $"{path}.{Guid.NewGuid():N}.tmp";
+        try
+        {
+            File.WriteAllText(temp, StringTable.ToCsv(Shown.Select(r => (r.Index, r.Text))), new System.Text.UTF8Encoding(true));
+            File.Move(temp, path, true);
+            _note.Text = Loc.Current.Format("strings.exported", ("count", Shown.Count), ("name", Path.GetFileName(path)));
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            _note.Text = Loc.Current.Format("strings.exportFailed", ("reason", e.Message));
+        }
+        finally
+        {
+            if (File.Exists(temp)) File.Delete(temp);
+        }
     }
 
     /// <summary>Sets the text of the strings the CSV names by number, as one undo step.</summary>

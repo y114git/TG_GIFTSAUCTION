@@ -93,7 +93,9 @@ public sealed class GitPanelTests
                 await Wait(() => Find<TextBox>(window, "GitDiff").IsVisible);
                 await Click(window, "GitStageAll", () => panel.Changes.All(c => c.Staged));
 
+                Assert.False(Find<Button>(window, "GitCommit").IsEnabled); // no message yet
                 Set(window, "GitMessage", "first");
+                Assert.True(Find<Button>(window, "GitCommit").IsEnabled);
                 await Click(window, "GitCommit", () => panel.Commits.Count == 1, () => "panel info: " + panel.Info);
 
                 Set(window, "GitNewBranchName", "feature");

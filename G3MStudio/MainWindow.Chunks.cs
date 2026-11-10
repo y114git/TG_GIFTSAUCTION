@@ -24,11 +24,14 @@ public partial class MainWindow
         }
     }
 
+    // Windows and macOS file systems ignore case by default.
+    private static readonly StringComparison PathComparison = OperatingSystem.IsWindows() || OperatingSystem.IsMacOS() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+
     private async Task ExportChunkAsync()
     {
         if (Workspaces.Current is not { } workspace || await AskChunkAsync(workspace, "chunks.exportTitle") is not { } name) return;
         if (await PickPatchFile(Loc.Current["chunks.pickOut"], true, ".bin") is not { } output) return;
-        var comparison = OperatingSystem.IsWindows() || OperatingSystem.IsMacOS() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+        var comparison = PathComparison;
         var target = Path.GetFullPath(output);
         if (string.Equals(target, Path.GetFullPath(workspace.Path), comparison) || string.Equals(target, Path.GetFullPath(workspace.Path + ".bak"), comparison))
         {
@@ -41,10 +44,10 @@ public partial class MainWindow
             await Task.Run(() =>
             {
                 // Written beside the target first, so a failed export leaves an existing file untouched.
-                var temp = target + ".tmp";
+                var temp = $"{target}.{Guid.NewGuid():N}.tmp";
                 try
                 {
-                    using (var file = new FileStream(temp, FileMode.Create, FileAccess.Write)) ChunkPatch.Export(workspace.Path, name, file);
+                    using (var file = new FileStream(temp, FileMode.CreateNew, FileAccess.Write)) ChunkPatch.Export(workspace.Path, name, file);
                     File.Move(temp, target, true);
                 }
                 finally
@@ -91,7 +94,7 @@ public partial class MainWindow
     /// <summary>Called by the hex view: warns, writes the patched bytes into the file and loads it again. True when the file was written. The open data file is looked up by path now, since the view can outlive the one it was opened for.</summary>
     internal async Task<bool> ApplyHexPatchAsync(string path, HexSource source)
     {
-        var comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+        var comparison = PathComparison;
         if (Workspaces.Current is not { } workspace || !string.Equals(Path.GetFullPath(workspace.Path), Path.GetFullPath(path), comparison))
         {
             Notify(NotificationLevel.Warning, Loc.Current["chunks.otherFile"]);

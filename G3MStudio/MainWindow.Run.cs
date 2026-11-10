@@ -325,6 +325,7 @@ public sealed partial class MainWindow
             RunState.Stopping => Loc.Current["live.statusStopping"],
             _ => _lastCrash is { } crash ? Loc.Current.Format("live.statusCrashed", ("code", crash.Code)) : "",
         };
+        _output.SetRunState(_live.State);
         RunText.Text = text;
         RunText.IsVisible = text.Length > 0;
     }

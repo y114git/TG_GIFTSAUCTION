@@ -1,7 +1,7 @@
 using Avalonia.Controls;
-using Avalonia.Layout;
 using G3MStudio.Core.Projects;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio.Git;
 
@@ -11,7 +11,7 @@ public sealed partial class GitPanel : UserControl
     private readonly TextBlock _info = new() { Name = "GitInfo", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap };
     private readonly Button _init = new Button { Name = "GitInit" }.Tr(ContentControl.ContentProperty, "git.init");
     private readonly ListBox _changes = new() { Name = "GitChanges", MaxHeight = 200 };
-    private readonly TextBox _message = new TextBox { Name = "GitMessage", AcceptsReturn = true }.Tr(TextBox.PlaceholderTextProperty, "git.message");
+    private readonly TextBox _message = new TextBox { Name = "GitMessage", AcceptsReturn = true }.Tr(TextBox.PlaceholderTextProperty, "git.message").Labeled("git.message");
     private readonly Button _commit = new Button { Name = "GitCommit" }.Tr(ContentControl.ContentProperty, "git.commit");
     private readonly Button _stage = new Button { Name = "GitStageAll" }.Tr(ContentControl.ContentProperty, "git.stageAll");
     private readonly Button _unstage = new Button { Name = "GitUnstageAll" }.Tr(ContentControl.ContentProperty, "git.unstageAll");
@@ -25,12 +25,14 @@ public sealed partial class GitPanel : UserControl
     public GitPanel(IReadOnlyDictionary<string, string>? environment = null)
     {
         _environment = environment;
-        var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { _stage, _unstage, _refresh, _commit } };
+        var buttons = new WrapPanel { ItemSpacing = 6, LineSpacing = 4, Children = { _stage, _unstage, _refresh, _commit } };
         Content = new ScrollViewer { Content = new StackPanel { Margin = new Avalonia.Thickness(8), Spacing = 6, Children = { _info, _init, BuildRemoteBars(), _changes, _diff, _message, buttons, _log } } };
         _init.Click += async (_, _) => await RunAsync(g => g.InitAsync());
         _stage.Click += async (_, _) => await RunAsync(g => g.StageAllAsync());
         _unstage.Click += async (_, _) => await RunAsync(g => g.UnstageAllAsync());
         _refresh.Click += async (_, _) => await RefreshAsync();
+        _commit.IsEnabled = false;
+        _message.TextChanged += (_, _) => _commit.IsEnabled = !string.IsNullOrWhiteSpace(_message.Text);
         _commit.Click += async (_, _) =>
         {
             var message = _message.Text?.Trim() ?? "";

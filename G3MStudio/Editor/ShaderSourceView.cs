@@ -96,7 +96,7 @@ public sealed class EntryScriptsView : StackPanel
             var pick = new AutoCompleteBox { Name = "ScriptPick_" + list, Width = 240, FilterMode = AutoCompleteFilterMode.Contains, ItemsSource = _data.Code.Select(c => c.Name.Content ?? "").ToList() };
             var add = new Button { Name = "ScriptAdd_" + list, Content = Loc.Current["entryScripts.add"] };
             add.Click += (_, _) => Add(list, pick.Text ?? "");
-            var remove = new Button { Name = "ScriptRemove_" + list, Content = Loc.Current["timelines.remove"] };
+            var remove = new Button { Name = "ScriptRemove_" + list, Content = Loc.Current["timelines.remove"] }.NamedFor("timelines.remove", Loc.Current[title]);
             remove.Click += (_, _) => { if (box.SelectedItem is string code) Remove(list, code); };
             Children.Add(new TextBlock { Text = Loc.Current[title], Classes = { "muted" } });
             Children.Add(box);

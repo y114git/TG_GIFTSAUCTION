@@ -17,6 +17,7 @@
     "title": "G3MStudio",
     "welcome": "打开游戏数据文件即可开始。",
     "ready": "就绪",
+    "editQueued": "文件正在保存。保存结束后会应用此更改。",
     "openFailed": "无法打开“{name}”：{reason}",
     "recovered": "已恢复 {count} 项未保存的编辑"
   },
@@ -661,7 +662,11 @@
   },
   "history": {
     "newResource": "新建{type}：{name}",
-    "deleteResource": "删除 {name}",
+    "newResources": "新建 {count} 个资源",
+    "deleteResources": "删除 {count} 个资源",
+    "copyResource": "复制{type}：{name}",
+    "copyResources": "复制 {count} 个资源",
+    "deleteResource": "删除{type}：{name}",
     "start": "打开时的状态",
     "rename": "将 {old} 重命名为 {new}",
     "code": "将代码应用到 {entry}"
@@ -737,7 +742,13 @@
     "decompiling": "正在反编译...",
     "failed": "无法保存“{entry}”的代码：{reason}",
     "notApplied": "文本无法编译",
-    "showFailed": "无法显示“{entry}”的代码：{reason}"
+    "showFailed": "无法显示“{entry}”的代码：{reason}",
+    "outlineKind": {
+      "function": "函数",
+      "enum": "枚举",
+      "macro": "宏",
+      "region": "区域"
+    }
   },
   "status": {
     "assetId": "ID {index}"
@@ -984,7 +995,10 @@
     "remoteUrl": "远程地址（URL 或文件夹）",
     "addRemote": "添加远程",
     "aheadBehind": "领先 {ahead}，落后 {behind}",
-    "newFile": "新文件，尚未跟踪。"
+    "newFile": "新文件，尚未跟踪。",
+    "switchBranch": "切换",
+    "switchTitle": "切换分支",
+    "switchDirty": "有 {count} 项未提交的更改。仍要切换到“{branch}”吗？"
   },
   "properties": {
     "empty": "（空）",
@@ -1431,6 +1445,8 @@
     "noChange": "没有任何更改。",
     "added": "已添加字符串。",
     "deleted": "已删除字符串。",
+    "deleteRiskTitle": "删除此字符串？",
+    "deleteRisk": "此字符串正在被使用，或 Studio 暂时无法判断是否有地方使用它。删除可能会破坏游戏或数据文件。保存之前可以撤销。",
     "deleteUsed": "只能删除没有任何地方使用的字符串。请改为修改其文本，或等类型列准备好。",
     "deleteUnknown": "类型列尚未准备好，因此无法确定是否有地方使用此字符串。请稍等，或改为修改其文本。",
     "deleteUnavailable": "低内存模式下类型列已关闭，Studio 无法确定是否有地方使用此字符串。无法删除。",
@@ -1447,6 +1463,7 @@
     "exported": "已将 {count} 个字符串写入 {name}。",
     "imported": "已更改 {count} 个字符串（一步完成）。不在表中的编号：{skipped}。",
     "importFailed": "无法导入：{reason}",
+    "exportFailed": "无法导出：{reason}",
     "uses": "在 {count} 处使用；更改文本会同时更改所有位置。若只想改一处，请在其自己的标签页中编辑该属性。",
     "title": "字符串",
     "filter": "筛选字符串...",
@@ -1478,7 +1495,8 @@
     "notAFont": "此文件不是 TrueType 或 OpenType 字体，或超过 16 MiB。",
     "replaceAsk": "要用 {file} 以大小 {size} 重新绘制 {name} 吗？字形会重新绘制到该字体自己的纹理中。撤销会恢复原样。",
     "replaced": "已重新绘制 {name}。",
-    "replaceFailed": "无法替换字体：{reason}"
+    "replaceFailed": "无法替换字体：{reason}",
+    "deleteRangeConfirm": "要从 {font} 中删除 {count} 个字形吗？"
   },
   "paths": {
     "speed": "速度 %",
@@ -1612,7 +1630,9 @@
       "Active": "运行中",
       "Disabled": "已关闭",
       "Failed": "启动失败"
-    }
+    },
+    "urlLabel": "GitHub 仓库地址",
+    "enabledFor": "启用：{name}"
   },
   "rooms": {
     "addLayer": "添加",

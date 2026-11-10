@@ -15,6 +15,15 @@ public sealed class DuplicateTests
     }
 
     [Fact]
+    public async Task ATakenCopyNameIsRefusedBeforeTheCopyBetweenFilesStarts()
+    {
+        using var data = await GameMakerIO.ReadAsync(Corpus.Files(Corpus.Folder).First(), cancellationToken: TestContext.Current.CancellationToken);
+        var taken = data.GameObjects[0].Name.Content!;
+        Assert.Throws<InvalidOperationException>(() => ResourceDuplicate.CheckCopyFree(data, "objects", taken));
+        ResourceDuplicate.CheckCopyFree(data, "objects", "zz_free_name");
+    }
+
+    [Fact]
     public async Task AnObjectIsCopiedWithItsPropertiesEventsAndCodeAndTheCopyUndoes()
     {
         var folder = Corpus.Folder;

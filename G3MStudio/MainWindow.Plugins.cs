@@ -57,7 +57,7 @@ public sealed partial class MainWindow
     public void ShowStrings()
     {
         if (Workspaces.Current is not { } workspace) return;
-        var window = _strings = new StringsWindow(workspace) { IsLowMemory = () => Memory.IsLow };
+        var window = _strings = new StringsWindow(workspace) { IsLowMemory = () => Memory.IsLow, AskRisky = AskRiskyAsync };
         window.Closed += (_, _) => { if (_strings == window) _strings = null; };
         window.Show(this);
     }
@@ -69,12 +69,12 @@ public sealed partial class MainWindow
 
     public void ShowTextureGroups()
     {
-        if (Workspaces.Current is { } workspace) new GroupsWindow(workspace, false).Show(this);
+        if (Workspaces.Current is { } workspace) new GroupsWindow(workspace, false, RiskNow).Show(this);
     }
 
     public void ShowAudioGroups()
     {
-        if (Workspaces.Current is { } workspace) new GroupsWindow(workspace, true).Show(this);
+        if (Workspaces.Current is { } workspace) new GroupsWindow(workspace, true, RiskNow).Show(this);
     }
 
     /// <summary>Switches the code tab of the selected entry between the decompiled text and the VM assembly (opens the tab first when it is not open).</summary>

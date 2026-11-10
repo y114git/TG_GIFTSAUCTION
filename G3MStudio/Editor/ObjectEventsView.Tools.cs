@@ -14,6 +14,7 @@ public sealed partial class ObjectEventsView
         var name = _object.Name.Content ?? "";
         var button = new Button { Name = $"EventMenu_{kind}_{subtype}", Content = "\u22EF", Classes = { "icon" }, VerticalAlignment = VerticalAlignment.Center };
         ToolTip.SetTip(button, Loc.Current["editors.object.eventMenu"]);
+        Avalonia.Automation.AutomationProperties.SetName(button, Loc.Current["editors.object.eventMenu"]);
         button.Click += (_, _) =>
         {
             var menu = new MenuFlyout();

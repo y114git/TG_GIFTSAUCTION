@@ -29,6 +29,7 @@ public sealed class HexSourceTests
         source.Redo();
         source.Commit(path);
         Assert.Equal([0xAA, 0xBB], File.ReadAllBytes(path)[16..18]);
+        Assert.Equal(1, File.ReadAllBytes(path + ".bak")[16]);
         Assert.False(source.CanUndo);
         Assert.Equal([1, 2], HexSource.ParseHexBytes("0x01 02"));
         Assert.Null(HexSource.ParseHexBytes("abc"));

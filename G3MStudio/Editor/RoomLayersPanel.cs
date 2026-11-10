@@ -178,6 +178,18 @@ public sealed class RoomLayersPanel : DockPanel
         _name.SelectAll();
     }
 
+    /// <summary>The name of a layer's kind in the language of the app.</summary>
+    private static string KindName(LayerType type) => type switch
+    {
+        LayerType.Instances => Loc.Current["rooms.layerKind." + RoomLayerCommand.AddInstances],
+        LayerType.Assets => Loc.Current["rooms.layerKind." + RoomLayerCommand.AddAssets],
+        LayerType.Background => Loc.Current["rooms.layerKind." + RoomLayerCommand.AddBackground],
+        LayerType.Tiles => Loc.Current["rooms.layerKind." + RoomLayerCommand.AddTiles],
+        LayerType.Path or LayerType.Path2 => Loc.Current["rooms.layerKind." + RoomLayerCommand.AddPath],
+        LayerType.Effect => Loc.Current["rooms.layerKind." + RoomLayerCommand.AddEffect],
+        _ => type.ToString(),
+    };
+
     /// <summary>The Add Layer popup: one square per kind with a two letter mark and the kind's name; a click adds that kind.</summary>
     private Flyout KindGrid(Button owner)
     {
@@ -327,7 +339,7 @@ public sealed class RoomLayersPanel : DockPanel
             DockPanel.SetDock(visible, Avalonia.Controls.Dock.Left);
             DockPanel.SetDock(locked, Avalonia.Controls.Dock.Right);
             var item = new ListBoxItem { Content = row, Tag = layer, Padding = new Avalonia.Thickness(4, 0) }.BindSize(MinHeightProperty, "Control.Height");
-            ToolTip.SetTip(item, layer.LayerType.ToString());
+            ToolTip.SetTip(item, KindName(layer.LayerType));
             return item;
         }).ToList();
         _list.SelectedItem = _list.Items.OfType<ListBoxItem>().FirstOrDefault(i => (i.Tag as Layer)?.LayerId == selectedId);

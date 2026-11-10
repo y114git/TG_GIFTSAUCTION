@@ -18,7 +18,14 @@ public sealed class GroupListTests
         var rename = new GroupListCommand(false, GroupListCommand.Rename, "zz_tex", "zz_tex2");
         rename.Apply(data);
         Assert.Throws<InvalidOperationException>(() => new GroupListCommand(false, GroupListCommand.New, "zz_tex2").Apply(data));
-        Assert.Throws<InvalidOperationException>(() => new GroupListCommand(true, GroupListCommand.New, "bad name").Apply(data));
+        Assert.Throws<UnusualNameException>(() => new GroupListCommand(true, GroupListCommand.New, "bad name").Apply(data));
+        Assert.Throws<InvalidOperationException>(() => new GroupListCommand(true, GroupListCommand.New, "a/b", force: true).Apply(data));
+        var forced = new GroupListCommand(true, GroupListCommand.New, "bad name", force: true);
+        forced.Apply(data);
+        Assert.Contains(data.AudioGroups!, g => g.Name.Content == "bad name");
+        Assert.Throws<InvalidOperationException>(() => new GroupListCommand(true, GroupListCommand.New, "bad name", force: true).Apply(data));
+        Assert.True(EditCommand.Create(GroupListCommand.Name, forced.Args) is GroupListCommand { Args: var back } && back.ContainsKey("force"));
+        forced.Revert(data);
 
         using var stream = new MemoryStream();
         await GameMakerIO.WriteAsync(stream, data, cancellationToken: TestContext.Current.CancellationToken);

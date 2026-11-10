@@ -48,6 +48,20 @@ public sealed class ParityBTests
     }
 
     [Fact]
+    public async Task ARangeCountsOnlyTheGlyphsTheFontHas()
+    {
+        await HeadlessApp.Run(() =>
+        {
+            var font = new GameMakerFont { Name = new GameMakerString("f"), Glyphs = [.. "abc".Select(c => new GameMakerFont.Glyph { Character = c })] };
+            var view = new FontGlyphsView(font);
+            Assert.Equal(2, view.MatchingGlyphs("b-z"));
+            Assert.Equal(0, view.MatchingGlyphs("x-z"));
+            Assert.Equal(0, view.MatchingGlyphs(""));
+            return Task.CompletedTask;
+        });
+    }
+
+    [Fact]
     public async Task HoldingPSelectsFromAnyLayer()
     {
         await HeadlessApp.Run(() =>

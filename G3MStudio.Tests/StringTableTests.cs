@@ -29,6 +29,22 @@ public sealed class StringTableTests
     }
 
     [Fact]
+    public async Task ReplaceLeavesOutResultsAnotherEntryOrAnEarlierChangeHolds()
+    {
+        using var data = await GameMakerIO.ReadAsync(Corpus.Files(Corpus.Folder).First(), cancellationToken: TestContext.Current.CancellationToken);
+        var count = data.Strings.Count;
+        foreach (var text in new[] { "zz_a1", "zz_a2", "zz_b" }) new StringAddCommand(text).Apply(data);
+        var pattern = new Regex(@"zz_a\d", RegexOptions.None, TimeSpan.FromSeconds(1));
+        var changes = StringTable.ReplaceChanges(data, [count, count + 1], pattern, "zz_b", out var held);
+        Assert.Equal((0, 2), (changes.Count, held));
+        changes = StringTable.ReplaceChanges(data, [count, count + 1], pattern, "zz_c", out held);
+        Assert.Equal([(count, "zz_c")], changes);
+        Assert.Equal(1, held);
+        Assert.True(StringTable.HeldByAnother(data, count, "zz_b"));
+        Assert.False(StringTable.HeldByAnother(data, count + 2, "zz_b"));
+    }
+
+    [Fact]
     public async Task AddDeleteReplaceAndImportAreOneUndoStepEach()
     {
         using var data = await GameMakerIO.ReadAsync(Corpus.Files(Corpus.Folder).First(), cancellationToken: TestContext.Current.CancellationToken);

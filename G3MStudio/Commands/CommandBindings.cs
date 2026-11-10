@@ -31,8 +31,14 @@ public static class Shortcuts
     private static readonly (string Key, string Shown)[] KeyNames =
     [("OemComma", ","), ("OemPeriod", "."), ("OemPlus", "+"), ("OemMinus", "-"), ("OemQuestion", "/"), ("OemSemicolon", ";"), ("OemOpenBrackets", "["), ("OemCloseBrackets", "]"), ("OemPipe", "\\"), ("OemQuotes", "'"), ("OemTilde", "`")];
 
-    /// <summary>The text a person reads for a shortcut: punctuation keys as the character, not the key enum name.</summary>
-    public static string Display(string? shortcut) => KeyNames.Aggregate(shortcut ?? "", (text, k) => text.Replace(k.Key, k.Shown, StringComparison.Ordinal));
+    /// <summary>The text a person reads for a shortcut: punctuation keys as the character, not the key enum name, and Cmd where macOS reads Ctrl (see <see cref="Parse"/>).</summary>
+    public static string Display(string? shortcut) => Display(shortcut, OperatingSystem.IsMacOS());
+
+    internal static string Display(string? shortcut, bool macOS)
+    {
+        var text = KeyNames.Aggregate(shortcut ?? "", (text, k) => text.Replace(k.Key, k.Shown, StringComparison.Ordinal));
+        return macOS ? text.Replace("Ctrl", "Cmd", StringComparison.Ordinal) : text;
+    }
 
     /// <summary>Registry shortcuts are written with Ctrl; macOS uses Cmd for the same keys.</summary>
     public static KeyGesture? Parse(string? shortcut)

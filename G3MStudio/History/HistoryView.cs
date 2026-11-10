@@ -68,12 +68,33 @@ public sealed class HistoryView : UserControl
         _list.SelectedItem = _workspace is null ? null : rows.FirstOrDefault(r => r.Position == _workspace.History.Position);
     }
 
-    private static string Describe(EditCommand command) => command switch
+    internal static string Describe(EditCommand command) => command switch
     {
         RenameResourceCommand => Loc.Current.Format("history.rename", ("old", command.Args["old"]), ("new", command.Args["new"])),
-        ResourceListCommand when command.Args["operation"] == ResourceListCommand.New => Loc.Current.Format("history.newResource", ("type", Loc.Current["explorer.typeOne." + command.Args["type"]]), ("name", command.Args["name"])),
-        ResourceListCommand => Loc.Current.Format("history.deleteResource", ("name", command.Args["name"])),
+        ResourceListCommand when command.Args["operation"] == ResourceListCommand.New => Loc.Current.Format("history.newResource", ("type", TypeLabel(command.Args["type"])), ("name", command.Args["name"])),
+        ResourceListCommand when command.Args["operation"] == ResourceListCommand.Delete => Loc.Current.Format("history.deleteResource", ("type", TypeLabel(command.Args["type"])), ("name", command.Args["name"])),
         EditCodeCommand => Loc.Current.Format("history.code", ("entry", command.Args["entry"])),
+        CopyResourcesCommand copy => copy.Steps.Count == 1
+            ? Loc.Current.Format("history.copyResource", ("type", TypeLabel(copy.Steps[0].Type)), ("name", copy.Steps[0].Name))
+            : Loc.Current.Format("history.copyResources", ("count", copy.Steps.Count)),
+        GroupCommand group => DescribeGroup(group),
         _ => command.Kind,
     };
+
+    // A group made around resource lists (a delete that clears uses first, a copy with its code) is named by the list edits inside it.
+    private static string DescribeGroup(GroupCommand group)
+    {
+        var lists = Flatten(group).OfType<ResourceListCommand>().ToList();
+        if (lists.Count == 0) return group.Kind;
+        var operation = lists[0].Args["operation"];
+        if (lists.Count > 1 && lists.All(l => l.Args["operation"] == operation))
+            return Loc.Current.Format(operation == ResourceListCommand.Delete ? "history.deleteResources" : "history.newResources", ("count", lists.Count));
+        // A mix is a new resource with edits around it, or a delete: the first new one names it, else the last list edit.
+        return Describe(lists.FirstOrDefault(l => l.Args["operation"] == ResourceListCommand.New) ?? lists[^1]);
+    }
+
+    private static IEnumerable<EditCommand> Flatten(GroupCommand group) => group.Items.SelectMany(i => i is GroupCommand inner ? Flatten(inner) : [i]);
+
+    // Types that cannot be created have no singular name of their own, so they use the name of their list.
+    private static string TypeLabel(string type) => Loc.Current["explorer.typeOne." + type] is var one && one != "explorer.typeOne." + type ? one : Loc.Current["explorer.type." + type];
 }

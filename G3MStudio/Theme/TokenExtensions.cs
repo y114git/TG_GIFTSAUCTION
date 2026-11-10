@@ -38,6 +38,13 @@ public static class TokenExtensions
         return control;
     }
 
+    /// <summary>Names one of several alike buttons for screen readers with its target, as "Remove: Track 2"; <paramref name="target"/> is the row label.</summary>
+    public static T NamedFor<T>(this T control, string locKey, string target) where T : Control
+    {
+        AutomationProperties.SetName(control, $"{Loc.Current[locKey]}: {target}");
+        return control;
+    }
+
     /// <summary>The current value of a size token, or <paramref name="fallback"/> when the theme has none; for views that measure in code.</summary>
     public static double Size(this Control control, string token, double fallback) =>
         control.TryFindResource(token, control.ActualThemeVariant, out var found) && found is double value ? value : fallback;

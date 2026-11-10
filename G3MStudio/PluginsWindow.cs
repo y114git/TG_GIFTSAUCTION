@@ -12,10 +12,11 @@ public sealed class PluginsWindow : Window
 {
     private readonly PluginHost _host;
     private readonly Func<string, string, Task<bool>> _confirm;
-    private readonly ListBox _list = new() { Name = "PluginList", MinHeight = 120 };
+    private readonly ListBox _list = new() { Name = "PluginList", MinHeight = 160 };
     private readonly TextBox _details = new() { Name = "PluginDetails", IsReadOnly = true, AcceptsReturn = true, TextWrapping = Avalonia.Media.TextWrapping.Wrap, MinHeight = 100, MaxHeight = 200 };
     private readonly TextBlock _empty = new() { Name = "PluginsEmpty", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap };
-    private readonly TextBox _url = new() { Name = "PluginUrl", MinWidth = 240, PlaceholderText = "https://github.com/owner/repository" };
+    private readonly TextBox _url = new TextBox { Name = "PluginUrl", MinWidth = 240, PlaceholderText = "https://github.com/owner/repository" }.Labeled("plugins.urlLabel");
+    private readonly List<Button> _needsSelection = [];
     private bool _building;
 
     public PluginsWindow(PluginHost host, Func<string, string, Task<bool>> confirm)
@@ -23,22 +24,24 @@ public sealed class PluginsWindow : Window
         (_host, _confirm) = (host, confirm);
         Title = Loc.Current["plugins.title"];
         Width = 560;
-        Height = 560;
+        Height = 680;
         MinWidth = 420;
-        MinHeight = 440;
+        MinHeight = 520;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         _empty.Text = Loc.Current.Format("plugins.empty", ("folder", host.Folder));
-        Button Tool(string name, string key, Action run)
+        Button Tool(string name, string key, Action run, bool needsSelection = false)
         {
             var button = new Button { Name = name, Content = Loc.Current[key] };
             button.Click += (_, _) => run();
+            if (needsSelection) _needsSelection.Add(button);
             return button;
         }
 
-        var tools = new WrapPanel
+        var install = new WrapPanel
         {
             ItemSpacing = 6,
             LineSpacing = 6,
+            Margin = new Avalonia.Thickness(0, 0, 0, 6),
             Children =
             {
                 Tool("PluginNew", "plugins.new", NewPlugin),
@@ -46,9 +49,17 @@ public sealed class PluginsWindow : Window
                 Tool("PluginInstallFolder", "plugins.installFolder", () => _ = InstallAsync(true)),
                 _url,
                 Tool("PluginInstallUrl", "plugins.installUrl", () => _ = InstallFromGitHubAsync()),
-                Tool("PluginCheck", "plugins.check", () => _ = CheckUpdateAsync()),
-                Tool("PluginUpdate", "plugins.update", () => { if (Selected?.Origin is { } origin) { _url.Text = origin; _ = InstallFromGitHubAsync(); } else _details.Text = Loc.Current["plugins.noOrigin"]; }),
-                Tool("PluginReload", "plugins.reload", () => { if (Selected is { } p) host.Reload(p); }),
+            },
+        };
+        var tools = new WrapPanel
+        {
+            ItemSpacing = 6,
+            LineSpacing = 6,
+            Children =
+            {
+                Tool("PluginCheck", "plugins.check", () => _ = CheckUpdateAsync(), true),
+                Tool("PluginUpdate", "plugins.update", () => { if (Selected?.Origin is { } origin) { _url.Text = origin; _ = InstallFromGitHubAsync(); } else _details.Text = Loc.Current["plugins.noOrigin"]; }, true),
+                Tool("PluginReload", "plugins.reload", () => { if (Selected is { } p) host.Reload(p); }, true),
                 Tool("PluginReloadAll", "plugins.reloadAll", host.Load),
                 Tool("PluginOpenFolder", "plugins.openFolder", () => OpenFolder(Selected?.Folder ?? host.Folder)),
             },
@@ -56,9 +67,11 @@ public sealed class PluginsWindow : Window
         var panel = new DockPanel();
         tools.Margin = new Avalonia.Thickness(0, 0, 0, 8);
         _details.Margin = new Avalonia.Thickness(0, 8, 0, 0);
+        DockPanel.SetDock(install, Avalonia.Controls.Dock.Top);
         DockPanel.SetDock(tools, Avalonia.Controls.Dock.Top);
         DockPanel.SetDock(_empty, Avalonia.Controls.Dock.Top);
         DockPanel.SetDock(_details, Avalonia.Controls.Dock.Bottom);
+        panel.Children.Add(install);
         panel.Children.Add(tools);
         panel.Children.Add(_empty);
         panel.Children.Add(_details);
@@ -75,8 +88,9 @@ public sealed class PluginsWindow : Window
     private void NewPlugin()
     {
         var existing = _host.Plugins.Select(p => p.Manifest.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var name = "New Plugin";
-        for (var i = 2; existing.Contains(name); i++) name = "New Plugin " + i.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        const string baseName = "New Plugin"; // the template name becomes the plugin folder name, so it stays plain ASCII in every language
+        var name = baseName;
+        for (var i = 2; existing.Contains(name); i++) name = baseName + " " + i.ToString(System.Globalization.CultureInfo.InvariantCulture);
         _host.CreateTemplate(name);
         _host.Load();
     }
@@ -183,6 +197,7 @@ public sealed class PluginsWindow : Window
         _list.ItemsSource = _host.Plugins.Select(plugin =>
         {
             var enabled = new CheckBox { Content = Loc.Current["plugins.enabled"], IsChecked = plugin.State == PluginState.Active, Tag = plugin };
+            Avalonia.Automation.AutomationProperties.SetName(enabled, Loc.Current.Format("plugins.enabledFor", ("name", plugin.Manifest.Name)));
             enabled.IsCheckedChanged += (_, _) =>
             {
                 if (_building) return;
@@ -209,6 +224,7 @@ public sealed class PluginsWindow : Window
 
     private void ShowDetails()
     {
+        foreach (var button in _needsSelection) button.IsEnabled = Selected is not null;
         if (Selected is not { } plugin)
         {
             _details.Text = "";

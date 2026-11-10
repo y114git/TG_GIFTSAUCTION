@@ -20,14 +20,13 @@ public sealed class CopyResourcesCommand : EditCommand
 
     private readonly byte[] _package;
     private readonly CopyVersion _source;
-    private readonly IReadOnlyList<CopyStep> _steps;
     private readonly uint _lastId;
     private ModelSnapshot? _snapshot;
     private ShallowMemento? _memento;
 
     public CopyResourcesCommand(byte[] package, CopyVersion source, IReadOnlyList<CopyStep> steps, uint lastInstanceId)
     {
-        (_package, _source, _steps, _lastId) = (package, source, steps, lastInstanceId);
+        (_package, _source, Steps, _lastId) = (package, source, steps, lastInstanceId);
         Args = new Dictionary<string, string>
         {
             ["package"] = Convert.ToBase64String(package),
@@ -36,6 +35,9 @@ public sealed class CopyResourcesCommand : EditCommand
             ["lastId"] = lastInstanceId.ToString(CultureInfo.InvariantCulture),
         };
     }
+
+    /// <summary>What the copy adds or replaces, for the history list.</summary>
+    public IReadOnlyList<CopyStep> Steps { get; }
 
     public override string Kind => Name;
 
@@ -99,7 +101,7 @@ public sealed class CopyResourcesCommand : EditCommand
     // target writes a pointer for each, and a null list leaves a pointer that nothing reads back.
     private void FillLayerLists(GameMakerData data)
     {
-        var rooms = _steps.Where(s => s.Type == "rooms").Select(s => s.Name).ToHashSet(StringComparer.Ordinal);
+        var rooms = Steps.Where(s => s.Type == "rooms").Select(s => s.Name).ToHashSet(StringComparer.Ordinal);
         foreach (var room in data.Rooms.Where(r => rooms.Contains(r.Name?.Content ?? "")))
             foreach (var assets in (room.Layers ?? []).Select(l => l.Data).OfType<GameMakerRoom.Layer.LayerAssetsData>())
             {
@@ -115,7 +117,7 @@ public sealed class CopyResourcesCommand : EditCommand
     // Every added name must be free and every replaced item must exist, before anything changes.
     private void Check(GameMakerData data)
     {
-        foreach (var step in _steps)
+        foreach (var step in Steps)
         {
             if (step.Replace && !CopyPlanner.Exists(data, step.Type, step.Name)) throw new InvalidOperationException($"'{step.Name}' to replace was not found in the target.");
             if (!step.Replace && CopyPlanner.NameTaken(data, step.Type, step.Name)) throw new InvalidOperationException($"The target already has something named '{step.Name}'.");
@@ -124,7 +126,7 @@ public sealed class CopyResourcesCommand : EditCommand
 
     private Dictionary<string, HashSet<string>> Selection(string folder)
     {
-        var selection = CopyPackage.Selection(_steps.Select(s => (s.Type, s.Name)), []);
+        var selection = CopyPackage.Selection(Steps.Select(s => (s.Type, s.Name)), []);
         // Code entries and particle emitters travel with their owners under names of their own.
         foreach (var extra in new[] { "CodeEntries", "ParticleSystemEmitters" })
         {
@@ -140,7 +142,7 @@ public sealed class CopyResourcesCommand : EditCommand
     private ShallowMemento Remember(GameMakerData data)
     {
         var memento = new ShallowMemento();
-        foreach (var step in _steps.Where(s => s.Replace))
+        foreach (var step in Steps.Where(s => s.Replace))
         {
             memento.Capture(step.Type == "code" ? data.Code.ByName(step.Name) : ResourceTypes.Find(data, ResourceTypes.KeyOf(step.Type, step.Name)), 3);
             if (step.Type == "sounds") memento.Capture(data.Sounds.ByName(step.Name)?.AudioFile, 1);

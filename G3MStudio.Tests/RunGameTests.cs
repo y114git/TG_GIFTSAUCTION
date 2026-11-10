@@ -127,4 +127,38 @@ public sealed class RunGameTests
         Dispatcher.UIThread.RunJobs();
         Assert.Empty(panel.Rows);
     }
+
+    [Fact]
+    public async Task TheOutputPanelEnablesRestartAndStopPerRunStateAndNamesLevelsInTheLanguage()
+    {
+        await HeadlessApp.Run(() =>
+        {
+            var loc = G3MStudio.Localization.Loc.Current;
+            var panel = new OutputPanel();
+            var center = new G3MStudio.Core.Notifications.NotificationCenter();
+            panel.Bind(center, new RunLog());
+            var window = new Avalonia.Controls.Window { Content = panel };
+            window.Show();
+            try
+            {
+                Avalonia.Controls.Button Button(string name) => Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(window).OfType<Avalonia.Controls.Button>().Single(b => b.Name == name);
+                foreach (var (state, restart, stop) in new[] { (RunState.Idle, true, false), (RunState.Preparing, false, false), (RunState.Running, true, true), (RunState.Stopping, false, false) })
+                {
+                    panel.SetRunState(state);
+                    Assert.Equal((restart, stop), (Button("OutputRestart").IsEnabled, Button("OutputStop").IsEnabled));
+                }
+
+                loc.SetLanguage("ru");
+                center.Post(G3MStudio.Core.Notifications.NotificationLevel.Warning, "x");
+                Assert.StartsWith(loc["notify.warning"] + ": ", panel.Rows[0].Text, StringComparison.Ordinal);
+            }
+            finally
+            {
+                loc.SetLanguage("en");
+                window.Close();
+            }
+
+            return Task.CompletedTask;
+        });
+    }
 }

@@ -14,10 +14,23 @@ public partial class MainWindow
         if (Workspaces.Current is not { } workspace || !ResourceListCommand.Creatable.Contains(type)) return;
         var label = Loc.Current["explorer.typeOne." + type];
         var dialog = new RenameWindow("", name => CreateResource(workspace, type, name), Loc.Current.Format("explorer.newTitle", ("type", label)), Loc.Current.Format("explorer.newLabel", ("type", label)), Loc.Current["explorer.newOk"]);
-        _ = dialog.AskAsync(this);
+        _ = AskNameAsync(dialog);
     }
 
     private string? _unusualName;
+
+    // The warning about an unusual name belongs to one dialog: a later dialog starts with a clean slate.
+    private async Task AskNameAsync(RenameWindow dialog)
+    {
+        try
+        {
+            await dialog.AskAsync(this);
+        }
+        finally
+        {
+            _unusualName = null;
+        }
+    }
 
     internal string? CreateResource(Workspace workspace, string type, string name)
     {
@@ -25,7 +38,7 @@ public partial class MainWindow
         {
             // An unusual name is warned about once in the dialog; the same name sent again, or the setting that allows risky actions, goes through.
             var choice = RiskPolicy.Of(Workspaces.Settings.Current);
-            workspace.Edit(ResourceTemplates.New(workspace.Data, type, name, choice == RiskChoice.Allow || choice == RiskChoice.Ask && _unusualName == name));
+            if (!workspace.Edit(ResourceTemplates.New(workspace.Data, type, name, choice == RiskChoice.Allow || choice == RiskChoice.Ask && _unusualName == name))) return Queued();
         }
         catch (UnusualNameException e)
         {
@@ -38,9 +51,18 @@ public partial class MainWindow
             return e.Message;
         }
 
+        _unusualName = null;
         var key = ResourceTypes.KeyOf(type, name);
         Explorer.Select(key);
         Docking.OpenTab("resource", key, false);
+        return null;
+    }
+
+    // The edit waits while the file is saved or exported, so there is nothing to select or open yet.
+    private string? Queued()
+    {
+        _unusualName = null;
+        Notify(NotificationLevel.Info, Loc.Current["app.editQueued"]);
         return null;
     }
 
@@ -56,7 +78,7 @@ public partial class MainWindow
 
         var key = Explorer.SelectedKey ?? (Docking.ActiveTabId is { } id ? Docking.Tabs.Get(id)?.Key : null);
         if (key is null || ResourceTypes.SplitKey(key) is not var (type, name) || !ResourceDuplicate.All.Contains(type)) return;
-        _ = new RenameWindow("", copy => CopyResource(workspace, type, name, copy), Loc.Current.Format("explorer.duplicateTitle", ("name", name)), Loc.Current["explorer.duplicateLabel"], Loc.Current["explorer.newOk"]).AskAsync(this);
+        _ = AskNameAsync(new RenameWindow("", copy => CopyResource(workspace, type, name, copy), Loc.Current.Format("explorer.duplicateTitle", ("name", name)), Loc.Current["explorer.duplicateLabel"], Loc.Current["explorer.newOk"]));
     }
 
     private string? CopyResource(Workspace workspace, string type, string name, string copy)
@@ -73,13 +95,14 @@ public partial class MainWindow
             {
                 // The package is made off the UI thread: the dialog closes now and a failure is reported as a message.
                 ResourceDuplicate.CheckCopyName(copy, allow);
+                using (workspace.Lock.Read()) ResourceDuplicate.CheckCopyFree(workspace.Data, type, copy);
                 _ = GuardedAsync(() => DuplicateViaCopierAsync(workspace, [(type, name, copy)], ResourceTypes.KeyOf(type, copy), allow));
                 return null;
             }
 
             EditCommand command;
             using (workspace.Lock.Read()) command = ResourceDuplicate.Build(workspace.Data, type, name, copy, allow);
-            workspace.Edit(command);
+            if (!workspace.Edit(command)) return Queued();
         }
         catch (UnusualNameException e)
         {
@@ -92,6 +115,7 @@ public partial class MainWindow
             return e.Message;
         }
 
+        _unusualName = null;
         var key = ResourceTypes.KeyOf(type, copy);
         Explorer.Select(key);
         Docking.OpenTab("resource", key, false);
@@ -172,9 +196,12 @@ public partial class MainWindow
 
             if (keys.Count > 0)
             {
-                workspace.Edit(command);
-                Notify(NotificationLevel.Info, Loc.Current.Format("explorer.duplicatedMany", ("count", keys.Count)));
-                Explorer.Select(keys[^1]);
+                if (workspace.Edit(command))
+                {
+                    Notify(NotificationLevel.Info, Loc.Current.Format("explorer.duplicatedMany", ("count", keys.Count)));
+                    Explorer.Select(keys[^1]);
+                }
+                else Queued();
             }
 
             if (viaCopier.Count > 0) _ = GuardedAsync(() => DuplicateViaCopierAsync(workspace, viaCopier, ResourceTypes.KeyOf(viaCopier[^1].Type, viaCopier[^1].Copy), RiskPolicy.Of(Workspaces.Settings.Current) == RiskChoice.Allow));

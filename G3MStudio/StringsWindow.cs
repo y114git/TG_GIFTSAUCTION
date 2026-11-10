@@ -40,6 +40,9 @@ public sealed partial class StringsWindow : Window
     /// <summary>True while the program runs in low-memory mode; the kind column then uses the names and no index is built.</summary>
     public Func<bool>? IsLowMemory { get; set; }
 
+    /// <summary>Asks the owner about a refusal they may overrule (the main window's risky-action question); without it a used string is not deleted.</summary>
+    public Func<RiskyRefusalException, string, Task<bool>>? AskRisky { get; set; }
+
     /// <summary>Frees the reference index; the next refresh builds it again unless memory is low.</summary>
     public void DropIndex() => (_index, _indexVersion) = (null, -1);
 
@@ -101,7 +104,7 @@ public sealed partial class StringsWindow : Window
         _list.SelectionChanged += (_, _) => OnSelected();
         _apply.Click += (_, _) => Apply();
         _add.Click += (_, _) => Add();
-        _delete.Click += (_, _) => DeleteSelected();
+        _delete.Click += async (_, _) => await DeleteSelectedAsync();
         _replaceAll.Click += async (_, _) => await ReplaceAllAsync();
         _export.Click += async (_, _) => await ExportAsync();
         _import.Click += async (_, _) => await ImportAsync();
@@ -131,7 +134,7 @@ public sealed partial class StringsWindow : Window
             _text.Text = next?.Text ?? "";
             // Moving to another string keeps the edit as its own step instead of dropping it.
             if (previous is not null && next is not null && next.Index != previous.Index && typed is not null && typed != previous.Text)
-                TryEdit(new EditStringCommand(previous.Index, typed), "strings.noChange");
+                EditText(previous.Index, typed);
             _selected = _list.SelectedItem as Row; // an applied edit rebuilds the list
             _text.Text = _selected?.Text ?? "";
         }
@@ -159,7 +162,17 @@ public sealed partial class StringsWindow : Window
     private void Apply()
     {
         if (_selected is null || _text.Text is not { } text || text == _selected.Text) return;
-        _workspace.Edit(new EditStringCommand(_selected.Index, text));
+        EditText(_selected.Index, text);
+    }
+
+    // The table holds each text once: a text another entry has already is not accepted. A stale index is reported as a note instead of escaping the handler.
+    private bool EditText(int index, string text)
+    {
+        bool held;
+        using (_workspace.Lock.Read()) held = StringTable.HeldByAnother(_workspace.Data, index, text);
+        if (!held) return TryEdit(new EditStringCommand(index, text), "strings.noChange");
+        _note.Text = Loc.Current.Format("strings.importHeld", ("held", 1));
+        return false;
     }
 
     private IReadOnlyList<Row> Shown => _list.ItemsSource as IReadOnlyList<Row> ?? [];
@@ -199,8 +212,8 @@ public sealed partial class StringsWindow : Window
         _newText.Text = "";
     }
 
-    // Only a string nothing uses is deleted, and only when the reference index of the current data says so; without it the use is unknown and the string stays.
-    internal void DeleteSelected()
+    // A string nothing uses goes at once. One that is used, or whose use is not known yet, goes only after the owner has been warned (or has set Studio to go on without asking).
+    internal async Task DeleteSelectedAsync()
     {
         if (_selected is null)
         {
@@ -208,13 +221,29 @@ public sealed partial class StringsWindow : Window
             return;
         }
 
-        if (_selected.Use != StringUse.Unused || !IndexCurrent)
+        var (index, text) = (_selected.Index, _selected.Text);
+        var row = IndexCurrent ? _selected : _selected with { Use = null };
+        if (row.Use != StringUse.Unused)
         {
-            _note.Text = DeleteRefusal(IndexCurrent ? _selected : _selected with { Use = null });
-            return;
+            var refusal = new RiskyRefusalException("strings.deleteRiskTitle", "strings.deleteRisk", DeleteRefusal(row));
+            if (AskRisky is null)
+            {
+                _note.Text = refusal.Message;
+                return;
+            }
+
+            if (!await AskRisky(refusal, text.Length > 40 ? text[..40] + "..." : text)) return;
+            // The data may have changed while the question was open.
+            bool same;
+            using (_workspace.Lock.Read()) same = index < _workspace.Data.Strings.Count && (_workspace.Data.Strings[index].Content ?? "") == text;
+            if (!same)
+            {
+                _note.Text = Loc.Current["strings.noChange"];
+                return;
+            }
         }
 
-        if (TryEdit(new StringDeleteCommand(_selected.Index), "strings.noChange")) _note.Text = Loc.Current["strings.deleted"];
+        if (TryEdit(new StringDeleteCommand(index), "strings.noChange")) _note.Text = Loc.Current["strings.deleted"];
     }
 
     private void Refresh()

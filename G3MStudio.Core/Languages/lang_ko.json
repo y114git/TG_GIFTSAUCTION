@@ -17,6 +17,7 @@
     "title": "G3MStudio",
     "welcome": "게임 데이터 파일을 열어 시작하세요.",
     "ready": "준비됨",
+    "editQueued": "파일을 저장하는 중입니다. 저장이 끝나면 변경이 적용됩니다.",
     "openFailed": "'{name}'을(를) 열 수 없습니다: {reason}",
     "recovered": "저장되지 않은 편집 {count}개를 복구했습니다"
   },
@@ -661,7 +662,11 @@
   },
   "history": {
     "newResource": "새 {type}: {name}",
-    "deleteResource": "{name} 삭제",
+    "newResources": "새 리소스 {count}개",
+    "deleteResources": "리소스 {count}개 삭제",
+    "copyResource": "{type} 복사: {name}",
+    "copyResources": "리소스 {count}개 복사",
+    "deleteResource": "{type} 삭제: {name}",
     "start": "열었을 때의 상태",
     "rename": "{old}을(를) {new}(으)로 이름 바꾸기",
     "code": "{entry}에 코드 적용"
@@ -737,7 +742,13 @@
     "decompiling": "디컴파일 중...",
     "failed": "'{entry}'의 코드를 저장할 수 없습니다: {reason}",
     "notApplied": "텍스트가 컴파일되지 않습니다",
-    "showFailed": "'{entry}'의 코드를 표시할 수 없습니다: {reason}"
+    "showFailed": "'{entry}'의 코드를 표시할 수 없습니다: {reason}",
+    "outlineKind": {
+      "function": "함수",
+      "enum": "열거형",
+      "macro": "매크로",
+      "region": "영역"
+    }
   },
   "status": {
     "assetId": "ID {index}"
@@ -984,7 +995,10 @@
     "remoteUrl": "원격 주소(URL 또는 폴더)",
     "addRemote": "원격 추가",
     "aheadBehind": "{ahead}개 앞서고 {behind}개 뒤처짐",
-    "newFile": "새 파일이며 아직 추적되지 않습니다."
+    "newFile": "새 파일이며 아직 추적되지 않습니다.",
+    "switchBranch": "전환",
+    "switchTitle": "브랜치 전환",
+    "switchDirty": "커밋되지 않은 변경 사항이 {count}개 있습니다. 그래도 '{branch}'(으)로 전환할까요?"
   },
   "properties": {
     "empty": "(비어 있음)",
@@ -1431,6 +1445,8 @@
     "noChange": "바뀐 것이 없습니다.",
     "added": "문자열을 추가했습니다.",
     "deleted": "문자열을 삭제했습니다.",
+    "deleteRiskTitle": "이 문자열을 삭제할까요?",
+    "deleteRisk": "이 문자열은 쓰이고 있거나 아직 쓰이는지 알 수 없습니다. 삭제하면 게임이나 데이터 파일이 손상될 수 있습니다. 저장하기 전까지는 실행 취소로 되돌릴 수 있습니다.",
     "deleteUsed": "어디에서도 쓰이지 않는 문자열만 삭제할 수 있습니다. 대신 텍스트를 바꾸거나 종류 열이 준비될 때까지 기다리세요.",
     "deleteUnknown": "종류 열이 아직 준비되지 않아 이 문자열이 쓰이는지 알 수 없습니다. 잠시 기다리거나 대신 텍스트를 바꾸세요.",
     "deleteUnavailable": "저메모리 모드에서는 종류 열이 꺼져 있어 Studio가 이 문자열이 쓰이는지 알 수 없습니다. 삭제할 수 없습니다.",
@@ -1447,6 +1463,7 @@
     "exported": "문자열 {count}개를 {name}에 썼습니다.",
     "imported": "문자열 {count}개를 바꿨습니다(한 단계). 표에 없는 번호: {skipped}.",
     "importFailed": "가져오지 못했습니다: {reason}",
+    "exportFailed": "내보내지 못했습니다: {reason}",
     "uses": "{count}곳에서 사용 중이며, 텍스트를 바꾸면 모두 바뀝니다. 한 곳만 바꾸려면 해당 속성을 자기 탭에서 편집하세요.",
     "title": "문자열",
     "filter": "문자열 필터...",
@@ -1478,7 +1495,8 @@
     "notAFont": "이 파일은 TrueType 또는 OpenType 글꼴이 아니거나 16 MiB보다 큽니다.",
     "replaceAsk": "{name}을(를) {file}에서 크기 {size}로 다시 그릴까요? 글리프는 글꼴 자체의 텍스처에 다시 그려집니다. 실행 취소하면 이전 상태로 돌아갑니다.",
     "replaced": "{name}을(를) 다시 그렸습니다.",
-    "replaceFailed": "글꼴을 바꾸지 못했습니다: {reason}"
+    "replaceFailed": "글꼴을 바꾸지 못했습니다: {reason}",
+    "deleteRangeConfirm": "{font}에서 글리프 {count}개를 삭제할까요?"
   },
   "paths": {
     "speed": "속도 %",
@@ -1612,7 +1630,9 @@
       "Active": "실행 중",
       "Disabled": "꺼짐",
       "Failed": "시작하지 못함"
-    }
+    },
+    "urlLabel": "GitHub 저장소 주소",
+    "enabledFor": "켜짐: {name}"
   },
   "rooms": {
     "addLayer": "추가",

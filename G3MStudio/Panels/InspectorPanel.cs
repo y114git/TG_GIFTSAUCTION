@@ -13,8 +13,8 @@ public sealed class InspectorPanel : ScrollViewer
     private readonly TextBlock _title = new() { Name = "InspectorName", FontWeight = Avalonia.Media.FontWeight.Bold, TextWrapping = Avalonia.Media.TextWrapping.Wrap };
     private readonly TextBlock _type = new() { Name = "InspectorType", Classes = { "muted" } };
     private readonly TextBlock _uses = new() { Name = "InspectorUses", TextWrapping = Avalonia.Media.TextWrapping.Wrap };
-    private readonly Button _find = new() { Name = "InspectorFindUsages", Content = Loc.Current["cmd.edit.findUsages"], IsVisible = false };
-    private readonly Button _findUses = new() { Name = "InspectorFindUses", Content = Loc.Current["cmd.edit.findUses"], IsVisible = false };
+    private readonly Button _find = new Button { Name = "InspectorFindUsages", IsVisible = false }.Tr(ContentControl.ContentProperty, "cmd.edit.findUsages");
+    private readonly Button _findUses = new Button { Name = "InspectorFindUses", IsVisible = false }.Tr(ContentControl.ContentProperty, "cmd.edit.findUses");
     private int _version;
 
     public InspectorPanel(Action findUsages, Action? findUses = null)
@@ -43,13 +43,14 @@ public sealed class InspectorPanel : ScrollViewer
         var split = key is null ? null : ResourceTypes.SplitKey(key);
         if (workspace is null || split is not var (type, name) || ResourceTypes.Find(workspace.Data, key ?? "") is not { } resource)
         {
-            (_title.Text, _type.Text, _uses.Text) = (Loc.Current["inspector.none"], "", "");
-            _find.IsVisible = false;
+            _title.Tr(TextBlock.TextProperty, "inspector.none");
+            (_type.Text, _uses.Text) = ("", "");
+            _find.IsVisible = _findUses.IsVisible = false;
             return;
         }
 
         _title.Text = name;
-        _type.Text = Loc.Current["explorer.type." + type];
+        _type.Tr(TextBlock.TextProperty, "explorer.type." + type);
         _uses.Text = "";
         _find.IsVisible = _findUses.IsVisible = true;
         try

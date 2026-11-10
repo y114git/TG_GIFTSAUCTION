@@ -17,6 +17,7 @@
     "title": "G3MStudio",
     "welcome": "Abre un archivo de datos del juego para empezar.",
     "ready": "Listo",
+    "editQueued": "El archivo se está guardando. El cambio se aplica cuando termine.",
     "openFailed": "No se pudo abrir «{name}»: {reason}",
     "recovered": "Ediciones sin guardar recuperadas: {count}"
   },
@@ -661,7 +662,11 @@
   },
   "history": {
     "newResource": "Nuevo {type}: {name}",
-    "deleteResource": "Eliminar {name}",
+    "newResources": "Nuevos {count} recursos",
+    "deleteResources": "Eliminar {count} recursos",
+    "copyResource": "Copiar {type}: {name}",
+    "copyResources": "Copiar {count} recursos",
+    "deleteResource": "Eliminar {type}: {name}",
     "start": "Estado abierto",
     "rename": "Renombrar {old} a {new}",
     "code": "Aplicar código a {entry}"
@@ -737,7 +742,13 @@
     "decompiling": "Descompilando...",
     "failed": "No se pudo guardar el código de «{entry}»: {reason}",
     "notApplied": "el texto no compila",
-    "showFailed": "No se pudo mostrar el código de «{entry}»: {reason}"
+    "showFailed": "No se pudo mostrar el código de «{entry}»: {reason}",
+    "outlineKind": {
+      "function": "Función",
+      "enum": "Enum",
+      "macro": "Macro",
+      "region": "Región"
+    }
   },
   "status": {
     "assetId": "ID {index}"
@@ -984,7 +995,10 @@
     "remoteUrl": "Dirección remota (URL o carpeta)",
     "addRemote": "Añadir remoto",
     "aheadBehind": "{ahead} por delante, {behind} por detrás",
-    "newFile": "Archivo nuevo, aún sin seguimiento."
+    "newFile": "Archivo nuevo, aún sin seguimiento.",
+    "switchBranch": "Cambiar",
+    "switchTitle": "Cambiar de rama",
+    "switchDirty": "Hay {count} cambios sin confirmar. ¿Cambiar a '{branch}' de todos modos?"
   },
   "properties": {
     "empty": "(vacío)",
@@ -1431,6 +1445,8 @@
     "noChange": "No cambió nada.",
     "added": "Cadena añadida.",
     "deleted": "Cadena eliminada.",
+    "deleteRiskTitle": "¿Eliminar esta cadena?",
+    "deleteRisk": "Esta cadena se usa, o Studio aún no puede saber si algo la usa. Eliminarla puede romper el juego o el archivo de datos. Deshacer la recupera hasta que guardes.",
     "deleteUsed": "Solo se puede eliminar una cadena que nada usa. Cambia su texto o espera a que la columna de tipo esté lista.",
     "deleteUnknown": "La columna de tipo aún no está lista, así que no se sabe si algo usa esta cadena. Espera un momento o cambia su texto.",
     "deleteUnavailable": "El modo de poca memoria mantiene apagada la columna de tipo, así que Studio no sabe si algo usa esta cadena. Eliminar no está disponible.",
@@ -1447,6 +1463,7 @@
     "exported": "{count} cadenas escritas en {name}.",
     "imported": "Se cambiaron {count} cadenas, en un solo paso. Números fuera de la tabla: {skipped}.",
     "importFailed": "No se pudo importar: {reason}",
+    "exportFailed": "No se pudo exportar: {reason}",
     "uses": "Lugares donde se usa: {count}. Cambiar el texto los cambia todos. Para cambiar solo un uso, edita esa propiedad en su pestaña.",
     "title": "Cadenas",
     "filter": "Filtrar cadenas...",
@@ -1478,7 +1495,8 @@
     "notAFont": "Este archivo no es una fuente TrueType u OpenType o pesa más de 16 MiB.",
     "replaceAsk": "¿Dibujar {name} de nuevo desde {file} al tamaño {size}? Los glifos se redibujan en la textura propia de la fuente. Deshacer restaura la anterior.",
     "replaced": "{name} se redibujó.",
-    "replaceFailed": "No se pudo reemplazar la fuente: {reason}"
+    "replaceFailed": "No se pudo reemplazar la fuente: {reason}",
+    "deleteRangeConfirm": "¿Eliminar {count} glifos de {font}?"
   },
   "paths": {
     "speed": "Velocidad %",
@@ -1612,7 +1630,9 @@
       "Active": "Activo",
       "Disabled": "Desactivado",
       "Failed": "No se pudo iniciar"
-    }
+    },
+    "urlLabel": "Dirección del repositorio de GitHub",
+    "enabledFor": "Activo: {name}"
   },
   "rooms": {
     "addLayer": "Añadir",

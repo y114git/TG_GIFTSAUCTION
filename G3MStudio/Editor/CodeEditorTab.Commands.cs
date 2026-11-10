@@ -327,12 +327,14 @@ public sealed partial class CodeEditorTab
     /// <summary>The functions, enums, macros and regions of the text, in order, as the outline list shows them.</summary>
     public IReadOnlyList<OutlineItem> OutlineItems => Outline(Doc);
 
+    private static string KindText(string kind) => Loc.Current["code.outlineKind." + kind] is var text && text != "code.outlineKind." + kind ? text : kind;
+
     private void ShowOutline()
     {
         var menu = new ContextMenu();
         foreach (var item in OutlineItems)
         {
-            var entry = new MenuItem { Header = $"{item.Kind}  {item.Name}" };
+            var entry = new MenuItem { Header = $"{KindText(item.Kind)}  {item.Name}" };
             var offset = item.Offset;
             entry.Click += (_, _) => MoveCaret(offset);
             menu.Items.Add(entry);

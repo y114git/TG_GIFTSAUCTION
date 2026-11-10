@@ -2,11 +2,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Input.Platform;
-using Avalonia.Layout;
 using Avalonia.Threading;
 using G3MStudio.Core.Notifications;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio.Panels;
 
@@ -17,7 +17,7 @@ public sealed record OutputRow(DateTimeOffset Time, string Text, GmlLocation? Lo
 public sealed class OutputPanel : UserControl
 {
     private readonly ListBox _list = new() { Name = "OutputList" };
-    private readonly TextBox _filter = new TextBox { Name = "OutputFilter", MinWidth = 160 }.Tr(TextBox.PlaceholderTextProperty, "output.filter");
+    private readonly TextBox _filter = new TextBox { Name = "OutputFilter", MinWidth = 160 }.Tr(TextBox.PlaceholderTextProperty, "output.filter").Labeled("output.filter");
     private readonly CheckBox _times = new CheckBox { Name = "OutputTimestamps", IsChecked = true }.Tr(ContentControl.ContentProperty, "output.timestamps");
     private readonly Button _copy = new Button { Name = "OutputCopy" }.Tr(ContentControl.ContentProperty, "output.copy");
     private readonly Button _clear = new Button { Name = "OutputClear" }.Tr(ContentControl.ContentProperty, "output.clear");
@@ -43,7 +43,8 @@ public sealed class OutputPanel : UserControl
         _clear.Click += (_, _) => Clear();
         _restart.Click += (_, _) => RestartRequested?.Invoke();
         _stop.Click += (_, _) => StopRequested?.Invoke();
-        var bar = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Margin = new Thickness(8), Children = { _filter, _times, _copy, _clear, _restart, _stop } };
+        var bar = new WrapPanel { ItemSpacing = 8, LineSpacing = 4, Margin = new Thickness(8), Children = { _filter, _times, _copy, _clear, _restart, _stop } };
+        SetRunState(RunState.Idle);
         DockPanel.SetDock(bar, Avalonia.Controls.Dock.Top);
         Content = new DockPanel { Children = { bar, new Grid { Children = { _list, _empty } } } };
     }
@@ -56,6 +57,13 @@ public sealed class OutputPanel : UserControl
     public event Action? RestartRequested;
 
     public event Action? StopRequested;
+
+    /// <summary>Restart works when the game runs or is idle (it then starts it); Stop only while it runs.</summary>
+    public void SetRunState(RunState state)
+    {
+        _restart.IsEnabled = state is RunState.Idle or RunState.Running;
+        _stop.IsEnabled = state == RunState.Running;
+    }
 
     public void SetFilter(string text)
     {
@@ -98,6 +106,8 @@ public sealed class OutputPanel : UserControl
 
     private string Format(OutputRow row) => (_times.IsChecked == true ? row.Time.ToString("HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture) + " " : "") + row.Text;
 
+    private static string LevelText(NotificationLevel level) => Loc.Current[level switch { NotificationLevel.Error => "notify.error", NotificationLevel.Warning => "notify.warning", _ => "notify.info" }];
+
     private async Task CopyAsync()
     {
         if (TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard) await clipboard.SetTextAsync(VisibleText());
@@ -105,7 +115,7 @@ public sealed class OutputPanel : UserControl
 
     private void Refresh()
     {
-        var rows = (_center?.History ?? []).Select(n => new OutputRow(n.Time, $"{n.Level}: {n.Text}", null))
+        var rows = (_center?.History ?? []).Select(n => new OutputRow(n.Time, $"{LevelText(n.Level)}: {n.Text}", null))
             .Concat((_log?.Lines ?? []).Select(l => new OutputRow(l.Time, l.Error ? "! " + l.Text : l.Text, GmlLocation.Find(l.Text))))
             .OrderBy(r => r.Time);
         var filter = _filter.Text;

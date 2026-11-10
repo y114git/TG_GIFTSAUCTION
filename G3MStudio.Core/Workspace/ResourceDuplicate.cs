@@ -84,13 +84,22 @@ public static class ResourceDuplicate
             {
                 if (!All.Contains(type)) throw new InvalidOperationException($"A {type} entry cannot be duplicated.");
                 CheckCopyName(copy, allowUnusual);
-                if (CopyPlanner.NameTaken(workspace.Data, type, copy)) throw new InvalidOperationException($"A resource or code entry named '{copy}' exists already.");
+                CheckCopyFree(workspace.Data, type, copy);
                 if (CopyPlanner.ItemRefusal(workspace.Data, workspace.Data, type, name) is { } refusal) throw new InvalidOperationException(refusal);
             }
         }
 
         var entries = items.Select(i => new PlanEntry(i.Type, i.Name, i.Copy, CopyAction.Rename, null, new CopyFacts(false, true, true, []))).ToList();
         return ResourceCopier.BuildAsync(workspace, workspace, new CopyPlan(entries, [], null), null, cancellationToken);
+    }
+
+    /// <summary>
+    /// Refuses a taken name. The plain copy can use a taken name after a warning, but the copy between files adds its entries by name and cannot hold two of one name,
+    /// so there the refusal stands whatever the owner allows.
+    /// </summary>
+    public static void CheckCopyFree(GameMakerData data, string type, string copy)
+    {
+        if (CopyPlanner.NameTaken(data, type, copy)) throw new InvalidOperationException($"A resource or code entry named '{copy}' exists already, and this kind of copy cannot hold two of one name. Pick another name.");
     }
 
     /// <summary>Refuses a name that cannot be a file name; a name that is safe but not a plain GML name is refused with <see cref="UnusualNameException"/> unless the owner allows it.</summary>

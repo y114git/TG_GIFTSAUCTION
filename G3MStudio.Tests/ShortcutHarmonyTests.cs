@@ -165,5 +165,7 @@ public sealed partial class ShortcutHarmonyTests
         Assert.Equal("Ctrl+,", Shortcuts.Display("Ctrl+OemComma"));
         Assert.Equal("Ctrl+Shift+P", Shortcuts.Display("Ctrl+Shift+P"));
         Assert.Equal("", Shortcuts.Display(null));
+        Assert.Equal("Cmd+Shift+,", Shortcuts.Display("Ctrl+Shift+OemComma", true));
+        Assert.Equal("Ctrl+Shift+,", Shortcuts.Display("Ctrl+Shift+OemComma", false));
     }
 }

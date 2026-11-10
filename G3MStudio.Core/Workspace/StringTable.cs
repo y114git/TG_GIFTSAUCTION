@@ -181,17 +181,46 @@ public static class StringTable
         return changes;
     }
 
-    /// <summary>One edit that replaces every match of the pattern in the listed entries. Null when nothing matches.</summary>
-    public static EditCommand? ReplaceEdits(GameMakerData data, IEnumerable<int> indexes, Regex pattern, string replacement)
+    /// <summary>True when an entry other than <paramref name="index"/> has the text (the table holds each text once).</summary>
+    public static bool HeldByAnother(GameMakerData data, int index, string text)
     {
-        var edits = new List<EditCommand>();
+        for (var i = 0; i < data.Strings.Count; i++)
+        {
+            if (i != index && (data.Strings[i].Content ?? "") == text) return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// The entries a replace changes. A result that another entry (or an earlier change of this batch) holds already is left out and counted in <paramref name="held"/>.
+    /// </summary>
+    public static IReadOnlyList<(int Index, string Text)> ReplaceChanges(GameMakerData data, IEnumerable<int> indexes, Regex pattern, string replacement, out int held)
+    {
+        var owner = new Dictionary<string, int>(StringComparer.Ordinal);
+        for (var i = 0; i < data.Strings.Count; i++) owner.TryAdd(data.Strings[i].Content ?? "", i);
+        var changes = new List<(int, string)>();
+        held = 0;
         foreach (var index in indexes)
         {
             var old = data.Strings[index].Content ?? "";
             var changed = pattern.Replace(old, replacement);
-            if (changed != old) edits.Add(new EditStringCommand(index, changed));
+            if (changed == old) continue;
+            if (owner.ContainsKey(changed)) held++;
+            else
+            {
+                owner[changed] = index;
+                changes.Add((index, changed));
+            }
         }
 
-        return edits.Count == 0 ? null : new GroupCommand(edits);
+        return changes;
+    }
+
+    /// <summary>One edit that replaces every match of the pattern in the listed entries. Null when nothing changes.</summary>
+    public static EditCommand? ReplaceEdits(GameMakerData data, IEnumerable<int> indexes, Regex pattern, string replacement)
+    {
+        var changes = ReplaceChanges(data, indexes, pattern, replacement, out _);
+        return changes.Count == 0 ? null : ToEdit(changes);
     }
 }

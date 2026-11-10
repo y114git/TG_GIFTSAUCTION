@@ -43,7 +43,7 @@ public sealed class SequenceTracksView : StackPanel
         ItemsSource = ((sequence.Tracks ?? []).Select((track, i) =>
         {
             var expander = ParticleEmittersView.Expandable(track.Name?.Content + "  " + track.ModelName?.Content, workspace, "sequences", name, $"Tracks[{i}]");
-            var remove = new Button { Name = "TrackRemove_" + i, Content = Loc.Current["timelines.remove"] };
+            var remove = new Button { Name = "TrackRemove_" + i, Content = Loc.Current["timelines.remove"] }.NamedFor("timelines.remove", track.Name?.Content + " " + track.ModelName?.Content);
             remove.Click += (_, _) => workspace.Edit(new SequenceTrackCommand(name, SequenceTrackCommand.Remove, i));
             var header = new DockPanel { Children = { new TextBlock { Text = track.Name?.Content + "  " + track.ModelName?.Content, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center }, remove } };
             DockPanel.SetDock(remove, Avalonia.Controls.Dock.Right);
@@ -155,7 +155,7 @@ public sealed class TimelineStepsView : StackPanel
             {
                 if (!_filling && e.NewValue is { } value && (uint)value != moment.Step) _workspace.Edit(new SetPropertyCommand("timelines", TimelineName, $"Moments[{index}].Step", ((uint)value).ToString(System.Globalization.CultureInfo.InvariantCulture)));
             };
-            var remove = new Button { Name = "MomentRemove_" + i, Content = Loc.Current["timelines.remove"] };
+            var remove = new Button { Name = "MomentRemove_" + i, Content = Loc.Current["timelines.remove"] }.NamedFor("timelines.remove", Loc.Current.Format("timelines.moment", ("number", i + 1)));
             remove.Click += (_, _) => _workspace.Edit(new TimelineMomentCommand(TimelineName, TimelineMomentCommand.Remove, index));
             var tools = MomentTools(index);
             DockPanel.SetDock(tools, Avalonia.Controls.Dock.Right);
@@ -168,7 +168,7 @@ public sealed class TimelineStepsView : StackPanel
             for (var a = 0; a < (moment.Event?.Count ?? 0); a++)
             {
                 var actionIndex = a;
-                var removeAction = new Button { Name = $"ActionRemove_{i}_{a}", Content = Loc.Current["timelines.remove"] };
+                var removeAction = new Button { Name = $"ActionRemove_{i}_{a}", Content = Loc.Current["timelines.remove"] }.NamedFor("timelines.remove", Loc.Current.Format("timelines.moment", ("number", i + 1)) + " " + (moment.Event?[a].CodeId?.Name?.Content ?? "?"));
                 removeAction.Click += (_, _) => _workspace.Edit(new TimelineActionCommand(TimelineName, TimelineActionCommand.Remove, index, actionIndex));
                 var code = moment.Event?[a].CodeId?.Name?.Content ?? "?";
                 // The name opens the code entry the action runs.

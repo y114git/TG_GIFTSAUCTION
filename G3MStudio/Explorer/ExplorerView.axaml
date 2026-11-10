@@ -9,7 +9,7 @@
     <DockPanel DockPanel.Dock="Top" Margin="8,0,8,6">
       <Button Name="FilterOptions" DockPanel.Dock="Right" Margin="4,0,0,0" Content="&#x25BE;" />
       <Button Name="ViewToggle" DockPanel.Dock="Right" Margin="4,0,0,0" />
-      <TextBox Name="FilterBox" PlaceholderText="{loc:Tr explorer.filter}" />
+      <TextBox Name="FilterBox" PlaceholderText="{loc:Tr explorer.filter}" AutomationProperties.Name="{loc:Tr explorer.filter}" />
     </DockPanel>
     <ScrollViewer Name="BreadcrumbScroll" DockPanel.Dock="Top" Margin="8,0,8,6" IsVisible="False" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
       <StackPanel Name="Breadcrumb" Orientation="Horizontal" Spacing="2" />
@@ -19,7 +19,7 @@
         <TextBlock Name="Footer" Classes="muted" FontSize="{DynamicResource FontSize.Caption}" TextTrimming="CharacterEllipsis" />
         <DockPanel>
           <ToggleButton Name="ThumbToggle" DockPanel.Dock="Left" Margin="0,0,8,0" Padding="6,0" Content="{loc:Tr explorer.thumbnails}" />
-          <Slider Name="ZoomSlider" Minimum="50" Maximum="250" Value="100" ToolTip.Tip="{loc:Tr explorer.zoom}" />
+          <Slider Name="ZoomSlider" Minimum="50" Maximum="250" Value="100" ToolTip.Tip="{loc:Tr explorer.zoom}" AutomationProperties.Name="{loc:Tr explorer.zoom}" />
         </DockPanel>
       </StackPanel>
     </Border>

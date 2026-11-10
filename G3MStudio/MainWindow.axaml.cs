@@ -155,6 +155,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
     {
         Docking.RelabelPanels();
         StatusText.Text = _status();
+        ToolTip.SetTip(StatusText, string.IsNullOrEmpty(StatusText.Text) ? null : StatusText.Text);
         UpdateRunStatus();
         var current = Workspaces.Current;
         // "{active resource} - {workspace name} - G3MStudio", a filled dot before the workspace name marks unsaved changes.

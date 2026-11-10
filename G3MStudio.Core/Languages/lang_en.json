@@ -17,6 +17,7 @@
     "title": "G3MStudio",
     "welcome": "Open a game data file to start.",
     "ready": "Ready",
+    "editQueued": "The file is being saved. The change applies when that ends.",
     "openFailed": "Could not open '{name}': {reason}",
     "recovered": "Unsaved edits recovered: {count}"
   },
@@ -661,7 +662,11 @@
   },
   "history": {
     "newResource": "New {type}: {name}",
-    "deleteResource": "Delete {name}",
+    "newResources": "New {count} resources",
+    "deleteResources": "Delete {count} resources",
+    "copyResource": "Copy {type}: {name}",
+    "copyResources": "Copy {count} resources",
+    "deleteResource": "Delete {type}: {name}",
     "start": "Opened state",
     "rename": "Rename {old} to {new}",
     "code": "Apply code to {entry}"
@@ -737,7 +742,13 @@
     "decompiling": "Decompiling...",
     "failed": "Could not save the code of '{entry}': {reason}",
     "notApplied": "the text does not compile",
-    "showFailed": "Could not show the code of '{entry}': {reason}"
+    "showFailed": "Could not show the code of '{entry}': {reason}",
+    "outlineKind": {
+      "function": "Function",
+      "enum": "Enum",
+      "macro": "Macro",
+      "region": "Region"
+    }
   },
   "status": {
     "assetId": "ID {index}"
@@ -984,7 +995,10 @@
     "remoteUrl": "Remote address (URL or folder)",
     "addRemote": "Add Remote",
     "aheadBehind": "{ahead} ahead, {behind} behind",
-    "newFile": "New file, not tracked yet."
+    "newFile": "New file, not tracked yet.",
+    "switchBranch": "Switch",
+    "switchTitle": "Switch branch",
+    "switchDirty": "There are {count} uncommitted changes. Switch to '{branch}' anyway?"
   },
   "properties": {
     "empty": "(empty)",
@@ -1431,6 +1445,8 @@
     "noChange": "Nothing changed.",
     "added": "String added.",
     "deleted": "String deleted.",
+    "deleteRiskTitle": "Delete this string?",
+    "deleteRisk": "This string is used, or Studio cannot tell yet whether anything uses it. Deleting it can break the game or the data file. Undo brings it back until you save.",
     "deleteUsed": "Only a string that nothing uses can be deleted. Change its text instead, or wait until the kind column is ready.",
     "deleteUnknown": "The kind column is not ready yet, so it is not known whether anything uses this string. Wait a moment, or change its text instead.",
     "deleteUnavailable": "Low-memory mode keeps the kind column off, so Studio cannot tell whether anything uses this string. Delete is unavailable.",
@@ -1447,6 +1463,7 @@
     "exported": "{count} strings written to {name}.",
     "imported": "Changed {count} strings, as one step. Numbers not in the table: {skipped}.",
     "importFailed": "Could not import: {reason}",
+    "exportFailed": "Could not export: {reason}",
     "uses": "Places that use it: {count}. Changing the text changes all of them. To change one use only, edit that property in its own tab.",
     "title": "Strings",
     "filter": "Filter strings...",
@@ -1478,7 +1495,8 @@
     "notAFont": "This file is not a TrueType or OpenType font, or it is larger than 16 MiB.",
     "replaceAsk": "Draw {name} again from {file} at size {size}? The glyphs are redrawn into the font's own texture. Undo restores the old one.",
     "replaced": "{name} was redrawn.",
-    "replaceFailed": "The font could not be replaced: {reason}"
+    "replaceFailed": "The font could not be replaced: {reason}",
+    "deleteRangeConfirm": "Delete {count} glyphs from {font}?"
   },
   "paths": {
     "speed": "Speed %",
@@ -1612,7 +1630,9 @@
       "Active": "Active",
       "Disabled": "Turned off",
       "Failed": "Failed to start"
-    }
+    },
+    "urlLabel": "GitHub repository address",
+    "enabledFor": "Enabled: {name}"
   },
   "rooms": {
     "addLayer": "Add",

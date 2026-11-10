@@ -40,6 +40,8 @@ public partial class MainWindow
         }
     }
 
+    internal RiskChoice RiskNow() => RiskPolicy.Of(Workspaces.Settings.Current);
+
     /// <summary>True when the owner agrees to go on after the refusal, or has set Studio to go on without asking.</summary>
     internal async Task<bool> AskRiskyAsync(RiskyRefusalException refusal, string name)
     {

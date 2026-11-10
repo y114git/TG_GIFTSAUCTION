@@ -16,19 +16,20 @@
           <TextBlock DockPanel.Dock="Right" Name="RunText" IsVisible="False" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" Foreground="{DynamicResource Text.Accent}" />
           <TextBlock DockPanel.Dock="Right" Name="MemoryText" Classes="muted" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
           <TextBlock DockPanel.Dock="Right" Name="AssetIdText" IsVisible="False" Classes="muted" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
-          <TextBlock Name="StatusText" Focusable="True" FontSize="{DynamicResource FontSize.Caption}" />
+          <TextBlock Name="StatusText" Focusable="True" TextTrimming="CharacterEllipsis" FontSize="{DynamicResource FontSize.Caption}" />
           <!-- Read out by screen readers when F6 moves the focus; not drawn. -->
           <TextBlock Name="RegionAnnouncement" Opacity="0" Width="1" Height="1" AutomationProperties.LiveSetting="Assertive" />
         </DockPanel>
       </Border>
       <Grid>
         <start:StartPage Name="Start" />
-        <Grid Name="WorkArea" IsVisible="False">
-          <dock:DockControl Name="DockHost" />
+        <!-- The chevrons sit in their own strips so they never cover panel content. -->
+        <Grid Name="WorkArea" IsVisible="False" ColumnDefinitions="20,*,20" RowDefinitions="*,20">
+          <dock:DockControl Name="DockHost" Grid.Column="1" />
           <!-- One chevron per side folds that dock (the layout menu and Ctrl+Alt+H fold all). -->
-          <Button Name="FoldLeft" Padding="0" BorderThickness="0" Width="24" HorizontalAlignment="Left" VerticalAlignment="Center" />
-          <Button Name="FoldRight" Padding="0" BorderThickness="0" Width="24" HorizontalAlignment="Right" VerticalAlignment="Center" />
-          <Button Name="FoldBottom" Padding="0" BorderThickness="0" Height="24" MinHeight="24" HorizontalAlignment="Center" VerticalAlignment="Bottom" />
+          <Button Name="FoldLeft" Grid.Column="0" Padding="0" BorderThickness="0" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+          <Button Name="FoldRight" Grid.Column="2" Padding="0" BorderThickness="0" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+          <Button Name="FoldBottom" Grid.Row="1" Grid.Column="1" Padding="0" BorderThickness="0" Height="20" MinHeight="20" HorizontalAlignment="Center" VerticalAlignment="Center" Width="48" />
         </Grid>
         <Border Name="SettingsHost" IsVisible="False" Background="{DynamicResource Bg.Window}" />
         <Border Name="Progress" IsVisible="False" Background="{DynamicResource Bg.Overlay}">

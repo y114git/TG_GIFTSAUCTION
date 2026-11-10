@@ -17,6 +17,7 @@
     "title": "G3MStudio",
     "welcome": "開啟遊戲資料檔案即可開始。",
     "ready": "就緒",
+    "editQueued": "檔案正在儲存。儲存結束後會套用此變更。",
     "openFailed": "無法開啟「{name}」：{reason}",
     "recovered": "已復原 {count} 項未儲存的編輯"
   },
@@ -661,7 +662,11 @@
   },
   "history": {
     "newResource": "新增{type}：{name}",
-    "deleteResource": "刪除 {name}",
+    "newResources": "新增 {count} 個資源",
+    "deleteResources": "刪除 {count} 個資源",
+    "copyResource": "複製{type}：{name}",
+    "copyResources": "複製 {count} 個資源",
+    "deleteResource": "刪除{type}：{name}",
     "start": "開啟時的狀態",
     "rename": "將 {old} 重新命名為 {new}",
     "code": "將程式碼套用到 {entry}"
@@ -737,7 +742,13 @@
     "decompiling": "正在反編譯...",
     "failed": "無法儲存「{entry}」的程式碼：{reason}",
     "notApplied": "文字無法編譯",
-    "showFailed": "無法顯示「{entry}」的程式碼：{reason}"
+    "showFailed": "無法顯示「{entry}」的程式碼：{reason}",
+    "outlineKind": {
+      "function": "函式",
+      "enum": "列舉",
+      "macro": "巨集",
+      "region": "區域"
+    }
   },
   "status": {
     "assetId": "ID {index}"
@@ -984,7 +995,10 @@
     "remoteUrl": "遠端位址（URL 或資料夾）",
     "addRemote": "新增遠端",
     "aheadBehind": "領先 {ahead}，落後 {behind}",
-    "newFile": "新檔案，尚未追蹤。"
+    "newFile": "新檔案，尚未追蹤。",
+    "switchBranch": "切換",
+    "switchTitle": "切換分支",
+    "switchDirty": "有 {count} 項未提交的變更。仍要切換到「{branch}」嗎？"
   },
   "properties": {
     "empty": "（空）",
@@ -1431,6 +1445,8 @@
     "noChange": "沒有任何變更。",
     "added": "已新增字串。",
     "deleted": "已刪除字串。",
+    "deleteRiskTitle": "刪除此字串？",
+    "deleteRisk": "此字串正在被使用，或 Studio 暫時無法判斷是否有地方使用它。刪除可能會破壞遊戲或資料檔案。儲存之前可以復原。",
     "deleteUsed": "只能刪除沒有任何地方使用的字串。請改為修改其文字，或等類型欄準備好。",
     "deleteUnknown": "類型欄尚未準備好，因此無法確定是否有地方使用此字串。請稍候，或改為修改其文字。",
     "deleteUnavailable": "低記憶體模式下類型欄已關閉，Studio 無法確定是否有地方使用此字串。無法刪除。",
@@ -1447,6 +1463,7 @@
     "exported": "已將 {count} 個字串寫入 {name}。",
     "imported": "已變更 {count} 個字串（一步完成）。不在表中的編號：{skipped}。",
     "importFailed": "無法匯入：{reason}",
+    "exportFailed": "無法匯出：{reason}",
     "uses": "在 {count} 處使用；變更文字會同時變更所有位置。若只想改一處，請在其自己的分頁中編輯該屬性。",
     "title": "字串",
     "filter": "篩選字串...",
@@ -1478,7 +1495,8 @@
     "notAFont": "此檔案不是 TrueType 或 OpenType 字型，或超過 16 MiB。",
     "replaceAsk": "要用 {file} 以大小 {size} 重新繪製 {name} 嗎？字形會重新繪製到該字型自己的紋理中。復原會還原原樣。",
     "replaced": "已重新繪製 {name}。",
-    "replaceFailed": "無法取代字型：{reason}"
+    "replaceFailed": "無法取代字型：{reason}",
+    "deleteRangeConfirm": "要從 {font} 刪除 {count} 個字形嗎？"
   },
   "paths": {
     "speed": "速度 %",
@@ -1612,7 +1630,9 @@
       "Active": "執行中",
       "Disabled": "已關閉",
       "Failed": "啟動失敗"
-    }
+    },
+    "urlLabel": "GitHub 儲存庫位址",
+    "enabledFor": "啟用：{name}"
   },
   "rooms": {
     "addLayer": "新增",

@@ -298,6 +298,7 @@ public partial class ExplorerView : UserControl
     {
         ViewToggle.Content = Loc.Current[Model.FolderView ? "explorer.viewTypes" : "explorer.viewFolders"];
         ToolTip.SetTip(ViewToggle, Loc.Current["explorer.viewToggle"]);
+        Avalonia.Automation.AutomationProperties.SetName(ViewToggle, Loc.Current["explorer.viewToggle"]);
         BreadcrumbScroll.IsVisible = Model.Scope is not null;
         Breadcrumb.Children.Clear();
         if (Model.Scope is null) return;

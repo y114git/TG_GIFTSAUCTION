@@ -83,7 +83,7 @@ public sealed class HexSource : IDisposable
     }
 
     /// <summary>
-    /// Writes the patched bytes into a copy of the file, which then replaces it, and forgets the undo steps (the file is the new baseline). Refuses with an
+    /// Writes the patched bytes into a copy of the file, which then replaces it (the first commit keeps the original as <c>.bak</c>), and forgets the undo steps (the file is the new baseline). Refuses with an
     /// <see cref="IOException"/> when the file has another length or write time than when it was opened: the patches belong to bytes that are gone.
     /// </summary>
     public void Commit(string path)
@@ -103,6 +103,7 @@ public sealed class HexSource : IDisposable
                 }
             }
 
+            if (!File.Exists(path + ".bak")) File.Copy(path, path + ".bak");
             // Windows will not replace a file this view still has open; the view reads the new bytes through a new handle.
             _stream.Dispose();
             File.Move(temp, path, true);
@@ -110,6 +111,7 @@ public sealed class HexSource : IDisposable
         finally
         {
             if (File.Exists(temp)) File.Delete(temp);
+            _stream.Dispose(); // still open when the copy or the write failed above
             _stream = Open(path);
         }
 

@@ -5,6 +5,7 @@ using Avalonia.Layout;
 using G3MLib.DataFile.Models;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio.Editor;
 
@@ -66,7 +67,7 @@ public sealed class SequenceEventsView : StackPanel
         {
             if (!_filling && (text.Text ?? "").Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n') != string.Join('\n', Lines(keyframe))) TryEdit(new SequenceEventCommand(SequenceName, list, SequenceEventCommand.SetText, index, 0, text.Text ?? ""));
         };
-        var delete = new Button { Name = $"{list}_Delete_{index}", Content = Loc.Current["timelines.remove"] };
+        var delete = new Button { Name = $"{list}_Delete_{index}", Content = Loc.Current["timelines.remove"] }.NamedFor("timelines.remove", $"{list} {key.ToString("0", CultureInfo.InvariantCulture)}");
         delete.Click += (_, _) => TryEdit(new SequenceEventCommand(SequenceName, list, SequenceEventCommand.Delete, index));
         DockPanel.SetDock(frame, Avalonia.Controls.Dock.Left);
         DockPanel.SetDock(delete, Avalonia.Controls.Dock.Right);

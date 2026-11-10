@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
+using G3MStudio.Core.Settings;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
 using G3MStudio.Theme;
@@ -28,11 +29,14 @@ public sealed class GroupsWindow : Window
     private readonly Button _rename = new() { Name = "GroupRename" };
     private readonly TextBlock _noGroups = new() { Name = "GroupsEmpty", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap, Margin = new Thickness(8), IsHitTestVisible = false };
     private readonly TextBlock _noMembers = new() { Name = "MembersEmpty", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap, Margin = new Thickness(8), IsHitTestVisible = false };
+    private readonly Func<RiskChoice> _risk;
+    private string? _unusualName;
     private bool _building;
 
-    public GroupsWindow(Workspace workspace, bool audio)
+    // risk: what the owner chose for risky actions; without it a name that is not a plain name is refused.
+    public GroupsWindow(Workspace workspace, bool audio, Func<RiskChoice>? risk = null)
     {
-        (_workspace, _audio) = (workspace, audio);
+        (_workspace, _audio, _risk) = (workspace, audio, risk ?? (() => RiskChoice.Refuse));
         Title = Loc.Current[audio ? "editors.groups.audioTitle" : "editors.groups.textureTitle"];
         Width = 640;
         Height = 460;
@@ -84,7 +88,7 @@ public sealed class GroupsWindow : Window
         _target.SelectionChanged += (_, _) => UpdateButtons();
         _rename.Click += (_, _) =>
         {
-            if (_groups.SelectedItem is string group) Change(new GroupListCommand(_audio, GroupListCommand.Rename, group, _name.Text?.Trim() ?? ""), "editors.groups.renamed");
+            if (_groups.SelectedItem is string group) Change(force => new GroupListCommand(_audio, GroupListCommand.Rename, group, _name.Text?.Trim() ?? "", force), "editors.groups.renamed");
         };
         workspace.History.Changed += Refresh;
         Closed += (_, _) => workspace.History.Changed -= Refresh;
@@ -101,7 +105,7 @@ public sealed class GroupsWindow : Window
 
     private void CreateGroup()
     {
-        if (_new.IsEnabled) Change(new GroupListCommand(_audio, GroupListCommand.New, _name.Text?.Trim() ?? ""), "editors.groups.created");
+        if (_new.IsEnabled) Change(force => new GroupListCommand(_audio, GroupListCommand.New, _name.Text?.Trim() ?? "", force: force), "editors.groups.created");
     }
 
     // A button that cannot work yet is disabled and its tip says what is missing.
@@ -154,13 +158,25 @@ public sealed class GroupsWindow : Window
         _noMembers.IsVisible = members.Count == 0;
     }
 
-    // The name box holds the new group's name, or the new name of the picked group.
-    internal void Change(GroupListCommand command, string doneKey)
+    // The name box holds the new group's name, or the new name of the picked group. A name that is not a plain name is warned about once; the same name sent again, or the setting that allows risky actions, goes through.
+    internal void Change(Func<bool, GroupListCommand> build, string doneKey)
     {
+        var text = _name.Text?.Trim() ?? "";
+        var choice = _risk();
         try
         {
-            _workspace.Edit(command);
-            _message.Text = Loc.Current.Format(doneKey, ("name", _name.Text?.Trim() ?? ""));
+            var queued = !_workspace.Edit(build(choice == RiskChoice.Allow || choice == RiskChoice.Ask && _unusualName == text));
+            _unusualName = null;
+            _message.Text = queued ? Loc.Current["app.editQueued"] : Loc.Current.Format(doneKey, ("name", text));
+        }
+        catch (UnusualNameException e)
+        {
+            if (choice == RiskChoice.Refuse) _message.Text = e.Message;
+            else
+            {
+                _unusualName = text;
+                _message.Text = Loc.Current.Format("explorer.nameUnusual", ("name", text));
+            }
         }
         catch (InvalidOperationException e)
         {

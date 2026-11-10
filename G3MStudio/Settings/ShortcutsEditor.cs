@@ -54,7 +54,7 @@ public sealed class ShortcutsEditor : UserControl
         foreach (var command in _registry.All.OrderBy(c => c.Id, StringComparer.Ordinal))
         {
             var title = Loc.Current["cmd." + command.Id];
-            if (text.Length > 0 && !title.Contains(text, StringComparison.CurrentCultureIgnoreCase) && !command.Id.Contains(text, StringComparison.OrdinalIgnoreCase) && !command.Gestures.Any(g => g.Contains(text, StringComparison.OrdinalIgnoreCase))) continue;
+            if (text.Length > 0 && !title.Contains(text, StringComparison.CurrentCultureIgnoreCase) && !command.Id.Contains(text, StringComparison.OrdinalIgnoreCase) && !command.Gestures.Any(g => G3MStudio.Commands.Shortcuts.Display(g).Contains(text, StringComparison.OrdinalIgnoreCase))) continue;
             var id = command.Id;
             var buttons = new StackPanel { [DockPanel.DockProperty] = Avalonia.Controls.Dock.Right, Orientation = Orientation.Horizontal, Spacing = 6 };
             Button Slot(string name, int slot, string label)

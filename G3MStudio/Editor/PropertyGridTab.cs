@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Layout;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio.Editor;
 
@@ -310,15 +311,17 @@ public sealed class PropertyGridTab : DockPanel
     }
 
     // A swatch that opens three sliders (red, green, blue) and the number itself in a box beside it (UTMT-CTRL-05). The picked color is committed when the flyout closes, so a drag is one undo step; the top byte of the stored value is kept.
+    private static readonly string[] ColourNames = ["red", "green", "blue"];
+
     private StackPanel ColorEditor(PropertyRow row, uint color)
     {
         var (r, g, b) = PropertyModel.Rgb(color);
-        var sliders = new[] { r, g, b }.Select((v, n) => new Slider { Minimum = 0, Maximum = 255, Value = v, Width = 220, Name = $"Color{"RGB"[n]}_{row.Path}" }).ToArray();
+        var sliders = new[] { r, g, b }.Select((v, n) => new Slider { Minimum = 0, Maximum = 255, Value = v, Width = 220, Name = $"Color{"RGB"[n]}_{row.Path}" }.Labeled("organize.colour." + ColourNames[n])).ToArray();
         var swatch = new Border { Width = 40, Height = 22, CornerRadius = new CornerRadius(3), BorderThickness = new Thickness(1), BorderBrush = (Avalonia.Media.IBrush?)Application.Current?.FindResource("Border.Subtle") };
         Avalonia.Media.IBrush Brush() => new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromRgb((byte)sliders[0].Value, (byte)sliders[1].Value, (byte)sliders[2].Value));
         swatch.Background = Brush();
         foreach (var slider in sliders) slider.ValueChanged += (_, _) => swatch.Background = Brush();
-        var pick = new Button { Name = "Picker_" + row.Path, Content = swatch, Padding = new Thickness(3), IsEnabled = !row.ReadOnly };
+        var pick = new Button { Name = "Picker_" + row.Path, Content = swatch, Padding = new Thickness(3), IsEnabled = !row.ReadOnly }.Labeled("cmd.img.tool.picker");
         var flyout = new Flyout { Content = new StackPanel { Spacing = 4, Children = { sliders[0], sliders[1], sliders[2] } } };
         flyout.Closed += (_, _) =>
         {

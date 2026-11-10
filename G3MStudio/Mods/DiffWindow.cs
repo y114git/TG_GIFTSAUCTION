@@ -23,7 +23,7 @@ public sealed partial class DiffWindow : Window
     private readonly TreeView _tree = new() { Name = "DiffTree" };
     private readonly TextBlock _summary = new() { Name = "DiffSummary", VerticalAlignment = VerticalAlignment.Center };
     private readonly TextBlock _status = new() { Name = "DiffStatus", Classes = { "muted" } };
-    private readonly TextBox _filter = new() { Name = "DiffFilter", Width = 200, PlaceholderText = Loc.Current["mods.diff.filter"] };
+    private readonly TextBox _filter = new TextBox { Name = "DiffFilter", Width = 200, PlaceholderText = Loc.Current["mods.diff.filter"] }.Labeled("mods.diff.filter");
     private readonly ComboBox _types = new() { Name = "DiffTypes", MinWidth = 150 };
     private readonly List<string> _typeKeys = [];
     private readonly Dictionary<ChangeKind, ToggleButton> _kinds = [];

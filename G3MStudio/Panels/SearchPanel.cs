@@ -13,7 +13,7 @@ namespace G3MStudio.Panels;
 /// <summary>Find in code: a query, two options and the matching lines. A double click asks the window to open the entry at the line.</summary>
 public sealed class SearchPanel : UserControl
 {
-    private readonly TextBox _query = new TextBox { Name = "SearchQuery" }.Tr(TextBox.PlaceholderTextProperty, "search.placeholder");
+    private readonly TextBox _query = new TextBox { Name = "SearchQuery" }.Tr(TextBox.PlaceholderTextProperty, "search.placeholder").Labeled("search.placeholder");
     private readonly CheckBox _case = new CheckBox { Name = "SearchCase" }.Tr(ContentControl.ContentProperty, "search.case");
     private readonly CheckBox _regex = new CheckBox { Name = "SearchRegex" }.Tr(ContentControl.ContentProperty, "search.regex");
     private readonly CheckBox _word = new CheckBox { Name = "SearchWord" }.Tr(ContentControl.ContentProperty, "search.word");
