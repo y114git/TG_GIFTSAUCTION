@@ -169,7 +169,7 @@ public sealed class DialogShotTests
                 var key = G3MStudio.Core.Workspace.ResourceTypes.KeyOf("sprites", sprite.Name.Content!);
                 var picture = await window.Explorer.Thumbnail!(key);
                 Assert.NotNull(picture);
-                Assert.Null(await window.Explorer.Thumbnail!(G3MStudio.Core.Workspace.ResourceTypes.KeyOf("objects", data.GameObjects[0].Name.Content!)));
+                Assert.Null(await window.Explorer.Thumbnail!(G3MStudio.Core.Workspace.ResourceTypes.KeyOf("scripts", data.Scripts[0].Name.Content!)));
 
                 var tip = new G3MStudio.Explorer.ExplorerRowTip(sprite.Name.Content!, () => Task.FromResult<Avalonia.Media.IImage?>(picture));
                 var holder = new Window { Width = 220, Height = 180, Content = new Border { Padding = new Thickness(8), Child = tip } };

@@ -8,6 +8,9 @@ namespace G3MStudio.Panels;
 /// <summary>What the Explorer has selected: its type and name, and how many places use it. Find Usages lists them.</summary>
 public sealed class InspectorPanel : ScrollViewer
 {
+    // A control theme is looked up by the exact type: without this the scroll viewer template is missing and nothing scrolls.
+    protected override Type StyleKeyOverride => typeof(ScrollViewer);
+
     private readonly StackPanel _stack = new() { Margin = new Thickness(12), Spacing = 6 };
     private readonly ContentControl _context = new() { Name = "InspectorContext" };
     private readonly TextBlock _title = new() { Name = "InspectorName", FontWeight = Avalonia.Media.FontWeight.Bold, TextWrapping = Avalonia.Media.TextWrapping.Wrap };

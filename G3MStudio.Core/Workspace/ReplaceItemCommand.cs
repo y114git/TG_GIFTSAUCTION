@@ -4,7 +4,7 @@ using G3MLib.DataFile.Models;
 namespace G3MStudio.Core.Workspace;
 
 /// <summary>
-/// Replaces the picture of the one texture page item of a font, tile set or background (OI-274), the way <see cref="ReplaceFrameCommand"/> does for a sprite frame:
+/// Replaces the picture of the one texture page item of a font, tile set, background, embedded image or bare page item (OI-274), the way <see cref="ReplaceFrameCommand"/> does for a sprite frame:
 /// the picture is fitted into the item's rectangle on its page, nothing else is packed again, and Undo puts the old page image back.
 /// </summary>
 public sealed class ReplaceItemCommand(string type, string name, byte[] picture) : ReplaceFrameCommand("", 0, picture)
@@ -12,7 +12,7 @@ public sealed class ReplaceItemCommand(string type, string name, byte[] picture)
     public new const string Name = "replaceItem";
 
     /// <summary>Resource types that keep their picture as a texture page item, so a new image can be put in its place.</summary>
-    public static readonly string[] Types = ["fonts", "tileSets"];
+    public static readonly string[] Types = ["fonts", "tileSets", "texturePageItems", "embeddedImages"];
 
     public override string Kind => Name;
 
@@ -22,11 +22,15 @@ public sealed class ReplaceItemCommand(string type, string name, byte[] picture)
 
     public static ReplaceItemCommand FromArgs(IReadOnlyDictionary<string, string> a) => new(a["type"], a["name"], Convert.FromBase64String(a["picture"]));
 
-    protected override GameMakerTexturePageItem Item(GameMakerData data) =>
+    protected override GameMakerTexturePageItem Item(GameMakerData data) => ItemOf(data, type, name);
+
+    public static GameMakerTexturePageItem ItemOf(GameMakerData data, string type, string name) =>
         (Types.Contains(type) ? ResourceTypes.Find(data, ResourceTypes.KeyOf(type, name)) : null) switch
         {
             GameMakerFont { Texture: { } texture } => texture,
             GameMakerBackground { Texture: { } texture } => texture,
+            GameMakerTexturePageItem item => item,
+            GameMakerEmbeddedImage { TextureEntry: { } texture } => texture,
             null => throw new InvalidOperationException($"'{name}' was not found in {type}."),
             _ => throw new InvalidOperationException($"'{name}' has no texture picture."),
         };

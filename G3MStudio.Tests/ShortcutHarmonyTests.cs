@@ -168,4 +168,15 @@ public sealed partial class ShortcutHarmonyTests
         Assert.Equal("Cmd+Shift+,", Shortcuts.Display("Ctrl+Shift+OemComma", true));
         Assert.Equal("Ctrl+Shift+,", Shortcuts.Display("Ctrl+Shift+OemComma", false));
     }
+
+    [Fact]
+    public void NumpadAndNamedKeysAreShownAsReadableNames()
+    {
+        Assert.Equal("Ctrl+Num +", Shortcuts.Display("Ctrl+Add", false));
+        Assert.Equal("Ctrl+Num -", Shortcuts.Display("Ctrl+Subtract", false));
+        Assert.Equal("Num 5", Shortcuts.Display("NumPad5", false));
+        Assert.Equal("Backspace", Shortcuts.Display("Back", false));
+        Assert.Equal("Enter", Shortcuts.Display("Return", false));
+        Assert.Equal("Ctrl+.", Shortcuts.Display("Ctrl+OemPeriod", false));
+    }
 }

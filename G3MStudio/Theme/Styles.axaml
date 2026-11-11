@@ -63,6 +63,19 @@
   </Style>
   <!-- Sizes come from the tokens (Tokens.axaml, ThemeSizes): the density presets and Settings > Appearance > Sizes move them. -->
   <Style Selector="Button, ToggleButton, ComboBox, NumericUpDown"><Setter Property="MinHeight" Value="{DynamicResource Control.Height}" /></Style>
+  <!-- Text in every button, toggle, combo box and tab sits dead centre: the padding (ButtonPadding in FluentOverrides.axaml) is even, where the theme gave 5 px on top and 6 below. -->
+  <Style Selector="Button, ToggleButton">
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="ComboBox">
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TabItem, dockc|DocumentTabStripItem, dockc|ToolTabStripItem">
+    <Setter Property="Padding" Value="8,4" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
   <!-- A button with only a glyph (the event menu, a reference clear) is as tall as any control and as wide as it is tall. -->
   <Style Selector="Button.icon">
     <Setter Property="MinWidth" Value="{DynamicResource Control.Height}" />
@@ -71,12 +84,29 @@
     <Setter Property="VerticalContentAlignment" Value="Center" />
     <Setter Property="FontSize" Value="16" />
   </Style>
+  <!-- A spinner holds a text box that would make it 2 px taller than the buttons beside it; the spinner itself carries the control height. -->
+  <Style Selector="NumericUpDown /template/ TextBox"><Setter Property="MinHeight" Value="0" /></Style>
   <Style Selector="TextBox"><Setter Property="MinHeight" Value="{DynamicResource Control.Height}" /><Setter Property="FontSize" Value="{DynamicResource FontSize.Editor}" /></Style>
   <Style Selector="ScrollBar:vertical"><Setter Property="Width" Value="{DynamicResource Scrollbar.Width}" /></Style>
   <Style Selector="ScrollBar:horizontal"><Setter Property="Height" Value="{DynamicResource Scrollbar.Width}" /></Style>
   <Style Selector="ToolTip"><Setter Property="FontSize" Value="{DynamicResource Tooltip.Size}" /></Style>
   <Style Selector="PathIcon"><Setter Property="Width" Value="{DynamicResource Icon.Size}" /><Setter Property="Height" Value="{DynamicResource Icon.Size}" /></Style>
   <Style Selector="TabItem, dockc|DocumentTabStripItem, dockc|ToolTabStripItem"><Setter Property="MinHeight" Value="{DynamicResource Tab.Height}" /></Style>
+  <!-- The dock theme sets its tab height to 0 and bottom-aligns the label; a selector through the strip outranks it, so every dock tab is Tab.Height tall with the label in the middle. -->
+  <!-- The label sits in a stack panel inside the tab and stays at its top edge; centring the presenter puts it in the middle of the tab. -->
+  <Style Selector="dockc|ToolTabStripItem /template/ ContentPresenter, dockc|DocumentTabStripItem /template/ ContentPresenter">
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="dockc|ToolTabStrip dockc|ToolTabStripItem, dockc|DocumentTabStrip dockc|DocumentTabStripItem">
+    <Setter Property="MinHeight" Value="{DynamicResource Tab.Height}" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+  </Style>
+  <!-- The dock library sets its own tab weight; the labels follow the body token like all other text. -->
+  <Style Selector="dockc|DocumentTabStripItem, dockc|ToolTabStripItem"><Setter Property="FontWeight" Value="{DynamicResource Font.Weight}" /></Style>
+  <Style Selector="dockc|DocumentTabStripItem TextBlock, dockc|ToolTabStripItem TextBlock"><Setter Property="FontWeight" Value="{DynamicResource Font.Weight}" /></Style>
+  <!-- The panel title (Explorer, Inspector, History) fills the header height and keeps its text at the top; centred, it lines up with the pin and close icons. -->
+  <Style Selector="dockc|ToolChromeControl TextBlock#PART_Title"><Setter Property="VerticalAlignment" Value="Center" /></Style>
   <!-- The chosen tab is filled like a selected row, the others stay plain, so the six shader tabs and the settings tabs show where you are. -->
   <Style Selector="TabItem:selected">
     <Setter Property="Background" Value="{DynamicResource Selection.Bg}" />
@@ -84,6 +114,8 @@
     <Setter Property="FontWeight" Value="Bold" />
   </Style>
   <Style Selector="GridSplitter"><Setter Property="Background" Value="{DynamicResource Border.Subtle}" /></Style>
+  <!-- A caption in a toolbar row sits on the centre line of the buttons and boxes beside it, not at the top of the row. -->
+  <Style Selector="WrapPanel > TextBlock, StackPanel[Orientation=Horizontal] > TextBlock"><Setter Property="VerticalAlignment" Value="Center" /></Style>
   <Style Selector="Border.panel"><Setter Property="Padding" Value="{DynamicResource Panel.Padding}" /></Style>
   <Style Selector="TextBlock.muted"><Setter Property="Foreground" Value="{DynamicResource Text.Muted}" /></Style>
   <Style Selector="TextBlock.accent"><Setter Property="Foreground" Value="{DynamicResource Text.Accent}" /></Style>
@@ -126,6 +158,13 @@
   <Style Selector="DropDownButton.active /template/ ContentPresenter#PART_ContentPresenter, DropDownButton.active:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource Selection.Bg}" />
     <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
+  </Style>
+  <!-- The current frame of the image editor strip. -->
+  <Style Selector="Button.active">
+    <Setter Property="Background" Value="{DynamicResource Selection.Bg}" />
+  </Style>
+  <Style Selector="Button.active /template/ ContentPresenter#PART_ContentPresenter, Button.active:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Selection.Bg}" />
   </Style>
   <!-- A preview tab shows its name in italics (design/shell.md 9.1). -->
   <Style Selector="dockc|DocumentTabStripItem">

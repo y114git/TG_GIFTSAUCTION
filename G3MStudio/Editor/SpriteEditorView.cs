@@ -16,12 +16,17 @@ namespace G3MStudio.Editor;
 /// </summary>
 public sealed class SpriteEditorView : ScrollViewer
 {
+    // A subclass has no template of its own: without this it never draws a scrollbar or scrolls.
+    protected override Type StyleKeyOverride => typeof(ScrollViewer);
+
     public const double MinCanvasHeight = 260;
     public const double WideWidth = 900;
     private const double PanelWidth = 420;
     private double ZoomBarHeight => this.Size("Control.Height", 30) + 6; // the canvas below it keeps the full minimum
 
     private readonly Grid _body = new();
+    // The side panel scrolls on its own when its content is taller than the room beside the canvas.
+    private readonly ScrollViewer _toolsHost = new() { Name = "SpriteToolsScroll", HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
     private readonly Grid _canvasColumn = new() { RowDefinitions = { new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star) } };
 
     public SpriteEditorView(GameMakerSprite sprite, TextureBitmaps textures, Workspace workspace)
@@ -29,7 +34,7 @@ public sealed class SpriteEditorView : ScrollViewer
         Name = "SpriteEditor";
         HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
         VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
-        Frames = new SpriteFramesView(sprite, textures, workspace.History);
+        Frames = new SpriteFramesView(sprite, textures, workspace.History, workspace);
         Tools = new SpriteToolsView(sprite, textures, workspace);
         var zoomOut = new Button { Name = "SpriteZoomOut", Content = "-", MinWidth = 32 }.Labeled("rooms.zoomOut");
         var zoomIn = new Button { Name = "SpriteZoomIn", Content = "+", MinWidth = 32 }.Labeled("rooms.zoomIn");
@@ -55,9 +60,11 @@ public sealed class SpriteEditorView : ScrollViewer
         _canvasColumn.Children.Add(zoomBar);
         _canvasColumn.Children.Add(viewer);
         _body.Children.Add(_canvasColumn);
-        _body.Children.Add(Tools);
+        _toolsHost.Content = Tools;
+        _body.Children.Add(_toolsHost);
         Content = new StackPanel { Children = { Frames, _body } };
         Frames.FrameChosen += Tools.ShowFrame;
+        Frames.OnionChanged += on => Tools.Canvas.Onion = on;
         ArrangeParts(default);
         SizeChanged += (_, e) => ArrangeParts(e.NewSize);
         Frames.SizeChanged += (_, _) => ArrangeParts(Bounds.Size);
@@ -80,16 +87,18 @@ public sealed class SpriteEditorView : ScrollViewer
         {
             _body.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
             _body.ColumnDefinitions.Add(new ColumnDefinition(PanelWidth, GridUnitType.Pixel));
-            Grid.SetColumn(Tools, 1);
-            Grid.SetRow(Tools, 0);
+            Grid.SetColumn(_toolsHost, 1);
+            Grid.SetRow(_toolsHost, 0);
             _canvasColumn.Height = Math.Max(MinCanvasHeight + ZoomBarHeight, room);
+            _toolsHost.Height = _canvasColumn.Height;
         }
         else
         {
             _body.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
             _body.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
-            Grid.SetColumn(Tools, 0);
-            Grid.SetRow(Tools, 1);
+            Grid.SetColumn(_toolsHost, 0);
+            Grid.SetRow(_toolsHost, 1);
+            _toolsHost.Height = double.NaN; // under the canvas the whole tab scrolls
             _canvasColumn.Height = Math.Max(MinCanvasHeight + ZoomBarHeight, room * 0.6);
         }
     }

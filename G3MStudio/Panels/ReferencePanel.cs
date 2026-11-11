@@ -77,17 +77,12 @@ public sealed class ReferencePanel : UserControl
         DockPanel.SetDock(_category, Avalonia.Controls.Dock.Right);
         top.Children.Add(_category);
         top.Children.Add(_search);
-        var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { _insert, _manual } };
-        // Results on the left, the detail beside them: a short dock still shows a scrolling list.
-        var detail = new DockPanel { Margin = new Thickness(8, 0, 0, 0) };
-        DockPanel.SetDock(_title, Avalonia.Controls.Dock.Top);
-        DockPanel.SetDock(buttons, Avalonia.Controls.Dock.Bottom);
-        detail.Children.Add(_title);
-        detail.Children.Add(buttons);
-        detail.Children.Add(new ScrollViewer { Content = _detail });
+        var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Margin = new Thickness(0, 4, 0, 8), Children = { _insert, _manual } };
+        // Results on the left, the detail beside them: title, buttons and text scroll together, so a short dock still reaches the buttons.
+        var detail = new ScrollViewer { Margin = new Thickness(8, 0, 0, 0), Content = new StackPanel { Children = { _title, buttons, _detail } } };
         var layout = new DockPanel { Margin = new Thickness(8) };
         DockPanel.SetDock(top, Avalonia.Controls.Dock.Top);
-        var body = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*") };
+        var body = new Grid { ColumnDefinitions = new ColumnDefinitions("3*,2*") };
         Grid.SetColumn(detail, 1);
         body.Children.Add(_list);
         body.Children.Add(detail);

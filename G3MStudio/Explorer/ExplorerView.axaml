@@ -6,20 +6,23 @@
              x:Class="G3MStudio.Explorer.ExplorerView">
   <DockPanel>
     <!-- The buttons share the title row so the filter box keeps the full width of a narrow dock. -->
-    <DockPanel DockPanel.Dock="Top" Margin="8,6,8,0">
+    <DockPanel DockPanel.Dock="Top" Margin="8,8,8,0">
       <Button Name="FilterOptions" DockPanel.Dock="Right" Margin="4,0,0,0" Content="&#x25BE;" />
       <Button Name="ViewToggle" DockPanel.Dock="Right" Margin="4,0,0,0" />
       <TextBlock Name="Header" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
     </DockPanel>
-    <TextBox Name="FilterBox" DockPanel.Dock="Top" Margin="8,6,8,6" PlaceholderText="{loc:Tr explorer.filter}" AutomationProperties.Name="{loc:Tr explorer.filter}" />
-    <ScrollViewer Name="BreadcrumbScroll" DockPanel.Dock="Top" Margin="8,0,8,6" IsVisible="False" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+    <TextBox Name="FilterBox" DockPanel.Dock="Top" Margin="8,8,8,8" PlaceholderText="{loc:Tr explorer.filter}" AutomationProperties.Name="{loc:Tr explorer.filter}" />
+    <ScrollViewer Name="BreadcrumbScroll" DockPanel.Dock="Top" Margin="8,0,8,8" IsVisible="False" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
       <StackPanel Name="Breadcrumb" Orientation="Horizontal" Spacing="2" />
     </ScrollViewer>
     <Border DockPanel.Dock="Bottom" Background="{DynamicResource Bg.Raised}" BorderBrush="{DynamicResource Border.Subtle}" BorderThickness="0,2,0,0" Padding="8,2">
       <StackPanel Spacing="4">
-        <TextBlock Name="Footer" Classes="muted" FontSize="{DynamicResource FontSize.Caption}" TextTrimming="CharacterEllipsis" />
         <DockPanel>
-          <ToggleButton Name="ThumbToggle" DockPanel.Dock="Left" Margin="0,0,8,0" Padding="6,0" Content="{loc:Tr explorer.thumbnails}" />
+          <Button Name="OptionsFold" DockPanel.Dock="Right" Width="24" Height="24" MinWidth="24" MinHeight="24" Padding="0" BorderThickness="0" Background="Transparent" />
+          <TextBlock Name="Footer" Classes="muted" VerticalAlignment="Center" FontSize="{DynamicResource FontSize.Caption}" TextTrimming="CharacterEllipsis" />
+        </DockPanel>
+        <DockPanel Name="OptionsRow">
+          <ToggleButton Name="ThumbToggle" DockPanel.Dock="Left" Margin="0,0,8,0" Padding="8,0" Content="{loc:Tr explorer.thumbnails}" />
           <Slider Name="ZoomSlider" Minimum="50" Maximum="250" Value="100" ToolTip.Tip="{loc:Tr explorer.zoom}" AutomationProperties.Name="{loc:Tr explorer.zoom}" />
         </DockPanel>
       </StackPanel>
@@ -29,7 +32,7 @@
         <ListBox.Styles>
           <Style Selector="ListBoxItem" x:DataType="ws:ExplorerRow">
             <Setter Property="MinHeight" Value="{DynamicResource Row.Height}" />
-            <Setter Property="Padding" Value="4,0" />
+            <Setter Property="Padding" Value="8,0" />
             <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}" />
           </Style>
         </ListBox.Styles>
@@ -38,7 +41,7 @@
             <Grid MinHeight="{DynamicResource Row.Height}" ColumnDefinitions="Auto,Auto,Auto,*,Auto" Margin="{Binding Depth, Converter={x:Static local:ExplorerView.Indent}}">
               <TextBlock Grid.Column="0" Width="16" Text="{Binding Chevron}" Classes="muted" VerticalAlignment="Center" />
               <TextBlock Grid.Column="1" Text="&#x25CF;" Foreground="{Binding Colour, Converter={x:Static local:ExplorerView.ColourBrush}}" IsVisible="{Binding Colour, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" VerticalAlignment="Center" Margin="0,0,4,0" />
-              <Image Name="Thumb" Grid.Column="2" IsVisible="False" Stretch="Uniform" Margin="0,0,6,0" />
+              <Image Name="Thumb" Grid.Column="2" IsVisible="False" Stretch="Uniform" Margin="0,0,8,0" />
               <TextBlock Grid.Column="3" Text="{Binding Text}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
               <TextBlock Grid.Column="4" Text="{Binding Count}" Classes="muted" VerticalAlignment="Center" IsVisible="{Binding HasCount}" />
             </Grid>

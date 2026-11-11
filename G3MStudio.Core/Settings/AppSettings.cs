@@ -153,6 +153,9 @@ public sealed record AppSettings
     /// <summary>Folders and collections start open in the Explorer.</summary>
     public bool ExplorerFoldersOpen { get; init; } = true;
 
+    /// <summary>The bar under the Explorer list (count, thumbnails, zoom) is folded to a strip.</summary>
+    public bool ExplorerOptionsFolded { get; init; }
+
     /// <summary>Applies to a data file that has no saved Explorer state yet.</summary>
     public ExplorerSort ExplorerSortOrder { get; init; } = ExplorerSort.ListOrder;
 

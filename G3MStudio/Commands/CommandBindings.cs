@@ -29,18 +29,34 @@ public static partial class Shortcuts
     [System.Text.RegularExpressions.GeneratedRegex(@"(?<![A-Za-z])D(\d)(?![A-Za-z0-9])")]
     private static partial System.Text.RegularExpressions.Regex DigitKey();
 
+    [System.Text.RegularExpressions.GeneratedRegex(@"(?<![A-Za-z])(Add|Subtract|Multiply|Divide|Decimal|NumPad\d|Back|Return|PageUp|PageDown)(?![A-Za-z0-9])")]
+    private static partial System.Text.RegularExpressions.Regex NamedKey();
+
     private static readonly Dictionary<string, KeyGesture?> Cache = [];
 
     private static readonly (string Key, string Shown)[] KeyNames =
-    [("OemComma", ","), ("OemPeriod", "."), ("OemPlus", "+"), ("OemMinus", "-"), ("OemQuestion", "/"), ("OemSemicolon", ";"), ("OemOpenBrackets", "["), ("OemCloseBrackets", "]"), ("OemPipe", "\\"), ("OemQuotes", "'"), ("OemTilde", "`")];
+    [("OemComma", ","), ("OemPeriod", "."), ("OemPlus", "+"), ("OemMinus", "-"), ("OemQuestion", "/"), ("OemSemicolon", ";"), ("OemOpenBrackets", "["), ("OemCloseBrackets", "]"), ("OemPipe", "\\"), ("OemQuotes", "'"), ("OemTilde", "`"), ("OemBackslash", "\\"), ("Oem1", ";"), ("Oem2", "/"), ("Oem3", "`"), ("Oem4", "["), ("Oem5", "\\"), ("Oem6", "]"), ("Oem7", "'")];
 
     /// <summary>The text a person reads for a shortcut: punctuation keys as the character, not the key enum name, and Cmd where macOS reads Ctrl (see <see cref="Parse"/>).</summary>
-    public static string Display(string? shortcut) => Display(shortcut, OperatingSystem.IsMacOS());
+    public static string Display(string? shortcut) => Display(shortcut is null ? null : Parse(shortcut)?.ToString() ?? shortcut, OperatingSystem.IsMacOS()); // the platform's own key names, as the menus show them
 
     internal static string Display(string? shortcut, bool macOS)
     {
         var text = KeyNames.Aggregate(shortcut ?? "", (text, k) => text.Replace(k.Key, k.Shown, StringComparison.Ordinal));
         text = DigitKey().Replace(text, "$1"); // Avalonia names the top-row digits D0 to D9
+        text = NamedKey().Replace(text, m => m.Value switch
+        {
+            "Add" => "Num +",
+            "Subtract" => "Num -",
+            "Multiply" => "Num *",
+            "Divide" => "Num /",
+            "Decimal" => "Num .",
+            "Back" => "Backspace",
+            "Return" => "Enter",
+            "PageUp" => "Page Up",
+            "PageDown" => "Page Down",
+            _ => "Num " + m.Value[6..],
+        });
         return macOS ? text.Replace("Ctrl", "Cmd", StringComparison.Ordinal) : text;
     }
 

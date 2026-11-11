@@ -226,6 +226,7 @@ public sealed class CommandTests
         window.Registry.SetContext(AppCommands.ResourceSelected, true);
         foreach (var type in Core.Workspace.ResourceListCommand.Creatable) window.Registry.SetContext(AppCommands.CanNew(type), true);
         window.Registry.SetContext(AppCommands.SpriteTab, true);
+        window.Registry.SetContext(AppCommands.PictureTab, true);
         window.Registry.SetContext(AppCommands.RoomTab, true);
         window.Registry.SetContext(AppCommands.CodeTab, true);
         window.Registry.SetContext(AppCommands.ImageTab, true);
@@ -370,6 +371,7 @@ public sealed class CommandTests
 
                 // The Sprite and Room commands also need their own kind of tab in front.
                 window.Registry.SetContext(AppCommands.SpriteTab, false);
+                window.Registry.SetContext(AppCommands.PictureTab, false);
                 window.Registry.SetContext(AppCommands.RoomTab, false);
                 Assert.False(window.Registry.Execute("edit.replaceFrame"));
                 Assert.False(window.Registry.Execute("room.play"));

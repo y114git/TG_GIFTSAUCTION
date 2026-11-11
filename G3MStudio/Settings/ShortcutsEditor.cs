@@ -4,6 +4,7 @@ using Avalonia.Layout;
 using G3MStudio.Core.Commands;
 using G3MStudio.Core.Settings;
 using G3MStudio.Localization;
+using G3MStudio.Theme;
 
 namespace G3MStudio.Settings;
 
@@ -56,10 +57,18 @@ public sealed class ShortcutsEditor : UserControl
             var title = command.Title ?? MainWindow.PaletteTitle(command.Id, Loc.Current);
             if (text.Length > 0 && !title.Contains(text, StringComparison.CurrentCultureIgnoreCase) && !command.Id.Contains(text, StringComparison.OrdinalIgnoreCase) && !command.Gestures.Any(g => g.Contains(text, StringComparison.OrdinalIgnoreCase) || G3MStudio.Commands.Shortcuts.Display(g).Contains(text, StringComparison.OrdinalIgnoreCase))) continue;
             var id = command.Id;
-            var buttons = new StackPanel { [DockPanel.DockProperty] = Avalonia.Controls.Dock.Right, Orientation = Orientation.Horizontal, Spacing = 6 };
+            var buttons = new StackPanel { [Grid.ColumnProperty] = 1, Orientation = Orientation.Horizontal, Spacing = 8 };
             Button Slot(string name, int slot, string label)
             {
-                var button = new Button { Name = name, MinWidth = 100, Content = _capturing == id && _slot == slot ? Loc.Current["settings.pressKeys"] : G3MStudio.Commands.Shortcuts.Display(label) };
+                var button = new Button { Name = name, MinWidth = 128, Content = _capturing == id && _slot == slot ? Loc.Current["settings.pressKeys"] : G3MStudio.Commands.Shortcuts.Display(label) };
+                if (slot == AddSlot && _capturing != id) // a plain "+" button, not a field-like box
+                {
+                    button.ClearValue(MinWidthProperty); // the icon style gives it the control height as its width
+                    button.Content = "+";
+                    button.Classes.Add("icon");
+                    button.Labeled("settings.addShortcut");
+                }
+
                 button.Click += (_, _) => { (_capturing, _slot) = (id, slot); Fill(); };
                 if (_capturing == id && _slot == slot) focus = button;
                 return button;
@@ -73,7 +82,10 @@ public sealed class ShortcutsEditor : UserControl
             var reset = new Button { Name = "ShortcutReset_" + id, Content = Loc.Current["settings.reset"], IsEnabled = !isDefault };
             reset.Click += (_, _) => Apply(id, _registry.DefaultShortcut(id), _registry.DefaultAliases(id));
             buttons.Children.Add(reset);
-            _rows.Children.Add(new DockPanel { Children = { buttons, new TextBlock { Text = title, VerticalAlignment = VerticalAlignment.Center } } });
+            // The title takes the width the keys leave, cut with an ellipsis and complete in its tooltip.
+            var label = new TextBlock { Text = title, VerticalAlignment = VerticalAlignment.Center, TextTrimming = Avalonia.Media.TextTrimming.CharacterEllipsis, Margin = new Avalonia.Thickness(0, 0, 8, 0) };
+            ToolTip.SetTip(label, title);
+            _rows.Children.Add(new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Children = { label, buttons } });
         }
 
         // The rows were rebuilt, so the key press must reach the new button.

@@ -22,6 +22,7 @@ public sealed partial class ImageEditorView
     private readonly List<(ImageTool Tool, ToggleButton Button)> _toolButtons = [];
     private readonly Button _undoButton = new() { Name = "ImageUndo" };
     private readonly Button _redoButton = new() { Name = "ImageRedo" };
+    private readonly Button _applyButton = new() { Name = "ImageApply" };
     private readonly Border _primary = new() { Name = "PrimarySwatch", Width = 40, Height = 40, BorderThickness = new Thickness(2) };
     private readonly Border _secondary = new() { Name = "SecondarySwatch", Width = 40, Height = 40, BorderThickness = new Thickness(2) };
     private readonly TextBox _hex = new() { Name = "ImageColour", Width = 100 };
@@ -36,6 +37,9 @@ public sealed partial class ImageEditorView
     private readonly NumericUpDown _textSize = new() { Name = "ImageTextSize", Minimum = 4, Maximum = 256, Value = 16, Increment = 1, FormatString = "0", MinWidth = 110 };
     private ToggleButton _smoothToggle = new(), _gridToggle = new(), _mirrorX = new(), _mirrorY = new(), _tilesToggle = new(), _onionToggle = new(), _playToggle = new();
     private readonly StackPanel _frames = new() { Name = "ImageFrames", Width = 120, Spacing = 4, Margin = new Thickness(6) };
+    private readonly StackPanel _thumbs = new() { Name = "ImageFrameStrip", Spacing = 4 };
+    private readonly ScrollViewer _framesHost = new() { Name = "ImageFramesScroll", Width = 134, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+    private bool _thumbsStale = true;
 
     private void BuildLayout()
     {
@@ -45,12 +49,13 @@ public sealed partial class ImageEditorView
         SetDock(bottom, Avalonia.Controls.Dock.Bottom);
         var right = new ScrollViewer { Width = 232, Content = new StackPanel { Margin = new Thickness(6), Spacing = 6, Children = { Brushes(), Colours(), Toolbox(), LayersPanel() } } };
         SetDock(right, Avalonia.Controls.Dock.Right);
-        SetDock(_frames, Avalonia.Controls.Dock.Left);
+        _framesHost.Content = _frames; // the frame column scrolls when its buttons and thumbnails are taller than the editor
+        SetDock(_framesHost, Avalonia.Controls.Dock.Left);
         BuildFrames();
         Children.Add(top);
         Children.Add(bottom);
         Children.Add(right);
-        Children.Add(_frames);
+        Children.Add(_framesHost);
         Children.Add(Canvas);
     }
 
@@ -96,13 +101,15 @@ public sealed partial class ImageEditorView
         _redoButton.Content = Loc.Current["image.redo"];
         _undoButton.Click += (_, _) => Undo();
         _redoButton.Click += (_, _) => Redo();
+        _applyButton.Content = Loc.Current["image.apply"];
+        _applyButton.Click += (_, _) => ApplyRequested?.Invoke();
         var zoom = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { Small("ImageZoomOut", "-", () => Canvas.ZoomBy(0.8)), Small("ImageZoomIn", "+", () => Canvas.ZoomBy(1.25)), Small("ImageFit", Loc.Current["image.fit"], Canvas.Fit), Small("ImageActual", "1:1", Canvas.ActualSize) } };
         // One group per task; the bar wraps between groups, never inside one, and every control has the same height.
         var bar = new WrapPanel { Margin = new Thickness(6, 4) };
         foreach (var group in new Control[][]
         {
             [Menus()],
-            [_undoButton, _redoButton],
+            [_undoButton, _redoButton, .. _session is TargetImageSession ? new[] { _applyButton } : []],
             [Label("image.sizeLabel"), _size, _sizeSlider, _round, _smoothToggle, _style],
             [Label("image.tolerance"), _tolerance, _contiguous],
             [Label("image.textLabel"), _text, _textSize],
@@ -141,6 +148,7 @@ public sealed partial class ImageEditorView
     {
         _undoButton.IsEnabled = _session.CanUndo;
         _redoButton.IsEnabled = _session.CanRedo;
+        _applyButton.IsEnabled = _session is TargetImageSession { Dirty: true };
     }
 
     private StackPanel Brushes()
@@ -249,12 +257,61 @@ public sealed partial class ImageEditorView
         _frames.Children.Add(Small("ImageAddFrame", Loc.Current["image.addFrame"], () => ChangeFrames(FrameListCommand.Duplicate)));
         _frames.Children.Add(Small("ImageRemoveFrame", Loc.Current["image.removeFrame"], () => ChangeFrames(FrameListCommand.Remove)));
         _frames.Children.Add(play);
+        _frames.Children.Add(_thumbs);
+        SyncFrames();
+    }
+
+    /// <summary>The strip of thumbnails: one button per frame, the current one marked; a click moves to that frame without leaving the editor.</summary>
+    private void SyncFrames()
+    {
+        if (_thumbsStale || _thumbs.Children.Count != _session.FrameCount)
+        {
+            _thumbsStale = false;
+            _thumbs.Children.Clear();
+            for (var i = 0; i < _session.FrameCount; i++) _thumbs.Children.Add(Thumb(i, _session.Read(i)));
+        }
+
+        for (var i = 0; i < _thumbs.Children.Count; i++) ((Button)_thumbs.Children[i]).Classes.Set("active", i == Frame);
+    }
+
+    // The picture of the frame being edited changed: redraw only its thumbnail.
+    private void UpdateThumb(int frame)
+    {
+        if (frame >= 0 && frame < _thumbs.Children.Count && !_thumbsStale) _thumbs.Children[frame] = Thumb(frame, Canvas.Picture.Copy());
+    }
+
+    private Button Thumb(int frame, PixelBuffer picture)
+    {
+        // A small picture grows by whole steps; a larger one shrinks to fit the cell.
+        var longest = (double)Math.Max(1, Math.Max(picture.Width, picture.Height));
+        var scale = longest > 56 ? 56 / longest : Math.Max(1, Math.Floor(56 / longest));
+        var image = new Image { Source = ImageCanvas.Bitmap(picture), Width = picture.Width * scale, Height = picture.Height * scale, Stretch = Stretch.Fill };
+        RenderOptions.SetBitmapInterpolationMode(image, scale < 1 ? Avalonia.Media.Imaging.BitmapInterpolationMode.MediumQuality : Avalonia.Media.Imaging.BitmapInterpolationMode.None);
+        var cell = new Grid { Width = 58, Height = 58, Children = { new Chequer(), image } };
+        image.HorizontalAlignment = HorizontalAlignment.Center;
+        image.VerticalAlignment = VerticalAlignment.Center;
+        var button = new Button
+        {
+            Name = "ImageFrame" + frame.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            Padding = new Thickness(2),
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            HorizontalContentAlignment = HorizontalAlignment.Center,
+            Content = new StackPanel { Spacing = 2, Children = { cell, new TextBlock { Text = frame.ToString(System.Globalization.CultureInfo.InvariantCulture), HorizontalAlignment = HorizontalAlignment.Center, Classes = { "muted" } } } },
+        };
+        button.NamedFor("rooms.inspector.frame", frame.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        button.Click += (_, _) =>
+        {
+            ShowFrame(frame);
+            Canvas.Focus();
+        };
+        return button;
     }
 
     private void ChangeFrames(string operation)
     {
         if (operation == FrameListCommand.Remove && _session.FrameCount < 2) return; // the last frame stays; the command refuses it
         if (!_session.ChangeFrames(operation, Frame)) return;
+        _thumbsStale = true;
         Reload();
     }
 }

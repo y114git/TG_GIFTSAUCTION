@@ -68,7 +68,7 @@ public sealed partial class ImageEditorView
             case "img.expandSelection": _ = Ask("image.expand", [("image.p.pixels", 1, -64, 64)], v => Canvas.SetSelection(Canvas.State.Selection?.Expanded((int)v[0]))); break;
             case "img.copy": CopySelection(false); break;
             case "img.cut": CopySelection(true); break;
-            case "img.paste": PasteClipboard(); break;
+            case "img.paste": _ = PasteAsync(); break;
             case "img.clear": Canvas.Run(new ImageOp(ImageOps.Clear)); break;
             case "img.fillSelection": Canvas.Run(new ImageOp(ImageOps.FillSelection, ImageOp.Format(Canvas.Primary))); break;
             case "img.strokeSelection": _ = Ask("image.strokeSelection", [("image.p.pixels", 1, 1, 64)], v => Canvas.Run(new ImageOp(ImageOps.StrokeSelection, ImageOp.Format(Canvas.Primary), ImageOp.Format((int)v[0])))); break;

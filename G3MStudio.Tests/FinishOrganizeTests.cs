@@ -1,3 +1,4 @@
+using Avalonia.LogicalTree;
 using System.IO.Compression;
 using Avalonia.Controls;
 using Avalonia.VisualTree;
@@ -119,7 +120,7 @@ public sealed class FinishOrganizeTests
         await HeadlessApp.Run(() =>
         {
             var tab = new PropertyGridTab(workspace, "objects", "obj_0", new StackPanel { Children = { new TextBlock { Text = "events" } } });
-            Assert.True(tab.GetVisualDescendants().OfType<GridSplitter>().Single().IsVisible);
+            Assert.True(tab.GetLogicalDescendants().OfType<GridSplitter>().Single().IsVisible);
         });
     }
 

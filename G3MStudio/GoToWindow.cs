@@ -25,7 +25,11 @@ public sealed class GoToWindow : Window
     private readonly TextBlock _previewText = new() { Name = "Preview", TextWrapping = Avalonia.Media.TextWrapping.Wrap };
     private readonly DockPanel _left;
     private readonly ScrollViewer _previewScroll;
+    private readonly Image _previewPicture = new() { Name = "PreviewPicture", MaxWidth = 128, MaxHeight = 128, Stretch = Avalonia.Media.Stretch.Uniform, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left, IsVisible = false, Margin = new Thickness(0, 0, 0, 6) };
     private int _previewRun;
+
+    /// <summary>The picture of a resource entry, shown above its preview text; null when there is no picture to show.</summary>
+    public Func<GoToEntry, Task<Avalonia.Media.IImage?>>? Picture { get; init; }
 
     public GoToWindow(Func<string, IReadOnlyList<GoToEntry>> search, Func<GoToEntry, Task<string>> preview)
     {
@@ -39,7 +43,7 @@ public sealed class GoToWindow : Window
         _results.ItemTemplate = new FuncDataTemplate<GoToEntry>((entry, _) => entry is null ? new TextBlock() : Row(entry));
         var gap = Space("Space.2");
         _left = new DockPanel { Children = { Docked(_empty, Avalonia.Controls.Dock.Bottom, gap), _results } };
-        var right = _previewScroll = new ScrollViewer { Name = "PreviewScroll", Content = _previewText, MinHeight = 280, MaxHeight = 360 };
+        var right = _previewScroll = new ScrollViewer { Name = "PreviewScroll", Content = new StackPanel { Children = { _previewPicture, _previewText } }, MinHeight = 280, MaxHeight = 360 };
         var grid = new Grid { ColumnSpacing = gap, ColumnDefinitions = { new ColumnDefinition(1.2, GridUnitType.Star), new ColumnDefinition(1, GridUnitType.Star) } };
         grid.Children.Add(_left);
         Grid.SetColumn(right, 1);
@@ -173,6 +177,8 @@ public sealed class GoToWindow : Window
     private async Task ShowAsync(GoToEntry entry, int run)
     {
         string text;
+        _previewPicture.IsVisible = false;
+        _previewPicture.Source = null;
         try
         {
             text = await _preview(entry);
@@ -183,7 +189,12 @@ public sealed class GoToWindow : Window
         }
 
         // A slower preview of an earlier selection must not overwrite the one of the current selection.
-        if (run == _previewRun) _previewText.Text = text;
+        if (run != _previewRun) return;
+        _previewText.Text = text;
+        if (Picture is null || entry.Kind != GoToKind.Resource) return;
+        var picture = await Picture(entry);
+        if (run != _previewRun || picture is null) return;
+        (_previewPicture.Source, _previewPicture.IsVisible) = (picture, true);
     }
 
     private void OnKeyDown(object? sender, KeyEventArgs e)

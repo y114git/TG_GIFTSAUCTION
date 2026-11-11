@@ -6,7 +6,7 @@ using G3MStudio.Localization;
 namespace G3MStudio.History;
 
 /// <summary>One line of the history list: <see cref="Position"/> is the number of commands applied when this line is the current state.</summary>
-public sealed record HistoryRow(int Position, string Text, bool Applied);
+public sealed record HistoryRow(int Position, string Text, bool Applied, string Time = "");
 
 /// <summary>Edit > Undo History (design/shell.md 14.4 item 2): the whole stack newest first, a click undoes or redoes to that point.</summary>
 public sealed class HistoryView : UserControl
@@ -16,11 +16,14 @@ public sealed class HistoryView : UserControl
 
     public HistoryView()
     {
-        _list.ItemTemplate = new FuncDataTemplate<HistoryRow>((row, _) => new TextBlock
+        // A fixed time column keeps the text of every row, the opened state included, on one line.
+        _list.ItemTemplate = new FuncDataTemplate<HistoryRow>((row, _) =>
         {
-            Text = row?.Text,
-            Classes = { row?.Applied == false ? "muted" : "plain" },
-            TextTrimming = Avalonia.Media.TextTrimming.CharacterEllipsis,
+            var cls = row?.Applied == false ? "muted" : "plain";
+            var time = new TextBlock { Text = row?.Time, Width = 72, Classes = { cls } };
+            var text = new TextBlock { Text = row?.Text, Classes = { cls }, TextTrimming = Avalonia.Media.TextTrimming.CharacterEllipsis };
+            DockPanel.SetDock(time, Avalonia.Controls.Dock.Left);
+            return new DockPanel { Children = { time, text } };
         });
         _list.Tapped += (_, e) =>
         {
@@ -59,7 +62,7 @@ public sealed class HistoryView : UserControl
         {
             var history = workspace.History;
             for (var i = history.Items.Count; i >= 1; i--)
-                rows.Add(new HistoryRow(i, $"{history.Items[i - 1].Time:HH:mm:ss}  {Describe(history.Items[i - 1])}", i <= history.Position));
+                rows.Add(new HistoryRow(i, Describe(history.Items[i - 1]), i <= history.Position, $"{history.Items[i - 1].Time:HH:mm:ss}"));
             rows.Add(new HistoryRow(0, Loc.Current["history.start"], true));
         }
 

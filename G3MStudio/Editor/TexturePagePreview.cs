@@ -15,13 +15,15 @@ public sealed class TexturePagePreview : Border
     private readonly Image _image = new() { Stretch = Stretch.None, Name = "PageImage" };
     private readonly Rectangle _hover = new() { Name = "PageHover", StrokeThickness = 2, IsVisible = false, IsHitTestVisible = false, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top };
 
+    private readonly TextBlock _size = new() { Name = "PageSize", Classes = { "muted" }, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
+
     // actions: export, replace and groups buttons above the picture; null shows none.
-    public TexturePagePreview(GameMakerEmbeddedTexture page, TextureBitmaps textures, EditHistory? history = null, IEnumerable<GameMakerTexturePageItem>? items = null, (Action Export, Action Replace, Action Groups)? actions = null)
+    public TexturePagePreview(GameMakerEmbeddedTexture page, TextureBitmaps textures, EditHistory? history = null, IEnumerable<GameMakerTexturePageItem>? items = null, (Action Export, Action Replace, Action Groups)? actions = null, Action? edit = null)
     {
         Name = "TexturePagePreview";
         Height = 350;
         var scroll = new ScrollViewer { HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, Content = Stack(page, items) };
-        var bar = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 6, Margin = new Thickness(0, 0, 0, 4) };
+        var bar = new WrapPanel { ItemSpacing = 8, LineSpacing = 4, Margin = new Thickness(0, 0, 0, 4) };
         bar.Children.Add(new TextBlock { Name = "PageItemCount", Classes = { "muted" }, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center, Text = Loc.Current.Format("pages.itemCount", ("count", ItemsOn(page, items))) });
         if (actions is { } a)
             foreach (var (name, key, run) in new[] { ("PageExport", "pages.export", a.Export), ("PageReplace", "pages.replace", a.Replace), ("PageGroups", "pages.groups", a.Groups) })
@@ -31,6 +33,15 @@ public sealed class TexturePagePreview : Border
                 bar.Children.Add(button);
             }
 
+        if (edit is not null)
+        {
+            var paint = new Button { Name = "PageEditImage", Content = Loc.Current["textureItem.edit"] };
+            paint.Click += (_, _) => edit();
+            bar.Children.Add(paint);
+            _image.DoubleTapped += (_, _) => edit();
+        }
+
+        bar.Children.Add(_size);
         DockPanel.SetDock(bar, Avalonia.Controls.Dock.Top);
         Child = new DockPanel { Children = { bar, scroll } };
         Ready = ShowAsync(page, textures);
@@ -61,7 +72,7 @@ public sealed class TexturePagePreview : Border
     private Grid Stack(GameMakerEmbeddedTexture page, IEnumerable<GameMakerTexturePageItem>? items)
     {
         _hover.Bind(Shape.StrokeProperty, this.GetResourceObservable("Text.Accent"));
-        var stack = new Grid { Children = { _image, _hover } };
+        var stack = new Grid { Children = { new Chequer(), _image, _hover } }; // a transparent or tiny page still shows where its pixels are
         if (items is null) return stack;
         stack.PointerMoved += (_, e) =>
         {
@@ -97,5 +108,9 @@ public sealed class TexturePagePreview : Border
 
     private GameMakerTexturePageItem? _hovered;
 
-    private async Task ShowAsync(GameMakerEmbeddedTexture page, TextureBitmaps textures) => _image.Source = await textures.GetAsync(page);
+    private async Task ShowAsync(GameMakerEmbeddedTexture page, TextureBitmaps textures)
+    {
+        _image.Source = await textures.GetAsync(page);
+        _size.Text = PictureSize is var (width, height) ? $"{width} x {height}" : "";
+    }
 }

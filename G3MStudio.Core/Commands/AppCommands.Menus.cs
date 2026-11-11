@@ -45,7 +45,7 @@ public static partial class AppCommands
 
     public static readonly string[] TransferModes = [.. TransferGroups.SelectMany(g => g.Ids)];
 
-    public static readonly string[] ResourceMenu = ["edit.rename", "edit.duplicate", "edit.copyName", "edit.findUsages", "edit.copyToOtherFile", "edit.reveal", "edit.toggleFavourite", "edit.addTag"];
+    public static readonly string[] ResourceMenu = ["edit.rename", "edit.editImage", "edit.duplicate", "edit.copyName", "edit.findUsages", "edit.copyToOtherFile", "edit.reveal", "edit.toggleFavourite", "edit.addTag"];
 
     /// <summary>The menu of an editor tab: tab commands, then the resource commands.</summary>
     public static readonly string[] TabMenu = ["tabs.close", "tabs.closeOthers", "tabs.closeAll", "tabs.reopen", "-", "tabs.pin", "tabs.keepOpen", "tabs.splitRight"];

@@ -10,7 +10,7 @@ public static partial class AppCommands
     public const string ResourceSelected = "resourceSelected";
 
     /// <summary>Set while the tab in front is a sprite or a room, which the commands of the Sprite and Room menus work on.</summary>
-    public const string SpriteTab = "spriteTab", RoomTab = "roomTab", ProjectOn = "projectOn", ProjectOff = "projectOff";
+    public const string SpriteTab = "spriteTab", PictureTab = "pictureTab", RoomTab = "roomTab", ProjectOn = "projectOn", ProjectOff = "projectOff";
 
     public static CommandRegistry Create(IShell shell)
     {
@@ -50,7 +50,7 @@ public static partial class AppCommands
         Add("edit.editAudio", null, shell.EditAudio, WorkspaceOpen);
         Add("edit.replaceAudio", null, shell.ReplaceAudio, WorkspaceOpen);
         Add("edit.exportAudio", null, shell.ExportAudio, WorkspaceOpen);
-        Add("edit.editImage", null, shell.EditImage, SpriteTab);
+        Add("edit.editImage", null, shell.EditImage, PictureTab);
         Add("edit.replaceFrame", null, shell.ReplaceFrame, SpriteTab);
         Add("edit.duplicateFrame", null, shell.DuplicateFrame, SpriteTab);
         Add("edit.recalculateMask", null, shell.RecalculateMask, SpriteTab);

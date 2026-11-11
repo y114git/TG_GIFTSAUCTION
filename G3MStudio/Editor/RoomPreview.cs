@@ -74,6 +74,7 @@ public sealed partial class RoomPreview : DockPanel
             {
                 var layers = _layers = new RoomLayersPanel(room, workspace);
                 layers.LockChanged += ApplyLocks;
+                layers.EditImageRequested += key => EditImageRequested?.Invoke(key);
                 _inspector = new InstanceInspector(workspace, RoomName, instanceCode);
                 SidePanel = new StackPanel { Name = "RoomSidePanel", Spacing = 8, Children = { layers, _inspector, _elementHost, _paletteHost } };
                 if (creationOrder is not null && creationCode is not null) ((StackPanel)SidePanel).Children.Insert(1, CodeButtons(creationOrder, creationCode));
@@ -116,7 +117,7 @@ public sealed partial class RoomPreview : DockPanel
     {
         Button Command(string name, string id, Action run)
         {
-            var button = new Button { Name = name, Content = Loc.Current[AppCommands.TitleKey(id)] };
+            var button = new Button { Name = name, Content = new TextBlock { Text = Loc.Current[AppCommands.TitleKey(id)], TextWrapping = Avalonia.Media.TextWrapping.Wrap } }; // a narrow Inspector wraps the title instead of cutting it
             button.Click += (_, _) => run();
             return button;
         }
@@ -179,7 +180,7 @@ public sealed partial class RoomPreview : DockPanel
 
     private void AddCanvas()
     {
-        var hint = new TextBlock { Name = "RoomHint", Classes = { "muted" } };
+        var hint = new TextBlock { Name = "RoomHint", Classes = { "muted" }, Margin = new Thickness(8, 4), VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
         SetDock(hint, Avalonia.Controls.Dock.Bottom);
         Children.Add(hint);
         View.Hovered += (at, snapped, element) => hint.Text = string.Create(System.Globalization.CultureInfo.InvariantCulture, $"x {(int)at.X}, y {(int)at.Y}   {Loc.Current["rooms.snapped"]} {(int)snapped.X}, {(int)snapped.Y}")

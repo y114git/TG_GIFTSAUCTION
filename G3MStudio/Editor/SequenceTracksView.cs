@@ -13,9 +13,12 @@ public sealed class SequenceTracksView : StackPanel
     private readonly GameMakerSequence _sequence;
     private readonly Workspace? _workspace;
 
-    public SequenceTracksView(GameMakerSequence sequence, Workspace? workspace = null)
+    private readonly Action<string>? _editImage;
+
+    /// <summary>The constructor takes an editImage callback that opens the image editor on an Explorer key; a graphic track with a sprite gets an Edit Image button when it is given.</summary>
+    public SequenceTracksView(GameMakerSequence sequence, Workspace? workspace = null, Action<string>? editImage = null)
     {
-        (_sequence, _workspace) = (sequence, workspace);
+        (_sequence, _workspace, _editImage) = (sequence, workspace, editImage);
         Name = "SequenceTracks";
         Lines = [];
         if (workspace is not null)
@@ -47,6 +50,14 @@ public sealed class SequenceTracksView : StackPanel
             remove.Click += (_, _) => workspace.Edit(new SequenceTrackCommand(name, SequenceTrackCommand.Remove, i));
             var header = new DockPanel { Children = { new TextBlock { Text = track.Name?.Content + "  " + track.ModelName?.Content, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center }, remove } };
             DockPanel.SetDock(remove, Avalonia.Controls.Dock.Right);
+            if (_editImage is { } open && PictureRefs.KeyOf(track) is { } picture)
+            {
+                var edit = new Button { Name = "TrackEditImage_" + i, Content = Loc.Current["textureItem.edit"] }.NamedFor("textureItem.edit", track.Name?.Content + " " + track.ModelName?.Content);
+                edit.Click += (_, _) => open(picture);
+                header.Children.Insert(1, edit);
+                DockPanel.SetDock(edit, Avalonia.Controls.Dock.Right);
+            }
+
             expander.Header = header;
             return (object)expander;
         }).Append(AddGroupButton(workspace, name)));

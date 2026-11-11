@@ -404,6 +404,8 @@
     "noValue": "Ninguno",
     "thumbnails": "Miniaturas",
     "zoom": "Zoom de 50 a 250 por ciento",
+    "hideOptions": "Ocultar opciones de miniaturas",
+    "showOptions": "Mostrar opciones de miniaturas",
     "filter": "Filtrar recursos...",
     "count": "{count} recursos",
     "matches": "{matches} de {total}",
@@ -664,6 +666,11 @@
   },
   "history": {
     "kind": {
+      "includedPicture": "Escribir imagen en un archivo incluido",
+      "includedText": "Escribir texto en un archivo incluido",
+      "includedAudio": "Escribir audio en un archivo incluido",
+      "replaceEmbeddedAudio": "Reemplazar audio incrustado",
+      "frameReorder": "Reordenar fotogramas del sprite",
       "addString": "Añadir cadena",
       "assembly": "Editar ensamblador",
       "audioGroupMove": "Mover a grupo de audio",
@@ -949,6 +956,7 @@
     "shortcutFilter": "Filtrar comandos o atajos",
     "pressKeys": "Pulsa las teclas...",
     "noShortcut": "Ninguno",
+    "addShortcut": "Añadir otro atajo",
     "reset": "Restablecer",
     "restore": "Restaurar valores predeterminados",
     "restoreTip": "Restablece la configuración de la sección elegida.",
@@ -1213,6 +1221,7 @@
     "findRooms": "Buscar salas que usan este tile"
   },
   "textureItem": {
+    "edit": "Editar imagen...",
     "export": "Exportar PNG",
     "replace": "Reemplazar PNG",
     "pick": "Imagen para {name}",
@@ -1434,6 +1443,16 @@
     "packaged": "Mod guardado en {path}. Edita su mod_config.json para indicar autores y el id del juego."
   },
   "sprites": {
+    "editMask": "Editar imagen de la máscara...",
+    "loop": "Repetir",
+    "onion": "Papel cebolla",
+    "speed": "Velocidad",
+    "perSecond": "fotogramas por segundo",
+    "perGameFrame": "fotogramas por fotograma de juego",
+    "addFrame": "Añadir",
+    "duplicateFrame": "Duplicar",
+    "deleteFrame": "Eliminar",
+    "importFrames": "Importar...",
     "lockOrigin": "Bloquear origen",
     "play": "Reproducir",
     "pause": "Pausa",
@@ -1563,6 +1582,7 @@
     "glyphCount": "Glifos: {count}",
     "glyphNew": "U+código, carácter o rango (A-Z)",
     "glyphAdd": "Añadir glifo",
+    "editGlyphImage": "Editar imagen del glifo",
     "presetNormal": "Normal",
     "presetDigits": "Dígitos",
     "presetLetters": "Letras",
@@ -1831,11 +1851,21 @@
   },
   "object": {
     "vertices": "Vértices de la forma física",
+    "editMaskImage": "Editar imagen de la máscara...",
     "vertexAdd": "Añadir vértice",
     "vertexSet": "Fijar vértice",
     "removeEvent": "Eliminar"
   },
   "image": {
+    "limitItem": "Hueco fijo de {w}x{h} en la página de texturas; una imagen mayor se reduce o requiere reempaquetar texturas",
+    "limitPage": "Página de texturas de {w}x{h}; el tamaño no puede cambiar",
+    "limitMask": "Máscara de colisión de {w}x{h}, 1 bit: el blanco es sólido, el tamaño es fijo",
+    "limitIncluded": "Archivo suelto: Aplicar lo escribe de inmediato en la carpeta del juego (JPEG no tiene transparencia, un GIF conserva su primer fotograma)",
+    "limitGlyph": "Glifo de {w}x{h} en la hoja de la fuente; el tamaño es fijo y Aplicar escribe la hoja",
+    "apply": "Aplicar",
+    "applied": "Se aplicó la imagen de {name}.",
+    "notApplied": "Los cambios de {name} no se aplicaron: {reason}",
+    "noPicture": "Esta pestaña no tiene imagen que editar.",
     "noFrames": "Este sprite no tiene fotogramas que editar.",
     "tool": {
       "Pencil": "Lápiz",
@@ -2088,7 +2118,8 @@
     "redo": "Rehacer parche",
     "apply": "Escribir en el archivo...",
     "badPatch": "Escribe los bytes como pares hex y un desplazamiento que deje sitio en el archivo.",
-    "patched": "{count} bytes parcheados, el último en 0x{offset}. Aún sin escribir."
+    "patched": "{count} bytes parcheados, el último en 0x{offset}. Aún sin escribir.",
+    "written": "Escrito en el archivo."
   },
   "colors": {
     "Diff": {
@@ -2203,6 +2234,7 @@
     "refresh": "Actualizar",
     "filter": "Filtrar archivos",
     "colName": "Nombre",
+    "edit": "Editar...",
     "colType": "Tipo",
     "colSize": "Tamaño",
     "colModified": "Modificado",
@@ -2221,6 +2253,14 @@
     "failed": "No se pudo copiar: {files}"
   },
   "risky": {
+    "includedPictureTitle": "¿Escribir la imagen en la carpeta del juego?",
+    "includedTextTitle": "¿Escribir el texto en la carpeta del juego?",
+    "includedText": "{reason}\n\nEl archivo de datos no contiene este cambio.",
+    "includedAudioTitle": "¿Escribir el audio en la carpeta del juego?",
+    "includedAudio": "{reason}\n\nEl archivo de datos no contiene este cambio.",
+    "includedPicture": "{reason}\n\nEl archivo de datos no contiene este cambio.",
+    "itemSizeTitle": "¿Poner una imagen más grande que el hueco de {name}?",
+    "itemSize": "{reason}\n\nLa imagen se reduce para caber en su hueco de la página y pierde detalle. Reempaquetar texturas puede darle un hueco mayor.",
     "includedRenameTitle": "¿Renombrar {name} de todos modos?",
     "includedRename": "{reason}\n\nEl juego busca el archivo por su nombre y puede no encontrarlo tras renombrarlo. No se puede deshacer.",
     "includedDeleteTitle": "¿Eliminar {name} de todos modos?",

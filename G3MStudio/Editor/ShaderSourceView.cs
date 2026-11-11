@@ -30,6 +30,9 @@ public sealed class ShaderSourceView : TabControl
             // The GML colors also suit GLSL comments, numbers and the shared keywords; shader types stay plain.
             var box = GmlColorizer.CreateEditor(text ?? string.Empty, workspace is null, out var colorizer);
             box.Name = "Shader_" + property;
+            var search = AvaloniaEdit.Search.SearchPanel.Install(box); // the same find and replace as the code tab
+            search.IsReplaceMode = workspace is not null;
+            box.AttachedToVisualTree += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(() => SearchPanelTexts.Apply(search), Avalonia.Threading.DispatcherPriority.Loaded);
             box.TextChanged += (_, _) =>
             {
                 colorizer.Tokenize(box.Text);
@@ -144,12 +147,12 @@ public sealed class TilePickerView : StackPanel
     private readonly GameMakerBackground _background;
     private readonly ListBox _list = new() { Name = "TileIds", MaxHeight = 160 };
 
-    public TilePickerView(GameMakerBackground background, TextureBitmaps textures, Workspace workspace, AutoTileStore? autoTiles = null, Func<Task<bool>>? replace = null)
+    public TilePickerView(GameMakerBackground background, TextureBitmaps textures, Workspace workspace, AutoTileStore? autoTiles = null, Func<Task<bool>>? replace = null, Action? edit = null)
     {
         _background = background;
         Name = "TilePickerView";
         Spacing = 4;
-        Texture = new TextureItemView(background.Texture, textures, replace);
+        Texture = new TextureItemView(background.Texture, textures, replace, edit, workspace.History);
         Texture.Picked += (x, y) =>
         {
             var index = TileGeometry.IndexAt(_background, x, y);

@@ -404,6 +404,8 @@
     "noValue": "없음",
     "thumbnails": "미리보기",
     "zoom": "확대 50~250퍼센트",
+    "hideOptions": "미리보기 옵션 숨기기",
+    "showOptions": "미리보기 옵션 표시",
     "filter": "리소스 필터...",
     "count": "리소스 {count}개",
     "matches": "{total}개 중 {matches}개",
@@ -664,6 +666,11 @@
   },
   "history": {
     "kind": {
+      "includedPicture": "포함 파일에 이미지 기록",
+      "includedText": "포함 파일에 텍스트 기록",
+      "includedAudio": "포함 파일에 오디오 기록",
+      "replaceEmbeddedAudio": "내장 오디오 교체",
+      "frameReorder": "스프라이트 프레임 순서 변경",
       "addString": "문자열 추가",
       "assembly": "어셈블리 편집",
       "audioGroupMove": "오디오 그룹으로 이동",
@@ -949,6 +956,7 @@
     "shortcutFilter": "명령 또는 단축키 필터",
     "pressKeys": "키를 누르세요...",
     "noShortcut": "없음",
+    "addShortcut": "단축키 추가",
     "reset": "초기화",
     "restore": "기본값 복원",
     "restoreTip": "선택한 섹션의 설정을 기본값으로 설정합니다.",
@@ -1213,6 +1221,7 @@
     "findRooms": "이 타일을 쓰는 방 찾기"
   },
   "textureItem": {
+    "edit": "이미지 편집...",
     "export": "PNG로 내보내기",
     "replace": "PNG 바꾸기",
     "pick": "{name}의 그림",
@@ -1434,6 +1443,16 @@
     "packaged": "모드를 {path}에 저장했습니다. mod_config.json에서 제작자와 게임 ID를 설정하세요."
   },
   "sprites": {
+    "editMask": "마스크 이미지 편집...",
+    "loop": "반복",
+    "onion": "어니언 스킨",
+    "speed": "속도",
+    "perSecond": "초당 프레임",
+    "perGameFrame": "게임 프레임당 프레임",
+    "addFrame": "추가",
+    "duplicateFrame": "복제",
+    "deleteFrame": "삭제",
+    "importFrames": "가져오기...",
     "lockOrigin": "원점 잠금",
     "play": "재생",
     "pause": "일시정지",
@@ -1563,6 +1582,7 @@
     "glyphCount": "글리프 {count}개",
     "glyphNew": "U+코드, 문자 또는 범위 (A-Z)",
     "glyphAdd": "글리프 추가",
+    "editGlyphImage": "글리프 이미지 편집",
     "presetNormal": "기본",
     "presetDigits": "숫자",
     "presetLetters": "문자",
@@ -1831,11 +1851,21 @@
   },
   "object": {
     "vertices": "물리 모양 꼭짓점",
+    "editMaskImage": "마스크 이미지 편집...",
     "vertexAdd": "꼭짓점 추가",
     "vertexSet": "꼭짓점 설정",
     "removeEvent": "삭제"
   },
   "image": {
+    "limitItem": "텍스처 페이지의 자리는 {w}x{h}로 고정입니다. 더 큰 이미지는 줄어들거나 텍스처 다시 패킹이 필요합니다",
+    "limitPage": "텍스처 페이지는 {w}x{h}이며 크기를 바꿀 수 없습니다",
+    "limitMask": "충돌 마스크 {w}x{h}, 1비트: 흰색이 단단한 부분이며 크기는 고정입니다",
+    "limitIncluded": "개별 파일: 적용하면 바로 게임 폴더에 기록됩니다 (JPEG는 투명도가 없고 GIF는 첫 프레임만 유지)",
+    "limitGlyph": "글꼴 시트의 글리프 {w}x{h}. 크기는 고정이며 적용하면 시트에 기록됩니다",
+    "apply": "적용",
+    "applied": "{name}의 이미지를 적용했습니다.",
+    "notApplied": "{name}의 편집을 적용하지 못했습니다: {reason}",
+    "noPicture": "이 탭에는 편집할 이미지가 없습니다.",
     "noFrames": "이 스프라이트에는 편집할 프레임이 없습니다.",
     "tool": {
       "Pencil": "연필",
@@ -2088,7 +2118,8 @@
     "redo": "패치 다시 실행",
     "apply": "파일에 쓰기...",
     "badPatch": "바이트를 16진 쌍으로 입력하고 파일 안에 들어가는 오프셋을 지정하세요.",
-    "patched": "{count}바이트 수정됨, 마지막은 0x{offset}. 아직 쓰지 않았습니다."
+    "patched": "{count}바이트 수정됨, 마지막은 0x{offset}. 아직 쓰지 않았습니다.",
+    "written": "파일에 썼습니다."
   },
   "colors": {
     "Diff": {
@@ -2203,6 +2234,7 @@
     "refresh": "새로 고침",
     "filter": "파일 필터",
     "colName": "이름",
+    "edit": "편집...",
     "colType": "유형",
     "colSize": "크기",
     "colModified": "수정한 날짜",
@@ -2221,6 +2253,14 @@
     "failed": "복사하지 못함: {files}"
   },
   "risky": {
+    "includedPictureTitle": "이미지를 게임 폴더에 기록할까요?",
+    "includedTextTitle": "텍스트를 게임 폴더에 기록할까요?",
+    "includedText": "{reason}\n\n이 변경은 데이터 파일에 포함되지 않습니다.",
+    "includedAudioTitle": "오디오를 게임 폴더에 기록할까요?",
+    "includedAudio": "{reason}\n\n이 변경은 데이터 파일에 포함되지 않습니다.",
+    "includedPicture": "{reason}\n\n이 변경은 데이터 파일에 들어 있지 않습니다.",
+    "itemSizeTitle": "{name}의 자리보다 큰 이미지를 넣을까요?",
+    "itemSize": "{reason}\n\n이미지가 페이지의 자리에 맞게 줄어들어 세부 표현이 사라집니다. 텍스처 다시 패킹으로 더 큰 자리를 줄 수 있습니다.",
     "includedRenameTitle": "그래도 {name}의 이름을 바꾸시겠습니까?",
     "includedRename": "{reason}\n\n게임은 이름으로 파일을 찾으므로 변경 후 찾지 못할 수 있습니다. 되돌릴 수 없습니다.",
     "includedDeleteTitle": "그래도 {name}을(를) 삭제하시겠습니까?",

@@ -132,7 +132,7 @@ public sealed class WorkspaceImageSession : ImageSession, IDisposable
 }
 
 /// <summary>One picture edited in a window: edits stay local (with their own undo) until the window hands the picture back.</summary>
-public sealed class LocalImageSession(PixelBuffer picture) : ImageSession
+public class LocalImageSession(PixelBuffer picture) : ImageSession
 {
     private readonly Stack<PixelBuffer> _undo = [];
     private readonly Stack<PixelBuffer> _redo = [];
@@ -151,6 +151,15 @@ public sealed class LocalImageSession(PixelBuffer picture) : ImageSession
         Current = edit.After;
     }
 
+    /// <summary>Takes a whole picture as one undoable step and tells the editor to read it.</summary>
+    protected void Replace(PixelBuffer picture)
+    {
+        _undo.Push(Current);
+        _redo.Clear();
+        Current = picture;
+        OnChanged();
+    }
+
     public override bool CanUndo => _undo.Count > 0;
 
     public override bool CanRedo => _redo.Count > 0;
@@ -165,5 +174,60 @@ public sealed class LocalImageSession(PixelBuffer picture) : ImageSession
         to.Push(Current);
         Current = from.Pop();
         OnChanged();
+    }
+}
+
+/// <summary>
+/// A picture target (a page item or a texture page) edited in a document tab: edits stay local with their own undo, and Apply writes the picture through the target's
+/// undoable command. <see cref="Dirty"/> is true while the picture differs from what was last applied, so a tab can show it and never drops it unasked.
+/// </summary>
+public sealed class TargetImageSession : LocalImageSession
+{
+    private PixelBuffer _applied;
+
+    public TargetImageSession(IPictureTarget target, PixelBuffer picture) : base(picture)
+    {
+        Target = target;
+        _applied = Current;
+    }
+
+    public IPictureTarget Target { get; }
+
+    /// <summary>The limit of the target, worded by the window; the status line shows it.</summary>
+    public string? Note { get; set; }
+
+    public bool Dirty => !ReferenceEquals(Current, _applied);
+
+    public event Action? DirtyChanged;
+
+    public override void Commit(int frame, ImageEdit edit)
+    {
+        base.Commit(frame, edit);
+        DirtyChanged?.Invoke();
+    }
+
+    public override void Undo()
+    {
+        base.Undo();
+        DirtyChanged?.Invoke();
+    }
+
+    public override void Redo()
+    {
+        base.Redo();
+        DirtyChanged?.Invoke();
+    }
+
+    /// <summary>Puts a whole new picture in the editor as one step of its own undo; the limit of the target is checked when it is applied.</summary>
+    public void ReplaceWith(PixelBuffer picture)
+    {
+        Replace(picture);
+        DirtyChanged?.Invoke();
+    }
+
+    public void MarkApplied()
+    {
+        _applied = Current;
+        DirtyChanged?.Invoke();
     }
 }

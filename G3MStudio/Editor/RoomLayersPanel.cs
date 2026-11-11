@@ -47,6 +47,12 @@ public sealed class RoomLayersPanel : DockPanel
         var delete = Tool("DeleteLayer", "rooms.deleteLayer", () => Edit(Selected is { } l ? [Command(RoomLayerCommand.Delete, l)] : []));
         var fit = Tool("FitTiles", "rooms.fitTiles", () => Edit(Selected is { LayerType: LayerType.Tiles } l ? [Command(RoomLayerCommand.FitTiles, l)] : []));
         var duplicate = Tool("DuplicateLayer", "roomEditor.duplicateLayer", Duplicate);
+        void EditPicture()
+        {
+            if (PictureRefs.KeyOf(Selected) is { } key) EditImageRequested?.Invoke(key);
+        }
+
+        var picture = Tool("EditLayerImage", "textureItem.edit", EditPicture);
         var up = Tool("LayerUp", "rooms.layerUp", () => Move(-1));
         var down = Tool("LayerDown", "rooms.layerDown", () => Move(1));
         var rename = Tool("RenameLayer", "rooms.renameLayer", () => Edit(Selected is { } l && _name.Text is { Length: > 0 } text ? [Command(RoomLayerCommand.Rename, l, text)] : []));
@@ -58,7 +64,9 @@ public sealed class RoomLayersPanel : DockPanel
             else return;
             e.Handled = true;
         };
-        _list.ContextMenu = new ContextMenu { ItemsSource = new[] { Item("roomEditor.renameLayerKey", FocusRename), Item("roomEditor.duplicateLayer", Duplicate), Item("rooms.deleteLayer", () => Edit(Selected is { } l ? [Command(RoomLayerCommand.Delete, l)] : [])) } };
+        var pictureItem = Item("textureItem.edit", EditPicture);
+        _list.ContextMenu = new ContextMenu { ItemsSource = new[] { Item("roomEditor.renameLayerKey", FocusRename), Item("roomEditor.duplicateLayer", Duplicate), pictureItem, Item("rooms.deleteLayer", () => Edit(Selected is { } l ? [Command(RoomLayerCommand.Delete, l)] : [])) } };
+        _list.ContextMenu.Opening += (_, _) => pictureItem.IsEnabled = PictureRefs.KeyOf(Selected) is not null;
         _kind.ItemsSource = Kinds.Select(k => Loc.Current["rooms.layerKind." + k]).ToList();
         _kind.SelectedIndex = 0;
         _kind.SelectionChanged += (_, _) =>
@@ -68,19 +76,8 @@ public sealed class RoomLayersPanel : DockPanel
         };
         _tileSet.ItemsSource = workspace.Data.Backgrounds.Where(b => b.GMS2TileWidth > 0 && b.GMS2TileCount > 0).Select(b => b.Name.Content).OfType<string>().ToList();
         _tileSet.SelectedIndex = _tileSet.ItemCount > 0 ? 0 : -1;
-        var tools = new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Children = { _kind, _tileSet, _effect, add, duplicate, delete, up, down, fit } };
-        var properties = new StackPanel { Spacing = 2 };
-        foreach (var (operation, label) in Props)
-        {
-            var box = new NumericUpDown { Name = "LayerProp_" + operation, FormatString = operation == RoomLayerCommand.Depth ? "0" : "0.###", Increment = operation == RoomLayerCommand.Depth ? 1 : 0.5m, MinWidth = 110 };
-            box.ValueChanged += (_, e) =>
-            {
-                if (!_building && Selected is { } layer && e.NewValue is { } value) Edit([Command(operation, layer, value.ToString(CultureInfo.InvariantCulture))]);
-            };
-            _props[operation] = box;
-            var caption = new TextBlock { Text = Loc.Current[label], MinWidth = 80, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
-            properties.Children.Add(new DockPanel { Children = { caption, box.LabeledBy(caption) } });
-        }
+        var tools = new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Children = { _kind, _tileSet, _effect, add, duplicate, delete, up, down, fit, picture } };
+        var properties = BuildProperties();
 
         SetDock(properties, Avalonia.Controls.Dock.Bottom);
         SetDock(_layerGrid, Avalonia.Controls.Dock.Bottom);
@@ -95,6 +92,39 @@ public sealed class RoomLayersPanel : DockPanel
         Children.Add(tools);
         Children.Add(nameBar);
         Children.Add(_list);
+        WireDrag();
+        _list.SelectionChanged += (_, _) =>
+        {
+            if (_building) return;
+            if (Selected is { } layer) _name.Text = layer.LayerName.Content;
+            picture.IsEnabled = PictureRefs.KeyOf(Selected) is not null;
+            ShowProperties();
+            SelectionChanged?.Invoke();
+        };
+        Follow(workspace);
+        Refresh();
+    }
+
+    private StackPanel BuildProperties()
+    {
+        var properties = new StackPanel { Spacing = 2 };
+        foreach (var (operation, label) in Props)
+        {
+            var box = new NumericUpDown { Name = "LayerProp_" + operation, FormatString = operation == RoomLayerCommand.Depth ? "0" : "0.###", Increment = operation == RoomLayerCommand.Depth ? 1 : 0.5m, MinWidth = 110 };
+            box.ValueChanged += (_, e) =>
+            {
+                if (!_building && Selected is { } layer && e.NewValue is { } value) Edit([Command(operation, layer, value.ToString(CultureInfo.InvariantCulture))]);
+            };
+            _props[operation] = box;
+            var caption = new TextBlock { Text = Loc.Current[label], MinWidth = 80, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
+            properties.Children.Add(new DockPanel { Children = { caption, box.LabeledBy(caption) } });
+        }
+
+        return properties;
+    }
+
+    private void WireDrag()
+    {
         _list.AddHandler(PointerPressedEvent, (_, e) => _press = e.GetCurrentPoint(_list).Properties.IsLeftButtonPressed && e.Source is Control { DataContext: not null } ? e : null, Avalonia.Interactivity.RoutingStrategies.Tunnel);
         _list.PointerReleased += (_, _) => _press = null;
         _list.PointerMoved += async (_, e) =>
@@ -114,15 +144,6 @@ public sealed class RoomLayersPanel : DockPanel
         {
             if (e.DataTransfer.TryGetValue(LayerDrag) is { } id && (e.Source as Avalonia.Visual)?.FindAncestorOfType<ListBoxItem>(true)?.Tag is Layer target) DropLayer(uint.Parse(id, CultureInfo.InvariantCulture), target);
         });
-        _list.SelectionChanged += (_, _) =>
-        {
-            if (_building) return;
-            if (Selected is { } layer) _name.Text = layer.LayerName.Content;
-            ShowProperties();
-            SelectionChanged?.Invoke();
-        };
-        Follow(workspace);
-        Refresh();
     }
 
     // A tab that is shown again gets its subscription back (a view leaves the visual tree when its tab is hidden).
@@ -139,6 +160,9 @@ public sealed class RoomLayersPanel : DockPanel
     }
 
     public event Action? SelectionChanged;
+
+    /// <summary>Edit Image was chosen for the selected layer: the Explorer key of its tile set or background sprite.</summary>
+    public event Action<string>? EditImageRequested;
 
     /// <summary>Layers locked against picking in the canvas. This is a view setting only; the file does not store it.</summary>
     public HashSet<uint> Locked { get; } = [];

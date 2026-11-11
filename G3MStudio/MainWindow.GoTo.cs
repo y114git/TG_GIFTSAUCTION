@@ -31,7 +31,7 @@ public sealed partial class MainWindow
         if (namesOnly) entries = [.. entries.Where(e => e.Kind is GoToKind.Resource or GoToKind.Code)];
         // Recent first: what was opened last, then the open tabs, latest first.
         var recent = Explorer.Model.Quick.Recent.Concat(Docking.Tabs.Tabs.Select(t => t.Key).Reverse()).ToList();
-        GoToBox = new GoToWindow(query => GoToSearch.Run(entries, query, recent), entry => GoToPreviewAsync(workspace, entry));
+        GoToBox = new GoToWindow(query => GoToSearch.Run(entries, query, recent), entry => GoToPreviewAsync(workspace, entry)) { Picture = entry => LoadThumbnailAsync(entry.Key) };
         GoToBox.Closed += (_, _) => GoToBox = null;
         GoToBox.Chosen += OpenGoTo;
         if (text.Length > 0) GoToBox.Text = text;

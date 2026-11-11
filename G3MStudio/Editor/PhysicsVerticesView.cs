@@ -92,9 +92,12 @@ public sealed class ParticleEmittersView : StackPanel
 
     private readonly Action<GameMakerParticleSystemEmitter?>? _solo;
 
-    public ParticleEmittersView(GameMakerParticleSystem system, Workspace? workspace = null, Action<GameMakerParticleSystemEmitter?>? solo = null)
+    private readonly Action<string>? _editImage;
+
+    /// <summary>The constructor takes an editImage callback that opens the image editor on an Explorer key; an emitter with a sprite gets an Edit Image button when it is given.</summary>
+    public ParticleEmittersView(GameMakerParticleSystem system, Workspace? workspace = null, Action<GameMakerParticleSystemEmitter?>? solo = null, Action<string>? editImage = null)
     {
-        (_system, _workspace, _solo) = (system, workspace, solo);
+        (_system, _workspace, _solo, _editImage) = (system, workspace, solo, editImage);
         Name = "ParticleEmitters";
         Lines = [];
         if (workspace is not null)
@@ -142,6 +145,13 @@ public sealed class ParticleEmittersView : StackPanel
                 Rebuild();
             };
             var tools = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 4, Margin = new Avalonia.Thickness(12, 0, 40, 0), Children = { eye, solo, lockBox, copy, remove } };
+            if (_editImage is { } open && PictureRefs.KeyOf(Emitter(i)) is { } picture)
+            {
+                var edit = new Button { Name = "EmitterEditImage_" + i, Content = Loc.Current["textureItem.edit"] }.NamedFor("textureItem.edit", line);
+                edit.Click += (_, _) => open(picture);
+                tools.Children.Insert(0, edit);
+            }
+
             var header = new DockPanel { LastChildFill = true, Children = { tools, new TextBlock { Text = line, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center } } };
             DockPanel.SetDock(tools, Avalonia.Controls.Dock.Right);
             expander.Header = header;

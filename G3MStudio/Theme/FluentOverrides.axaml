@@ -27,6 +27,9 @@
     </ResourceDictionary>
   </ResourceDictionary.ThemeDictionaries>
 
+  <!-- Even padding for text in buttons and combo boxes (the theme gives 5 px on top and 6 below); Settings > Appearance > Sizes scales these two values (ScalePadding). -->
+  <Thickness x:Key="ButtonPadding">8,4,8,4</Thickness>
+  <Thickness x:Key="ComboBoxPadding">8,4,0,4</Thickness>
   <x:Double x:Key="RadioButtonBorderThemeThickness">2</x:Double>
   <x:Double x:Key="TabItemPipeThickness">2</x:Double>
   <x:Double x:Key="TabStripItemPipeThickness">2</x:Double>

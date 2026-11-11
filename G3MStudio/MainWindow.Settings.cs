@@ -52,6 +52,8 @@ public partial class MainWindow
         // A static slot: clear it when this window closes, unless a newer window took it over.
         var riskyEdit = G3MStudio.Editor.PathView.RiskyEdit = EditOrForceAsync;
         Closed += (_, _) => { if (G3MStudio.Editor.PathView.RiskyEdit == riskyEdit) G3MStudio.Editor.PathView.RiskyEdit = null; };
+        G3MStudio.Editor.SpriteFramesView.RiskyEdit = riskyEdit;
+        Closed += (_, _) => { if (G3MStudio.Editor.SpriteFramesView.RiskyEdit == riskyEdit) G3MStudio.Editor.SpriteFramesView.RiskyEdit = null; };
     }
 
     private void InitSettings()
@@ -105,6 +107,7 @@ public partial class MainWindow
         ApplyMemoryLimit(s.MemoryLimitMb);
         Explorer.Model.ShowNulls = s.ShowNullEntries;
         (Explorer.Model.DefaultFolderView, Explorer.Model.ShowCounts, Explorer.Model.FoldersOpen) = (s.ExplorerFolderView, s.ExplorerShowCounts, s.ExplorerFoldersOpen);
+        Explorer.OptionsFolded = s.ExplorerOptionsFolded;
         Editor.RoomOptions.Set(s.RoomGridOverride, Math.Clamp(s.RoomGridWidth, 1, 1024), Math.Clamp(s.RoomGridHeight, 1, 1024));
         Editor.RoomOptions.SetAutoTile(s.AutoTile);
         Editor.EditorOptions.Set(s.CodeFontSize, s.CodeWordWrap, s.CodeLineNumbers, s.CodeFontFamily.Length > 0 ? Fonts.Resolve(s.CodeFontFamily) ?? new FontFamily(s.CodeFontFamily) : null, s.CodeAutoComplete, s.CodeIndentGuides);

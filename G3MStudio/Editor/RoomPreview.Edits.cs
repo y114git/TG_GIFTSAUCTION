@@ -180,6 +180,12 @@ public sealed partial class RoomPreview
             items.AddRange(TileItems());
         }
 
+        if (SelectedPictureKey() is { } picture)
+        {
+            if (items.Count > 0) items.Add(new Separator());
+            items.Add(Item("textureItem.edit", () => EditImageRequested?.Invoke(picture)));
+        }
+
         if (ResourceMenu?.Invoke() is { Count: > 0 } resource)
         {
             if (items.Count > 0) items.Add(new Separator());
@@ -188,6 +194,12 @@ public sealed partial class RoomPreview
 
         return items;
     }
+
+    /// <summary>Edit Image was chosen: the Explorer key of the picture of what is selected.</summary>
+    public event Action<string>? EditImageRequested;
+
+    /// <summary>The picture of the one selected instance or sprite element, else of the tile layer being painted or the layer selected in the panel.</summary>
+    public string? SelectedPictureKey() => View.Selection.Count switch { 0 => PictureRefs.KeyOf(View.TileLayer ?? _layers?.Selected), 1 => PictureRefs.KeyOf(View.Selection.First()), _ => null };
 
     /// <summary>The resource commands (Rename, Duplicate, Copy name, ...) the window adds at the end of the menu; made again each time the menu opens.</summary>
     public Func<IReadOnlyList<Control>>? ResourceMenu { get; set; }

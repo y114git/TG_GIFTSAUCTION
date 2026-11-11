@@ -44,7 +44,8 @@ public sealed partial class ImageEditorView : DockPanel, IDisposable
         Canvas.Hovered += ShowStatus;
         Canvas.SelectionChanged += ShowStatus;
         Canvas.ViewChanged += ShowStatus;
-        session.Changed += Reload;
+        session.Changed += OnSessionChanged;
+        if (session is TargetImageSession target) target.DirtyChanged += RefreshButtons;
         _play.Tick += (_, _) => ShowFrame((Frame + 1) % Math.Max(1, session.FrameCount));
         Focusable = true;
         BuildLayout();
@@ -68,6 +69,9 @@ public sealed partial class ImageEditorView : DockPanel, IDisposable
 
     public event Action<int>? FrameChanged;
 
+    /// <summary>The Apply button was pressed: the window writes the picture back (only a session that applies at the end shows the button).</summary>
+    public event Action? ApplyRequested;
+
     /// <summary>The shortcut of a command; the window sets this to its command registry, so rebinding in Settings reaches the editor. The default is the table of default keys.</summary>
     public Func<string, string?> Bindings
     {
@@ -87,10 +91,17 @@ public sealed partial class ImageEditorView : DockPanel, IDisposable
     private void OnEdited(ImageEdit edit)
     {
         _session.Commit(Frame, edit);
+        UpdateThumb(Frame);
         // A canvas size change flattens the layers in the command, so the editor shows the flat result.
         if (Canvas.Layers.Count > 1 && ChangesCanvas(edit)) Reload();
         RefreshButtons();
         ShowStatus();
+    }
+
+    private void OnSessionChanged()
+    {
+        _thumbsStale = true;
+        Reload();
     }
 
     /// <summary>The model changed behind the editor (undo, redo, another edit): read the frame again.</summary>
@@ -106,6 +117,7 @@ public sealed partial class ImageEditorView : DockPanel, IDisposable
         Canvas.InvalidateVisual();
         RefreshButtons();
         RefreshLayers();
+        SyncFrames();
         ShowStatus();
     }
 
@@ -163,7 +175,7 @@ public sealed partial class ImageEditorView : DockPanel, IDisposable
         var p = Canvas.Picture;
         var selection = Canvas.State.Selection?.Bounds() is { } box ? $"   {Loc.Current["image.selection"]} {box.Width}x{box.Height}" : "";
         var at = cell is { } c ? $"({c.X}, {c.Y})   " : "";
-        _status.Text = $"{at}{Loc.Current.Format("image.size", ("w", p.Width), ("h", p.Height))}   {Loc.Current["rooms.inspector.frame"]} {Frame + 1}/{Math.Max(1, _session.FrameCount)}   {Canvas.Zoom:0}x{selection}";
+        _status.Text = $"{at}{Loc.Current.Format("image.size", ("w", p.Width), ("h", p.Height))}   {Loc.Current["rooms.inspector.frame"]} {Frame + 1}/{Math.Max(1, _session.FrameCount)}   {Canvas.Zoom:0}x{selection}{(_session is TargetImageSession { Note: { } note } ? "   " + note : "")}";
     }
 
     private void OnKey(object? sender, KeyEventArgs e)
@@ -189,7 +201,8 @@ public sealed partial class ImageEditorView : DockPanel, IDisposable
     public void Dispose()
     {
         _play.Stop();
-        _session.Changed -= Reload;
+        _session.Changed -= OnSessionChanged;
+        if (_session is TargetImageSession target) target.DirtyChanged -= RefreshButtons;
         Canvas.Dispose();
         (_session as IDisposable)?.Dispose();
     }

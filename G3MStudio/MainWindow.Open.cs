@@ -42,6 +42,18 @@ public sealed partial class MainWindow
                 return;
             }
 
+            if (FileImport.TypeOf(one) == "sprites" && PictureKey(front))
+            {
+                _ = ReplacePictureFromAsync(open, front, one);
+                return;
+            }
+
+            if (FileImport.TypeOf(one) == "sounds" && (frontType == "embeddedAudio" || frontType == "includedFiles" && IncludedAudioCommand.IsAudio(frontName)))
+            {
+                _ = ReplaceAudioBytesFromAsync(open, frontType, frontName, one);
+                return;
+            }
+
             if (frontType == "sounds" && FileImport.TypeOf(one) == "sounds")
             {
                 _ = ReplaceAudioFromAsync(open, frontName, one);

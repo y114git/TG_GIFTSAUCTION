@@ -21,6 +21,7 @@ public sealed class SpriteCanvas : Control
     private readonly GameMakerSprite _sprite;
     private readonly TextureBitmaps _textures;
     private IImage? _picture;
+    private readonly List<(IImage Picture, Rect Target)> _ghosts = [];
     private Grab _grab;
     private BoxHandle _handle;
     private string _side = "";
@@ -71,12 +72,32 @@ public sealed class SpriteCanvas : Control
 
     public event Action<int, int, int, int>? SliceChanged;
 
+    /// <summary>Draws the frames before and after the shown one faintly under it (onion skin).</summary>
+    public bool Onion
+    {
+        get;
+        set
+        {
+            field = value;
+            _ = ShowFrameAsync(Frame);
+        }
+    }
+
+    private async Task<(IImage Picture, Rect Target)?> CutAsync(int frame)
+    {
+        if (_sprite.Textures.ElementAtOrDefault(frame)?.Texture is not { TexturePage: { } page, SourceWidth: > 0, SourceHeight: > 0 } item || await _textures.GetAsync(page) is not { } bitmap) return null;
+        return (new CroppedBitmap(bitmap, new PixelRect(item.SourceX, item.SourceY, item.SourceWidth, item.SourceHeight)), new Rect(item.TargetX, item.TargetY, item.SourceWidth, item.SourceHeight));
+    }
+
     public async Task ShowFrameAsync(int frame)
     {
         var wanted = Frame = Math.Clamp(frame, 0, Math.Max(0, _sprite.Textures.Count - 1));
         _picture = null;
-        if (_sprite.Textures.ElementAtOrDefault(wanted)?.Texture is { TexturePage: { } page, SourceWidth: > 0, SourceHeight: > 0 } item && await _textures.GetAsync(page) is { } bitmap && Frame == wanted)
-            _picture = new CroppedBitmap(bitmap, new PixelRect(item.SourceX, item.SourceY, item.SourceWidth, item.SourceHeight));
+        _ghosts.Clear();
+        if (await CutAsync(wanted) is { } cut && Frame == wanted) _picture = cut.Picture;
+        if (Onion)
+            foreach (var neighbour in new[] { wanted - 1, wanted + 1 })
+                if (neighbour >= 0 && neighbour < _sprite.Textures.Count && await CutAsync(neighbour) is { } ghost && Frame == wanted) _ghosts.Add(ghost);
         InvalidateVisual();
     }
 
@@ -196,6 +217,9 @@ public sealed class SpriteCanvas : Control
     {
         var area = new Rect(0, 0, W * Zoom, H * Zoom);
         Chequer.Draw(context, area, 8);
+        using (context.PushOpacity(0.3))
+            foreach (var (ghost, place) in _ghosts)
+                using (context.PushRenderOptions(new RenderOptions { BitmapInterpolationMode = BitmapInterpolationMode.None })) context.DrawImage(ghost, new Rect(ghost.Size), new Rect(place.X * Zoom, place.Y * Zoom, place.Width * Zoom, place.Height * Zoom));
         if (_picture is { } picture && _sprite.Textures.ElementAtOrDefault(Frame)?.Texture is { } item)
         {
             var target = new Rect(item.TargetX * Zoom, item.TargetY * Zoom, item.SourceWidth * Zoom, item.SourceHeight * Zoom);

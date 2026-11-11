@@ -404,6 +404,8 @@
     "noValue": "None",
     "thumbnails": "Thumbnails",
     "zoom": "Zoom 50 to 250 percent",
+    "hideOptions": "Hide thumbnail options",
+    "showOptions": "Show thumbnail options",
     "filter": "Filter resources...",
     "count": "{count} resources",
     "matches": "{matches} of {total}",
@@ -664,6 +666,11 @@
   },
   "history": {
     "kind": {
+      "includedPicture": "Write picture to an included file",
+      "includedText": "Write text to an included file",
+      "includedAudio": "Write audio to an included file",
+      "replaceEmbeddedAudio": "Replace embedded audio",
+      "frameReorder": "Reorder sprite frames",
       "addString": "Add string",
       "assembly": "Edit assembly",
       "audioGroupMove": "Move to audio group",
@@ -949,6 +956,7 @@
     "shortcutFilter": "Filter commands or shortcuts",
     "pressKeys": "Press the keys...",
     "noShortcut": "None",
+    "addShortcut": "Add another shortcut",
     "reset": "Reset",
     "restore": "Restore defaults",
     "restoreTip": "Resets the settings of the selected section.",
@@ -1213,6 +1221,7 @@
     "findRooms": "Find rooms using this tile"
   },
   "textureItem": {
+    "edit": "Edit Image...",
     "export": "Export PNG",
     "replace": "Replace PNG",
     "pick": "Picture for {name}",
@@ -1434,6 +1443,16 @@
     "packaged": "Mod saved to {path}. Edit its mod_config.json to set authors and the game id."
   },
   "sprites": {
+    "editMask": "Edit mask image...",
+    "loop": "Loop",
+    "onion": "Onion skin",
+    "speed": "Speed",
+    "perSecond": "frames per second",
+    "perGameFrame": "frames per game frame",
+    "addFrame": "Add",
+    "duplicateFrame": "Duplicate",
+    "deleteFrame": "Delete",
+    "importFrames": "Import...",
     "lockOrigin": "Lock origin",
     "play": "Play",
     "pause": "Pause",
@@ -1563,6 +1582,7 @@
     "glyphCount": "Glyphs: {count}",
     "glyphNew": "U+code, character or range (A-Z)",
     "glyphAdd": "Add glyph",
+    "editGlyphImage": "Edit glyph image",
     "presetNormal": "Normal",
     "presetDigits": "Digits",
     "presetLetters": "Letters",
@@ -1831,11 +1851,21 @@
   },
   "object": {
     "vertices": "Physics shape vertices",
+    "editMaskImage": "Edit Mask Image...",
     "vertexAdd": "Add vertex",
     "vertexSet": "Set vertex",
     "removeEvent": "Delete"
   },
   "image": {
+    "limitItem": "Fixed place of {w}x{h} on the texture page; a larger picture is shrunk or needs Repack Textures",
+    "limitPage": "Texture page of {w}x{h}; the size cannot change",
+    "limitMask": "Collision mask of {w}x{h}, 1 bit: white is solid, the size is fixed",
+    "limitIncluded": "Loose file: Apply writes it to the game folder at once (JPEG has no transparency, a GIF keeps its first frame)",
+    "limitGlyph": "Glyph of {w}x{h} on the font sheet; the size is fixed and Apply writes the sheet",
+    "apply": "Apply",
+    "applied": "Applied the picture of {name}.",
+    "notApplied": "The edits to {name} were not applied: {reason}",
+    "noPicture": "This tab has no picture to edit.",
     "noFrames": "This sprite has no frames to edit.",
     "tool": {
       "Pencil": "Pencil",
@@ -2088,7 +2118,8 @@
     "redo": "Redo patch",
     "apply": "Write to file...",
     "badPatch": "Enter the bytes as hex pairs, and an offset that leaves room for them in the file.",
-    "patched": "{count} bytes patched, last at 0x{offset}. Not written yet."
+    "patched": "{count} bytes patched, last at 0x{offset}. Not written yet.",
+    "written": "Written to the file."
   },
   "colors": {
     "Diff": {
@@ -2203,6 +2234,7 @@
     "refresh": "Refresh",
     "filter": "Filter files",
     "colName": "Name",
+    "edit": "Edit...",
     "colType": "Type",
     "colSize": "Size",
     "colModified": "Modified",
@@ -2221,6 +2253,14 @@
     "failed": "Could not copy: {files}"
   },
   "risky": {
+    "includedPictureTitle": "Write the picture into the game folder?",
+    "includedTextTitle": "Write the text into the game folder?",
+    "includedText": "{reason}\n\nThe data file does not hold this change.",
+    "includedAudioTitle": "Write the audio into the game folder?",
+    "includedAudio": "{reason}\n\nThe data file does not hold this change.",
+    "includedPicture": "{reason}\n\nThe data file does not hold this change.",
+    "itemSizeTitle": "Put a larger picture into the place of {name}?",
+    "itemSize": "{reason}\n\nThe picture is shrunk to fit its place on the page, so it loses detail. Repack Textures can give it a larger place.",
     "includedRenameTitle": "Rename {name} anyway?",
     "includedRename": "{reason}\n\nThe game looks the file up by its name, so it may not find it after the rename. This cannot be undone.",
     "includedDeleteTitle": "Delete {name} anyway?",

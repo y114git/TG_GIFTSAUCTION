@@ -34,7 +34,7 @@ public sealed partial class RoomView
         target.Save(stream, new Avalonia.Media.Imaging.PngBitmapEncoderOptions());
     }
 
-    private static void DrawItem(DrawingContext context, RoomItem item, Rect dest)
+    internal static void DrawItem(DrawingContext context, RoomItem item, Rect dest)
     {
         if (item.Flags == 0)
         {

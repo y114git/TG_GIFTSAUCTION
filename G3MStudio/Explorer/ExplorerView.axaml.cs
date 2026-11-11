@@ -34,86 +34,16 @@ public partial class ExplorerView : UserControl
         Avalonia.Automation.AutomationProperties.SetName(FilterOptions, Loc.Current["explorer.filterOptions"]);
         FilterOptions.Click += (_, _) => new Flyout { Content = ExplorerFilterPopup.Build(Model.Options, Model.Quick.TagNames, FilterBox.Text ?? "", change => EditQuick?.Invoke(change)) }.ShowAt(FilterOptions);
         ViewToggle.Click += (_, _) => ViewToggleRequested?.Invoke();
+        OptionsFold.Click += (_, _) => OptionsFolded = !OptionsFolded;
+        ApplyFold();
         Model.Changed += ShowRows;
         List.ItemsSource = _rows;
-        FilterBox.PropertyChanged += (_, e) => { if (e.Property == TextBox.TextProperty) Model.SetFilter(FilterBox.Text ?? ""); };
-        List.Tapped += (_, e) =>
-        {
-            if ((e.Source as Control)?.DataContext is not ExplorerRow row) return;
-            // Ctrl and Shift clicks only change the selection; they must not open a tab.
-            if (e.KeyModifiers is KeyModifiers.Control or KeyModifiers.Shift) return;
-            if (row.IsItem) RequestOpen(row, true);
-            else if (row.Kind == ExplorerRowKind.Search) FilterBox.Text = row.Text;
-            else if (row.IsHeader) Model.Toggle(row.Key);
-        };
-        List.SelectionMode = SelectionMode.Multiple;
-        // The tooltip is made per row when the row appears; its picture is fetched only when the tip opens.
-        List.ContainerPrepared += (_, e) =>
-        {
-            if (e.Container.DataContext is not ExplorerRow row) return;
-            var key = row.IsItem ? ResourceTypes.KeyOf(row.Key, row.Text) : null;
-            Func<Task<Avalonia.Media.IImage?>>? load = key is null ? null : () => Thumbnail?.Invoke(key) ?? Task.FromResult<Avalonia.Media.IImage?>(null);
-            if (ToolTip.GetTip(e.Container) is ExplorerRowTip tip) tip.Retarget(row.Text, load);
-            else ToolTip.SetTip(e.Container, new ExplorerRowTip(row.Text, load));
-        };
-        List.SelectionChanged += (_, _) => SelectionChanged?.Invoke();
-        ZoomSlider.PropertyChanged += (_, e) =>
-        {
-            if (e.Property == Avalonia.Controls.Primitives.RangeBase.ValueProperty) ApplyZoom();
-        };
-        ThumbToggle.IsCheckedChanged += (_, _) => ApplyZoom();
-        List.ContainerPrepared += (_, e) => Dispatcher.UIThread.Post(() => Dress(e.Container), DispatcherPriority.Loaded);
-        // A drag starts after the pointer has moved a few pixels with the button down on an entry.
-        List.AddHandler(PointerPressedEvent, (_, e) => _press = e.GetCurrentPoint(List).Properties.IsLeftButtonPressed && e.Source is Control { DataContext: ExplorerRow { IsItem: true } } ? e : null, Avalonia.Interactivity.RoutingStrategies.Tunnel);
-        List.PointerReleased += (_, _) => _press = null;
-        List.PointerMoved += async (_, e) =>
-        {
-            if (_press is not { } press || (e.GetPosition(List) - press.GetPosition(List)).X is var dx && (e.GetPosition(List) - press.GetPosition(List)).Y is var dy && dx * dx + dy * dy < 64) return;
-            _press = null;
-            if (press.Source is not Control { DataContext: ExplorerRow { IsItem: true } row }) return;
-            var item = new DataTransferItem();
-            var key = ResourceTypes.KeyOf(row.Key, row.Text);
-            item.Set(ResourceDrag.Format, key);
-            // Dragging one of several selected rows takes them all.
-            item.Set(ResourceDrag.Keys, string.Join('\n', List.SelectedItems?.Contains(row) == true && SelectedKeys.Count > 1 ? SelectedKeys : [key]));
-            var data = new DataTransfer();
-            data.Add(item);
-            await DragDrop.DoDragDropAsync(press, data, DragDropEffects.Copy | DragDropEffects.Move); // the target answers Move, which the allowed effects must include
-        };
-        List.AddHandler(PointerPressedEvent, (_, e) =>
-        {
-            if (!e.GetCurrentPoint(List).Properties.IsRightButtonPressed || e.Source is not Control { DataContext: ExplorerRow row } source) return;
-            if (row.IsItem && List.SelectedItems?.Contains(row) != true) List.SelectedItem = row;
-            MenuRequested?.Invoke(row, source);
-            e.Handled = true;
-        }, Avalonia.Interactivity.RoutingStrategies.Tunnel);
-        // A middle click opens the entry in a tab of its own, like a double click (UTMT-TREE-02).
-        List.AddHandler(PointerPressedEvent, (_, e) =>
-        {
-            if (!e.GetCurrentPoint(List).Properties.IsMiddleButtonPressed || e.Source is not Control { DataContext: ExplorerRow { IsItem: true } row }) return;
-            RequestOpen(row, false);
-            e.Handled = true;
-        }, Avalonia.Interactivity.RoutingStrategies.Tunnel);
-        List.DoubleTapped += (_, e) =>
-        {
-            if (e.Source is not Control { DataContext: ExplorerRow row }) return;
-            if (row.IsItem) RequestOpen(row, false);
-            else if (ExplorerModel.ScopeOf(row) is { } scope) Model.Scope = scope;
-        };
-        DragDrop.SetAllowDrop(List, true);
-        List.AddHandler(DragDrop.DragOverEvent, (_, e) => e.DragEffects = e.DataTransfer.TryGetValue(ResourceDrag.Keys) is not null && DropTarget(e) is not null ? DragDropEffects.Move : DragDropEffects.None);
-        List.AddHandler(DragDrop.DropEvent, (_, e) =>
-        {
-            if (e.DataTransfer.TryGetValue(ResourceDrag.Keys) is not { } text || DropTarget(e) is not { } target) return;
-            DropOnto?.Invoke(target, [.. text.Split('\n', StringSplitOptions.RemoveEmptyEntries)]);
-            e.Handled = true;
-        });
-        List.AddHandler(TextInputEvent, OnTextInput, Avalonia.Interactivity.RoutingStrategies.Tunnel);
-        // Tunnel: the list handles the arrow keys itself and marks them handled before a bubbling handler would run.
-        List.AddHandler(KeyDownEvent, OnKeyDown, Avalonia.Interactivity.RoutingStrategies.Tunnel);
+        WireList();
+        WireThumbnails();
+        WireDrag();
+        WireClicks();
+        WireDrop();
     }
-
-    private PointerPressedEventArgs? _press;
 
     private readonly ExplorerRowList _rows = [];
 
@@ -123,6 +53,31 @@ public partial class ExplorerView : UserControl
 
     /// <summary>The dragged keys were dropped on a row that takes them (a folder, collection or tag).</summary>
     public Action<ExplorerRow, IReadOnlyList<string>>? DropOnto { get; set; }
+
+    /// <summary>The bar under the list (count, Thumbnails toggle, zoom slider) is folded to a thin strip with one chevron, so the list gets its height.</summary>
+    public bool OptionsFolded
+    {
+        get;
+        set
+        {
+            if (field == value) return;
+            field = value;
+            ApplyFold();
+            OptionsFoldChanged?.Invoke(value);
+        }
+    }
+
+    /// <summary>The chevron folded or unfolded the bar: the new state, to be remembered.</summary>
+    public event Action<bool>? OptionsFoldChanged;
+
+    private void ApplyFold()
+    {
+        OptionsRow.IsVisible = !OptionsFolded; // the count stays on the strip beside the chevron
+        OptionsFold.Content = OptionsFolded ? "⌃" : "⌄";
+        var title = Loc.Current[OptionsFolded ? "explorer.showOptions" : "explorer.hideOptions"];
+        ToolTip.SetTip(OptionsFold, title);
+        Avalonia.Automation.AutomationProperties.SetName(OptionsFold, title);
+    }
 
     /// <summary>The view button was pressed (type view and folder view swap).</summary>
     public event Action? ViewToggleRequested;
@@ -182,8 +137,11 @@ public partial class ExplorerView : UserControl
     /// <summary>A right click on a row (already selected): the row and the control to open the menu at.</summary>
     public event Action<ExplorerRow, Control>? MenuRequested;
 
-    /// <summary>Loads the picture for the tooltip of the entry with this tab key; null when the entry has none.</summary>
-    public Func<string, Task<Avalonia.Media.IImage?>>? Thumbnail { get; set; }
+    /// <summary>The pictures of the rows and tooltips; set by the window.</summary>
+    public ThumbnailService? Pictures { get; set; }
+
+    /// <summary>Loads the picture of the entry with this tab key; null when the entry has none.</summary>
+    public Func<string, Task<Avalonia.Media.IImage?>>? Thumbnail => Pictures is null ? null : key => Pictures.GetAsync(key);
 
     public void RequestOpen(ExplorerRow row, bool preview) => OpenRequested?.Invoke(row, preview);
 
@@ -237,24 +195,68 @@ public partial class ExplorerView : UserControl
         foreach (var container in List.GetRealizedContainers()) Dress(container);
     }
 
+    private readonly Dictionary<Image, CancellationTokenSource> _pending = [];
+
+    private Avalonia.Media.Color IconColour => this.TryFindResource("Text.Muted", ActualThemeVariant, out var found) && found is Avalonia.Media.ISolidColorBrush brush ? brush.Color : Avalonia.Media.Colors.Gray;
+
+    private void CancelThumb(Image thumb)
+    {
+        if (!_pending.Remove(thumb, out var source)) return;
+        source.Cancel();
+        source.Dispose();
+    }
+
+    // With thumbnails on, every entry row shows the icon of its type at once (so the names line up), and a type that can have a picture swaps it in when it is ready.
     private void Dress(Control container)
     {
         if (container is not ListBoxItem item) return;
         item.MinHeight = RowHeight;
         var thumb = item.GetVisualDescendants().OfType<Image>().FirstOrDefault(i => i.Name == "Thumb");
         if (thumb is null) return;
+        CancelThumb(thumb);
         var show = Thumbnails && item.DataContext is ExplorerRow { IsItem: true };
         thumb.IsVisible = show;
-        thumb.Width = thumb.Height = RowHeight - 4;
-        if (!show || item.DataContext is not ExplorerRow row || Thumbnail is null) return;
+        // At the top zoom a row-high picture would leave the name no room: it never takes more than a third of the list width.
+        thumb.Width = thumb.Height = Math.Min(RowHeight - 4, Math.Max(24, List.Bounds.Width / 3));
+        if (!show || item.DataContext is not ExplorerRow row)
+        {
+            thumb.Source = null;
+            return;
+        }
+
+        thumb.Source = ResourceIcons.Of(row.Key, IconColour);
+        if (Pictures is null || !ResourceThumbnails.CanHavePicture(row.Key)) return;
         var key = ResourceTypes.KeyOf(row.Key, row.Text);
-        _ = LoadThumb(thumb, key);
+        if (Pictures.TryGet(key, out var cached))
+        {
+            if (cached is not null) ShowPicture(thumb, cached);
+            return;
+        }
+
+        var source = _pending[thumb] = new CancellationTokenSource();
+        _ = LoadThumb(thumb, key, source);
     }
 
-    private async Task LoadThumb(Image thumb, string key)
+    private async Task LoadThumb(Image thumb, string key, CancellationTokenSource source)
     {
-        var picture = await Thumbnail!(key);
-        if (thumb.DataContext is null || thumb.GetVisualAncestors().OfType<ListBoxItem>().FirstOrDefault()?.DataContext is ExplorerRow row && ResourceTypes.KeyOf(row.Key, row.Text) == key) thumb.Source = picture;
+        Avalonia.Media.IImage? picture;
+        try { picture = Pictures is null ? null : await Pictures.GetAsync(key, source.Token); }
+        catch (OperationCanceledException) { return; }
+        if (source.IsCancellationRequested || picture is null) return;
+        if (_pending.TryGetValue(thumb, out var own) && own == source) CancelThumbKeep(thumb);
+        ShowPicture(thumb, picture);
+    }
+
+    private void CancelThumbKeep(Image thumb)
+    {
+        if (_pending.Remove(thumb, out var source)) source.Dispose();
+    }
+
+    // Small pictures are pixel art and stay sharp when the row makes them larger; larger ones are smoothed.
+    private static void ShowPicture(Image thumb, Avalonia.Media.IImage picture)
+    {
+        Avalonia.Media.RenderOptions.SetBitmapInterpolationMode(thumb, picture.Size.Width <= 48 && picture.Size.Height <= 48 ? Avalonia.Media.Imaging.BitmapInterpolationMode.None : Avalonia.Media.Imaging.BitmapInterpolationMode.MediumQuality);
+        thumb.Source = picture;
     }
 
     public void FocusFilter() => FilterBox.Focus();
@@ -296,6 +298,7 @@ public partial class ExplorerView : UserControl
 
     private void ShowBreadcrumb()
     {
+        ApplyFold();
         ViewToggle.Content = Loc.Current[Model.FolderView ? "explorer.viewTypes" : "explorer.viewFolders"];
         ToolTip.SetTip(ViewToggle, Loc.Current["explorer.viewToggle"]);
         Avalonia.Automation.AutomationProperties.SetName(ViewToggle, Loc.Current["explorer.viewToggle"]);

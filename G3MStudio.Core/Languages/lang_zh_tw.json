@@ -404,6 +404,8 @@
     "noValue": "無",
     "thumbnails": "縮圖",
     "zoom": "縮放 50% 到 250%",
+    "hideOptions": "隱藏縮圖選項",
+    "showOptions": "顯示縮圖選項",
     "filter": "篩選資源...",
     "count": "{count} 個資源",
     "matches": "{total} 個中的 {matches} 個",
@@ -664,6 +666,11 @@
   },
   "history": {
     "kind": {
+      "includedPicture": "將影像寫入內含檔案",
+      "includedText": "將文字寫入內含檔案",
+      "includedAudio": "將音訊寫入內含檔案",
+      "replaceEmbeddedAudio": "取代內嵌音訊",
+      "frameReorder": "調整精靈影格順序",
       "addString": "新增字串",
       "assembly": "編輯組合語言",
       "audioGroupMove": "移到音訊群組",
@@ -949,6 +956,7 @@
     "shortcutFilter": "篩選命令或快速鍵",
     "pressKeys": "請按下按鍵...",
     "noShortcut": "無",
+    "addShortcut": "新增另一個快速鍵",
     "reset": "重設",
     "restore": "還原預設值",
     "restoreTip": "將所選區段的設定還原為預設值。",
@@ -1213,6 +1221,7 @@
     "findRooms": "尋找使用此圖塊的房間"
   },
   "textureItem": {
+    "edit": "編輯影像...",
     "export": "匯出 PNG",
     "replace": "取代 PNG",
     "pick": "{name} 的圖片",
@@ -1434,6 +1443,16 @@
     "packaged": "模組已儲存到 {path}。請在 mod_config.json 中設定作者與遊戲 ID。"
   },
   "sprites": {
+    "editMask": "編輯遮罩影像...",
+    "loop": "循環",
+    "onion": "洋蔥皮",
+    "speed": "速度",
+    "perSecond": "影格/秒",
+    "perGameFrame": "影格/遊戲影格",
+    "addFrame": "新增",
+    "duplicateFrame": "複製",
+    "deleteFrame": "刪除",
+    "importFrames": "匯入...",
     "lockOrigin": "鎖定原點",
     "play": "播放",
     "pause": "暫停",
@@ -1563,6 +1582,7 @@
     "glyphCount": "共 {count} 個字形",
     "glyphNew": "U+代碼、字元或範圍 (A-Z)",
     "glyphAdd": "新增字形",
+    "editGlyphImage": "編輯字形影像",
     "presetNormal": "一般",
     "presetDigits": "數字",
     "presetLetters": "字母",
@@ -1831,11 +1851,21 @@
   },
   "object": {
     "vertices": "物理形狀頂點",
+    "editMaskImage": "編輯遮罩影像...",
     "vertexAdd": "新增頂點",
     "vertexSet": "設定頂點",
     "removeEvent": "刪除"
   },
   "image": {
+    "limitItem": "紋理頁上的位置固定為 {w}x{h}；更大的影像會被縮小，或需要重新打包紋理",
+    "limitPage": "紋理頁大小為 {w}x{h}，無法變更",
+    "limitMask": "碰撞遮罩 {w}x{h}，1 位元：白色為實心，大小固定",
+    "limitIncluded": "獨立檔案：套用會立即寫入遊戲資料夾（JPEG 無透明度，GIF 只保留第一格）",
+    "limitGlyph": "字型圖集上的字形 {w}x{h}，大小固定，套用會寫回圖集",
+    "apply": "套用",
+    "applied": "已套用 {name} 的影像。",
+    "notApplied": "未能套用對 {name} 的編輯：{reason}",
+    "noPicture": "此分頁沒有可編輯的影像。",
     "noFrames": "此精靈沒有可編輯的影格。",
     "tool": {
       "Pencil": "鉛筆",
@@ -2088,7 +2118,8 @@
     "redo": "重做修補",
     "apply": "寫入檔案...",
     "badPatch": "請以十六進位位元組對輸入，並使用檔案內放得下的偏移。",
-    "patched": "已修補 {count} 位元組，最後在 0x{offset}。尚未寫入。"
+    "patched": "已修補 {count} 位元組，最後在 0x{offset}。尚未寫入。",
+    "written": "已寫入檔案。"
   },
   "colors": {
     "Diff": {
@@ -2203,6 +2234,7 @@
     "refresh": "重新整理",
     "filter": "篩選檔案",
     "colName": "名稱",
+    "edit": "編輯...",
     "colType": "類型",
     "colSize": "大小",
     "colModified": "修改日期",
@@ -2221,6 +2253,14 @@
     "failed": "無法複製: {files}"
   },
   "risky": {
+    "includedPictureTitle": "要把影像寫入遊戲資料夾嗎？",
+    "includedTextTitle": "要把文字寫入遊戲資料夾嗎？",
+    "includedText": "{reason}\n\n此變更不在資料檔案中。",
+    "includedAudioTitle": "要把音訊寫入遊戲資料夾嗎？",
+    "includedAudio": "{reason}\n\n此變更不在資料檔案中。",
+    "includedPicture": "{reason}\n\n此變更不在資料檔案中。",
+    "itemSizeTitle": "要把比 {name} 的位置更大的影像放進去嗎？",
+    "itemSize": "{reason}\n\n影像會縮小以符合它在頁面上的位置，因此會失去細節。重新打包紋理可以給它更大的位置。",
     "includedRenameTitle": "仍要重新命名 {name} 嗎？",
     "includedRename": "{reason}\n\n遊戲依名稱尋找此檔案，重新命名後可能找不到。此操作無法復原。",
     "includedDeleteTitle": "仍要刪除 {name} 嗎？",

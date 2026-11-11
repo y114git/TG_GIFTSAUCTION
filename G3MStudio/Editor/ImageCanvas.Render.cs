@@ -43,7 +43,7 @@ public sealed partial class ImageCanvas
         }
     }
 
-    private static WriteableBitmap Bitmap(PixelBuffer picture)
+    internal static WriteableBitmap Bitmap(PixelBuffer picture)
     {
         var bitmap = NewBitmap(picture);
         using var frame = bitmap.Lock();

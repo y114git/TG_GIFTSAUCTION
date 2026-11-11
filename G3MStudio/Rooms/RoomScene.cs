@@ -76,14 +76,14 @@ public sealed class RoomScene : IDisposable
     public static RoomScene Build(GameMakerRoom room) => Build(room, ToBitmap, ownsPages: true);
 
     // A first pass over the room that decodes nothing and only collects the texture pages its items draw from.
-    private static HashSet<GameMakerEmbeddedTexture> PagesUsedBy(GameMakerRoom room)
+    internal static HashSet<GameMakerEmbeddedTexture> PagesUsedBy(GameMakerRoom room)
     {
         var used = new HashSet<GameMakerEmbeddedTexture>();
         using var probe = Build(room, texture => { used.Add(texture); return null; }, ownsPages: false);
         return used;
     }
 
-    private static RoomScene Build(GameMakerRoom room, Func<GameMakerEmbeddedTexture, Bitmap?> pageOf, bool ownsPages)
+    internal static RoomScene Build(GameMakerRoom room, Func<GameMakerEmbeddedTexture, Bitmap?> pageOf, bool ownsPages)
     {
         var pages = new Dictionary<GameMakerEmbeddedTexture, Bitmap?>();
         var items = new List<RoomItem>();

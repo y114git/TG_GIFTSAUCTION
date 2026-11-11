@@ -37,6 +37,7 @@ public sealed partial class MainWindow
     private readonly UsagesPanel _usages = new();
     private readonly ReferencePanel _reference = new(G3MStudio.Core.GmlDocs.GmlReference.Default);
     private TextureBitmaps _textures = new();
+    private G3MStudio.Explorer.ThumbnailService? _thumbs; // made in WireExplorer
     private readonly OutputPanel _output = new();
     private readonly Dictionary<string, CodeEditorTab> _codeTabs = [];
     private readonly Dictionary<string, SpriteFramesView> _frameViews = [];
@@ -49,6 +50,7 @@ public sealed partial class MainWindow
     private RoomPreview RememberRoom(string tabId, RoomPreview view, string key)
     {
         view.PlaceSource = () => Explorer.SelectedKey;
+        view.EditImageRequested += EditImageKey;
         if (_savedRooms?.GetValueOrDefault(key) is { } saved) _ = view.RestoreViewAsync(saved);
         _roomViews[tabId] = view;
         // The tab is made while it is being shown, after the Inspector looked for its layers: look again once the view is registered.
@@ -98,6 +100,11 @@ public sealed partial class MainWindow
     private SpriteEditorView RememberEditor(string tabId, SpriteEditorView view)
     {
         _frameViews[tabId] = view.Frames;
+        view.Frames.ImportRequested += ImportSheet;
+        view.Tools.EditMaskRequested += index =>
+        {
+            if (Docking.Tabs.Get(tabId)?.Key is { } key && ResourceTypes.SplitKey(key) is var (_, sprite)) EditImageOf("spriteMasks", $"{sprite}#{index}");
+        };
         Dispatcher.UIThread.Post(UpdateTabContexts, DispatcherPriority.Loaded); // the tab was made after the dock told its listeners, so the menus look again
         return view;
     }
@@ -105,7 +112,9 @@ public sealed partial class MainWindow
     private Control? CreateEditor(TabInfo tab)
     {
         if (Workspaces.Current is not { } workspace || ResourceTypes.SplitKey(tab.Key) is not var (kind, entry)) return new TextBlock { Text = tab.Key, Classes = { "muted" } };
-        if (tab.Kind == "image") return ImageTab(tab, workspace, entry);
+        if (tab.Kind == "image") return ImageTab(tab, workspace, kind, entry);
+        if (tab.Kind == "text") return TextFileTab(tab, workspace, entry);
+        if (tab.Kind == "audio") return AudioTab(tab, workspace, kind, entry);
         if (tab.Kind != "code")
         {
             var resource = ResourceTypes.Find(workspace.Data, tab.Key);
@@ -114,30 +123,32 @@ public sealed partial class MainWindow
                 GameMakerSprite sprite => RememberEditor(tab.Id, new SpriteEditorView(sprite, _textures, workspace)),
                 GameMakerRoom room => RememberRoom(tab.Id, new RoomPreview(room, _textures, workspace, ShowCreationOrder, ShowCreationCode, ShowInstanceCreationCode) { ResourceMenu = FrontResourceMenu, AutoTiles = AutoTilesOf(workspace) }, tab.Key),
                 GameMakerSound sound => RememberSound(tab.Id, new SoundPlayerView(sound, UrlOpener, () => Workspaces.Settings.Current.Audio)),
+                GameMakerEmbeddedAudio => AudioTab(tab, workspace, kind, entry),
                 GameMakerGeneralInfo => new EntryScriptsView(workspace, OpenEntry),
                 GameMakerVariable => new VariableCountsView(workspace),
-                GameMakerGameObject obj => new StackPanel { Spacing = 8, Children = { new ObjectEventsView(obj, OpenEntry, workspace, code => InlineCode(tab.Id, workspace, code)), new PhysicsVerticesView(obj, workspace) } },
+                GameMakerGameObject obj => new StackPanel { Spacing = 8, Children = { ObjectImageBar(obj), new ObjectEventsView(obj, OpenEntry, workspace, code => InlineCode(tab.Id, workspace, code)), new PhysicsVerticesView(obj, workspace) } },
                 GameMakerBackground background => TilePicker(background, workspace),
                 GameMakerUIRootNode uiLayer => new UiLayerView(uiLayer, workspace),
                 GameMakerFont font => FontTab(font, workspace),
-                GameMakerTexturePageItem pageItem => new TextureItemView(pageItem, _textures),
-                GameMakerEmbeddedImage image => new TextureItemView(image.TextureEntry, _textures),
+                GameMakerTexturePageItem pageItem => new TextureItemView(pageItem, _textures, null, () => EditImageOf(kind, entry), workspace.History),
+                GameMakerEmbeddedImage image => new TextureItemView(image.TextureEntry, _textures, null, () => EditImageOf(kind, entry), workspace.History),
                 GameMakerPath path => new PathEditor(path, workspace),
-                GameMakerParticleSystem system => ParticleTab(system, workspace),
-                GameMakerSequence sequence => SequencePlayerView.Tab(sequence, _textures, workspace),
+                GameMakerParticleSystem system => ParticleTab(system, workspace, EditImageKey),
+                GameMakerSequence sequence => SequencePlayerView.Tab(sequence, _textures, workspace, EditImageKey),
                 GameMakerAnimationCurve curve => new CurveEditor(curve, workspace),
                 GameMakerExtension extension => new ExtensionView(extension, workspace, (build, name) => EditOrForceAsync(workspace, build, name)),
                 GameMakerShader shader => new ShaderSourceView(shader, workspace),
                 GameMakerTimeline timeline => new TimelineStepsView(timeline, workspace, OpenEntry),
-                GameMakerEmbeddedTexture page => new TexturePagePreview(page, _textures, workspace.History, workspace.Data.TexturePageItems, (ExportPage, ReplacePage, () => new GroupsWindow(workspace, false, RiskNow).Show(this))) { FindRequested = item => FindUsagesOfKey(ResourceTypes.KeyOf("texturePageItems", ResourceTypes.NameOf(item))) },
+                GameMakerEmbeddedTexture page => new TexturePagePreview(page, _textures, workspace.History, workspace.Data.TexturePageItems, (ExportPage, ReplacePage, () => new GroupsWindow(workspace, false, RiskNow).Show(this)), () => EditImageOf(kind, entry)) { FindRequested = item => FindUsagesOfKey(ResourceTypes.KeyOf("texturePageItems", ResourceTypes.NameOf(item))) },
                 _ => null,
             };
             // A plugin editor adds a view for any resource type that has no built-in one above.
-            if (resource is IncludedFilesEntry) return new IncludedFilesView(workspace, Workspaces.UserData, AskRiskyAsync, Notify);
+            if (resource is IncludedFilesEntry) return new IncludedFilesView(workspace, Workspaces.UserData, AskRiskyAsync, Notify, path => EditImageOf("includedFiles", path), path => OpenIncludedFile(path));
             header ??= _plugins?.CreateEditorView(kind, resource) as Control;
             var grid = new PropertyGridTab(workspace, kind, entry, header);
             grid.OpenRequested += OpenEntry;
             grid.FindUsagesRequested += FindUsagesOfKey;
+            grid.EditImageRequested += EditImageKey;
             return grid;
         }
 
@@ -154,10 +165,10 @@ public sealed partial class MainWindow
         return editor;
     }
 
-    private static StackPanel ParticleTab(GameMakerParticleSystem system, Workspace workspace)
+    private static StackPanel ParticleTab(GameMakerParticleSystem system, Workspace workspace, Action<string> editImage)
     {
         var preview = new ParticlePreviewView(system, workspace);
-        return new StackPanel { Spacing = 8, Children = { preview, new ParticleEmittersView(system, workspace, emitter => preview.Solo = emitter) } };
+        return new StackPanel { Spacing = 8, Children = { preview, new ParticleEmittersView(system, workspace, emitter => preview.Solo = emitter, editImage) } };
     }
 
     // The editor beside an object's events takes the object tab's id, so saving applies it and the close of the tab drops it.

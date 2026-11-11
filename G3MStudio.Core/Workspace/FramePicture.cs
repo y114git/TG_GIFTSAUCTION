@@ -15,6 +15,15 @@ public static class FramePicture
         return ReadItem(item, sprite);
     }
 
+    /// <summary>The pixels of a picture file (png, jpg, bmp, gif, webp) from its bytes; throws when they cannot be read.</summary>
+    public static PixelBuffer FromBytes(byte[] bytes)
+    {
+        using var image = ReplaceFrameCommand.ReadPicture(bytes);
+        image.Alpha(AlphaOption.Set);
+        using var pixels = image.GetPixels();
+        return new PixelBuffer((int)image.Width, (int)image.Height, pixels.ToByteArray(PixelMapping.RGBA) ?? throw new InvalidOperationException("The picture has no pixels."));
+    }
+
     /// <summary>A texture page item as pixels (a frame, or the picture of a tile set).</summary>
     public static PixelBuffer ReadItem(GameMakerTexturePageItem item, string name)
     {

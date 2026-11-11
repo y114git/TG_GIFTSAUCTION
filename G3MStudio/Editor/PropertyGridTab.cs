@@ -4,7 +4,6 @@ using Avalonia.Input;
 using Avalonia.Layout;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
-using G3MStudio.Theme;
 
 namespace G3MStudio.Editor;
 
@@ -17,7 +16,7 @@ public sealed partial class PropertyGridTab : DockPanel
     private readonly Workspace _workspace;
     private readonly TextBox _filter = new() { Name = "PropertyFilter", PlaceholderText = Loc.Current["properties.filter"], Margin = new Thickness(8, 4) };
     private readonly TextBlock _message = new() { Name = "PropertyMessage", Margin = new Thickness(8, 0), TextWrapping = Avalonia.Media.TextWrapping.Wrap };
-    private readonly StackPanel _rows = new() { Margin = new Thickness(8), Spacing = 2 };
+    private readonly StackPanel _rows = new() { Margin = new Thickness(8), Spacing = 4 };
     private readonly string _type, _name, _prefix;
     private bool _applying;
     private readonly SpriteFramesView? _sprite;
@@ -53,27 +52,42 @@ public sealed partial class PropertyGridTab : DockPanel
         {
             // A room, sequence or font editor is tall: the splitter lets the canvas and the properties share the tab at any window size.
             var tall = header is RoomPreview or SpriteEditorView || type is "fonts" or "uiLayers"; // a font's glyph list and a UI layer's tree, fields and preview need most of the tab, with a splitter instead of a cap
-            var top = new RowDefinition(tall ? new GridLength(header is RoomPreview ? 4 : header is SpriteEditorView ? 5 : 3, GridUnitType.Star) : GridLength.Auto) { MinHeight = tall ? (header is SpriteEditorView ? 320 : header is RoomPreview ? 280 : 200) : 0 };
-            var split = new Grid { RowDefinitions = { top, new RowDefinition(GridLength.Auto), new RowDefinition(2, GridUnitType.Star) { MinHeight = header is RoomPreview ? 180 : 120 } } };
+            var top = new RowDefinition(tall ? new GridLength(header is RoomPreview ? 13 : header is SpriteEditorView ? 5 : 3, GridUnitType.Star) : GridLength.Auto) { MinHeight = tall ? (header is SpriteEditorView ? 320 : header is RoomPreview ? 150 : 200) : 0 };
+            var split = new Grid { RowDefinitions = { top, new RowDefinition(GridLength.Auto), new RowDefinition(header is RoomPreview ? 7 : 2, GridUnitType.Star) { MinHeight = header is RoomPreview ? 130 : 120 } } };
             var splitter = new GridSplitter { Height = 5, HorizontalAlignment = HorizontalAlignment.Stretch, ResizeDirection = GridResizeDirection.Rows, IsVisible = tall || type == "objects" };
             // A stacked header takes the room its content needs (an object tab too, with a splitter to give it more), at most 60% of the tab, and scrolls beyond that.
-            if (!tall) split.SizeChanged += (_, e) => top.MaxHeight = e.NewSize.Height * 0.6;
+            // The cap is also set on the scroller itself: a row limit alone leaves the scroller measured at its full height with nothing to scroll.
+            Control? stacked = header is StackPanel ? new ScrollViewer { Content = header } : null;
+            if (!tall) split.SizeChanged += (_, e) => top.MaxHeight = (stacked ?? header).MaxHeight = e.NewSize.Height * 0.6;
             Grid.SetRow(splitter, 1);
             Grid.SetRow(body, 2);
-            split.Children.Add(header is StackPanel ? new ScrollViewer { Content = header } : header);
+            split.Children.Add(stacked ?? header);
             split.Children.Add(splitter);
             split.Children.Add(body);
-            Children.Add(split);
+            // Below the room the rows need, the whole tab scrolls instead of cutting the lower part (the canvas and the list keep their minimum height).
+            var bottom = split.RowDefinitions[2];
+            var needed = tall ? top.MinHeight + 5 + bottom.MinHeight : bottom.MinHeight / 0.4;
+            var page = new ScrollViewer { HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, Content = split };
+            page.SizeChanged += (_, e) => split.Height = Math.Max(e.NewSize.Height, needed);
+            Children.Add(page);
         }
         else
         {
             if (header is not null)
             {
-                SetDock(header, Avalonia.Controls.Dock.Top);
-                Children.Add(header);
+                // The editor above takes the height it needs and the list keeps a minimum: when the tab is lower than both, the whole tab scrolls instead of cutting the list.
+                body.MinHeight = 160;
+                var stack = new Grid { RowDefinitions = new RowDefinitions("Auto,*") };
+                Grid.SetRow(body, 1);
+                stack.Children.Add(header);
+                stack.Children.Add(body);
+                var scroller = new ScrollViewer { HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, Content = stack };
+                void Fit() => stack.Height = Math.Max(scroller.Bounds.Height, header.DesiredSize.Height + body.MinHeight);
+                scroller.SizeChanged += (_, _) => Fit();
+                header.SizeChanged += (_, _) => Fit();
+                Children.Add(scroller);
             }
-
-            Children.Add(body);
+            else Children.Add(body);
         }
 
         _filter.TextChanged += (_, _) => Fill();
@@ -95,6 +109,9 @@ public sealed partial class PropertyGridTab : DockPanel
 
     /// <summary>Find Usages was chosen on a reference field; the key of the entry it points at.</summary>
     public event Action<string>? FindUsagesRequested;
+
+    /// <summary>Edit Image was chosen on a reference field that points at a sprite, tile set, font or texture page item; the key of that entry.</summary>
+    public event Action<string>? EditImageRequested;
 
     private void OnHistoryChanged()
     {
@@ -307,69 +324,6 @@ public sealed partial class PropertyGridTab : DockPanel
         return button;
     }
 
-    // A swatch that opens three sliders (red, green, blue) and the number itself in a box beside it (UTMT-CTRL-05). The picked color is committed when the flyout closes, so a drag is one undo step; the top byte of the stored value is kept.
-    private static readonly string[] ColourNames = ["red", "green", "blue"];
-
-    private StackPanel ColorEditor(PropertyRow row, uint color)
-    {
-        var (r, g, b) = PropertyModel.Rgb(color);
-        var sliders = new[] { r, g, b }.Select((v, n) => new Slider { Minimum = 0, Maximum = 255, Value = v, Width = 220, Name = $"Color{"RGB"[n]}_{row.Path}" }.Labeled("organize.colour." + ColourNames[n])).ToArray();
-        var swatch = new Border { Width = 40, Height = 22, CornerRadius = new CornerRadius(3), BorderThickness = new Thickness(1), BorderBrush = (Avalonia.Media.IBrush?)Application.Current?.FindResource("Border.Subtle") };
-        Avalonia.Media.IBrush Brush() => new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromRgb((byte)sliders[0].Value, (byte)sliders[1].Value, (byte)sliders[2].Value));
-        swatch.Background = Brush();
-        foreach (var slider in sliders) slider.ValueChanged += (_, _) => swatch.Background = Brush();
-        var pick = new Button { Name = "Picker_" + row.Path, Content = swatch, Padding = new Thickness(3), IsEnabled = !row.ReadOnly }.Labeled("cmd.img.tool.picker");
-        var flyout = new Flyout { Content = new StackPanel { Spacing = 4, Children = { sliders[0], sliders[1], sliders[2] } } };
-        flyout.Closed += (_, _) =>
-        {
-            var next = PropertyModel.WithRgb(color, (byte)sliders[0].Value, (byte)sliders[1].Value, (byte)sliders[2].Value);
-            if (next != color) Commit(row.Path, next.ToString(System.Globalization.CultureInfo.InvariantCulture));
-        };
-        pick.Flyout = flyout;
-        var box = new TextBox { Name = "Prop_" + row.Path, Text = row.Value, IsReadOnly = row.ReadOnly, Width = 120 };
-        void Done()
-        {
-            if (!row.ReadOnly && box.Text != row.Value && !Commit(row.Path, box.Text ?? "")) box.Text = row.Value;
-        }
-
-        box.LostFocus += (_, _) => Done();
-        box.KeyDown += (_, e) => { if (e.Key == Avalonia.Input.Key.Enter) Done(); };
-        return new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { pick, box } };
-    }
-
-    // A reference to another entry: its name is a link that opens it. A settable one takes an Explorer item dropped on it and has a button that clears it (UTMT-CTRL-01).
-    private StackPanel ReferenceEditor(PropertyRow row)
-    {
-        var link = new Button { Name = "Open_" + row.Path, Content = row.Value.Length > 0 ? row.Value : Loc.Current["explorer.noValue"], Classes = { "link" }, HorizontalAlignment = HorizontalAlignment.Left, IsEnabled = row.Target is not null };
-        if (row.Target is { } target)
-        {
-            link.Click += (_, _) => OpenRequested?.Invoke(target);
-            // A button ignores the middle button, which opens the entry in a tab of its own like in the Explorer.
-            link.PointerReleased += (_, e) =>
-            {
-                if (e.InitialPressMouseButton == Avalonia.Input.MouseButton.Middle) OpenRequested?.Invoke(target);
-            };
-            var find = new MenuItem { Header = Loc.Current["cmd.edit.findUsages"] };
-            find.Click += (_, _) => FindUsagesRequested?.Invoke(target);
-            link.ContextMenu = new ContextMenu { Items = { find } };
-        }
-
-        var panel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Background = Avalonia.Media.Brushes.Transparent, Children = { link } };
-        if (!row.Reference) return panel;
-        var clear = new Button { Name = "Clear_" + row.Path, Content = "×", Classes = { "icon" }, IsEnabled = row.Target is not null };
-        Avalonia.Automation.AutomationProperties.SetName(clear, Loc.Current["timelines.remove"]);
-        clear.Click += (_, _) => Commit(row.Path, "");
-        panel.Children.Add(clear);
-        Avalonia.Input.DragDrop.SetAllowDrop(panel, true);
-        panel.AddHandler(Avalonia.Input.DragDrop.DragOverEvent, (_, e) => e.DragEffects = e.DataTransfer.TryGetValue(ResourceDrag.Keys) is null ? Avalonia.Input.DragDropEffects.None : Avalonia.Input.DragDropEffects.Move);
-        panel.AddHandler(Avalonia.Input.DragDrop.DropEvent, (_, e) =>
-        {
-            if (e.DataTransfer.TryGetValue(ResourceDrag.Keys)?.Split('\n', StringSplitOptions.RemoveEmptyEntries) is not [var key, ..]) return;
-            Commit(row.Path, key);
-            e.Handled = true;
-        });
-        return panel;
-    }
 
     private Control Editor(PropertyRow row)
     {
@@ -423,6 +377,8 @@ public sealed partial class PropertyGridTab : DockPanel
                 return choices;
             default:
                 var box = new TextBox { Name = "Prop_" + row.Path, Text = row.Value, IsReadOnly = row.ReadOnly, PlaceholderText = row.ReadOnly ? null : Loc.Current["properties.empty"] };
+                // A number is a few digits: its box stays one field wide instead of stretching over the tab.
+                if (row.Kind is PropertyKind.Whole or PropertyKind.Real) (box.MaxWidth, box.HorizontalAlignment) = (200, HorizontalAlignment.Left);
                 void Done()
                 {
                     if (!row.ReadOnly && box.Text != row.Value && !Commit(row.Path, box.Text ?? "")) box.Text = row.Value;

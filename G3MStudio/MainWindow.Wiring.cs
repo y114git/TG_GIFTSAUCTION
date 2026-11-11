@@ -10,8 +10,9 @@ public sealed partial class MainWindow
         Explorer.EditQuick = EditQuick;
         Explorer.DropOnto = DropOntoRow;
         Explorer.ViewToggleRequested += ToggleFolderView;
+        Explorer.OptionsFoldChanged += folded => Workspaces.Settings.Update(x => x with { ExplorerOptionsFolded = folded });
         Explorer.CommandRequested += id => Registry?.Execute(id);
-        Explorer.Thumbnail = LoadThumbnailAsync;
+        Explorer.Pictures = _thumbs = new G3MStudio.Explorer.ThumbnailService(() => Workspaces.Current, () => _textures, () => Memory.IsLow);
         Explorer.OpenRequested += (row, preview) => Docking.OpenTab(row.Key == "code" ? "code" : "resource", ResourceTypes.KeyOf(row.Key, row.Text), preview);
         Explorer.SelectionChanged += SaveView;
         Explorer.SelectionChanged += ShowInInspector;

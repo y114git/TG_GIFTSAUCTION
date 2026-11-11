@@ -34,6 +34,9 @@ public sealed class FontGlyphsView : StackPanel
         }
     }
 
+    /// <summary>Called with the Explorer key of the picked glyph (type fontGlyphs, name font#index) when the user asks to edit its picture; without it the button stays disabled.</summary>
+    public Action<string>? EditGlyphRequested { get; init; }
+
     /// <summary>Reports a refused edit; without it the refusal is silent.</summary>
     public Action<NotificationLevel, string>? Notify { get; init; }
 
@@ -96,7 +99,13 @@ public sealed class FontGlyphsView : StackPanel
             _replace.IsEnabled = ReplaceRequested is not null;
             Avalonia.Controls.ToolTip.SetTip(_replace, Loc.Current["fonts.replaceTip"]);
             _replace.Click += (_, _) => ReplaceRequested?.Invoke(font.Name.Content ?? "");
-            Children.Add(new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Children = { _newCharacter, add, remove, deleteRange, _replace } });
+            var editGlyph = new Button { Name = "GlyphEditImage", Content = Loc.Current["fonts.editGlyphImage"], IsEnabled = false };
+            editGlyph.Click += (_, _) =>
+            {
+                if (_list.SelectedIndex is >= 0 and var row && row < _shown.Count) EditGlyphRequested?.Invoke(ResourceTypes.KeyOf("fontGlyphs", $"{font.Name.Content}#{_shown[row]}"));
+            };
+            _list.SelectionChanged += (_, _) => editGlyph.IsEnabled = EditGlyphRequested is not null && _list.SelectedIndex is >= 0 and var picked && picked < _shown.Count;
+            Children.Add(new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Children = { _newCharacter, add, remove, editGlyph, deleteRange, _replace } });
             var presets = new WrapPanel { ItemSpacing = 6, LineSpacing = 6 };
             foreach (var (name, key) in new[] { ("Normal", "fonts.presetNormal"), ("Digits", "fonts.presetDigits"), ("Letters", "fonts.presetLetters") })
             {

@@ -67,7 +67,48 @@ public sealed partial class ImageEditorView
     {
         if (Canvas.Picture.Extract(Canvas.State.Selection) is not var (pixels, _)) return;
         _clipboard = pixels;
+        _ = ShareClipboardAsync(pixels);
         if (cut) Canvas.Run(new ImageOp(ImageOps.Clear));
+    }
+
+    // The copy also goes to the system clipboard as a bitmap, so other programs can paste it and a later paste here is not shadowed by an older system image.
+    private async Task ShareClipboardAsync(PixelBuffer pixels)
+    {
+        try
+        {
+            if (TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard) return;
+            using var stream = new MemoryStream(FramePicture.ToPng(pixels));
+            using var bitmap = new Avalonia.Media.Imaging.Bitmap(stream);
+            await Avalonia.Input.Platform.ClipboardExtensions.SetBitmapAsync(clipboard, bitmap);
+        }
+        catch (Exception e) when (e is InvalidOperationException or IOException or NotSupportedException or System.Runtime.InteropServices.ExternalException)
+        {
+            // A platform without clipboard bitmaps keeps the internal copy, which Paste still uses.
+        }
+    }
+
+    /// <summary>Pastes a bitmap from the system clipboard as a movable selection; without one, the copy made in this editor.</summary>
+    public async Task PasteAsync()
+    {
+        try
+        {
+            if (TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard && await Avalonia.Input.Platform.ClipboardExtensions.TryGetBitmapAsync(clipboard) is { } bitmap)
+            {
+                using (bitmap)
+                {
+                    using var stream = new MemoryStream();
+                    bitmap.Save(stream, new Avalonia.Media.Imaging.PngBitmapEncoderOptions());
+                    var pixels = FramePicture.FromBytes(stream.ToArray());
+                    _clipboard = pixels;
+                }
+            }
+        }
+        catch (Exception e) when (e is InvalidOperationException or IOException or NotSupportedException or ImageMagick.MagickException or System.Runtime.InteropServices.ExternalException)
+        {
+            // An unreadable system image falls back to the editor's own copy.
+        }
+
+        PasteClipboard();
     }
 
     /// <summary>Pastes the copied pixels at the top left of what is in view, as a selection that can be moved.</summary>

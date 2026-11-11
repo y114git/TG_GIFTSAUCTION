@@ -130,6 +130,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
     {
         var active = Docking.ActiveTabId;
         Registry?.SetContext(AppCommands.SpriteTab, active is not null && _frameViews.ContainsKey(active));
+        Registry?.SetContext(AppCommands.PictureTab, (active is not null && Docking.Tabs.Get(active)?.Key is { } pictureKey && PictureKey(pictureKey)) || (Explorer.SelectedKey is { } row && PictureKey(row)));
         Registry?.SetContext(AppCommands.RoomTab, active is not null && _roomViews.ContainsKey(active));
         Registry?.SetContext(AppCommands.CodeTab, active is not null && _codeTabs.ContainsKey(active));
         Registry?.SetContext(AppCommands.ImageTab, active is not null && _imageViews.ContainsKey(active));
@@ -331,8 +332,8 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
     private StackPanel FontTab(GameMakerFont font, Workspace workspace)
     {
         // A short sheet (the picture scrolls inside it) keeps the glyph list and the kerning pairs in view; a taller fixed size was cut to its middle by a smaller border.
-        var sheet = new TextureItemView(font.Texture, _textures, () => ReplaceItemPictureAsync(workspace, "fonts", ResourceTypes.NameOf(font))) { Height = 150 };
-        return new StackPanel { Spacing = 8, Children = { sheet, new FontGlyphsView(font, workspace) { Sheet = sheet, Notify = Notify, ReplaceRequested = name => _ = ReplaceFontAsync(name) } } };
+        var sheet = new TextureItemView(font.Texture, _textures, () => ReplaceItemPictureAsync(workspace, "fonts", ResourceTypes.NameOf(font)), () => EditImageOf("fonts", ResourceTypes.NameOf(font)), workspace.History) { Height = 150 };
+        return new StackPanel { Spacing = 8, Children = { sheet, new FontGlyphsView(font, workspace) { Sheet = sheet, EditGlyphRequested = EditImageKey, Notify = Notify, ReplaceRequested = name => _ = ReplaceFontAsync(name) } } };
     }
 
     public Task<bool> ConfirmCloseAsync() => ApplyCodeEditors() ? CloseGuard.ConfirmAsync(Workspaces.Current, AskClose, SaveForCloseAsync, Workspaces.Settings.Current.AskOnClose) : Task.FromResult(false);
@@ -424,5 +425,6 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
         KillGame();
         _pluginWatcher?.Dispose();
         _textures.Dispose();
+        _thumbs?.Dispose();
     }
 }

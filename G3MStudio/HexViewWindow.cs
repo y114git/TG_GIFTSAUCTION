@@ -76,6 +76,7 @@ public sealed class HexViewWindow : Window, IDisposable
             }
 
             Refresh();
+            _message.Text = Loc.Current["hex.written"];
         };
         Refresh();
         var bar = new WrapPanel { ItemSpacing = 6, LineSpacing = 6, Margin = new Avalonia.Thickness(0, 0, 0, 8), Children = { chunks, _goTo, go, _find, next, _bytes, _set, _undo, _redo, _apply, _message } };

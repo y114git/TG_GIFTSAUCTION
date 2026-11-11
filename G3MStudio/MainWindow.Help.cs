@@ -14,7 +14,7 @@ namespace G3MStudio;
 /// <summary>Help menu and the Edit commands that go to the text editor having the focus.</summary>
 public sealed partial class MainWindow
 {
-    public const string DocumentationUrl = "https://github.com/y114git/G3MWiki";
+    public const string DocumentationUrl = "https://g3m.gitbook.io/g3mwiki/main/g3mstudio";
 
     public void ShowAbout() => _ = new AboutWindow().ShowDialog(this);
 
@@ -76,21 +76,8 @@ public sealed partial class MainWindow
         _ = _usages.ShowUsesAsync(name, UsesWithTypes(UsageSearch.FindUsesAsync(workspace, type, name)));
     }
 
-    /// <summary>The picture for an Explorer tooltip: the cut of the texture page that holds the entry's page item, or null.</summary>
-    private async Task<Avalonia.Media.IImage?> LoadThumbnailAsync(string key)
-    {
-        if (Workspaces.Current is not { } workspace || Memory.IsLow) return null; // a tooltip picture is optional
-        Avalonia.Media.Imaging.Bitmap? page = null;
-        G3MLib.DataFile.Models.GameMakerTexturePageItem? item;
-        using (workspace.Lock.Read()) item = ResourceThumbnails.ItemOf(ResourceTypes.Find(workspace.Data, key));
-        if (item?.TexturePage is { } texture) page = await _textures.GetAsync(texture);
-        if (page is null || item is null) return null;
-        var area = new Avalonia.PixelRect(item.SourceX, item.SourceY, item.SourceWidth, item.SourceHeight).Intersect(new Avalonia.PixelRect(page.PixelSize));
-#pragma warning disable CA2000 // the page bitmap belongs to the shared cache; the crop only views it
-        Avalonia.Media.Imaging.CroppedBitmap? crop = area.Width > 0 && area.Height > 0 ? new Avalonia.Media.Imaging.CroppedBitmap(page, area) : null;
-#pragma warning restore CA2000
-        return crop;
-    }
+    /// <summary>The picture of an entry (tooltips, hover cards, Go To), shared with the Explorer rows; null when it has none.</summary>
+    private Task<Avalonia.Media.IImage?> LoadThumbnailAsync(string key) => _thumbs?.GetAsync(key) ?? Task.FromResult<Avalonia.Media.IImage?>(null);
 
     private static async Task<IReadOnlyList<UsageHit>> UsesWithTypes(Task<IReadOnlyList<UsageHit>> search) =>
         [.. (await search).Select(h => h with { Where = Loc.Current["explorer.type." + h.OwnerType] + "  " + h.Where })];
@@ -98,7 +85,7 @@ public sealed partial class MainWindow
     private TilePickerView TilePicker(GameMakerBackground background, Workspace workspace)
     {
         var set = ResourceTypes.NameOf(background);
-        var view = new TilePickerView(background, _textures, workspace, AutoTilesOf(workspace), () => ReplaceItemPictureAsync(workspace, "tileSets", set));
+        var view = new TilePickerView(background, _textures, workspace, AutoTilesOf(workspace), () => ReplaceItemPictureAsync(workspace, "tileSets", set), () => EditImageOf("tileSets", set));
         if (view.AutoTiles is { } rules) rules.FilePicker = (title, save) => PickPatchFile(title, save, ".json");
         view.FindRequested += index =>
         {

@@ -86,7 +86,7 @@ public sealed partial class MainWindow
         if (_codeTabs.TryGetValue(tabId, out var current) && current == editor) editor.GoTo(line, column);
     }
 
-    /// <summary>Commits the text typed in the open code editors; false (with a notification) when one does not compile.</summary>
+    /// <summary>Commits the text typed in the open code editors and the picture edits waiting in image tabs; false (with a notification) when one does not compile.</summary>
     private bool ApplyCodeEditors()
     {
         foreach (var (id, editor) in _codeTabs.ToList())
@@ -102,7 +102,7 @@ public sealed partial class MainWindow
             return false;
         }
 
-        return true;
+        return ApplyPictureEditors();
     }
 
     public void Rename()

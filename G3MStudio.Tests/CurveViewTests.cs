@@ -1,7 +1,7 @@
+using Avalonia.LogicalTree;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
-using Avalonia.VisualTree;
 using G3MLib.DataFile.Models;
 using G3MStudio.Editor;
 
@@ -67,7 +67,7 @@ public sealed class CurveViewTests
             var path = new GameMakerPath { Name = new GameMakerString("p"), Points = [] };
             for (var i = 0; i < 3; i++) path.Points.Add(new GameMakerPath.PathPoint { X = i * 10, Y = i * 5 });
             var editor = new PathEditor(path, null);
-            var list = editor.GetVisualDescendants().OfType<ListBox>().Single(l => l.Name == "PathPoints");
+            var list = editor.GetLogicalDescendants().OfType<ListBox>().Single(l => l.Name == "PathPoints");
             Assert.Equal(3, list.ItemCount);
             list.SelectedIndex = 2;
             Assert.Equal(2, editor.View.Selected);

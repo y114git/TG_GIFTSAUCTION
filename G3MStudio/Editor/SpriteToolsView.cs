@@ -39,6 +39,7 @@ public sealed class SpriteToolsView : StackPanel
     private readonly NumericUpDown[] _edges = [Box("SpriteSliceLeft", 0, 65535, 96), Box("SpriteSliceTop", 0, 65535, 96), Box("SpriteSliceRight", 0, 65535, 96), Box("SpriteSliceBottom", 0, 65535, 96)];
     private readonly ComboBox[] _tiles = [.. Enumerable.Range(0, 5).Select(i => new ComboBox { Name = $"SpriteSliceTile{i}", ItemsSource = TileKeys.Select(k => Loc.Current[k]).ToList() })];
     private readonly NumericUpDown _frame = Box("SpriteToolsFrame", 0, 0);
+    private readonly Button _editMask = new() { Name = "SpriteMaskEdit", Content = Loc.Current["sprites.editMask"] };
     private bool _building;
 
     public SpriteToolsView(GameMakerSprite sprite, TextureBitmaps textures, Workspace? workspace)
@@ -57,7 +58,8 @@ public sealed class SpriteToolsView : StackPanel
         var slice = _sprite.V3NineSlice;
         Children.Add(Row(Label("editors.frame"), _frame));
         Children.Add(Section("editors.origin.title", true, Row(_preset)));
-        Children.Add(Section("editors.mask.title", true, MaskForm()));
+        _editMask.Click += (_, _) => EditMaskRequested?.Invoke(Math.Clamp((int)(_frame.Value ?? 0), 0, Math.Max(0, _sprite.CollisionMasks.Count - 1)));
+        Children.Add(Section("editors.mask.title", true, MaskForm(), Row(_editMask)));
         Children.Add(Section("editors.slice.enabled", slice?.Enabled == true, Row([_sliceOn, .. _edges]), Row([.. _tiles])));
         Wire();
         Show();
@@ -69,6 +71,8 @@ public sealed class SpriteToolsView : StackPanel
     }
 
     public SpriteCanvas Canvas { get; }
+
+    public event Action<int>? EditMaskRequested;
 
     /// <summary>Shows a frame on the canvas and in the frame box.</summary>
     public void ShowFrame(int frame) => _frame.Value = frame;

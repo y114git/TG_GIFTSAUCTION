@@ -28,6 +28,15 @@ public sealed partial class MainWindow
         return item;
     }
 
+    /// <summary>Edit Image on the entry the menu was opened for; it opens that entry's picture, not whatever tab is in front.</summary>
+    private MenuItem ImageItem(string key)
+    {
+        var item = RegistryItem("edit.editImage");
+        item.Command = null;
+        item.Click += (_, _) => EditImageKey(key);
+        return item;
+    }
+
     /// <summary>The shared resource commands for a resource type; Duplicate and Copy to other data file only where the type supports them.</summary>
     public List<Control> ResourceMenuFor(string key)
     {
@@ -38,9 +47,10 @@ public sealed partial class MainWindow
                 "edit.rename" => type != "general",
                 "edit.duplicate" => ResourceDuplicate.All.Contains(type),
                 "edit.copyToOtherFile" => CopyPlanner.Supported.Contains(type),
+                "edit.editImage" => PictureKey(key),
                 _ => true,
             })
-            .Select(RegistryItem)];
+            .Select(id => id == "edit.editImage" ? ImageItem(key) : RegistryItem(id))];
     }
 
     /// <summary>The menu of an editor tab: the tab commands, a separator, then the resource commands of what the tab shows.</summary>

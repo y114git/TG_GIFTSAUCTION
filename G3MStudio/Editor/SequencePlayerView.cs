@@ -56,7 +56,7 @@ public sealed class SequencePlayerView : StackPanel
     }
 
     /// <summary>The whole sequence tab: the canvas with its playhead, the timeline (which draws the playhead and moves it on a click) and the tracks.</summary>
-    public static StackPanel Tab(GameMakerSequence sequence, TextureBitmaps textures, Workspace? workspace)
+    public static StackPanel Tab(GameMakerSequence sequence, TextureBitmaps textures, Workspace? workspace, Action<string>? editImage = null)
     {
         var player = new SequencePlayerView(sequence, textures, workspace?.History);
         var timeline = new SequenceTimelineView(sequence, workspace);
@@ -78,7 +78,7 @@ public sealed class SequencePlayerView : StackPanel
         }
 
         if (workspace is not null) panel.Children.Add(new SequenceEventsView(sequence, workspace));
-        panel.Children.Add(new SequenceTracksView(sequence, workspace));
+        panel.Children.Add(new SequenceTracksView(sequence, workspace, editImage));
         return panel;
     }
 

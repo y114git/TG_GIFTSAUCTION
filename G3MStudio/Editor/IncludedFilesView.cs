@@ -23,7 +23,7 @@ public sealed class IncludedFilesView : Grid
     private readonly ListBox _list = new() { Name = "IncludedList", };
     private IncludedScan _scan = new([], false);
 
-    public IncludedFilesView(Workspace workspace, UserData home, Func<RiskyRefusalException, string, Task<bool>> askRisky, Action<NotificationLevel, string> notify)
+    public IncludedFilesView(Workspace workspace, UserData home, Func<RiskyRefusalException, string, Task<bool>> askRisky, Action<NotificationLevel, string> notify, Action<string>? editImage = null, Func<string, bool>? edit = null)
     {
         Name = "IncludedFilesView";
         RowDefinitions = new RowDefinitions("Auto,Auto,Auto,Auto,*");
@@ -67,6 +67,26 @@ public sealed class IncludedFilesView : Grid
                 Make("IncludedRefresh", "included.refresh", _ => Task.CompletedTask, false),
             },
         };
+        if (editImage is not null)
+            buttons.Children.Insert(3, Make("IncludedEditImage", "textureItem.edit", file =>
+            {
+                if (file is not null && IncludedPictureCommand.IsPicture(file.Path)) editImage(file.Path);
+                return Task.CompletedTask;
+            }));
+
+        if (edit is not null)
+        {
+            buttons.Children.Insert(3, Make("IncludedEdit", "included.edit", file =>
+            {
+                if (file is not null) edit(file.Path);
+                return Task.CompletedTask;
+            }));
+            _list.DoubleTapped += (_, _) =>
+            {
+                if (_list.SelectedItem is IncludedFile file) edit(file.Path);
+            };
+        }
+
         _list.ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<IncludedFile>((f, _) =>
         {
             var row = Columns();

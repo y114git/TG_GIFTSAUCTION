@@ -404,6 +404,8 @@
     "noValue": "无",
     "thumbnails": "缩略图",
     "zoom": "缩放 50% 到 250%",
+    "hideOptions": "隐藏缩略图选项",
+    "showOptions": "显示缩略图选项",
     "filter": "筛选资源...",
     "count": "{count} 个资源",
     "matches": "{total} 个中的 {matches} 个",
@@ -664,6 +666,11 @@
   },
   "history": {
     "kind": {
+      "includedPicture": "将图像写入包含文件",
+      "includedText": "将文本写入包含文件",
+      "includedAudio": "将音频写入包含文件",
+      "replaceEmbeddedAudio": "替换内嵌音频",
+      "frameReorder": "调整精灵帧顺序",
       "addString": "添加字符串",
       "assembly": "编辑汇编",
       "audioGroupMove": "移到音频组",
@@ -949,6 +956,7 @@
     "shortcutFilter": "筛选命令或快捷键",
     "pressKeys": "请按下按键...",
     "noShortcut": "无",
+    "addShortcut": "添加另一个快捷键",
     "reset": "重置",
     "restore": "恢复默认值",
     "restoreTip": "将所选部分的设置恢复为默认值。",
@@ -1213,6 +1221,7 @@
     "findRooms": "查找使用此图块的房间"
   },
   "textureItem": {
+    "edit": "编辑图像...",
     "export": "导出 PNG",
     "replace": "替换 PNG",
     "pick": "{name} 的图片",
@@ -1434,6 +1443,16 @@
     "packaged": "模组已保存到 {path}。请在 mod_config.json 中设置作者和游戏 ID。"
   },
   "sprites": {
+    "editMask": "编辑遮罩图像...",
+    "loop": "循环",
+    "onion": "洋葱皮",
+    "speed": "速度",
+    "perSecond": "帧/秒",
+    "perGameFrame": "帧/游戏帧",
+    "addFrame": "添加",
+    "duplicateFrame": "复制",
+    "deleteFrame": "删除",
+    "importFrames": "导入...",
     "lockOrigin": "锁定原点",
     "play": "播放",
     "pause": "暂停",
@@ -1563,6 +1582,7 @@
     "glyphCount": "共 {count} 个字形",
     "glyphNew": "U+代码、字符或范围 (A-Z)",
     "glyphAdd": "添加字形",
+    "editGlyphImage": "编辑字形图像",
     "presetNormal": "常规",
     "presetDigits": "数字",
     "presetLetters": "字母",
@@ -1831,11 +1851,21 @@
   },
   "object": {
     "vertices": "物理形状顶点",
+    "editMaskImage": "编辑遮罩图像...",
     "vertexAdd": "添加顶点",
     "vertexSet": "设置顶点",
     "removeEvent": "删除"
   },
   "image": {
+    "limitItem": "纹理页上的位置固定为 {w}x{h}；更大的图像会被缩小，或需要重新打包纹理",
+    "limitPage": "纹理页大小为 {w}x{h}，不能更改",
+    "limitMask": "碰撞遮罩 {w}x{h}，1 位：白色为实心，大小固定",
+    "limitIncluded": "独立文件：应用会立即写入游戏文件夹（JPEG 无透明度，GIF 只保留第一帧）",
+    "limitGlyph": "字体图集上的字形 {w}x{h}，大小固定，应用会写回图集",
+    "apply": "应用",
+    "applied": "已应用 {name} 的图像。",
+    "notApplied": "未能应用对 {name} 的编辑：{reason}",
+    "noPicture": "此标签页没有可编辑的图像。",
     "noFrames": "此精灵没有可编辑的帧。",
     "tool": {
       "Pencil": "铅笔",
@@ -2088,7 +2118,8 @@
     "redo": "重做修补",
     "apply": "写入文件...",
     "badPatch": "请以十六进制字节对输入，并使用文件内放得下的偏移。",
-    "patched": "已修补 {count} 字节，最后在 0x{offset}。尚未写入。"
+    "patched": "已修补 {count} 字节，最后在 0x{offset}。尚未写入。",
+    "written": "已写入文件。"
   },
   "colors": {
     "Diff": {
@@ -2203,6 +2234,7 @@
     "refresh": "刷新",
     "filter": "筛选文件",
     "colName": "名称",
+    "edit": "编辑...",
     "colType": "类型",
     "colSize": "大小",
     "colModified": "修改日期",
@@ -2221,6 +2253,14 @@
     "failed": "无法复制: {files}"
   },
   "risky": {
+    "includedPictureTitle": "要把图像写入游戏文件夹吗？",
+    "includedTextTitle": "要把文本写入游戏文件夹吗？",
+    "includedText": "{reason}\n\n此更改不在数据文件中。",
+    "includedAudioTitle": "要把音频写入游戏文件夹吗？",
+    "includedAudio": "{reason}\n\n此更改不在数据文件中。",
+    "includedPicture": "{reason}\n\n此更改不在数据文件中。",
+    "itemSizeTitle": "要把比 {name} 的位置更大的图像放进去吗？",
+    "itemSize": "{reason}\n\n图像会缩小以适应它在页面上的位置，因此会丢失细节。重新打包纹理可以给它更大的位置。",
     "includedRenameTitle": "仍要重命名 {name} 吗？",
     "includedRename": "{reason}\n\n游戏按名称查找该文件，重命名后可能找不到。此操作无法撤销。",
     "includedDeleteTitle": "仍要删除 {name} 吗？",

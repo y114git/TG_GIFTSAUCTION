@@ -52,7 +52,13 @@ public sealed partial class DiffWindow
         _slider.PropertyChanged += (_, e) => { if (e.Property == RangeBase.ValueProperty) RenderPicture(); };
         RenderOptions.SetBitmapInterpolationMode(_image, BitmapInterpolationMode.None);
         var codeBar = new WrapPanel { ItemSpacing = ModsUi.Space(2), LineSpacing = ModsUi.Space(2), Children = { _unified, _ignoreSpace } };
-        var pictureBar = new WrapPanel { ItemSpacing = ModsUi.Space(2), LineSpacing = ModsUi.Space(2), Children = { _mode, new TextBlock { Text = Loc.Current["mods.diff.frame"], VerticalAlignment = VerticalAlignment.Center }, _frame, _slider } };
+        // The left file is written only when it is the one open in the main window; a left file picked in this window has no editor to write it.
+        var editImage = new Button { Name = "DiffEditImage", Content = Loc.Current["textureItem.edit"], IsEnabled = ReferenceEquals(_left, _owner.Workspaces.Current) };
+        editImage.Click += (_, _) =>
+        {
+            if (_selected is { } item) _owner.EditImageKey(ResourceTypes.KeyOf(item.Type, item.Name));
+        };
+        var pictureBar = new WrapPanel { ItemSpacing = ModsUi.Space(2), LineSpacing = ModsUi.Space(2), Children = { editImage, _mode, new TextBlock { Text = Loc.Current["mods.diff.frame"], VerticalAlignment = VerticalAlignment.Center }, _frame, _slider } };
         _propsTab.Content = _props;
         _codeTab.Content = Stack(codeBar, _code);
         _pictureTab.Content = Stack(pictureBar, _pictureNote, _image);

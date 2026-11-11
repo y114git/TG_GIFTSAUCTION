@@ -404,6 +404,8 @@
     "noValue": "なし",
     "thumbnails": "サムネイル",
     "zoom": "ズーム 50 から 250 パーセント",
+    "hideOptions": "サムネイルのオプションを隠す",
+    "showOptions": "サムネイルのオプションを表示",
     "filter": "リソースを絞り込み...",
     "count": "{count} 件のリソース",
     "matches": "{total} 件中 {matches} 件",
@@ -664,6 +666,11 @@
   },
   "history": {
     "kind": {
+      "includedPicture": "同梱ファイルへ画像を書き込み",
+      "includedText": "同梱ファイルへテキストを書き込み",
+      "includedAudio": "同梱ファイルへ音声を書き込み",
+      "replaceEmbeddedAudio": "埋め込み音声を置換",
+      "frameReorder": "スプライトのフレームを並べ替え",
       "addString": "文字列を追加",
       "assembly": "アセンブリを編集",
       "audioGroupMove": "オーディオグループへ移動",
@@ -949,6 +956,7 @@
     "shortcutFilter": "コマンドまたはショートカットを絞り込み",
     "pressKeys": "キーを押してください...",
     "noShortcut": "なし",
+    "addShortcut": "別のショートカットを追加",
     "reset": "リセット",
     "restore": "既定値に戻す",
     "restoreTip": "選択中のセクションの設定を既定値にします。",
@@ -1213,6 +1221,7 @@
     "findRooms": "このタイルを使う部屋を探す"
   },
   "textureItem": {
+    "edit": "画像を編集...",
     "export": "PNGで書き出し",
     "replace": "PNG を置換",
     "pick": "{name} の画像",
@@ -1434,6 +1443,16 @@
     "packaged": "Mod を {path} に保存しました。mod_config.json で作者とゲーム ID を設定してください。"
   },
   "sprites": {
+    "editMask": "マスク画像を編集...",
+    "loop": "ループ",
+    "onion": "オニオンスキン",
+    "speed": "速度",
+    "perSecond": "フレーム/秒",
+    "perGameFrame": "フレーム/ゲームフレーム",
+    "addFrame": "追加",
+    "duplicateFrame": "複製",
+    "deleteFrame": "削除",
+    "importFrames": "取り込み...",
     "lockOrigin": "原点をロック",
     "play": "再生",
     "pause": "一時停止",
@@ -1563,6 +1582,7 @@
     "glyphCount": "グリフ {count} 個",
     "glyphNew": "U+コード、文字、範囲 (A-Z)",
     "glyphAdd": "グリフを追加",
+    "editGlyphImage": "グリフ画像を編集",
     "presetNormal": "標準",
     "presetDigits": "数字",
     "presetLetters": "文字",
@@ -1831,11 +1851,21 @@
   },
   "object": {
     "vertices": "物理シェイプの頂点",
+    "editMaskImage": "マスク画像を編集...",
     "vertexAdd": "頂点を追加",
     "vertexSet": "頂点を設定",
     "removeEvent": "削除"
   },
   "image": {
+    "limitItem": "テクスチャページ上の領域は {w}x{h} で固定です。大きい画像は縮小されるか、テクスチャの再パックが必要です",
+    "limitPage": "テクスチャページは {w}x{h} で、サイズは変更できません",
+    "limitMask": "衝突マスク {w}x{h}、1 ビット: 白が当たり判定、サイズは固定です",
+    "limitIncluded": "単独ファイル: 適用するとすぐにゲームフォルダーへ書き込みます (JPEG は透明度なし、GIF は最初のフレームのみ)",
+    "limitGlyph": "フォントシート上のグリフ {w}x{h}。サイズは固定で、適用するとシートに書き込みます",
+    "apply": "適用",
+    "applied": "{name} の画像を適用しました。",
+    "notApplied": "{name} の編集は適用されませんでした: {reason}",
+    "noPicture": "このタブには編集できる画像がありません。",
     "noFrames": "このスプライトには編集できるフレームがありません。",
     "tool": {
       "Pencil": "鉛筆",
@@ -2088,7 +2118,8 @@
     "redo": "パッチのやり直し",
     "apply": "ファイルに書き込む...",
     "badPatch": "バイトを16進のペアで入力し、ファイル内に収まるオフセットを指定してください。",
-    "patched": "{count} バイトを変更しました(最後は 0x{offset})。まだ書き込んでいません。"
+    "patched": "{count} バイトを変更しました(最後は 0x{offset})。まだ書き込んでいません。",
+    "written": "ファイルに書き込みました。"
   },
   "colors": {
     "Diff": {
@@ -2203,6 +2234,7 @@
     "refresh": "更新",
     "filter": "ファイルを絞り込む",
     "colName": "名前",
+    "edit": "編集...",
     "colType": "種類",
     "colSize": "サイズ",
     "colModified": "更新日時",
@@ -2221,6 +2253,14 @@
     "failed": "コピーできませんでした: {files}"
   },
   "risky": {
+    "includedPictureTitle": "画像をゲームフォルダーに書き込みますか?",
+    "includedTextTitle": "テキストをゲームフォルダーに書き込みますか?",
+    "includedText": "{reason}\n\nこの変更はデータファイルには含まれません。",
+    "includedAudioTitle": "音声をゲームフォルダーに書き込みますか?",
+    "includedAudio": "{reason}\n\nこの変更はデータファイルには含まれません。",
+    "includedPicture": "{reason}\n\nこの変更はデータファイルには含まれません。",
+    "itemSizeTitle": "{name} の領域より大きい画像を入れますか?",
+    "itemSize": "{reason}\n\n画像はページ上の領域に収まるよう縮小され、細部が失われます。テクスチャの再パックでより大きな領域を割り当てられます。",
     "includedRenameTitle": "それでも {name} の名前を変更しますか?",
     "includedRename": "{reason}\n\nゲームはファイルを名前で探すため、変更後に見つからない場合があります。元に戻せません。",
     "includedDeleteTitle": "それでも {name} を削除しますか?",

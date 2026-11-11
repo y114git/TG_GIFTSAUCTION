@@ -315,8 +315,10 @@ public sealed class PathEditor : DockPanel
         _pointFields.Children.Add(Labelled("Y", _y));
         _pointFields.Children.Add(Labelled(Loc.Current["paths.speed"], _speed));
         var side = new StackPanel { Width = 190, Margin = new Thickness(0, 0, 8, 0), Spacing = 4, Children = { _points, _pointFields, new Separator(), Operations(), new Separator(), new TextBlock { Text = Loc.Current["paths.moveAll"], Classes = { "muted" } }, Labelled("X", _shiftX), Labelled("Y", _shiftY), moveAll } };
-        SetDock(side, Avalonia.Controls.Dock.Left);
-        Children.Add(side);
+        // The side column is taller than a small tab: it scrolls instead of cutting the last buttons.
+        var sideScroll = new ScrollViewer { Content = side, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
+        SetDock(sideScroll, Avalonia.Controls.Dock.Left);
+        Children.Add(sideScroll);
         Children.Add(View);
         _points.SelectionChanged += (_, _) =>
         {

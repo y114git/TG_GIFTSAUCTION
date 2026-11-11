@@ -45,6 +45,7 @@ public sealed partial class MainWindow
     private void ReleaseCaches()
     {
         _textures.Trim();
+        _thumbs?.Clear();
         _strings?.DropIndex();
         if (Workspaces.Current is not { } workspace) return;
         ReferenceCache.Of(workspace.Data).Invalidate();

@@ -11,6 +11,9 @@ namespace G3MStudio.Editor;
 /// <summary>The picture of a tile set with a click to choose a tile. Index 0 is the empty tile; the tile set's own border and column count give the cell of each index.</summary>
 public sealed class TilePalette : ScrollViewer
 {
+    // A control theme is looked up by the exact type: without this the scroll viewer template is missing and nothing scrolls.
+    protected override Type StyleKeyOverride => typeof(ScrollViewer);
+
     private readonly GameMakerBackground _set;
     private readonly Canvas _canvas = new();
     private readonly Border _marker = new() { BorderBrush = G3MStudio.Theme.CanvasTheme.Line, BorderThickness = new Thickness(2), IsHitTestVisible = false };

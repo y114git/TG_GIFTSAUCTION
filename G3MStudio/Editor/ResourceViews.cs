@@ -53,7 +53,8 @@ public sealed class TextureItemView : DockPanel
     private readonly Slider _zoomBar = new() { Minimum = 1, Maximum = 8, Value = 1, Width = 160, TickFrequency = 1, IsSnapToTickEnabled = true };
 
     // replace: asks the owner to replace the picture of the item (a picker and one undoable edit); true when it did. Null shows no Replace button.
-    public TextureItemView(GameMakerTexturePageItem? item, TextureBitmaps textures, Func<Task<bool>>? replace = null)
+    // edit: opens the image editor on the picture; null shows no Edit Image button. history: a picture applied elsewhere (the image editor, an undo) is drawn again.
+    public TextureItemView(GameMakerTexturePageItem? item, TextureBitmaps textures, Func<Task<bool>>? replace = null, Action? edit = null, EditHistory? history = null)
     {
         Name = "TextureItemView";
         Height = 300;
@@ -72,6 +73,13 @@ public sealed class TextureItemView : DockPanel
                 await ShowAsync(item, textures);
             };
             bar.Children.Insert(2, swap);
+        }
+
+        if (edit is not null)
+        {
+            var paint = new Button { Name = "EditItemImage", Content = Loc.Current["textureItem.edit"] };
+            paint.Click += (_, _) => edit();
+            bar.Children.Insert(bar.Children.Count - 1, paint);
         }
 
         SetDock(bar, Avalonia.Controls.Dock.Top);
@@ -103,9 +111,21 @@ public sealed class TextureItemView : DockPanel
         _scroll.Focusable = true;
         _scroll.KeyDown += (_, e) => e.Handled = NudgeMark(e.Key, e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Shift));
         Ready = ShowAsync(item, textures);
+        if (history is null) return;
+        var shown = item?.TexturePage?.TextureData?.Image;
+        void OnChanged()
+        {
+            if (item?.TexturePage is not { } page || ReferenceEquals(shown, page.TextureData?.Image)) return;
+            shown = page.TextureData?.Image;
+            textures.Forget(page);
+            Ready = ShowAsync(item, textures);
+        }
+
+        AttachedToVisualTree += (_, _) => history.Changed += OnChanged;
+        DetachedFromVisualTree += (_, _) => history.Changed -= OnChanged;
     }
 
-    public Task Ready { get; }
+    public Task Ready { get; private set; }
 
     /// <summary>A left click on the picture, as a pixel of the item.</summary>
     public event Action<int, int>? Picked;
