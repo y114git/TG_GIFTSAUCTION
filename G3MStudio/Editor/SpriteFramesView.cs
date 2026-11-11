@@ -107,6 +107,13 @@ public sealed partial class SpriteFramesView : ScrollViewer
         _strip.PointerCaptureLost += (_, _) => EndDrag();
         KeyDown += OnKey;
         Content = new StackPanel { Children = { playbackRow, editRow, strip } };
+        // The viewer scrolls the strip sideways and measures its content without a width limit, so the rows would never wrap: they are held to the visible width.
+        PropertyChanged += (_, e) =>
+        {
+            if (e.Property != ViewportProperty) return;
+            var limit = Viewport.Width > 16 ? Viewport.Width - 16 : double.PositiveInfinity;
+            playbackRow.MaxWidth = editRow.MaxWidth = limit;
+        };
         Show(0);
         Ready = RefillAsync();
         if ((history ?? workspace?.History) is not { } changes) return;

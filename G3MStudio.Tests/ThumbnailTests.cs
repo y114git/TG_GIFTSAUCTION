@@ -76,7 +76,8 @@ public sealed class ThumbnailTests
         finally { pin.Free(); }
 
         for (var i = 0; i < pixels.Length; i += 4)
-            if (match(Color.FromArgb(pixels[i + 3], pixels[i + 2], pixels[i + 1], pixels[i]))) return true;
+            // The byte order is the platform's (BGRA or RGBA), so both readings are tried.
+            if (match(Color.FromArgb(pixels[i + 3], pixels[i + 2], pixels[i + 1], pixels[i])) || match(Color.FromArgb(pixels[i + 3], pixels[i], pixels[i + 1], pixels[i + 2]))) return true;
         return false;
     }
 

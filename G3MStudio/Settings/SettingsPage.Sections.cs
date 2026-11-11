@@ -250,7 +250,7 @@ public sealed partial class SettingsPage
             ask,
             rememberWindow,
             new StackPanel { Spacing = 4, Tag = Loc.Current["settings.registerLinks"], Children = { registerLinks, linkState } },
-            new StackPanel { Spacing = 4, Tag = Loc.Current["settings.assocUse"], Children = { new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { useStudio, dropStudio } }, assocState } },
+            new StackPanel { Spacing = 4, Tag = Loc.Current["settings.assocUse"], Children = { new WrapPanel { ItemSpacing = 8, LineSpacing = 4, Children = { useStudio, dropStudio } }, assocState } },
             Row("settings.location", location, browse),
         ];
     }
