@@ -1,0 +1,299 @@
+/*
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at https://mozilla.org/MPL/2.0/.
+*/
+
+using G3MLib.Analyzer.Decompiler.AST;
+
+namespace G3MLib.Analyzer.Decompiler.ControlFlow;
+
+/// <summary>
+/// Represents a basic block of VM instructions.
+/// </summary>
+internal sealed class Block(int startAddr, int endAddr, int blockIndex, List<IGMInstruction> instructions) : IControlFlowNode
+{
+    public int StartAddress { get; private set; } = startAddr;
+
+    public int EndAddress { get; private set; } = endAddr;
+
+    public List<IControlFlowNode> Predecessors { get; } = [];
+
+    public List<IControlFlowNode> Successors { get; } = [];
+
+    public List<IGMInstruction> Instructions { get; } = instructions;
+
+    public IControlFlowNode? Parent { get; set; }
+
+    public List<IControlFlowNode?> Children { get; } = [];
+
+    public bool Unreachable { get; set; }
+
+    public int BlockIndex { get; } = blockIndex;
+
+    /// <summary>
+    /// Calculates addresses of basic VM blocks; located at instructions that are jumped to.
+    /// </summary>
+    private static HashSet<int> FindBlockAddresses(IGameContext? gameContext, IGMCode code, CancellationToken cancellationToken)
+    {
+        HashSet<int> addresses = [0, code.Length];
+
+        var address = 0;
+        for (var i = 0; i < code.InstructionCount; i++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var instr = code.GetInstruction(i);
+            switch (instr.Kind)
+            {
+                case IGMInstruction.Opcode.Branch:
+                case IGMInstruction.Opcode.BranchTrue:
+                case IGMInstruction.Opcode.BranchFalse:
+                case IGMInstruction.Opcode.PushWithContext:
+                    addresses.Add(address + 4);
+                    addresses.Add(address + instr.BranchOffset);
+                    address += 4;
+                    break;
+                case IGMInstruction.Opcode.PopWithContext:
+                    if (!instr.PopWithContextExit)
+                    {
+                        addresses.Add(address + 4);
+                        addresses.Add(address + instr.BranchOffset);
+                    }
+                    address += 4;
+                    break;
+                case IGMInstruction.Opcode.Exit:
+                case IGMInstruction.Opcode.Return:
+                    addresses.Add(address + 4);
+                    address += 4;
+                    break;
+                case IGMInstruction.Opcode.Call:
+                    // Handle try hook addresses
+                    if (i >= 4 && instr.TryFindFunction(gameContext)?.Name?.Content == VMConstants.TryHookFunction)
+                    {
+                        // If too close to end, bail
+                        if (i >= code.InstructionCount - 1)
+                        {
+                            break;
+                        }
+
+                        // Check instructions
+                        var finallyInstr = code.GetInstruction(i - 4);
+                        var catchInstr = code.GetInstruction(i - 2);
+                        var popInstr = code.GetInstruction(i + 1);
+                        if (finallyInstr is not { Kind: IGMInstruction.Opcode.Push, Type1: IGMInstruction.DataType.Int32 } ||
+                            catchInstr is not { Kind: IGMInstruction.Opcode.Push, Type1: IGMInstruction.DataType.Int32 } ||
+                            popInstr is not { Kind: IGMInstruction.Opcode.PopDelete })
+                        {
+                            throw new DecompilerException("Expected Push with type Int32 before try hook");
+                        }
+
+                        // Add connections to referenced blocks
+                        var finallyBlock = finallyInstr.ValueInt;
+                        addresses.Add(finallyBlock);
+
+                        var catchBlock = catchInstr.ValueInt;
+                        if (catchBlock != -1)
+                        {
+                            addresses.Add(catchBlock);
+                        }
+
+                        // Split this try hook into its own block - removes edge cases in later graph operations
+                        addresses.Add(address - 24 /* address of finallyInstr */);
+                        addresses.Add(address + 12 /* end address of popInstr */);
+                    }
+                    address += 8;
+                    break;
+                default:
+                    address += IGMInstruction.GetSize(instr);
+                    break;
+            }
+        }
+
+        return addresses;
+    }
+
+    /// <summary>
+    /// Finds all blocks from a given decompile context, generating a basic control flow graph.
+    /// </summary>
+    public static List<Block> FindBlocks(DecompileContext ctx)
+    {
+        var blocks = FindBlocks(ctx.Code, out var blocksByAddress, ctx.GameContext, ctx.CancellationToken);
+        ctx.Blocks = blocks;
+        ctx.BlocksByAddress = blocksByAddress;
+        return blocks;
+    }
+
+
+    /// <summary>
+    /// Finds all blocks from a given code entry, generating a basic control flow graph.
+    /// </summary>
+    public static List<Block> FindBlocks(IGMCode code, out Dictionary<int, Block> blocksByAddress, IGameContext? gameContext = null,
+                                         CancellationToken cancellationToken = default)
+    {
+        var addresses = FindBlockAddresses(gameContext, code, cancellationToken);
+
+        blocksByAddress = [];
+        List<Block> blocks = [];
+        Block? current = null;
+        var address = 0;
+        for (var i = 0; i < code.InstructionCount; i++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            // Check if we have a new block at the current instruction's address
+            var instr = code.GetInstruction(i);
+            if (addresses.Contains(address))
+            {
+                // End previous block
+                current?.EndAddress = address;
+
+                // Make new block
+                current = new(address, -1, blocks.Count, []);
+                blocks.Add(current);
+                blocksByAddress[current.StartAddress] = current;
+            }
+
+            // Add current instruction to our currently-building block
+            current.Instructions.Add(instr);
+
+            // Move to next instruction address
+            address += IGMInstruction.GetSize(instr);
+        }
+
+        // End current block, if applicable
+        current?.EndAddress = code.Length;
+
+        // Add ending block
+        Block end = new(code.Length, code.Length, blocks.Count, []);
+        blocks.Add(end);
+        blocksByAddress[end.StartAddress] = end;
+
+        // Connect blocks together to construct flow graph
+        foreach (var b in blocks)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (b.StartAddress == code.Length)
+            {
+                continue;
+            }
+
+            var last = b.Instructions[^1];
+            switch (last.Kind)
+            {
+                case IGMInstruction.Opcode.Branch:
+                    {
+                        // Connect to block at destination address
+                        var dest = blocksByAddress[b.EndAddress - 4 + last.BranchOffset];
+                        b.Successors.Add(dest);
+                        dest.Predecessors.Add(b);
+                    }
+                    break;
+                case IGMInstruction.Opcode.BranchTrue:
+                case IGMInstruction.Opcode.BranchFalse:
+                case IGMInstruction.Opcode.PushWithContext:
+                    {
+                        // Connect to block directly after this current one, first
+                        var next = blocksByAddress[b.EndAddress];
+                        b.Successors.Add(next);
+                        next.Predecessors.Add(b);
+
+                        // Connect to block at destination address, second
+                        var dest = blocksByAddress[b.EndAddress - 4 + last.BranchOffset];
+                        b.Successors.Add(dest);
+                        dest.Predecessors.Add(b);
+                    }
+                    break;
+                case IGMInstruction.Opcode.PopWithContext:
+                    if (!last.PopWithContextExit)
+                    {
+                        // Connect to block directly after this current one, first
+                        var next = blocksByAddress[b.EndAddress];
+                        b.Successors.Add(next);
+                        next.Predecessors.Add(b);
+
+                        // Connect to block at destination address, second
+                        var dest = blocksByAddress[b.EndAddress - 4 + last.BranchOffset];
+                        b.Successors.Add(dest);
+                        dest.Predecessors.Add(b);
+                    }
+                    else
+                    {
+                        // Connect to block directly after this current one, only
+                        var next = blocksByAddress[b.EndAddress];
+                        b.Successors.Add(next);
+                        next.Predecessors.Add(b);
+                    }
+                    break;
+                case IGMInstruction.Opcode.PopDelete:
+                    {
+                        // First, connect to block directly after this current one
+                        var next = blocksByAddress[b.EndAddress];
+                        b.Successors.Add(next);
+                        next.Predecessors.Add(b);
+
+                        // Check for a block that was (theoretically) split earlier to only contain a try hook
+                        if (b.Instructions.Count == 6)
+                        {
+                            var callInstr = b.Instructions[^2];
+                            if (callInstr.Kind == IGMInstruction.Opcode.Call &&
+                                callInstr.TryFindFunction(gameContext)?.Name?.Content == VMConstants.TryHookFunction)
+                            {
+                                // We've found a try hook - connect to targets
+                                var finallyAddr = b.Instructions[^6].ValueInt;
+                                var catchAddr = b.Instructions[^4].ValueInt;
+
+                                // Add finally/end block target
+                                var finallyBlock = blocksByAddress[finallyAddr];
+                                b.Successors.Add(finallyBlock);
+                                finallyBlock.Predecessors.Add(b);
+
+                                // If -1, we don't have a catch block at all
+                                if (catchAddr != -1)
+                                {
+                                    var catchBlock = blocksByAddress[catchAddr];
+                                    b.Successors.Add(catchBlock);
+                                    catchBlock.Predecessors.Add(b);
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case IGMInstruction.Opcode.Exit:
+                case IGMInstruction.Opcode.Return:
+                    // Do nothing - code execution terminates here
+                    break;
+                default:
+                    {
+                        // Connect to block directly after this current one
+                        var next = blocksByAddress[b.EndAddress];
+                        b.Successors.Add(next);
+                        next.Predecessors.Add(b);
+                    }
+                    break;
+            }
+        }
+
+        // Compute blocks that are unreachable
+        for (var i = 1; i < blocks.Count; i++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (blocks[i].Predecessors.Count == 0)
+            {
+                blocks[i].Unreachable = true;
+                blocks[i].Predecessors.Add(blocks[i - 1]);
+                blocks[i - 1].Successors.Add(blocks[i]);
+            }
+        }
+
+        return blocks;
+    }
+
+    public override string ToString()
+    {
+        return $"{nameof(Block)} {BlockIndex} ({Instructions.Count} instructions, {Predecessors.Count} predecessors, {Successors.Count} successors)";
+    }
+
+    public void BuildAST(ASTBuilder builder, List<IStatementNode> output)
+    {
+        BlockSimulator.Simulate(builder, output, this);
+    }
+}

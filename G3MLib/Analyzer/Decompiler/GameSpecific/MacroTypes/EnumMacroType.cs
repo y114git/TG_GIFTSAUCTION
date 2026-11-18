@@ -1,0 +1,72 @@
+/*
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at https://mozilla.org/MPL/2.0/.
+*/
+
+using G3MLib.Analyzer.Decompiler.AST;
+
+namespace G3MLib.Analyzer.Decompiler.GameSpecific;
+
+/// <summary>
+/// A macro type usable for GML enums.
+/// </summary>
+public class EnumMacroType : IMacroTypeInt64
+{
+    public string Name { get; }
+    internal Dictionary<long, string> ValueToValueName { get; }
+
+    /// <summary>
+    /// Constructs an enum macro type with a given name and values, mapped from value to value name.
+    /// </summary>
+    public EnumMacroType(string name, Dictionary<long, string> values)
+    {
+        Name = name;
+        ValueToValueName = new(values);
+    }
+
+    /// <summary>
+    /// Constructs an enum macro type with a given name and values, mapped from value name to value.
+    /// </summary>
+    public EnumMacroType(string name, Dictionary<string, long> values)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        Name = name;
+        ValueToValueName = new(values.Count);
+        foreach ((var valueName, var value) in values)
+        {
+            ValueToValueName[value] = valueName;
+        }
+    }
+
+    /// <summary>
+    /// Constructs a macro type from an enum, where value names are the constant names,
+    /// associated with their enum values.
+    /// </summary>
+    public EnumMacroType(Type enumType, string? name = null)
+    {
+        ArgumentNullException.ThrowIfNull(enumType);
+        Name = name ?? enumType.Name;
+        var values = Enum.GetValues(enumType);
+        ValueToValueName = new(values.Length);
+        foreach (long value in values)
+        {
+            ValueToValueName[value] = Enum.GetName(enumType, value) ?? throw new InvalidOperationException();
+        }
+    }
+
+    public IExpressionNode? Resolve(ASTCleaner cleaner, IMacroResolvableNode node, long data)
+    {
+        ArgumentNullException.ThrowIfNull(cleaner);
+        if (ValueToValueName.TryGetValue(data, out var valueName))
+        {
+            // Use enum node, and declare new enum if one doesn't exist already
+            if (!cleaner.Context.NameToEnumDeclaration.ContainsKey(Name))
+            {
+                cleaner.DeclareEnum(new(this));
+            }
+            return new EnumValueNode(Name, valueName, data, false);
+        }
+        return null;
+    }
+}

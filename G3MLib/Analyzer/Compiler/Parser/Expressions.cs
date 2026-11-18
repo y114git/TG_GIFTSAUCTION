@@ -1,0 +1,791 @@
+/*
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at https://mozilla.org/MPL/2.0/.
+*/
+
+using G3MLib.Analyzer.Compiler.Lexer;
+using G3MLib.Analyzer.Compiler.Nodes;
+using static G3MLib.Analyzer.Compiler.Nodes.BinaryChainNode;
+
+namespace G3MLib.Analyzer.Compiler.Parser;
+
+/// <summary>
+/// Helper to parse expressions.
+/// </summary>
+internal static class Expressions
+{
+    /// <summary>
+    /// Attempts to parse an expression from the current parse position of the context.
+    /// </summary>
+    public static IASTNode? ParseExpression(ParseContext context)
+    {
+        // Deeply nested input throws a catchable exception here instead of overflowing the stack.
+        System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack();
+        return ParseConditional(context);
+    }
+
+    /// <summary>
+    /// Attempts to parse a conditional (ternary) expression from the current parse position of the context.
+    /// </summary>
+    public static IASTNode? ParseConditional(ParseContext context)
+    {
+        var lhs = ParseNullishExpression(context);
+        if (lhs is null)
+        {
+            return null;
+        }
+
+        if (!context.EndOfCode &&
+            context.Tokens[context.Position] is TokenOperator { Kind: OperatorKind.Conditional } tokenConditional)
+        {
+            context.Position++;
+
+            if (ParseOrExpression(context) is IASTNode trueExpr)
+            {
+                context.EnsureToken(SeparatorKind.Colon);
+
+                if (ParseOrExpression(context) is IASTNode falseExpr)
+                {
+                    // Replace left side with new node
+                    lhs = new ConditionalNode(tokenConditional, lhs, trueExpr, falseExpr);
+                }
+            }
+        }
+
+        return lhs;
+    }
+
+    /// <summary>
+    /// Attempts to parse a nullish (??) expression from the current parse position of the context.
+    /// </summary>
+    public static IASTNode? ParseNullishExpression(ParseContext context)
+    {
+        var lhs = ParseOrExpression(context);
+        if (lhs is null)
+        {
+            return null;
+        }
+
+        if (!context.EndOfCode &&
+            context.Tokens[context.Position] is TokenOperator { Kind: OperatorKind.NullishCoalesce } tokenNullishCoalesce)
+        {
+            context.Position++;
+
+            // Throw error if this feature is not enabled
+            if (!context.CompileContext.GameContext.UsingNullishOperator)
+            {
+                context.CompileContext.PushError("Nullish coalesce operator (??) is not supported in this GameMaker version (must be 2.3.7+)", tokenNullishCoalesce);
+            }
+
+            if (ParseOrExpression(context) is IASTNode rightExpr)
+            {
+                // Replace left side with new node
+                lhs = new NullishCoalesceNode(tokenNullishCoalesce, lhs, rightExpr);
+            }
+        }
+
+        return lhs;
+    }
+
+    /// <summary>
+    /// Attempts to parse a logical OR (||) expression from the current parse position of the context.
+    /// </summary>
+    public static IASTNode? ParseOrExpression(ParseContext context)
+    {
+        var lhs = ParseAndExpression(context);
+        if (lhs is null)
+        {
+            return null;
+        }
+
+        if (!context.EndOfCode &&
+            (context.Tokens[context.Position] is TokenOperator { Kind: OperatorKind.LogicalOr } ||
+             context.Tokens[context.Position] is TokenKeyword { Kind: KeywordKind.Or }))
+        {
+            var token = context.Tokens[context.Position];
+            context.Position++;
+
+            if (ParseAndExpression(context) is IASTNode rightExpr)
+            {
+                // Start accumulating additional arguments in binary operation chain
+                List<IASTNode> arguments = new(4) { lhs, rightExpr };
+                List<BinaryOperation> operations = new(4) { OperationKindFromToken(token) };
+
+                while (!context.EndOfCode &&
+                       (context.Tokens[context.Position] is TokenOperator { Kind: OperatorKind.LogicalOr } ||
+                        context.Tokens[context.Position] is TokenKeyword { Kind: KeywordKind.Or }))
+                {
+                    var tokenNext = context.Tokens[context.Position];
+                    context.Position++;
+
+                    if (ParseAndExpression(context) is IASTNode nextRightExpr)
+                    {
+                        arguments.Add(nextRightExpr);
+                        operations.Add(OperationKindFromToken(tokenNext));
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                // Replace left side with this new binary chain
+                lhs = new BinaryChainNode(token, arguments, operations);
+            }
+        }
+
+        return lhs;
+    }
+
+    /// <summary>
+    /// Attempts to parse a logical AND (&amp;&amp;) expression from the current parse position of the context.
+    /// </summary>
+    public static IASTNode? ParseAndExpression(ParseContext context)
+    {
+        var lhs = ParseXorExpression(context);
+        if (lhs is null)
+        {
+            return null;
+        }
+
+        if (!context.EndOfCode &&
+            (context.Tokens[context.Position] is TokenOperator { Kind: OperatorKind.LogicalAnd } ||
+             context.Tokens[context.Position] is TokenKeyword { Kind: KeywordKind.And }))
+        {
+            var token = context.Tokens[context.Position];
+            context.Position++;
+
+            if (ParseXorExpression(context) is IASTNode rightExpr)
+            {
+                // Start accumulating additional arguments in binary operation chain
+                List<IASTNode> arguments = new(4) { lhs, rightExpr };
+                List<BinaryOperation> operations = new(4) { OperationKindFromToken(token) };
+
+                while (!context.EndOfCode &&
+                       (context.Tokens[context.Position] is TokenOperator { Kind: OperatorKind.LogicalAnd } ||
+                        context.Tokens[context.Position] is TokenKeyword { Kind: KeywordKind.And }))
+                {
+                    var tokenNext = context.Tokens[context.Position];
+                    context.Position++;
+
+                    if (ParseXorExpression(context) is IASTNode nextRightExpr)
+                    {
+                        arguments.Add(nextRightExpr);
+                        operations.Add(OperationKindFromToken(tokenNext));
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                // Replace left side with this new binary chain
+                lhs = new BinaryChainNode(token, arguments, operations);
+            }
+        }
+
+        return lhs;
+    }
+
+    /// <summary>
+    /// Attempts to parse a logical XOR (^^) expression from the current parse position of the context.
+    /// </summary>
+    public static IASTNode? ParseXorExpression(ParseContext context)
+    {
+        var lhs = ParseCompareExpression(context);
+        if (lhs is null)
+        {
+            return null;
+        }
+
+        if (!context.EndOfCode &&
+            (context.Tokens[context.Position] is TokenOperator { Kind: OperatorKind.LogicalXor } ||
+             context.Tokens[context.Position] is TokenKeyword { Kind: KeywordKind.Xor }))
+        {
+            var token = context.Tokens[context.Position];
+            context.Position++;
+
+            if (ParseCompareExpression(context) is IASTNode rightExpr)
+            {
+                // Start accumulating additional arguments in binary operation chain
+                List<IASTNode> arguments = new(4) { lhs, rightExpr };
+                List<BinaryOperation> operations = new(4) { OperationKindFromToken(token) };
+
+                while (!context.EndOfCode &&
+                       (context.Tokens[context.Position] is TokenOperator { Kind: OperatorKind.LogicalXor } ||
+                        context.Tokens[context.Position] is TokenKeyword { Kind: KeywordKind.Xor }))
+                {
+                    var tokenNext = context.Tokens[context.Position];
+                    context.Position++;
+
+                    if (ParseCompareExpression(context) is IASTNode nextRightExpr)
+                    {
+                        arguments.Add(nextRightExpr);
+                        operations.Add(OperationKindFromToken(tokenNext));
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                // Replace left side with this new binary chain
+                lhs = new BinaryChainNode(token, arguments, operations);
+            }
+        }
+
+        return lhs;
+    }
+
+    /// <summary>
+    /// Attempts to parse a comparison expression from the current parse position of the context.
+    /// </summary>
+    public static IASTNode? ParseCompareExpression(ParseContext context)
+    {
+        var lhs = ParseBitwiseExpression(context);
+        if (lhs is null)
+        {
+            return null;
+        }
+
+        // Check for "==", "=", ":=", "!=", "<>", ">", ">=", "<", "<="
+        if (!context.EndOfCode &&
+            context.Tokens[context.Position] is TokenOperator
+            {
+                Kind: OperatorKind.CompareEqual or OperatorKind.Assign or OperatorKind.Assign2 or
+                      OperatorKind.CompareNotEqual or OperatorKind.CompareNotEqual2 or
+                      OperatorKind.CompareGreater or OperatorKind.CompareGreaterEqual or
+                      OperatorKind.CompareLesser or OperatorKind.CompareLesserEqual
+            }
+            tokenOperator)
+        {
+            context.Position++;
+
+            if (ParseBitwiseExpression(context) is IASTNode rightExpr)
+            {
+                // Start accumulating additional arguments in binary operation chain
+                List<IASTNode> arguments = new(4) { lhs, rightExpr };
+                List<BinaryOperation> operations = new(4) { OperationKindFromToken(tokenOperator) };
+
+                // Check for "==", "=", ":=", "!=", "<>", ">", ">=", "<", "<=" to continue finding arguments
+                while (!context.EndOfCode &&
+                       context.Tokens[context.Position] is TokenOperator
+                       {
+                           Kind: OperatorKind.CompareEqual or OperatorKind.Assign or OperatorKind.Assign2 or
+                                 OperatorKind.CompareNotEqual or OperatorKind.CompareNotEqual2 or
+                                 OperatorKind.CompareGreater or OperatorKind.CompareGreaterEqual or
+                                 OperatorKind.CompareLesser or OperatorKind.CompareLesserEqual
+                       }
+                       tokenNextOperator)
+                {
+                    context.Position++;
+
+                    if (ParseBitwiseExpression(context) is IASTNode nextRightExpr)
+                    {
+                        arguments.Add(nextRightExpr);
+                        operations.Add(OperationKindFromToken(tokenNextOperator));
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                // Replace left side with this new binary chain
+                lhs = new BinaryChainNode(tokenOperator, arguments, operations);
+            }
+        }
+
+        return lhs;
+    }
+
+    /// <summary>
+    /// Attempts to parse a bitwise expression from the current parse position of the context.
+    /// </summary>
+    public static IASTNode? ParseBitwiseExpression(ParseContext context)
+    {
+        var lhs = ParseBitwiseShiftExpression(context);
+        if (lhs is null)
+        {
+            return null;
+        }
+
+        if (!context.EndOfCode &&
+            context.Tokens[context.Position] is TokenOperator
+            {
+                Kind: OperatorKind.BitwiseAnd or OperatorKind.BitwiseOr or OperatorKind.BitwiseXor
+            }
+            tokenOperator)
+        {
+            context.Position++;
+
+            if (ParseBitwiseShiftExpression(context) is IASTNode rightExpr)
+            {
+                // Start accumulating additional arguments in binary operation chain
+                List<IASTNode> arguments = new(4) { lhs, rightExpr };
+                List<BinaryOperation> operations = new(4) { OperationKindFromToken(tokenOperator) };
+
+                while (!context.EndOfCode &&
+                       context.Tokens[context.Position] is TokenOperator
+                       {
+                           Kind: OperatorKind.BitwiseAnd or OperatorKind.BitwiseOr or OperatorKind.BitwiseXor
+                       }
+                       tokenNextOperator)
+                {
+                    context.Position++;
+
+                    if (ParseBitwiseShiftExpression(context) is IASTNode nextRightExpr)
+                    {
+                        arguments.Add(nextRightExpr);
+                        operations.Add(OperationKindFromToken(tokenNextOperator));
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                // Replace left side with this new binary chain
+                lhs = new BinaryChainNode(tokenOperator, arguments, operations);
+            }
+        }
+
+        return lhs;
+    }
+
+    /// <summary>
+    /// Attempts to parse a bitwise shift expression from the current parse position of the context.
+    /// </summary>
+    public static IASTNode? ParseBitwiseShiftExpression(ParseContext context)
+    {
+        var lhs = ParseAddSubtractExpression(context);
+        if (lhs is null)
+        {
+            return null;
+        }
+
+        // Check for "<<", ">>"
+        if (!context.EndOfCode &&
+            context.Tokens[context.Position] is TokenOperator
+            {
+                Kind: OperatorKind.BitwiseShiftLeft or OperatorKind.BitwiseShiftRight
+            }
+            tokenOperator)
+        {
+            context.Position++;
+
+            if (ParseAddSubtractExpression(context) is IASTNode rightExpr)
+            {
+                // Start accumulating additional arguments in binary operation chain
+                List<IASTNode> arguments = new(4) { lhs, rightExpr };
+                List<BinaryOperation> operations = new(4) { OperationKindFromToken(tokenOperator) };
+
+                // Check for "<<", ">>" to continue finding arguments
+                while (!context.EndOfCode &&
+                       context.Tokens[context.Position] is TokenOperator
+                       {
+                           Kind: OperatorKind.BitwiseShiftLeft or OperatorKind.BitwiseShiftRight
+                       }
+                       tokenNextOperator)
+                {
+                    context.Position++;
+
+                    if (ParseAddSubtractExpression(context) is IASTNode nextRightExpr)
+                    {
+                        arguments.Add(nextRightExpr);
+                        operations.Add(OperationKindFromToken(tokenNextOperator));
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                // Replace left side with this new binary chain
+                lhs = new BinaryChainNode(tokenOperator, arguments, operations);
+            }
+        }
+
+        return lhs;
+    }
+
+    /// <summary>
+    /// Attempts to parse a add/subtract expression from the current parse position of the context.
+    /// </summary>
+    public static IASTNode? ParseAddSubtractExpression(ParseContext context)
+    {
+        var lhs = ParseMultiplyDivideExpression(context);
+        if (lhs is null)
+        {
+            return null;
+        }
+
+        if (!context.EndOfCode &&
+            context.Tokens[context.Position] is TokenOperator
+            {
+                Kind: OperatorKind.Plus or OperatorKind.Minus
+            }
+            tokenOperator)
+        {
+            context.Position++;
+
+            if (ParseMultiplyDivideExpression(context) is IASTNode rightExpr)
+            {
+                // Start accumulating additional arguments in binary operation chain
+                List<IASTNode> arguments = new(4) { lhs, rightExpr };
+                List<BinaryOperation> operations = new(4) { OperationKindFromToken(tokenOperator) };
+
+                while (!context.EndOfCode &&
+                       context.Tokens[context.Position] is TokenOperator
+                       {
+                           Kind: OperatorKind.Plus or OperatorKind.Minus
+                       }
+                       tokenNextOperator)
+                {
+                    context.Position++;
+
+                    if (ParseMultiplyDivideExpression(context) is IASTNode nextRightExpr)
+                    {
+                        arguments.Add(nextRightExpr);
+                        operations.Add(OperationKindFromToken(tokenNextOperator));
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                // Replace left side with this new binary chain
+                lhs = new BinaryChainNode(tokenOperator, arguments, operations);
+            }
+        }
+
+        return lhs;
+    }
+
+    /// <summary>
+    /// Attempts to parse a multiply/divide/mod/remainder expression from the current parse position of the context.
+    /// </summary>
+    public static IASTNode? ParseMultiplyDivideExpression(ParseContext context)
+    {
+        var lhs = ParseChainExpression(context);
+        if (lhs is null)
+        {
+            return null;
+        }
+
+        if (!context.EndOfCode &&
+            context.Tokens[context.Position] is
+            TokenOperator { Kind: OperatorKind.Times or OperatorKind.Divide or OperatorKind.Mod } or
+            TokenKeyword { Kind: KeywordKind.Mod or KeywordKind.Div })
+        {
+            var tokenOperator = context.Tokens[context.Position];
+            context.Position++;
+
+            if (ParseChainExpression(context) is IASTNode rightExpr)
+            {
+                // Start accumulating additional arguments in binary operation chain
+                List<IASTNode> arguments = new(4) { lhs, rightExpr };
+                List<BinaryOperation> operations = new(4) { OperationKindFromToken(tokenOperator) };
+
+                // Check for "*", "/", "%", "mod", "div" to continue finding arguments
+                while (!context.EndOfCode &&
+                       context.Tokens[context.Position] is
+                       TokenOperator { Kind: OperatorKind.Times or OperatorKind.Divide or OperatorKind.Mod } or
+                       TokenKeyword { Kind: KeywordKind.Mod or KeywordKind.Div })
+                {
+                    var tokenNextOperator = context.Tokens[context.Position];
+                    context.Position++;
+
+                    if (ParseChainExpression(context) is IASTNode nextRightExpr)
+                    {
+                        arguments.Add(nextRightExpr);
+                        operations.Add(OperationKindFromToken(tokenNextOperator));
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                // Replace left side with this new binary chain
+                lhs = new BinaryChainNode(tokenOperator, arguments, operations);
+            }
+        }
+
+        return lhs;
+    }
+
+    /// <summary>
+    /// Attempts to parse a chain expression from the current parse position of the context.
+    /// A chain expression is any leftmost expression followed by ".", a variable/function/accessor, and repeating.
+    /// </summary>
+    public static IASTNode? ParseChainExpression(ParseContext context, bool stopAtFunctionCall = false)
+    {
+        // Before checking leftmost expression, check if it's grouped
+        var lhsGrouped = context.IsCurrentToken(SeparatorKind.GroupOpen);
+
+        var lhs = ParseLeftmostExpression(context);
+        if (lhs is null)
+        {
+            return null;
+        }
+
+        // Parse chain until nothing else matches
+        while (!context.EndOfCode)
+        {
+            var currentToken = context.Tokens[context.Position];
+
+            if (currentToken is TokenSeparator
+                {
+                    Kind: SeparatorKind.ArrayOpen or SeparatorKind.ArrayOpenList or
+                          SeparatorKind.ArrayOpenMap or SeparatorKind.ArrayOpenGrid or
+                          SeparatorKind.ArrayOpenDirect or SeparatorKind.ArrayOpenStruct
+                }
+                tokenArrayOpen)
+            {
+                context.Position++;
+
+                var accessor = AccessorNode.Parse(context, tokenArrayOpen, lhs, tokenArrayOpen.Kind switch
+                {
+                    SeparatorKind.ArrayOpen => AccessorNode.AccessorKind.Array,
+                    SeparatorKind.ArrayOpenDirect => AccessorNode.AccessorKind.ArrayDirect,
+                    SeparatorKind.ArrayOpenList => AccessorNode.AccessorKind.List,
+                    SeparatorKind.ArrayOpenMap => AccessorNode.AccessorKind.Map,
+                    SeparatorKind.ArrayOpenGrid => AccessorNode.AccessorKind.Grid,
+                    SeparatorKind.ArrayOpenStruct => AccessorNode.AccessorKind.Struct,
+                    _ => throw new InvalidOperationException("Unknown accessor kind")
+                });
+                if (accessor is null)
+                {
+                    // Failed to parse accessor; stop parsing chain
+                    break;
+                }
+
+                // If in GMLv2, rewrite old 2D array accesses as modern ones
+                if (context.CompileContext.GameContext.UsingGMLv2)
+                {
+                    accessor = accessor.Convert2DArrayToTwoAccessors();
+                }
+                else if (lhs is AccessorNode)
+                {
+                    // Throw error if using this syntax prior to GMLv2; it's unsupported
+                    context.CompileContext.PushError("Multidimensional array syntax not supported before GMLv2 (GameMaker 2.3+)", tokenArrayOpen);
+                }
+
+                // This accessor is now the left side of the chain
+                lhs = accessor;
+                lhsGrouped = false;
+                continue;
+            }
+
+            // Check for a function call not assigned to any specific variable name
+            if (!stopAtFunctionCall &&
+                currentToken is TokenSeparator { Kind: SeparatorKind.GroupOpen } tokenOpen)
+            {
+                lhs = new FunctionCallNode(context, tokenOpen, lhs);
+                lhsGrouped = false;
+                continue;
+            }
+
+            if (currentToken is TokenSeparator { Kind: SeparatorKind.Dot } tokenDot)
+            {
+                context.Position++;
+
+                if (context.EndOfCode)
+                {
+                    context.CompileContext.PushError("Unexpected end of code", tokenDot);
+                    break;
+                }
+
+                // Create dot variable node, combining left side and following token
+                var nextToken = context.Tokens[context.Position];
+                if (nextToken is TokenVariable tokenVariable)
+                {
+                    context.Position++;
+                    lhs = new DotVariableNode(lhs, lhsGrouped, tokenVariable);
+                }
+                else if (nextToken is TokenAssetReference tokenAssetReference)
+                {
+                    context.Position++;
+                    lhs = new DotVariableNode(lhs, lhsGrouped, new TokenVariable(tokenAssetReference));
+                }
+                else if (nextToken is TokenNumber { IsConstant: true } tokenNumber)
+                {
+                    context.Position++;
+                    lhs = new DotVariableNode(lhs, lhsGrouped, new TokenVariable(tokenNumber));
+                }
+                else if (nextToken is TokenFunction tokenFunction)
+                {
+                    context.Position++;
+                    lhs = new DotVariableNode(lhs, lhsGrouped, tokenFunction);
+
+                    if (!stopAtFunctionCall)
+                    {
+                        if (!context.EndOfCode && context.Tokens[context.Position] is TokenSeparator { Kind: SeparatorKind.GroupOpen } tokenDotOpen)
+                        {
+                            lhs = new FunctionCallNode(context, tokenDotOpen, lhs);
+                        }
+                        else
+                        {
+                            // Throw error (this should really never happen, though)
+                            context.EnsureToken(SeparatorKind.GroupOpen);
+                        }
+                    }
+                }
+                else
+                {
+                    context.CompileContext.PushError("Expected variable or function call after dot", tokenDot);
+                    break;
+                }
+
+                lhsGrouped = false;
+                continue;
+            }
+
+            // Nothing matched; chain is over
+            break;
+        }
+
+        if (lhs is SimpleVariableNode { BuiltinVariable.IsAutomaticArray: true } simpleVariable)
+        {
+            lhs = new AccessorNode(
+                simpleVariable.NearbyToken,
+                simpleVariable,
+                AccessorNode.AccessorKind.Array,
+                new Int64Node(0, simpleVariable.NearbyToken)
+            );
+        }
+
+        if (!context.EndOfCode && lhs is IAssignableASTNode lhsAssignable &&
+            context.Tokens[context.Position] is TokenOperator
+            {
+                Kind: OperatorKind.Increment or OperatorKind.Decrement
+            }
+            tokenPostfix)
+        {
+            context.Position++;
+            lhs = new PostfixNode(tokenPostfix, lhsAssignable, tokenPostfix.Kind == OperatorKind.Increment);
+        }
+
+        return lhs;
+    }
+
+    /// <summary>
+    /// Attempts to parse a leftmost expression, such as a single token, or a grouped full expression.
+    /// </summary>
+    public static IASTNode? ParseLeftmostExpression(ParseContext context)
+    {
+        System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack();
+        if (context.EndOfCode)
+        {
+            context.CompileContext.PushError("Unexpected end of code");
+            return null;
+        }
+
+        var token = context.Tokens[context.Position];
+        switch (token)
+        {
+            case TokenNumber tokenNumber:
+                context.Position++;
+                return new NumberNode(tokenNumber, tokenNumber.IsConstant ? tokenNumber.Text : null);
+            case TokenInt64 tokenInt64:
+                context.Position++;
+                return new Int64Node(tokenInt64);
+            case TokenString tokenString:
+                context.Position++;
+                return new StringNode(tokenString);
+            case TokenTemplateStringStart:
+                context.Position++;
+                if (context.CompileContext.GameContext.UsingTemplateStrings)
+                {
+                    return SimpleFunctionCallNode.ParseTemplateString(context);
+                }
+                context.CompileContext.PushError("Cannot use template strings in this GameMaker version", token);
+                return null;
+            case TokenBoolean tokenBoolean:
+                context.Position++;
+                return new BooleanNode(tokenBoolean);
+            case TokenAssetReference tokenAssetReference:
+                context.Position++;
+                return new AssetReferenceNode(tokenAssetReference);
+            case TokenFunction tokenFunction:
+                context.Position++;
+                return new SimpleFunctionCallNode(context, tokenFunction);
+            case TokenVariable tokenVariable:
+                context.Position++;
+                return new SimpleVariableNode(tokenVariable);
+            case TokenSeparator { Kind: SeparatorKind.GroupOpen }:
+                {
+                    context.Position++;
+                    var groupedExpression = ParseExpression(context);
+                    context.EnsureToken(SeparatorKind.GroupClose);
+                    return groupedExpression;
+                }
+            case TokenSeparator { Kind: SeparatorKind.ArrayOpen }:
+                context.Position++;
+                if (context.CompileContext.GameContext.UsingGMS2OrLater)
+                {
+                    return SimpleFunctionCallNode.ParseArrayLiteral(context);
+                }
+                context.CompileContext.PushError("Cannot use array literals before GMS2", token);
+                return null;
+            case TokenOperator { Kind: OperatorKind.Increment or OperatorKind.Decrement } tokenPrefix:
+                context.Position++;
+                return PrefixNode.Parse(context, tokenPrefix, tokenPrefix.Kind == OperatorKind.Increment);
+            case TokenOperator
+            {
+                Kind: OperatorKind.Not or OperatorKind.BitwiseNegate or
+                                       OperatorKind.Plus or OperatorKind.Minus
+            } tokenUnary:
+                context.Position++;
+                return UnaryNode.Parse(context, tokenUnary, tokenUnary.Kind switch
+                {
+                    OperatorKind.Not => UnaryNode.UnaryKind.BooleanNot,
+                    OperatorKind.BitwiseNegate => UnaryNode.UnaryKind.BitwiseNegate,
+                    OperatorKind.Plus => UnaryNode.UnaryKind.Positive,
+                    OperatorKind.Minus => UnaryNode.UnaryKind.Negative,
+                    _ => throw new InvalidOperationException("Unknown operator kind for unary operation")
+                });
+            case TokenKeyword { Kind: KeywordKind.Not } tokenUnaryNotKeyword:
+                context.Position++;
+                return UnaryNode.Parse(context, tokenUnaryNotKeyword, UnaryNode.UnaryKind.BooleanNot);
+            case TokenKeyword { Kind: KeywordKind.Function } tokenFunction:
+                context.Position++;
+                if (context.CompileContext.GameContext.UsingGMLv2)
+                {
+                    return FunctionDeclNode.Parse(context, tokenFunction);
+                }
+                context.CompileContext.PushError("Cannot declare functions before GMLv2 (GameMaker 2.3+)", token);
+                return null;
+            case TokenSeparator { Kind: SeparatorKind.BlockOpen } tokenBlockOpen:
+                context.Position++;
+                if (context.CompileContext.GameContext.UsingGMLv2)
+                {
+                    return FunctionDeclNode.ParseStruct(context, tokenBlockOpen);
+                }
+                context.CompileContext.PushError("Cannot use structs before GMLv2 (GameMaker 2.3+)", token);
+                return null;
+            case TokenKeyword { Kind: KeywordKind.Begin } tokenBegin:
+                context.Position++;
+                if (context.CompileContext.GameContext.UsingGMLv2)
+                {
+                    return FunctionDeclNode.ParseStruct(context, tokenBegin);
+                }
+                context.CompileContext.PushError("Cannot use structs before GMLv2 (GameMaker 2.3+)", token);
+                return null;
+            case TokenKeyword { Kind: KeywordKind.New }:
+                if (context.CompileContext.GameContext.UsingGMLv2)
+                {
+                    return NewObjectNode.Parse(context);
+                }
+                context.CompileContext.PushError("Cannot use new before GMLv2 (GameMaker 2.3+)", token);
+                return null;
+        }
+
+        context.Position++;
+        context.CompileContext.PushError("Failed to find a valid expression", token);
+        return null;
+    }
+}

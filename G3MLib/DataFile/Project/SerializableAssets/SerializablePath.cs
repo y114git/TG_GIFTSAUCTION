@@ -1,0 +1,127 @@
+using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using G3MLib.DataFile.Models;
+
+namespace G3MLib.DataFile.Project.SerializableAssets;
+
+/// <summary>
+/// A serializable version of <see cref="GameMakerPath"/>.
+/// </summary>
+internal sealed class SerializablePath : ISerializableProjectAsset
+{
+    /// <inheritdoc/>
+    public string DataName { get; set; }
+
+    /// <inheritdoc/>
+    [JsonIgnore]
+    public SerializableAssetType AssetType => SerializableAssetType.Path;
+
+    /// <inheritdoc/>
+    [JsonIgnore]
+    public bool IndividualDirectory => false;
+
+    /// <inheritdoc/>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public int OverrideOrder { get; set; }
+
+    /// <inheritdoc cref="GameMakerPath.IsSmooth"/>
+    public bool IsSmooth { get; set; }
+
+    /// <inheritdoc cref="GameMakerPath.IsClosed"/>
+    public bool IsClosed { get; set; }
+
+    /// <inheritdoc cref="GameMakerPath.Precision"/>
+    public uint Precision { get; set; }
+
+    /// <inheritdoc cref="GameMakerPath.Points"/>
+    public List<PathPoint> Points { get; set; }
+
+    /// <inheritdoc cref="GameMakerPath.PathPoint"/>
+    public sealed class PathPoint
+    {
+        /// <inheritdoc cref="GameMakerPath.PathPoint.X"/>
+        public float X { get; set; }
+
+        /// <inheritdoc cref="GameMakerPath.PathPoint.Y"/>
+        public float Y { get; set; }
+
+        /// <inheritdoc cref="GameMakerPath.PathPoint.Speed"/>
+        public float Speed { get; set; }
+    }
+
+    // Data asset that was located during pre-import.
+    private GameMakerPath? _dataAsset;
+
+    /// <summary>
+    /// Populates this serializable path with data from an actual path.
+    /// </summary>
+    internal void PopulateFromData(GameMakerPath path)
+    {
+        // Update all main properties
+        DataName = path.Name.Content;
+        IsSmooth = path.IsSmooth;
+        IsClosed = path.IsClosed;
+        Precision = path.Precision;
+        Points = new(path.Points.Count);
+        foreach (var p in path.Points)
+        {
+            Points.Add(new()
+            {
+                X = p.X,
+                Y = p.Y,
+                Speed = p.Speed
+            });
+        }
+    }
+
+    /// <inheritdoc/>
+    public void Serialize(ProjectContext projectContext, string destinationFile)
+    {
+        using FileStream fs = new(destinationFile, FileMode.Create);
+        JsonSerializer.Serialize<ISerializableProjectAsset>(fs, this, ProjectContext.JsonOptions);
+    }
+
+    /// <inheritdoc/>
+    public void PreImport(ProjectContext projectContext)
+    {
+        if (projectContext.Data.Paths.ByName(DataName) is GameMakerPath existing)
+        {
+            // Path found
+            _dataAsset = existing;
+        }
+        else
+        {
+            // No path found; create new one
+            _dataAsset = new()
+            {
+                Name = projectContext.MakeString(DataName)
+            };
+            projectContext.Data.Paths.Add(_dataAsset);
+        }
+    }
+
+    /// <inheritdoc/>
+    public IProjectAsset Import(ProjectContext projectContext)
+    {
+        var path = _dataAsset;
+
+        // Update all main properties
+        path.IsSmooth = IsSmooth;
+        path.IsClosed = IsClosed;
+        path.Precision = Precision;
+        path.Points.Clear();
+        path.Points.SetCapacity(Points?.Count ?? 0);
+        foreach (var p in Points ?? [])
+        {
+            path.Points.Add(new()
+            {
+                X = p.X,
+                Y = p.Y,
+                Speed = p.Speed
+            });
+        }
+
+        return path;
+    }
+}

@@ -1,0 +1,92 @@
+using System.Runtime.CompilerServices;
+using System.Text;
+
+namespace G3MLib.DataFile.Util;
+
+/// <summary>
+/// 32-bit implementation of MurmurHash, for deterministic (but non-cryptographic) hashing.
+/// </summary>
+/// <remarks>
+/// Based on https://en.wikipedia.org/wiki/MurmurHash.
+/// </remarks>
+internal static class MurmurHash
+{
+    /// <summary>
+    /// Calculates a hash based on a span of characters.
+    /// </summary>
+    /// <remarks>
+    /// The characters will be re-encoded as a UTF-8 buffer before hashing.
+    /// </remarks>
+    public static uint Hash(ReadOnlySpan<char> chars, uint seed = 0)
+    {
+        // Short text is encoded on the stack, long text (a name from a data file has no length limit) on the heap
+        var byteCount = Encoding.UTF8.GetByteCount(chars);
+        Span<byte> utf8 = byteCount <= 512 ? stackalloc byte[512] : new byte[byteCount];
+
+        // Decode UTF8 into stack memory and hash it
+        var numBytes = Encoding.UTF8.GetBytes(chars, utf8);
+        return Hash(utf8[..numBytes], seed);
+    }
+
+    /// <summary>
+    /// Calculates a hash based on a span of bytes.
+    /// </summary>
+    public static uint Hash(ReadOnlySpan<byte> bytes, uint seed = 0)
+    {
+        var hash = seed;
+        var len = bytes.Length;
+
+        var position = 0;
+        for (var i = len >> 2; i > 0; i--)
+        {
+            // Take next 4 bytes
+            var group = BitConverter.ToUInt32(bytes[position..]);
+            if (!BitConverter.IsLittleEndian)
+            {
+                // Swap endianness to match little endian
+                group = (group >> 16) | (group << 16);
+                group = ((group & 0xff00ff00) >> 8) | ((group & 0x00ff00ff) << 8);
+            }
+
+            // Apply group to current hash value
+            hash ^= Scramble(group);
+            hash = (hash << 13) | (hash >> 19);
+            hash = hash * 5 + 0xe6546b64;
+
+            // Move to next 4 byte chunk
+            position += 4;
+        }
+
+        // Take remaining bytes from the end (0 to 3 bytes)
+        uint endGroup = 0;
+        for (var i = len & 3; i > 0; i--)
+        {
+            endGroup <<= 8;
+            endGroup |= bytes[position + (i - 1)];
+        }
+
+        // Apply ending group to current hash value
+        hash ^= Scramble(endGroup);
+
+        // Perform final operations on hash value
+        hash ^= (uint)len;
+        hash ^= hash >> 16;
+        hash *= 0x85ebca6b;
+        hash ^= hash >> 13;
+        hash *= 0xc2b2ae35;
+        hash ^= hash >> 16;
+
+        return hash;
+    }
+
+    /// <summary>
+    /// 32-bit Murmur hash scramble operation.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static uint Scramble(uint number)
+    {
+        number *= 0xcc9e2d51;
+        number = (number << 15) | (number >> 17);
+        return number * 0x1b873593;
+    }
+}
