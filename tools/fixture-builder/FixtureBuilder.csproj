@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <NoWarn>$(NoWarn);CS8600;CS8602;CS8604;CS8619</NoWarn><TreatWarningsAsErrors>false</TreatWarningsAsErrors><EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild><GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\G3MStudio.Core\G3MStudio.Core.csproj" />
+  </ItemGroup>
+
+</Project>

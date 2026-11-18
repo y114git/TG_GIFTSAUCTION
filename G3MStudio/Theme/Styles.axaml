@@ -1,0 +1,298 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:docking="using:G3MStudio.Docking"
+        xmlns:dockc="using:Dock.Avalonia.Controls">
+  <Style Selector="Window, dockc|HostWindow">
+    <Setter Property="Background" Value="{DynamicResource Bg.Window}" />
+    <Setter Property="Foreground" Value="{DynamicResource Text}" />
+    <Setter Property="FontFamily" Value="{DynamicResource Font.Body}" />
+    <Setter Property="FontWeight" Value="{DynamicResource Font.Weight}" />
+    <Setter Property="FontSize" Value="{DynamicResource FontSize.Body}" />
+  </Style>
+  <!-- Menus, context menus, flyouts, tooltips and drop-down lists open in a popup root or overlay host, which is no Window and inherits nothing from one: it takes the app font and weight here (PopupFontTests). -->
+  <Style Selector="PopupRoot, OverlayPopupHost">
+    <Setter Property="FontFamily" Value="{DynamicResource Font.Body}" />
+    <Setter Property="FontWeight" Value="{DynamicResource Font.Weight}" />
+  </Style>
+  <!-- Top-level menus sit tight so all of them fit at the window minimum beside the tab buttons. -->
+  <Style Selector="Menu > MenuItem"><Setter Property="Padding" Value="6,0" /></Style>
+  <!-- One keyboard focus ring for every control: 2 px Select, drawn inside the control so no parent clips it (ux-standards section 3 rule 2). The adorner shows for keyboard focus only. -->
+  <Style Selector=":is(Control)">
+    <Setter Property="FocusAdorner">
+      <FocusAdornerTemplate>
+        <Border BorderThickness="2" BorderBrush="{DynamicResource Select}" IsHitTestVisible="False" />
+      </FocusAdornerTemplate>
+    </Setter>
+  </Style>
+  <!-- A disabled control explains why in its tooltip; without this flag Avalonia never shows a tooltip on a disabled control. -->
+  <Style Selector="Button, ToggleButton, CheckBox, ComboBox, NumericUpDown, MenuItem">
+    <Setter Property="ToolTip.ShowOnDisabled" Value="True" />
+  </Style>
+  <!-- Button text is often a resource name; an underscore in it must not become an access key and vanish. -->
+  <Style Selector="Button /template/ ContentPresenter"><Setter Property="RecognizesAccessKey" Value="False" /></Style>
+  <!-- A list is framed by a thin quiet line, not the white theme default. -->
+  <Style Selector="ListBox">
+    <Setter Property="BorderBrush" Value="{DynamicResource Border.Subtle}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource Border.Width}" />
+  </Style>
+  <!-- List rows are one line of text: the theme default is more than twice as tall. -->
+  <Style Selector="ListBoxItem">
+    <Setter Property="MinHeight" Value="{DynamicResource Row.Height}" />
+    <Setter Property="Padding" Value="8,2" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <!-- A row taller than its text keeps the text in the middle, selected or not. -->
+  <Style Selector="ComboBoxItem"><Setter Property="VerticalContentAlignment" Value="Center" /></Style>
+  <Style Selector="TreeViewItem /template/ ContentPresenter#PART_HeaderPresenter"><Setter Property="VerticalContentAlignment" Value="Center" /></Style>
+  <!-- Selected rows are filled with Selection.Bg: dark text keeps 4.5:1 on it (SelectionContrastTests). -->
+  <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter,
+                  ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter,
+                  ListBoxItem:selected:pressed /template/ ContentPresenter#PART_ContentPresenter,
+                  ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter,
+                  ComboBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter,
+                  ComboBoxItem:selected:pressed /template/ ContentPresenter#PART_ContentPresenter,
+                  TreeViewItem:selected /template/ ContentPresenter#PART_HeaderPresenter,
+                  TreeViewItem:selected:pointerover /template/ ContentPresenter#PART_HeaderPresenter,
+                  TreeViewItem:selected:pressed /template/ ContentPresenter#PART_HeaderPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
+  </Style>
+  <!-- A button pressed inside a hovered row: the dark pressed green and the row's grey hover fill are the same lightness (HoverContrastTests), so it takes the lighter hover green. -->
+  <Style Selector="ListBoxItem:pointerover Button:pressed /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource Hover}" /></Style>
+  <!-- Inset shadow: the bar sits in the row's left padding, so the text does not move. -->
+  <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter,
+                  ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter,
+                  TreeViewItem:selected /template/ ContentPresenter#PART_HeaderPresenter">
+    <Setter Property="BoxShadow" Value="inset 2 0 0 0 #ECEDEF" />
+  </Style>
+  <!-- Sizes come from the tokens (Tokens.axaml, ThemeSizes): the density presets and Settings > Appearance > Sizes move them. -->
+  <Style Selector="Button, ToggleButton, ComboBox, NumericUpDown, DropDownButton"><Setter Property="MinHeight" Value="{DynamicResource Control.Height}" /></Style>
+  <!-- The theme gives a drop-down button, a spinner and the frame inside the spinner 32 px of their own: in a row they stood 2 px taller than the buttons beside them. -->
+  <Style Selector="ButtonSpinner, ButtonSpinner /template/ Border"><Setter Property="MinHeight" Value="{DynamicResource Control.Height}" /></Style>
+  <!-- Text in every button, toggle, combo box and tab sits dead centre: the padding (ButtonPadding in FluentOverrides.axaml) is even, where the theme gave 5 px on top and 6 below. -->
+  <Style Selector="Button, ToggleButton">
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <!-- A caption longer than the room its parent gives (a narrow column, a long translation) wraps onto more lines instead of running out of the control. -->
+  <Style Selector="Button TextBlock, ToggleButton TextBlock, CheckBox TextBlock, RadioButton TextBlock"><Setter Property="TextWrapping" Value="Wrap" /></Style>
+  <Style Selector="ToggleButton.dim:not(:disabled) PathIcon"><Setter Property="Opacity" Value="0.8" /></Style>
+  <Style Selector="Button TextBlock, ToggleButton TextBlock"><Setter Property="TextAlignment" Value="Center" /></Style>
+  <Style Selector="ComboBox">
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TabItem, dockc|DocumentTabStripItem, dockc|ToolTabStripItem">
+    <Setter Property="Padding" Value="8,4" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <!-- A button with only a glyph (the event menu, a reference clear) is as tall as any control and as wide as it is tall. -->
+  <Style Selector="Button.icon">
+    <Setter Property="MinWidth" Value="{DynamicResource Control.Height}" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="FontSize" Value="16" />
+  </Style>
+  <Style Selector="TextBox"><Setter Property="MinHeight" Value="{DynamicResource Control.Height}" /><Setter Property="FontSize" Value="{DynamicResource FontSize.Editor}" /></Style>
+  <!-- A spinner holds a text box that would make it taller than the buttons beside it; the spinner itself carries the control height. After the TextBox style, which it overrides. -->
+  <Style Selector="NumericUpDown /template/ TextBox"><Setter Property="MinHeight" Value="0" /></Style>
+  <!-- The text box inside takes this padding; 4 px less than the theme's, it fits the spinner's own frame within the control height. -->
+  <Style Selector="NumericUpDown"><Setter Property="Padding" Value="10,4,6,3" /></Style>
+  <Style Selector="ScrollBar:vertical"><Setter Property="Width" Value="{DynamicResource Scrollbar.Width}" /></Style>
+  <Style Selector="ScrollBar:horizontal"><Setter Property="Height" Value="{DynamicResource Scrollbar.Width}" /></Style>
+  <!-- The text colour is the tip's own: a tip hangs on its control in the logical tree, and a chosen tab or row would hand it the dark selected text by inheritance. -->
+  <Style Selector="ToolTip"><Setter Property="FontSize" Value="{DynamicResource Tooltip.Size}" /><Setter Property="MaxWidth" Value="420" /><Setter Property="Foreground" Value="{DynamicResource Text}" /></Style>
+  <Style Selector="PathIcon"><Setter Property="Width" Value="{DynamicResource Icon.Size}" /><Setter Property="Height" Value="{DynamicResource Icon.Size}" /></Style>
+  <Style Selector="TabItem, dockc|DocumentTabStripItem, dockc|ToolTabStripItem"><Setter Property="MinHeight" Value="{DynamicResource Tab.Height}" /></Style>
+  <!-- The dock theme sets its tab height to 0 and bottom-aligns the label; a selector through the strip outranks it, so every dock tab is Tab.Height tall with the label in the middle. -->
+  <!-- The label sits in a stack panel inside the tab and stays at its top edge; centring the presenter puts it in the middle of the tab. -->
+  <Style Selector="dockc|ToolTabStripItem /template/ ContentPresenter, dockc|DocumentTabStripItem /template/ ContentPresenter">
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="dockc|ToolTabStrip dockc|ToolTabStripItem, dockc|DocumentTabStrip dockc|DocumentTabStripItem">
+    <Setter Property="MinHeight" Value="{DynamicResource Tab.Height}" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+  </Style>
+  <!-- The dock library sets its own tab weight; the labels follow the body token like all other text. -->
+  <Style Selector="dockc|DocumentTabStripItem, dockc|ToolTabStripItem"><Setter Property="FontWeight" Value="{DynamicResource Font.Weight}" /></Style>
+  <Style Selector="dockc|DocumentTabStripItem TextBlock, dockc|ToolTabStripItem TextBlock"><Setter Property="FontWeight" Value="{DynamicResource Font.Weight}" /></Style>
+  <!-- The chosen tab is filled with Selection.Bg like a selected row: its label takes the dark text (the light text is 2.9:1 on the default fill). -->
+  <Style Selector="dockc|DocumentTabStripItem:selected /template/ ContentPresenter TextBlock, dockc|ToolTabStripItem:selected /template/ ContentPresenter TextBlock"><Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" /></Style>
+  <!-- The library copies the minimum height of a dock to the control inside its chrome, which sits under the header: a low bottom dock then pushed that control over the header and out under the tab strip. The dock keeps its minimum; the inner control does not repeat it. -->
+  <Style Selector="dockc|ToolControl"><Setter Property="MinHeight" Value="0" /></Style>
+  <!-- The panel title (Explorer, Inspector, History) fills the header height and keeps its text at the top; centred, it lines up with the pin and close icons. -->
+  <Style Selector="dockc|ToolChromeControl TextBlock#PART_Title"><Setter Property="VerticalAlignment" Value="Center" /></Style>
+  <!-- Panel header buttons: the pin says what a click does (it shows the state by its direction and colour), the three dots open the panel menu, and each has a tooltip. -->
+  <Style Selector="dockc|ToolChromeControl /template/ Button#PART_PinButton"><Setter Property="ToolTip.Tip" Value="{DynamicResource StudioToolPinTip}" /><Setter Property="AutomationProperties.Name" Value="{DynamicResource StudioToolPinTip}" /></Style>
+  <Style Selector="dockc|ToolChromeControl:pinned /template/ Button#PART_PinButton"><Setter Property="ToolTip.Tip" Value="{DynamicResource StudioToolUnpinTip}" /><Setter Property="AutomationProperties.Name" Value="{DynamicResource StudioToolUnpinTip}" /></Style>
+  <Style Selector="dockc|ToolChromeControl:pinned /template/ Path#PART_PinPath"><Setter Property="Fill" Value="{DynamicResource Text.Accent}" /></Style>
+  <Style Selector="dockc|ToolChromeControl /template/ Button#PART_MenuButton"><Setter Property="ToolTip.Tip" Value="{DynamicResource StudioToolMenuTip}" /><Setter Property="AutomationProperties.Name" Value="{DynamicResource StudioToolMenuTip}" /></Style>
+  <Style Selector="dockc|ToolChromeControl /template/ Path#PART_MenuPath"><Setter Property="Data" Value="M1.5,8 A1.5,1.5 0 1 0 4.5,8 A1.5,1.5 0 1 0 1.5,8 Z M6.5,8 A1.5,1.5 0 1 0 9.5,8 A1.5,1.5 0 1 0 6.5,8 Z M11.5,8 A1.5,1.5 0 1 0 14.5,8 A1.5,1.5 0 1 0 11.5,8 Z" /></Style>
+  <Style Selector="dockc|ToolChromeControl /template/ Button#PART_CloseButton"><Setter Property="ToolTip.Tip" Value="{DynamicResource StudioToolCloseTip}" /><Setter Property="AutomationProperties.Name" Value="{DynamicResource StudioToolCloseTip}" /></Style>
+  <Style Selector="dockc|DocumentTabStripItem Button"><Setter Property="ToolTip.Tip" Value="{DynamicResource DocumentTabStripItemCloseString}" /><Setter Property="AutomationProperties.Name" Value="{DynamicResource DocumentTabStripItemCloseString}" /></Style>
+  <!-- The button template paints its hover fill on the presenter with the same green a hovered tab has, so the X vanished under the pointer. A light fill with a dark cross differs from the tab when it is plain, hovered or chosen (HoverContrastTests). -->
+  <Style Selector="dockc|DocumentTabStripItem Button:pointerover /template/ ContentPresenter#PART_ContentPresenter, dockc|DocumentTabStripItem Button:pressed /template/ ContentPresenter#PART_ContentPresenter,
+                  dockc|ToolTabStripItem Button:pointerover /template/ ContentPresenter#PART_ContentPresenter, dockc|ToolTabStripItem Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Text.Accent}" />
+  </Style>
+  <Style Selector="dockc|DocumentTabStripItem Button:pointerover Path#PART_ClosePath, dockc|DocumentTabStripItem Button:pressed Path#PART_ClosePath,
+                  dockc|ToolTabStripItem Button:pointerover Path#PART_ClosePath, dockc|ToolTabStripItem Button:pressed Path#PART_ClosePath">
+    <Setter Property="Fill" Value="{DynamicResource Text.OnAccent}" />
+  </Style>
+  <Style Selector="dockc|ToolPinItemControl Button"><Setter Property="ToolTip.Tip" Value="{DynamicResource StudioToolSlideTip}" /><Setter Property="AutomationProperties.Name" Value="{DynamicResource StudioToolSlideTip}" /></Style>
+  <!-- The chosen tab is filled like a selected row, the others stay plain, so the six shader tabs and the settings tabs show where you are. -->
+  <Style Selector="TabItem:selected">
+    <Setter Property="Background" Value="{DynamicResource Selection.Bg}" />
+    <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
+    <Setter Property="FontWeight" Value="Bold" />
+  </Style>
+  <!-- The dock theme colours the chosen tab label blue; it takes the text colour with a green pipe instead. -->
+  <Style Selector="dockc|ToolTabStripItem:selected, dockc|DocumentTabStripItem:selected">
+    <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
+    <Setter Property="Background" Value="{DynamicResource Selection.Bg}" />
+  </Style>
+  <!-- Pointer over the chosen tab: the hover fill must not replace the selected fill, or the click would blink between the two. -->
+  <Style Selector="dockc|ToolTabStripItem:selected:pointerover, dockc|DocumentTabStripItem:selected:pointerover, dockc|ToolTabStripItem:selected:pressed, dockc|DocumentTabStripItem:selected:pressed">
+    <Setter Property="Background" Value="{DynamicResource Selection.Bg}" />
+  </Style>
+  <!-- Hover fills stay inside the tab and the panel buttons: nothing paints past the control. -->
+  <Style Selector="dockc|ToolTabStripItem, dockc|DocumentTabStripItem, dockc|ToolChromeControl /template/ Button, TabItem"><Setter Property="ClipToBounds" Value="True" /></Style>
+  <Style Selector="dockc|ToolTabStripItem /template/ ContentPresenter, dockc|DocumentTabStripItem /template/ ContentPresenter"><Setter Property="ClipToBounds" Value="True" /></Style>
+  <!-- A tab the strip edge cuts shows no close button (see TabStripFit): no half label with a lone cross. -->
+  <Style Selector="dockc|DocumentTabStripItem.cut Button, dockc|ToolTabStripItem.cut Button"><Setter Property="Opacity" Value="0" /><Setter Property="IsHitTestVisible" Value="False" /></Style>
+  <!-- The scroll arrows of an overflowing tab strip take the thin chevrons (the class is set in StudioDock). -->
+  <Style Selector="RepeatButton.tabScrollLeft Path"><Setter Property="Data" Value="M8.5,1.5 L4,6 L8.5,10.5 L9.6,9.4 L6.2,6 L9.6,2.6 Z" /></Style>
+  <Style Selector="RepeatButton.tabScrollRight Path"><Setter Property="Data" Value="M3.5,1.5 L8,6 L3.5,10.5 L2.4,9.4 L5.8,6 L2.4,2.6 Z" /></Style>
+  <!-- A tool strip too narrow for its tabs (a long language, a side panel) scrolls with the same arrows the editor strip has; the dock theme hides them for tool strips. -->
+  <Style Selector="dockc|ToolTabStrip /template/ ScrollViewer#PART_ScrollViewer"><Setter Property="HorizontalScrollBarVisibility" Value="Auto" /></Style>
+  <Style Selector="dockc|ToolTabStripItem:selected /template/ ContentPresenter, dockc|DocumentTabStripItem:selected /template/ ContentPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
+  </Style>
+  <Style Selector="GridSplitter"><Setter Property="Background" Value="{DynamicResource Border.Subtle}" /></Style>
+  <!-- Controls that sit side by side or stacked never touch: a panel without its own gap gets one step of the spacing scale (a panel that sets its own gap keeps it). -->
+  <Style Selector="WrapPanel"><Setter Property="ItemSpacing" Value="{DynamicResource Space.1}" /><Setter Property="LineSpacing" Value="{DynamicResource Space.1}" /></Style>
+  <Style Selector="StackPanel"><Setter Property="Spacing" Value="{DynamicResource Space.1}" /></Style>
+  <!-- A caption in a toolbar row sits on the centre line of the buttons and boxes beside it, not at the top of the row. -->
+  <Style Selector="WrapPanel > TextBlock, StackPanel[Orientation=Horizontal] > TextBlock"><Setter Property="VerticalAlignment" Value="Center" /></Style>
+  <Style Selector="Border.panel"><Setter Property="Padding" Value="{DynamicResource Panel.Padding}" /></Style>
+  <Style Selector="TextBlock.muted"><Setter Property="Foreground" Value="{DynamicResource Text.Muted}" /></Style>
+  <Style Selector="TextBlock.accent"><Setter Property="Foreground" Value="{DynamicResource Text.Accent}" /></Style>
+  <!-- Avalonia applies styles in the order they are declared, not by specificity: these row and button states come after TextBlock.muted and TextBlock.accent, or the grey and green would win. -->
+  <!-- Children that keep their own muted or accent colour would turn grey or light green on the selection fill: they take the dark text too, and a 2 px Select bar marks the row without a colour (ux-standards section 2 rule 2). -->
+  <Style Selector="ListBoxItem:selected TextBlock.muted, ListBoxItem:selected TextBlock.accent,
+                  ComboBoxItem:selected TextBlock.muted, ComboBoxItem:selected TextBlock.accent,
+                  TreeViewItem:selected > TextBlock.muted, TreeViewItem:selected > TextBlock.accent">
+    <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
+  </Style>
+  <!-- Grey and accent text in a row under the pointer turns to the normal text colour: on the hover fill (the accent mixed with grey) the grey is 2.4:1 and the light green 3.1:1. -->
+  <!-- A tree row holds the rows under it, and the pointer over one of those is over the row above too: the tree rules reach only the header text block of the row itself. -->
+  <Style Selector="ListBoxItem:pressed:not(:selected) TextBlock.muted, ListBoxItem:pressed:not(:selected) TextBlock.accent,
+                  ListBoxItem:pointerover:not(:selected) TextBlock.muted, ListBoxItem:pointerover:not(:selected) TextBlock.accent,
+                  ComboBoxItem:pointerover:not(:selected) TextBlock.muted, ComboBoxItem:pointerover:not(:selected) TextBlock.accent,
+                  TreeViewItem:pointerover:not(:selected) > TextBlock.muted, TreeViewItem:pointerover:not(:selected) > TextBlock.accent,
+                  MenuItem:pointerover TextBlock.muted, MenuItem:pointerover TextBlock.accent">
+    <Setter Property="Foreground" Value="{DynamicResource Text}" />
+  </Style>
+  <!-- Grey caption text inside a button turns to the normal text colour on the grey hover and pressed fills (2.2:1 otherwise). -->
+  <Style Selector="Button:pointerover TextBlock.muted, Button:pressed TextBlock.muted">
+    <Setter Property="Foreground" Value="{DynamicResource Text}" />
+  </Style>
+  <!-- A toggle with no fill of its own inside a chosen row (the eye and padlock of a layer) sits on the selection fill: its icon takes the dark text, and while it is on, it is a darker chip with the light text. -->
+  <Style Selector="ListBoxItem:selected ToggleButton /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
+  </Style>
+  <Style Selector="ListBoxItem:selected ToggleButton:checked /template/ ContentPresenter#PART_ContentPresenter, ListBoxItem:selected ToggleButton:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Accent.Primary}" />
+    <Setter Property="Foreground" Value="{DynamicResource Text}" />
+  </Style>
+  <!-- The template paints the disabled border; the control itself reports the same brush. -->
+  <Style Selector="Button:disabled"><Setter Property="BorderBrush" Value="{DynamicResource Disabled.Border}" /></Style>
+  <Style Selector="Button.primary">
+    <Setter Property="Background" Value="{DynamicResource Accent.Primary}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Text.Accent}" />
+    <Setter Property="Foreground" Value="{DynamicResource Text}" />
+    <Setter Property="FontWeight" Value="Bold" />
+  </Style>
+  <!-- A destructive confirm button (Delete): red fill, dark text (design/ux-standards.md, contrast). -->
+  <Style Selector="Button.danger">
+    <Setter Property="Background" Value="{DynamicResource Danger.Fill}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Danger}" />
+    <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
+  </Style>
+  <Style Selector="Button.danger /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Danger.Fill}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Danger}" />
+    <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
+  </Style>
+  <Style Selector="Button.danger:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.danger:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Danger}" />
+  </Style>
+  <!-- The template paints the pressed and hover states on the presenter, so the fill is set there too: the primary button never falls back to grey. -->
+  <Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Accent.Primary}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Text.Accent}" />
+    <Setter Property="Foreground" Value="{DynamicResource Text}" />
+  </Style>
+  <!-- White text on the fill stays readable on hover only when the fill gets darker, not lighter. -->
+  <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Accent.PrimaryHover}" />
+  </Style>
+  <!-- Last, so a disabled primary button (Create new sound before a take) is grey even under the pointer. -->
+  <Style Selector="Button.primary:disabled /template/ ContentPresenter#PART_ContentPresenter, Button.primary:disabled:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Disabled.Bg}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Disabled.Border}" />
+    <Setter Property="Foreground" Value="{DynamicResource Disabled.Text}" />
+  </Style>
+  <!-- A card that opens something (a recent file on the start page): the button covers the whole card, and its border turns green under the pointer; a pinned card keeps the green border. -->
+  <Style Selector="Button.card">
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="BorderThickness" Value="{DynamicResource Border.Width}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.Panel}" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+  </Style>
+  <Style Selector="Button.card /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Bg.Surface}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Border.Subtle}" />
+  </Style>
+  <Style Selector="Button.card.pinned /template/ ContentPresenter#PART_ContentPresenter, Button.card:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="BorderBrush" Value="{DynamicResource Border}" />
+  </Style>
+  <Style Selector="Button.card:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource Bg.Raised}" /></Style>
+  <Style Selector="Button.card:pressed /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource Pressed}" /></Style>
+  <!-- A mode menu of the image editor is filled while it is the one in use (same fills as a selected row). -->
+  <Style Selector="DropDownButton.active">
+    <Setter Property="Background" Value="{DynamicResource Selection.Bg}" />
+    <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
+  </Style>
+  <Style Selector="DropDownButton.active /template/ ContentPresenter#PART_ContentPresenter, DropDownButton.active:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Selection.Bg}" />
+    <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
+  </Style>
+  <!-- The current frame of the image editor strip. -->
+  <Style Selector="Button.active">
+    <Setter Property="Background" Value="{DynamicResource Selection.Bg}" />
+    <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
+  </Style>
+  <Style Selector="Button.active /template/ ContentPresenter#PART_ContentPresenter, Button.active:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.active:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Selection.Bg}" />
+    <Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" />
+  </Style>
+  <!-- The caption of the current frame is grey text elsewhere; on the selection fill it takes the dark text. -->
+  <Style Selector="Button.active TextBlock, Button.active TextBlock.muted, Button.active TextBlock.accent"><Setter Property="Foreground" Value="{DynamicResource Text.OnAccent}" /></Style>
+  <!-- The current layer of the image editor keeps the hover fill all the time, like a row under the pointer: no outline, the text keeps its contrast on it. -->
+  <Style Selector="Button.layerCurrent /template/ ContentPresenter#PART_ContentPresenter, Button.layerCurrent:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Hover}" />
+    <Setter Property="Foreground" Value="{DynamicResource Text}" />
+  </Style>
+  <!-- The row a drag would drop onto gets an accent outline. -->
+  <Style Selector="ListBoxItem.dropTarget /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="BorderBrush" Value="{DynamicResource Text.Accent}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <!-- A preview tab shows its name in italics (design/shell.md 9.1). -->
+  <Style Selector="dockc|DocumentTabStripItem">
+    <Setter Property="FontStyle" Value="{Binding (docking:StudioDock.IsPreview), Converter={x:Static docking:StudioDock.ItalicWhenTrue}}" />
+  </Style>
+</Styles>

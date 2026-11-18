@@ -1,0 +1,46 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:edit="using:AvaloniaEdit.Editing"
+        xmlns:dockp="using:Dock.Controls.ProportionalStackPanel">
+  <!-- Text selection is green like every other selection: solid with dark text in text boxes, translucent over coloured code in the editor (Selection.Soft). -->
+  <Style Selector="TextBox">
+    <Setter Property="SelectionBrush" Value="{DynamicResource Selection.Bg}" />
+    <Setter Property="SelectionForegroundBrush" Value="{DynamicResource Text.OnAccent}" />
+    <Setter Property="CaretBrush" Value="{DynamicResource Text.Accent}" />
+  </Style>
+  <Style Selector="edit|TextArea">
+    <Setter Property="SelectionBrush" Value="{DynamicResource Selection.Soft}" />
+  </Style>
+  <!-- A rounder box; filled green when checked, with a thin dark tick (CheckMarkPathData in Glyphs.axaml, colours in FluentForwards). -->
+  <Style Selector="CheckBox /template/ Border#NormalRectangle"><Setter Property="CornerRadius" Value="5" /></Style>
+  <!-- Slim scrollbars: no arrow buttons, a rounded thumb that turns green under the pointer. -->
+  <Style Selector="ScrollBar /template/ RepeatButton#PART_LineUpButton, ScrollBar /template/ RepeatButton#PART_LineDownButton,
+                  ScrollBar /template/ RepeatButton#PART_LineLeftButton, ScrollBar /template/ RepeatButton#PART_LineRightButton">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="ScrollBar Thumb"><Setter Property="CornerRadius" Value="6" /></Style>
+  <Style Selector="ScrollBar Thumb /template/ Border"><Setter Property="CornerRadius" Value="6" /></Style>
+  <!-- Spinner and tree arrows: muted at rest, green under the pointer. -->
+  <Style Selector="ButtonSpinner /template/ RepeatButton">
+    <Setter Property="Foreground" Value="{DynamicResource Text.Muted}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.Control}" />
+  </Style>
+  <Style Selector="ButtonSpinner /template/ RepeatButton:pointerover"><Setter Property="Foreground" Value="{DynamicResource Text.Accent}" /></Style>
+  <!-- The spacing rule for stack panels (Styles.axaml) also reached the panel inside the spinner template: a 4 px dark gap between the up and the down button. The two buttons touch; each draws its own left divider. -->
+  <Style Selector="ButtonSpinner /template/ StackPanel#PART_SpinnerPanel"><Setter Property="Spacing" Value="0" /></Style>
+  <Style Selector="TreeViewItem /template/ ToggleButton#PART_ExpandCollapseChevron"><Setter Property="Foreground" Value="{DynamicResource Text.Muted}" /></Style>
+  <Style Selector="TreeViewItem /template/ ToggleButton#PART_ExpandCollapseChevron:pointerover"><Setter Property="Foreground" Value="{DynamicResource Text.Accent}" /></Style>
+  <Style Selector="TreeViewItem /template/ Path#PART_ChevronPath">
+    <Setter Property="StrokeLineCap" Value="Round" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <!-- A splitter under the pointer turns green, not grey. -->
+  <Style Selector="GridSplitter:pointerover, GridSplitter:pressed"><Setter Property="Background" Value="{DynamicResource Accent.Fill}" /></Style>
+  <!-- The dock splitters: 6 px to grab, grey at rest and green under the pointer; the minimum keeps both panes visible so the splitter is never trapped. -->
+  <Style Selector="dockp|ProportionalStackPanelSplitter">
+    <Setter Property="Thickness" Value="6" />
+    <Setter Property="MinimumProportionSize" Value="60" />
+    <Setter Property="Background" Value="{DynamicResource Border.Subtle}" />
+  </Style>
+  <Style Selector="dockp|ProportionalStackPanelSplitter:pointerover, dockp|ProportionalStackPanelSplitter:pressed"><Setter Property="Background" Value="{DynamicResource Accent.Fill}" /></Style>
+</Styles>

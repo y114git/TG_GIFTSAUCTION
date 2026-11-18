@@ -1,0 +1,96 @@
+using G3MLib.DataFile;
+using G3MStudio.Core.Projects;
+using G3MStudio.Core.Settings;
+
+namespace G3MStudio.Core.Workspace;
+
+/// <summary>Opens and closes the single workspace of a window and keeps the recent list.</summary>
+public sealed partial class WorkspaceService(UserData userData, RecentFiles recent)
+{
+    public UserData UserData { get; } = userData;
+
+    public RecentFiles Recent { get; } = recent;
+
+    public ProjectService Projects { get; } = new(userData);
+
+    public SettingsStore Settings => Projects.Settings;
+
+    public Workspace? Current { get; private set; }
+
+    public event Action<Workspace?>? CurrentChanged;
+
+    private string? _lastActive;
+
+    /// <summary>The data file remembers the run profile picked while it is open (F-UI-6, the per-file part of the settings).</summary>
+    private void OnSettingsChanged()
+    {
+        var active = Settings.Current.ActiveRunProfile;
+        if (active == _lastActive) return;
+        _lastActive = active;
+        if (Current is not { } workspace || active.Length == 0 || Settings.Current.FileRunProfiles.GetValueOrDefault(workspace.Path) == active) return;
+        Settings.Update(x => x with { FileRunProfiles = new Dictionary<string, string>(x.FileRunProfiles) { [workspace.Path] = active } });
+    }
+
+    /// <summary>Picks the profile the file used last, when that profile still exists.</summary>
+    private void ApplyRunProfile(Workspace workspace)
+    {
+        if (_lastActive is null)
+        {
+            _lastActive = Settings.Current.ActiveRunProfile;
+            Settings.Changed += OnSettingsChanged;
+        }
+
+        var settings = Settings.Current;
+        if (!settings.FileRunProfiles.TryGetValue(workspace.Path, out var name) || settings.RunProfiles.FirstOrDefault(p => p.Name == name) is not { } profile) return;
+        _lastActive = name;
+        Settings.Update(x => x with { ActiveRunProfile = name, RunRunner = profile.Runner, RunArguments = profile.Arguments, RunDebugOutput = profile.DebugOutput, RunWorkingDir = profile.WorkingDir, RunEnvironment = profile.Environment });
+    }
+
+    /// <summary>Reads the file with progress. The previous workspace is closed only after the new one has loaded.</summary>
+    /// <exception cref="OperationCanceledException">Cancelled; nothing changes.</exception>
+    public async Task<Workspace> OpenAsync(string path, IProgress<GameMakerProgress>? progress = null, CancellationToken cancellationToken = default)
+    {
+        var full = Path.GetFullPath(path);
+        if (!File.Exists(full)) throw new FileNotFoundException("Data file not found.", full);
+
+        var warnings = new List<string>();
+        var stamp = FileStamp.Of(full);
+        var read = GameMakerIO.ReadAsync(full, progress ?? NoProgress.Instance, cancellationToken, (warning, _) => { lock (warnings) warnings.Add(warning); });
+        var identity = DataFileIdentity.ComputeAsync(full, cancellationToken);
+        await WhenRead(read, identity, full);
+        var data = await read;
+
+        // Closed first: the same file reopened would find its own journal still held.
+        Close();
+        var workspace = new Workspace(full, await identity, data, warnings);
+        workspace.RememberStamp(stamp);
+        try
+        {
+            workspace.StartJournal(UserData); // holds the journal, so no other Studio is saving this file: a temp file of a killed save can go
+            if (File.Exists(full + SavePipeline.NextSuffix)) File.Delete(full + SavePipeline.NextSuffix);
+            workspace.LoadLocks(UserData); // after the journal, which replays edits that were allowed when they were made
+            Projects.Attach(workspace);
+        }
+        catch
+        {
+            workspace.Dispose();
+            throw;
+        }
+        Current = workspace;
+        // The file is open whatever the data folder allows: a failed write is reported after the window has the workspace.
+        var writeFailure = RememberOpened(workspace);
+        workspace.IdentityChanged += RememberIdentity;
+        CurrentChanged?.Invoke(workspace);
+        if ((writeFailure ?? workspace.JournalOpenFailure) is { } failure) workspace.ReportDataWriteFailure(failure);
+        return workspace;
+    }
+
+    public void Close()
+    {
+        var old = Current;
+        if (old is null) return;
+        Current = null;
+        old.Dispose();
+        CurrentChanged?.Invoke(null);
+    }
+}

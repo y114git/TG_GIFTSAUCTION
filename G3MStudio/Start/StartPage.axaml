@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:G3MStudio.Localization"
+             xmlns:local="using:G3MStudio.Start"
+             xmlns:theme="using:G3MStudio.Theme"
+             x:Class="G3MStudio.Start.StartPage">
+  <!-- The title and the two main buttons stay at the top; only the recent files scroll. Both blocks are centred at the same width. -->
+  <DockPanel>
+    <StackPanel DockPanel.Dock="Top" MaxWidth="920" Margin="32,32,32,0" Spacing="{DynamicResource Space.4}">
+      <TextBlock Text="G3MStudio" FontSize="{DynamicResource FontSize.Display}" />
+      <TextBlock Text="{loc:Tr app.welcome}" Classes="muted" theme:HelpText.Kind="Hint" />
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button Name="OpenButton" Classes="primary" Padding="20,8" Content="{loc:Tr start.open}" />
+        <Button Name="SettingsButton" Padding="20,8" Content="{loc:Tr start.settings}" />
+      </StackPanel>
+    </StackPanel>
+    <ScrollViewer>
+    <!-- Right under the open buttons at any window size and scale, so no empty band opens between the two blocks; a long list scrolls. -->
+    <StackPanel MaxWidth="920" Margin="32,16,32,24" Spacing="{DynamicResource Space.4}" VerticalAlignment="Top">
+      <TextBlock Text="{loc:Tr start.recent}" FontSize="{DynamicResource FontSize.Title}" Margin="0,10,0,0" />
+      <Button Name="ClearButton" HorizontalAlignment="Left" Content="{loc:Tr start.clear}" />
+      <TextBlock Name="EmptyRecent" Text="{loc:Tr start.empty}" Classes="muted" theme:HelpText.Kind="Detail" />
+      <!-- A grid of equal cards: the column count follows the width (StartPage.FitColumns); the cells share the height of the tallest card. -->
+      <ItemsControl Name="Cards" Margin="0,0,-8,0">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate><UniformGrid Columns="1" /></ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="local:RecentCard">
+            <Grid Margin="0,0,8,8" RowDefinitions="*,Auto">
+              <!-- The button is the card: a click anywhere on it opens the file, and Tab reaches it first. The texts above it do not take the pointer. -->
+              <Button Grid.RowSpan="2" Classes="card" Classes.pinned="{Binding Pinned}" Tag="{Binding Path}" Click="OnCardClick" AutomationProperties.Name="{Binding Name}" ToolTip.Tip="{Binding Path}" />
+              <StackPanel Margin="12,12,12,0" Spacing="2" IsHitTestVisible="False">
+                <StackPanel Spacing="2" Opacity="{Binding Dim}">
+                  <TextBlock Text="{Binding Name}" FontSize="{DynamicResource FontSize.Title}" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Text="{Binding Version}" Classes="muted" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Text="{Binding Path}" Classes="muted" FontSize="{DynamicResource FontSize.Caption}" TextTrimming="PathSegmentEllipsis" Margin="0,4,0,0" />
+                  <TextBlock Text="{Binding Opened}" Classes="muted" FontSize="{DynamicResource FontSize.Caption}" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding !Exists}" Margin="0,2,0,0">
+                  <PathIcon Data="{StaticResource WarningGlyph}" Foreground="{DynamicResource Warning}" Width="12" Height="12" />
+                  <TextBlock Text="{Binding Missing}" Foreground="{DynamicResource Warning}" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+              </StackPanel>
+              <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="6" Margin="12,8,12,12">
+                <Button Tag="{Binding Path}" Click="OnPinClick" Content="{Binding PinText}" AutomationProperties.Name="{Binding PinName}" />
+                <Button Tag="{Binding Path}" Click="OnRemoveClick" Content="{Binding RemoveText}" AutomationProperties.Name="{Binding RemoveName}" />
+              </StackPanel>
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <Border Name="DropBox" Focusable="True" Cursor="Hand" AutomationProperties.Name="{loc:Tr start.dropOpen}" Margin="0,16,0,0" Padding="24" BorderBrush="{DynamicResource Border.Subtle}" BorderThickness="2" CornerRadius="{DynamicResource Radius.Panel}">
+        <TextBlock Text="{loc:Tr start.drop}" HorizontalAlignment="Center" />
+      </Border>
+    </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>

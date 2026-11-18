@@ -1,0 +1,59 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Fluent resource keys replaced by tokens. The keys that point at a token (ButtonBackground at Bg.Surface) are in FluentForwards.cs, which keeps them current. -->
+  <ResourceDictionary.ThemeDictionaries>
+    <ResourceDictionary x:Key="Dark">
+      <Color x:Key="SystemAccentColor">#039D5B</Color>
+      <!-- Fluent derives its checked, focused and hover fills from these shades; left alone they stay blue. Same mixes as ThemeColors.FluentColors. -->
+      <Color x:Key="SystemAccentColorLight1">#35B17C</Color>
+      <Color x:Key="SystemAccentColorLight2">#68C49D</Color>
+      <Color x:Key="SystemAccentColorLight3">#9AD8BD</Color>
+      <Color x:Key="SystemAccentColorDark1">#03854D</Color>
+      <Color x:Key="SystemAccentColorDark2">#026E40</Color>
+      <Color x:Key="SystemAccentColorDark3">#025632</Color>
+      <Color x:Key="SystemRegionColor">#282828</Color>
+      <Color x:Key="SystemAltHighColor">#222222</Color>
+      <Color x:Key="SystemAltMediumHighColor">#CC222222</Color>
+      <Color x:Key="SystemAltMediumColor">#99222222</Color>
+      <Color x:Key="SystemAltMediumLowColor">#66222222</Color>
+      <Color x:Key="SystemAltLowColor">#33222222</Color>
+      <Color x:Key="SystemBaseHighColor">#E8E9EB</Color>
+      <Color x:Key="SystemBaseMediumHighColor">#CCE8E9EB</Color>
+      <Color x:Key="SystemBaseMediumColor">#B2B8C2</Color>
+      <Color x:Key="SystemBaseMediumLowColor">#66B2B8C2</Color>
+      <Color x:Key="SystemBaseLowColor">#33B2B8C2</Color>
+      <Color x:Key="SystemChromeHighColor">#2F6B50</Color>
+      <Color x:Key="SystemChromeMediumColor">#3A4A43</Color>
+      <Color x:Key="SystemChromeMediumLowColor">#2B3431</Color>
+      <Color x:Key="SystemChromeLowColor">#222222</Color>
+      <Color x:Key="SystemChromeAltLowColor">#222222</Color>
+      <Color x:Key="SystemChromeBlackLowColor">#1B1B1B</Color>
+      <Color x:Key="SystemChromeGrayColor">#B2B8C2</Color>
+      <Color x:Key="SystemListLowColor">#3A4A43</Color>
+      <Color x:Key="SystemListMediumColor">#2E4A3D</Color>
+    </ResourceDictionary>
+  </ResourceDictionary.ThemeDictionaries>
+
+  <!-- The dock theme draws the chosen tab, the line under it and the splitter highlight with these brushes; their default is blue. -->
+  <SolidColorBrush x:Key="DockThemeAccentBrush" Color="#039D5B" />
+  <SolidColorBrush x:Key="DockApplicationAccentBrushIndicator" Color="#039D5B" />
+  <SolidColorBrush x:Key="DockApplicationAccentBrushHigh" Color="#039D5B" />
+  <SolidColorBrush x:Key="DockApplicationAccentBrushMed" Color="#039D5B" />
+  <SolidColorBrush x:Key="DockApplicationAccentBrushLow" Color="#039D5B" />
+  <SolidColorBrush x:Key="DockDocumentContentBorderBrush" Color="#039D5B" />
+  <SolidColorBrush x:Key="DockTabActiveIndicatorBrush" Color="#039D5B" />
+  <SolidColorBrush x:Key="DockTabActiveBackgroundBrush" Color="#039D5B" />
+  <SolidColorBrush x:Key="DockSplitterHoverBrush" Color="#039D5B" />
+  <SolidColorBrush x:Key="DockSplitterDragBrush" Color="#039D5B" />
+  <SolidColorBrush x:Key="DockTargetIndicatorBrush" Color="#039D5B" />
+
+  <!-- Even padding for text in buttons and combo boxes (the theme gives 5 px on top and 6 below); Settings > Appearance > Sizes scales these two values (ScalePadding). -->
+  <Thickness x:Key="ButtonPadding">8,4,8,4</Thickness>
+  <Thickness x:Key="ComboBoxPadding">8,4,0,4</Thickness>
+  <x:Double x:Key="RadioButtonBorderThemeThickness">2</x:Double>
+  <!-- Fluent dims the hint of a text box to half; the muted text colour is the hint (4.5:1 or more on the field). -->
+  <x:Double x:Key="TextControlPlaceholderOpacity">1</x:Double>
+  <x:Double x:Key="TabItemPipeThickness">2</x:Double>
+  <x:Double x:Key="TabStripItemPipeThickness">2</x:Double>
+
+</ResourceDictionary>

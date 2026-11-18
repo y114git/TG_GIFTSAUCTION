@@ -1,0 +1,94 @@
+using Avalonia;
+using Avalonia.Controls;
+using G3MStudio.Core.Workspace;
+using G3MStudio.Localization;
+using G3MStudio.Theme;
+
+namespace G3MStudio;
+
+/// <summary>
+/// Renames many resources by a pattern (prefix, suffix, replace, regular expression). The list shows every old and new name and the reason a
+/// name cannot run before anything is changed; Apply runs the names that can as one undo step.
+/// </summary>
+public sealed class BulkRenameWindow : Window
+{
+    private const int ShownLines = 300;
+
+    private static readonly RenameMode[] Modes = [RenameMode.Prefix, RenameMode.Suffix, RenameMode.Replace, RenameMode.Regex];
+
+    private readonly IReadOnlyList<(string Type, string Name)> _items;
+    private readonly Nicknames? _nicknames;
+    private readonly Func<string, string, bool> _exists;
+    private readonly ComboBox _mode = new() { Name = "BulkMode", MinWidth = 160 };
+    private readonly TextBox _find = new() { Name = "BulkFind", MinWidth = 160 };
+    private readonly TextBox _text = new() { Name = "BulkText", MinWidth = 160 };
+    private readonly ListBox _preview = new() { Name = "BulkPreview", MinHeight = 160, MaxHeight = 320 };
+    private readonly TextBlock _summary = new() { Name = "BulkSummary", TextWrapping = Avalonia.Media.TextWrapping.Wrap };
+    private readonly Button _apply = new() { Name = "BulkApply", IsEnabled = false };
+    private IReadOnlyList<RenameStep> _steps = [];
+
+    /// <param name="items">The resources to rename.</param>
+    /// <param name="exists">Whether a resource of that type already has that name.</param>
+    /// <param name="apply">Runs the steps; returns the reason it was refused, or null when done.</param>
+    /// <param name="nicknames">Shows the nickname of each old name; null shows the names alone.</param>
+    public BulkRenameWindow(IReadOnlyList<(string Type, string Name)> items, Func<string, string, bool> exists, Func<IReadOnlyList<RenameStep>, string?> apply, Nicknames? nicknames = null)
+    {
+        (_items, _exists, _nicknames) = (items, exists, nicknames);
+        Title = Loc.Current.Format("organize.bulkTitle", ("count", items.Count));
+        Width = 560;
+        MinWidth = 420;
+        SizeToContent = SizeToContent.Height;
+        WindowStartupLocation = WindowStartupLocation.CenterOwner;
+        _mode.ItemsSource = Modes.Select(m => Loc.Current["organize.mode." + m.ToString().ToLowerInvariant()]).ToList();
+        _mode.SelectedIndex = 0;
+        _apply.Content = Loc.Current["organize.bulkApply"];
+        var error = new TextBlock { Name = "BulkError", TextWrapping = Avalonia.Media.TextWrapping.Wrap, Foreground = (Avalonia.Media.IBrush?)Application.Current?.FindResource("Danger") };
+        _find.PlaceholderText = Loc.Current["organize.find"];
+        _text.PlaceholderText = Loc.Current["organize.text"];
+        _mode.Labeled("organize.bulkMode");
+        _find.Labeled("organize.find");
+        _text.Labeled("organize.text");
+        _preview.Labeled("organize.bulkPreview");
+        _mode.SelectionChanged += (_, _) => Refresh();
+        _find.TextChanged += (_, _) => Refresh();
+        _text.TextChanged += (_, _) => Refresh();
+        DialogFrame.Wire(this, _apply, () =>
+        {
+            var refused = apply(_steps);
+            error.Text = refused ?? "";
+            if (refused is null) Close(true);
+            else G3MStudio.Theme.Motion.Shake(error);
+        }, DialogRole.Primary);
+        Refresh();
+        DialogFrame.Show(this, new StackPanel
+        {
+            Spacing = 8,
+            Children = { new WrapPanel { ItemSpacing = 4, LineSpacing = 4, Children = { _mode, _find, _text } }, _summary, _preview },
+        }, [_apply, DialogFrame.Cancel(this, () => Close(false), "BulkCancel")], error, DialogScroll.Vertical, DialogFrame.Snapshot(_mode, _find, _text));
+        Opened += (_, _) => _text.Focus();
+    }
+
+    private RenameSpec Spec => new(Modes[Math.Max(0, _mode.SelectedIndex)], _find.Text ?? "", _text.Text ?? "");
+
+    private void Refresh()
+    {
+        // Prefix and suffix have nothing to find.
+        _find.IsEnabled = Spec.Mode is RenameMode.Replace or RenameMode.Regex;
+        _steps = BulkRename.Plan(_items, Spec, _exists);
+        var runs = _steps.Count(s => s.Runs);
+        var problems = _steps.Count(s => s.Problem is not null);
+        _summary.Text = Loc.Current.Format("organize.bulkSummary", ("count", runs), ("problems", problems), ("same", _steps.Count - runs - problems));
+        _preview.ItemsSource = _steps.Take(ShownLines).Select(Line).ToList();
+        _apply.IsEnabled = runs > 0;
+    }
+
+    // The old name is shown with its nickname, so the line says which resource it is.
+    private string Line(RenameStep s)
+    {
+        var old = _nicknames?.Both(s.Type, s.Old) ?? s.Old;
+        return !s.Changes && s.Problem is null ? old : $"{old}  >  {s.New}" + (s.Problem is null ? "" : "   [" + Loc.Current["organize.problem." + s.Problem] + "]");
+    }
+
+    /// <summary>True when the names were changed.</summary>
+    public async Task<bool> AskAsync(Window owner) => await ShowDialog<bool?>(owner) ?? false;
+}

@@ -1,0 +1,55 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:G3MStudio.Localization"
+        xmlns:dock="using:Dock.Avalonia.Controls"
+        xmlns:start="using:G3MStudio.Start"
+        xmlns:notify="using:G3MStudio.Notifications"
+        x:Class="G3MStudio.MainWindow"
+        Icon="avares://G3MStudio/Assets/G3MStudio.ico"
+        Width="1100" Height="700">
+  <LayoutTransformControl Name="ZoomHost">
+    <DockPanel>
+      <DockPanel DockPanel.Dock="Top">
+        <!-- Back and forward through the tabs in the order they were in front. -->
+        <StackPanel Name="TabButtons" DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,4,0">
+          <Button Name="TabBackButton" Padding="6,0" MinHeight="28" MinWidth="28" />
+          <Button Name="TabForwardButton" Padding="6,0" MinHeight="28" MinWidth="28" />
+        </StackPanel>
+        <Menu Name="MainMenu" />
+      </DockPanel>
+      <Border Name="StatusBar" DockPanel.Dock="Bottom" Background="{DynamicResource Bg.Raised}" BorderBrush="{DynamicResource Border.Subtle}" BorderThickness="0,2,0,0" Padding="8,2">
+        <DockPanel>
+          <!-- The bottom padding lifts the caption 1 px: with the descenders of p, j and the brackets the ink then sits in the middle, not only the capitals. -->
+          <Button DockPanel.Dock="Right" Name="ProjectButton" IsVisible="False" Padding="8,0,8,2" MinHeight="28" VerticalAlignment="Center" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
+          <Button DockPanel.Dock="Right" Name="NotifyButton" Padding="8,0,8,2" MinHeight="28" VerticalAlignment="Center" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
+          <TextBlock DockPanel.Dock="Right" Name="RunText" VerticalAlignment="Center" IsVisible="False" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" Foreground="{DynamicResource Text.Accent}" />
+          <TextBlock DockPanel.Dock="Right" Name="MemoryText" VerticalAlignment="Center" Classes="muted" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
+          <TextBlock DockPanel.Dock="Right" Name="AssetIdText" VerticalAlignment="Center" IsVisible="False" Classes="muted" Margin="8,0,0,0" FontSize="{DynamicResource FontSize.Caption}" />
+          <TextBlock Name="StatusText" VerticalAlignment="Center" Focusable="True" TextTrimming="CharacterEllipsis" FontSize="{DynamicResource FontSize.Caption}" />
+          <!-- Read out by screen readers when F6 moves the focus; not drawn. -->
+          <TextBlock Name="RegionAnnouncement" Opacity="0" Width="1" Height="1" AutomationProperties.LiveSetting="Assertive" />
+        </DockPanel>
+      </Border>
+      <Grid>
+        <start:StartPage Name="Start" />
+        <!-- The chevrons sit in their own strips so they never cover panel content. -->
+        <Grid Name="WorkArea" IsVisible="False" ColumnDefinitions="20,*,20" RowDefinitions="*,20">
+          <dock:DockControl Name="DockHost" Grid.Column="1" />
+          <!-- One chevron per side folds that dock (the layout menu and Ctrl+Alt+H fold all). -->
+          <Button Name="FoldLeft" Grid.Column="0" Padding="0" BorderThickness="0" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+          <Button Name="FoldRight" Grid.Column="2" Padding="0" BorderThickness="0" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+          <Button Name="FoldBottom" Grid.Row="1" Grid.Column="1" Padding="0" BorderThickness="0" Height="20" MinHeight="20" HorizontalAlignment="Center" VerticalAlignment="Center" Width="48" />
+        </Grid>
+        <Border Name="SettingsHost" IsVisible="False" Background="{DynamicResource Bg.Window}" />
+        <Border Name="Progress" IsVisible="False" Background="{DynamicResource Bg.Overlay}">
+          <StackPanel Width="360" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <TextBlock Name="ProgressText" />
+            <ProgressBar Name="ProgressBar" Minimum="0" Maximum="1" />
+            <Button Name="CancelButton" HorizontalAlignment="Right" Content="{loc:Tr explorer.cancel}" />
+          </StackPanel>
+        </Border>
+        <notify:ToastHost Name="Toasts" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8" />
+      </Grid>
+    </DockPanel>
+  </LayoutTransformControl>
+</Window>

@@ -1,0 +1,428 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Layout;
+using Avalonia.Media;
+using Avalonia.Platform.Storage;
+using G3MStudio.Core.Projects;
+using G3MStudio.Localization;
+using G3MStudio.Theme;
+
+namespace G3MStudio;
+
+/// <summary>Small modal dialogs of Project mode. Each returns its answer or null when cancelled.</summary>
+internal static partial class ProjectDialogs
+{
+    private static Window Shell(string titleKey, double width = 460)
+    {
+        var window = new Window
+        {
+            Title = Loc.Current[titleKey],
+            Width = width,
+            SizeToContent = SizeToContent.Height,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            MinWidth = Math.Min(width, 340),
+            CanResize = false,
+        };
+        return window;
+    }
+
+    private static Button Btn(Window window, string key, string name, Action click) => Make(window, Loc.Current[key], name, click);
+
+    private static Button Make(Window window, string text, string name, Action click) => DialogFrame.Action(window, text, name, click,
+        name switch { "Ok" or "Save" or "SaveSync" or "Rebuild" or "BringIn" or "CopyCode" or "Keep" or "UseRemembered" or "Move" => DialogRole.Primary, "Cancel" => DialogRole.Cancel, _ => DialogRole.Normal });
+
+    /// <summary>The buttons of a dialog; <see cref="Frame"/> moves them into the action row.</summary>
+    private static StackPanel Buttons(params Button[] buttons)
+    {
+        var panel = new StackPanel { Name = "DialogButtons" };
+        foreach (var button in buttons) panel.Children.Add(button);
+        return panel;
+    }
+
+    /// <summary>Puts the body in the shared dialog frame; its last child (made with <see cref="Buttons"/>) becomes the action row.</summary>
+    private static void Frame(Window window, StackPanel body, Func<bool>? dirty = null)
+    {
+        var buttons = (Panel)body.Children[^1];
+        body.Children.Remove(buttons);
+        var actions = buttons.Children.ToList();
+        buttons.Children.Clear();
+        DialogFrame.Show(window, body, actions, scroll: DialogScroll.Vertical, dirty: dirty);
+    }
+
+    /// <summary>Where projects are saved. The folder is prefilled; Remember this choice is on by default.</summary>
+    public static async Task<(string Root, bool Remember)?> AskLocationAsync(Window owner, string suggested)
+    {
+        var window = Shell("project.location.title");
+        var caption = new TextBlock { Text = Loc.Current["project.location.label"] };
+        var path = new TextBox { Name = "Folder", Text = suggested, MinWidth = 300 }.LabeledBy(caption);
+        var remember = new CheckBox { Name = "Remember", Content = Loc.Current["project.location.remember"], IsChecked = true };
+        (string, bool)? answer = null;
+        var browse = Btn(window, "project.location.browse", "Browse", async () =>
+        {
+            var folders = await window.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions());
+            if (folders is [{ } folder, ..] && folder.TryGetLocalPath() is { } picked) path.Text = picked;
+        });
+        DockPanel.SetDock(browse, Avalonia.Controls.Dock.Right);
+        browse.Margin = new Thickness(Mods.ModsUi.Space(2), 0, 0, 0);
+        var ok = Btn(window, "project.enable.button", "Ok", () =>
+        {
+            if (string.IsNullOrWhiteSpace(path.Text)) return;
+            answer = (path.Text.Trim(), remember.IsChecked == true);
+            window.Close();
+        });
+        Frame(window, new StackPanel
+        {
+            Spacing = Mods.ModsUi.Space(3),
+            Children =
+            {
+                caption,
+                new DockPanel { LastChildFill = true, Children = { browse, path } },
+                remember,
+                Buttons(ok, Btn(window, "common.cancel", "Cancel", window.Close)),
+            },
+        }, DialogFrame.Snapshot(path, remember));
+        await window.ShowDialog(owner);
+        return answer;
+    }
+
+    /// <summary>Autosave and autosync are separate settings, each with a trigger and a delay.</summary>
+    public static async Task<ProjectSettings?> AskSettingsAsync(Window owner, ProjectSettings current)
+    {
+        var window = Shell("project.settings.title");
+        var triggers = Enum.GetValues<Trigger>();
+        ComboBox Combo(string name, Trigger value) => new() { Name = name, ItemsSource = triggers.Select(t => Loc.Current["project.trigger." + t]).ToList(), SelectedIndex = Array.IndexOf(triggers, value), MinWidth = 220 };
+        NumericUpDown Seconds(string name, int value) => new() { Name = name, Minimum = 1, Maximum = 3600, Value = value, FormatString = "0", Width = 150 };
+        var save = Combo("AutoSave", current.AutoSave);
+        var saveSeconds = Seconds("AutoSaveSeconds", current.AutoSaveSeconds);
+        var sync = Combo("AutoSync", current.AutoSync);
+        var syncSeconds = Seconds("AutoSyncSeconds", current.AutoSyncSeconds);
+        ProjectSettings? answer = null;
+        var ok = Btn(window, "rename.ok", "Ok", () =>
+        {
+            answer = new ProjectSettings(triggers[save.SelectedIndex], (int)(saveSeconds.Value ?? current.AutoSaveSeconds), triggers[sync.SelectedIndex], (int)(syncSeconds.Value ?? current.AutoSyncSeconds));
+            window.Close();
+        });
+        StackPanel Row(string labelKey, Control combo, Control seconds) => new()
+        {
+            Spacing = 4,
+            Children = { new TextBlock { Text = Loc.Current[labelKey] }, new WrapPanel { ItemSpacing = 8, Children = { combo, seconds, new TextBlock { Text = Loc.Current["project.settings.seconds"], VerticalAlignment = VerticalAlignment.Center } } } },
+        };
+        Frame(window, new StackPanel
+        {
+            Spacing = 12,
+            Children = { Row("project.settings.autosave", save, saveSeconds), Row("project.settings.autosync", sync, syncSeconds), Buttons(ok, Btn(window, "common.cancel", "Cancel", window.Close)) },
+        }, DialogFrame.Snapshot(save, saveSeconds, sync, syncSeconds));
+        await window.ShowDialog(owner);
+        return answer;
+    }
+
+    /// <summary>Move, Copy or Recreate from the project. <paramref name="apply"/> returns the reason it failed, or null when done.</summary>
+    public static async Task AskMoveAsync(Window owner, string current, Func<string, RelocateMode, Task<string?>> apply)
+    {
+        var window = Shell("project.move.title", 600);
+        var caption = new TextBlock { Text = Loc.Current["project.move.path"] };
+        var path = new TextBox { Name = "NewPath", Text = current, MinWidth = 400 }.LabeledBy(caption);
+        var error = new TextBlock { Name = "Error", TextWrapping = TextWrapping.Wrap, Foreground = (IBrush?)Application.Current?.FindResource("Danger") }.HideWhenEmpty();
+        var all = new List<Button>();
+        Button Mode(string key, RelocateMode mode)
+        {
+            var button = Make(window, Loc.Current[key], mode.ToString(), async () =>
+            {
+                foreach (var b in all) b.IsEnabled = false;
+                var refused = await apply(path.Text?.Trim() ?? "", mode);
+                error.Text = refused ?? "";
+                if (refused is not null) G3MStudio.Theme.Motion.Shake(path);
+                foreach (var b in all) b.IsEnabled = true;
+                if (refused is null) DialogFrame.Commit(window, window.Close);
+            });
+            all.Add(button);
+            return button;
+        }
+
+        Frame(window, new StackPanel
+        {
+            Spacing = Mods.ModsUi.Space(3),
+            Children =
+            {
+                caption,
+                path,
+                error,
+                Buttons(Mode("project.move.move", RelocateMode.Move), Mode("project.move.copy", RelocateMode.Copy), Mode("project.move.recreate", RelocateMode.Recreate), Btn(window, "common.cancel", "Cancel", window.Close)),
+            },
+        }, DialogFrame.Snapshot(path));
+        await window.ShowDialog(owner);
+    }
+
+    /// <summary>Disable project: keep it archived, delete it, or cancel. True means delete; null means cancel.</summary>
+    public static async Task<bool?> AskDisableAsync(Window owner)
+    {
+        var window = Shell("project.disable.title");
+        bool? answer = null;
+        Frame(window, new StackPanel
+        {
+            Spacing = 16,
+            Children =
+            {
+                new TextBlock { Text = Loc.Current["project.disable.message"], TextWrapping = TextWrapping.Wrap },
+                Buttons(
+                    Btn(window, "project.disable.keep", "Keep", () => { answer = false; window.Close(); }),
+                    Btn(window, "project.disable.delete", "Delete", () => { answer = true; window.Close(); }),
+                    Btn(window, "common.cancel", "Cancel", window.Close)),
+            },
+        });
+        await window.ShowDialog(owner);
+        return answer;
+    }
+
+    /// <summary>The data file changed outside: bring its changes in, replace it from the project, keep both, or decide later (null).</summary>
+    public static async Task<ExternalChange?> AskExternalChangeAsync(Window owner, string name)
+    {
+        var window = Shell("project.external.title");
+        ExternalChange? answer = null;
+        Button Choice(string key, string id, ExternalChange change) => Btn(window, key, id, () => { answer = change; window.Close(); });
+        Frame(window, new StackPanel
+        {
+            Spacing = 16,
+            Children =
+            {
+                new TextBlock { Text = Loc.Current.Format("project.external.message", ("name", name)), TextWrapping = TextWrapping.Wrap },
+                Buttons(
+                    Choice("project.external.bring", "BringIn", ExternalChange.BringIn),
+                    Choice("project.external.overwrite", "Overwrite", ExternalChange.Overwrite),
+                    Choice("project.external.keepBoth", "KeepBoth", ExternalChange.KeepBoth),
+                    Btn(window, "project.external.later", "Later", window.Close)),
+            },
+        });
+        await window.ShowDialog(owner);
+        return answer;
+    }
+
+    /// <summary>One line per resource that changed on both sides: keep the project's version or take the data file's. Null when cancelled.</summary>
+    public static async Task<Dictionary<string, MergeSide>?> AskConflictsAsync(Window owner, IReadOnlyList<MergeConflict> conflicts)
+    {
+        var window = Shell("project.conflicts.title", 560);
+        var rows = new List<(string Path, ComboBox Side)>();
+        var list = new StackPanel { Spacing = 6 };
+        foreach (var conflict in conflicts)
+        {
+            var side = new ComboBox { Name = "Side", ItemsSource = new[] { Loc.Current["project.conflicts.ours"], Loc.Current["project.conflicts.theirs"] }, SelectedIndex = 0, MinWidth = 200, Tag = conflict.Path };
+            rows.Add((conflict.Path, side));
+            var file = new TextBlock { Text = conflict.Path, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
+            DockPanel.SetDock(side, Avalonia.Controls.Dock.Right);
+            list.Children.Add(new DockPanel { Children = { side.LabeledBy(file), file } });
+        }
+
+        Dictionary<string, MergeSide>? answer = null;
+        var ok = Btn(window, "project.conflicts.apply", "Ok", () =>
+        {
+            answer = rows.ToDictionary(r => r.Path, r => r.Side.SelectedIndex == 1 ? MergeSide.Theirs : MergeSide.Ours);
+            window.Close();
+        });
+        Frame(window, new StackPanel
+        {
+            Spacing = 12,
+            Children =
+            {
+                new TextBlock { Text = Loc.Current["project.conflicts.message"], TextWrapping = TextWrapping.Wrap },
+                list,
+                Buttons(ok, Btn(window, "common.cancel", "Cancel", window.Close)),
+            },
+        });
+        await window.ShowDialog(owner);
+        return answer;
+    }
+
+    public static async Task<bool> AskConfirmAsync(Window owner, string title, string message)
+    {
+        var window = Shell("transfer.confirmTitle");
+        window.Title = title;
+        var answer = false;
+        Frame(window, new StackPanel
+        {
+            Spacing = 16,
+            Children =
+            {
+                new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap },
+                Buttons(Btn(window, "common.ok", "Ok", () => { answer = true; window.Close(); }), Btn(window, "common.cancel", "Cancel", window.Close)),
+            },
+        });
+        await window.ShowDialog(owner);
+        return answer;
+    }
+
+    /// <summary>A question with two named answers (language keys of the buttons); the first is the default, closing the window answers the second.</summary>
+    public static async Task<bool> AskEitherAsync(Window owner, string title, string message, string yesKey, string noKey)
+    {
+        var window = Shell("transfer.confirmTitle");
+        window.Title = title;
+        var answer = false;
+        Frame(window, new StackPanel
+        {
+            Spacing = 16,
+            Children =
+            {
+                new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap },
+                Buttons(Btn(window, yesKey, "Yes", () => { answer = true; window.Close(); }), Btn(window, noKey, "No", window.Close)),
+            },
+        });
+        await window.ShowDialog(owner);
+        return answer;
+    }
+
+    /// <summary>The remembered original, or the file as it is now (two buttons, no remember box). Closing the window answers the remembered original.</summary>
+    public static async Task<bool> AskUseRememberedAsync(Window owner, string title, string message)
+    {
+        var window = Shell("transfer.confirmTitle");
+        window.Title = title;
+        var remembered = true;
+        Frame(window, new StackPanel
+        {
+            Spacing = 16,
+            Children =
+            {
+                new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap },
+                Buttons(Btn(window, "modBase.useRemembered", "UseRemembered", window.Close), Btn(window, "modBase.useThis", "UseThis", () => { remembered = false; window.Close(); })),
+            },
+        });
+        await window.ShowDialog(owner);
+        return remembered;
+    }
+
+    /// <summary>
+    /// A yes or no question with a "Don't ask again" box; the answer, and whether the box was checked. Cancel and the close button answer no.
+    /// With <paramref name="verbKey"/> the confirm button carries that verb with the danger look, and Cancel is the default button and takes the focus.
+    /// </summary>
+    public static async Task<(bool Answer, bool Remember)> AskConfirmRememberAsync(Window owner, string title, string message, string? verbKey = null)
+    {
+        var window = Shell("transfer.confirmTitle");
+        window.Title = title;
+        var answer = false;
+        var remember = new CheckBox { Name = "DontAskAgain", Content = Loc.Current["prompts.dontAsk"] };
+        var ok = Btn(window, verbKey ?? "common.ok", "Ok", () => { answer = true; window.Close(); });
+        var cancel = Btn(window, "common.cancel", "Cancel", window.Close);
+        if (verbKey is not null)
+        {
+            ok.IsDefault = false;
+            ok.Classes.Remove("primary");
+            ok.Classes.Add("danger");
+            cancel.IsDefault = true;
+            window.Opened += (_, _) => cancel.Focus();
+        }
+
+        Frame(window, new StackPanel
+        {
+            Spacing = Mods.ModsUi.Space(4),
+            Children = { new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap }, remember, Buttons(ok, cancel) },
+        });
+        await window.ShowDialog(owner);
+        return (answer, remember.IsChecked == true);
+    }
+
+    /// <summary>Copy a timeline moment: copy the code (independent entries) or share the code entries. Null when cancelled; the box says to remember the choice.</summary>
+    public static async Task<(bool CopyCode, bool Remember)?> AskMomentCopyAsync(Window owner)
+    {
+        var window = Shell("prompts.momentTitle", 520);
+        (bool, bool)? answer = null;
+        var remember = new CheckBox { Name = "DontAskAgain", Content = Loc.Current["prompts.dontAsk"] };
+        Frame(window, new StackPanel
+        {
+            Spacing = Mods.ModsUi.Space(4),
+            Children =
+            {
+                new TextBlock { Text = Loc.Current["prompts.momentAsk"], TextWrapping = TextWrapping.Wrap },
+                remember,
+                Buttons(
+                    Btn(window, "prompts.momentCopy", "CopyCode", () => { answer = (true, remember.IsChecked == true); window.Close(); }),
+                    Btn(window, "prompts.momentShare", "ShareCode", () => { answer = (false, remember.IsChecked == true); window.Close(); }),
+                    Btn(window, "common.cancel", "Cancel", window.Close)),
+            },
+        });
+        await window.ShowDialog(owner);
+        return answer;
+    }
+
+    /// <summary>A text box with a label (several lines when asked) and Ok and Cancel, for a script that asks for text; null when cancelled.</summary>
+    public static async Task<string?> AskTextAsync(Window owner, string title, string label, string current, bool multiline)
+    {
+        var window = Shell("transfer.confirmTitle", multiline ? 560 : 460);
+        window.Title = title;
+        string? answer = null;
+        var caption = new TextBlock { Text = label, TextWrapping = TextWrapping.Wrap };
+        var box = new TextBox { Name = "ScriptText", Text = current, AcceptsReturn = multiline, TextWrapping = multiline ? TextWrapping.Wrap : TextWrapping.NoWrap, MinHeight = multiline ? 140 : 0 }.LabeledBy(caption);
+        Frame(window, new StackPanel
+        {
+            Spacing = 12,
+            Children =
+            {
+                caption,
+                box,
+                Buttons(Btn(window, "common.ok", "Ok", () => { answer = box.Text ?? string.Empty; window.Close(); }), Btn(window, "common.cancel", "Cancel", window.Close)),
+            },
+        }, DialogFrame.Snapshot(box));
+        await window.ShowDialog(owner);
+        return answer;
+    }
+
+    /// <summary>A list to pick one entry from, with Ok and Cancel; the index of the entry, or null when cancelled. With <paramref name="columns"/> each item is cells split by a tab, shown under those headings.</summary>
+    public static async Task<int?> AskChoiceAsync(Window owner, string title, string label, IReadOnlyList<string> items, IReadOnlyList<string>? columns = null, int selected = -1)
+    {
+        var window = Shell("transfer.confirmTitle", 520);
+        window.Title = title;
+        int? answer = null;
+        var caption = new TextBlock { Text = label, TextWrapping = TextWrapping.Wrap };
+        var list = new ListBox { Name = "ChoiceList", ItemsSource = items, SelectedIndex = selected, MaxHeight = 280, ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<string>((text, _) => columns is null ? new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap } : ChoiceRow(text.Split('\t'), false)) }.LabeledBy(caption);
+        ScrollViewer.SetHorizontalScrollBarVisibility(list, Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled);
+        list.DoubleTapped += (_, _) =>
+        {
+            if (list.SelectedIndex < 0) return;
+            answer = list.SelectedIndex;
+            window.Close();
+        };
+        var body = new StackPanel
+        {
+            Spacing = 12,
+            Children =
+            {
+                caption,
+                list,
+                Buttons(Btn(window, "common.ok", "Ok", () => { if (list.SelectedIndex >= 0) answer = list.SelectedIndex; window.Close(); }), Btn(window, "common.cancel", "Cancel", window.Close)),
+            },
+        };
+        if (columns is not null) body.Children.Insert(1, ChoiceRow([.. columns], true));
+        Frame(window, body);
+        await window.ShowDialog(owner);
+        return answer;
+    }
+
+    private static Grid ChoiceRow(string[] cells, bool header)
+    {
+        var row = new Grid { ColumnDefinitions = new ColumnDefinitions("150,*"), Margin = header ? new Thickness(8, 0, 0, 0) : default };
+        for (var i = 0; i < Math.Min(cells.Length, 2); i++)
+        {
+            var cell = new TextBlock { Text = cells[i], TextWrapping = TextWrapping.Wrap };
+            Grid.SetColumn(cell, i);
+            if (header) cell.Foreground = (IBrush?)Application.Current?.FindResource("Text.Muted");
+            row.Children.Add(cell);
+        }
+
+        return row;
+    }
+
+    /// <summary>A data file that is gone or does not read has a project: offer to build it again from the project.</summary>
+    public static async Task<bool> AskRebuildAsync(Window owner, string name)
+    {
+        var window = Shell("project.rebuild.title");
+        var answer = false;
+        Frame(window, new StackPanel
+        {
+            Spacing = 16,
+            Children =
+            {
+                new TextBlock { Text = Loc.Current.Format("project.rebuild.message", ("name", name)), TextWrapping = TextWrapping.Wrap },
+                Buttons(Btn(window, "project.rebuild.button", "Rebuild", () => { answer = true; window.Close(); }), Btn(window, "common.cancel", "Cancel", window.Close)),
+            },
+        });
+        await window.ShowDialog(owner);
+        return answer;
+    }
+}

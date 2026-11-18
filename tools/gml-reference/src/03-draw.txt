@@ -1,0 +1,165 @@
+@group txt|Drawing/Text|Drawing: Text
+@group col|Drawing/Colour_And_Alpha|Drawing: Colour and alpha
+@group frm|Drawing/Basic_Forms|Drawing: Basic forms
+@group spr|Drawing/Sprites_And_Tiles|Drawing: Sprites and tiles
+@group gpu|Drawing/GPU_Control|Drawing: GPU control
+@group srf|Drawing/Surfaces|Drawing: Surfaces
+@group prm|Drawing/Primitives|Drawing: Primitives
+@group par|Drawing/Particles|Drawing: Particles
+draw_text|txt|Draws a string at a position.|x:Real:x position;y:Real:y position;string:String:text to draw|Undefined
+draw_text_ext|txt|Draws a string wrapped at a width.|x:Real:x position;y:Real:y position;string:String:text to draw;sep:Real:line spacing, -1 for default;w:Real:wrap width|Undefined
+draw_text_transformed|txt|Draws a string scaled and rotated.|x:Real:x position;y:Real:y position;string:String:text to draw;xscale:Real:horizontal scale;yscale:Real:vertical scale;angle:Real:rotation in degrees|Undefined
+draw_text_ext_transformed|txt|Draws a wrapped string scaled and rotated.|x:Real:x position;y:Real:y position;string:String:text to draw;sep:Real:line spacing;w:Real:wrap width;xscale:Real:horizontal scale;yscale:Real:vertical scale;angle:Real:rotation in degrees|Undefined
+draw_text_colour|txt|Draws a string with four corner colours.|x:Real:x position;y:Real:y position;string:String:text to draw;c1:Real:top left colour;c2:Real:top right colour;c3:Real:bottom right colour;c4:Real:bottom left colour;alpha:Real:opacity|Undefined
+draw_text_color|txt|Draws a string with four corner colours.|x:Real:x position;y:Real:y position;string:String:text to draw;c1:Real:top left colour;c2:Real:top right colour;c3:Real:bottom right colour;c4:Real:bottom left colour;alpha:Real:opacity|Undefined
+draw_text_ext_colour|txt|Draws a wrapped string with corner colours.|x:Real:x position;y:Real:y position;string:String:text to draw;sep:Real:line spacing;w:Real:wrap width;c1:Real:top left colour;c2:Real:top right colour;c3:Real:bottom right colour;c4:Real:bottom left colour;alpha:Real:opacity|Undefined
+draw_text_transformed_colour|txt|Draws a scaled, rotated string with corner colours.|x:Real:x position;y:Real:y position;string:String:text to draw;xscale:Real:horizontal scale;yscale:Real:vertical scale;angle:Real:rotation;c1:Real:top left colour;c2:Real:top right colour;c3:Real:bottom right colour;c4:Real:bottom left colour;alpha:Real:opacity|Undefined
+draw_set_font|txt|Sets the font used for drawing text.|font:Asset.GMFont:font asset|Undefined
+draw_get_font|txt|Returns the current drawing font.||Asset.GMFont
+draw_set_halign|txt|Sets horizontal text alignment.|halign:Constant.HAlign:fa_left, fa_center or fa_right|Undefined
+draw_set_valign|txt|Sets vertical text alignment.|valign:Constant.VAlign:fa_top, fa_middle or fa_bottom|Undefined
+draw_get_halign|txt|Returns the horizontal text alignment.||Constant.HAlign
+draw_get_valign|txt|Returns the vertical text alignment.||Constant.VAlign
+draw_set_colour|col|Sets the drawing colour.|col:Constant.Colour:colour value|Undefined
+draw_set_color|col|Sets the drawing colour.|col:Constant.Colour:colour value|Undefined
+draw_get_colour|col|Returns the drawing colour.||Constant.Colour
+draw_get_color|col|Returns the drawing colour.||Constant.Colour
+draw_set_alpha|col|Sets the drawing opacity from 0 to 1.|alpha:Real:opacity|Undefined
+draw_get_alpha|col|Returns the drawing opacity.||Real
+draw_clear|col|Fills the draw target with a colour.|col:Constant.Colour:colour value|Undefined
+draw_clear_alpha|col|Fills the draw target with a colour and opacity.|col:Constant.Colour:colour value;alpha:Real:opacity|Undefined
+make_colour_rgb|col|Builds a colour from red, green and blue (0 to 255).|red:Real:red;green:Real:green;blue:Real:blue|Constant.Colour
+make_color_rgb|col|Builds a colour from red, green and blue (0 to 255).|red:Real:red;green:Real:green;blue:Real:blue|Constant.Colour
+make_colour_hsv|col|Builds a colour from hue, saturation and value.|hue:Real:hue 0 to 255;sat:Real:saturation 0 to 255;val:Real:value 0 to 255|Constant.Colour
+make_color_hsv|col|Builds a colour from hue, saturation and value.|hue:Real:hue 0 to 255;sat:Real:saturation 0 to 255;val:Real:value 0 to 255|Constant.Colour
+colour_get_red|col|Red part of a colour.|col:Constant.Colour:colour value|Real
+colour_get_green|col|Green part of a colour.|col:Constant.Colour:colour value|Real
+colour_get_blue|col|Blue part of a colour.|col:Constant.Colour:colour value|Real
+colour_get_hue|col|Hue of a colour.|col:Constant.Colour:colour value|Real
+colour_get_saturation|col|Saturation of a colour.|col:Constant.Colour:colour value|Real
+colour_get_value|col|Value of a colour.|col:Constant.Colour:colour value|Real
+color_get_red|col|Red part of a colour.|col:Constant.Colour:colour value|Real
+color_get_green|col|Green part of a colour.|col:Constant.Colour:colour value|Real
+color_get_blue|col|Blue part of a colour.|col:Constant.Colour:colour value|Real
+merge_colour|col|Blends two colours by an amount.|col1:Constant.Colour:first;col2:Constant.Colour:second;amount:Real:0 to 1|Constant.Colour
+merge_color|col|Blends two colours by an amount.|col1:Constant.Colour:first;col2:Constant.Colour:second;amount:Real:0 to 1|Constant.Colour
+draw_point|frm|Draws one pixel.|x:Real:x position;y:Real:y position|Undefined
+draw_line|frm|Draws a line.|x1:Real:start x;y1:Real:start y;x2:Real:end x;y2:Real:end y|Undefined
+draw_line_width|frm|Draws a line of a given width.|x1:Real:start x;y1:Real:start y;x2:Real:end x;y2:Real:end y;w:Real:width in pixels|Undefined
+draw_line_colour|frm|Draws a line with two end colours.|x1:Real:start x;y1:Real:start y;x2:Real:end x;y2:Real:end y;c1:Real:start colour;c2:Real:end colour|Undefined
+draw_rectangle|frm|Draws a rectangle, filled or outlined.|x1:Real:left;y1:Real:top;x2:Real:right;y2:Real:bottom;outline:Bool:true for outline only|Undefined
+draw_rectangle_colour|frm|Draws a rectangle with four corner colours.|x1:Real:left;y1:Real:top;x2:Real:right;y2:Real:bottom;c1:Real:top left;c2:Real:top right;c3:Real:bottom right;c4:Real:bottom left;outline:Bool:true for outline only|Undefined
+draw_roundrect|frm|Draws a rounded rectangle.|x1:Real:left;y1:Real:top;x2:Real:right;y2:Real:bottom;outline:Bool:true for outline only|Undefined
+draw_roundrect_ext|frm|Draws a rounded rectangle with set corner radii.|x1:Real:left;y1:Real:top;x2:Real:right;y2:Real:bottom;xrad:Real:horizontal radius;yrad:Real:vertical radius;outline:Bool:true for outline only|Undefined
+draw_circle|frm|Draws a circle.|x:Real:centre x;y:Real:centre y;r:Real:radius;outline:Bool:true for outline only|Undefined
+draw_circle_colour|frm|Draws a circle with centre and edge colours.|x:Real:centre x;y:Real:centre y;r:Real:radius;c1:Real:centre colour;c2:Real:edge colour;outline:Bool:true for outline only|Undefined
+draw_ellipse|frm|Draws an ellipse inside a box.|x1:Real:left;y1:Real:top;x2:Real:right;y2:Real:bottom;outline:Bool:true for outline only|Undefined
+draw_triangle|frm|Draws a triangle.|x1:Real:x of point 1;y1:Real:y of point 1;x2:Real:x of point 2;y2:Real:y of point 2;x3:Real:x of point 3;y3:Real:y of point 3;outline:Bool:true for outline only|Undefined
+draw_arrow|frm|Draws an arrow between two points.|x1:Real:start x;y1:Real:start y;x2:Real:end x;y2:Real:end y;size:Real:head size|Undefined
+draw_healthbar|frm|Draws a health bar.|x1:Real:left;y1:Real:top;x2:Real:right;y2:Real:bottom;amount:Real:fill percentage;backcol:Constant.Colour:background;mincol:Constant.Colour:colour at 0;maxcol:Constant.Colour:colour at 100;direction:Real:fill direction;showback:Bool:draw background;showborder:Bool:draw border|Undefined
+draw_getpixel|frm|Reads the colour of a pixel of the draw target.|x:Real:x position;y:Real:y position|Constant.Colour
+draw_sprite|spr|Draws a sprite frame at a position.|sprite:Asset.GMSprite:sprite asset;subimg:Real:frame, -1 for current;x:Real:x position;y:Real:y position|Undefined
+draw_sprite_ext|spr|Draws a sprite scaled, rotated, tinted and faded.|sprite:Asset.GMSprite:sprite asset;subimg:Real:frame;x:Real:x position;y:Real:y position;xscale:Real:horizontal scale;yscale:Real:vertical scale;rot:Real:rotation in degrees;col:Constant.Colour:blend colour;alpha:Real:opacity|Undefined
+draw_sprite_general|spr|Draws a part of a sprite with full control.|sprite:Asset.GMSprite:sprite asset;subimg:Real:frame;left:Real:part left;top:Real:part top;width:Real:part width;height:Real:part height;x:Real:x position;y:Real:y position;xscale:Real:horizontal scale;yscale:Real:vertical scale;rot:Real:rotation;c1:Real:top left colour;c2:Real:top right colour;c3:Real:bottom right colour;c4:Real:bottom left colour;alpha:Real:opacity|Undefined
+draw_sprite_part|spr|Draws a rectangle of a sprite frame.|sprite:Asset.GMSprite:sprite asset;subimg:Real:frame;left:Real:part left;top:Real:part top;width:Real:part width;height:Real:part height;x:Real:x position;y:Real:y position|Undefined
+draw_sprite_part_ext|spr|Draws a scaled, tinted rectangle of a sprite frame.|sprite:Asset.GMSprite:sprite asset;subimg:Real:frame;left:Real:part left;top:Real:part top;width:Real:part width;height:Real:part height;x:Real:x position;y:Real:y position;xscale:Real:horizontal scale;yscale:Real:vertical scale;colour:Constant.Colour:blend colour;alpha:Real:opacity|Undefined
+draw_sprite_stretched|spr|Draws a sprite stretched to a box.|sprite:Asset.GMSprite:sprite asset;subimg:Real:frame;x:Real:left;y:Real:top;w:Real:width;h:Real:height|Undefined
+draw_sprite_stretched_ext|spr|Draws a stretched, tinted sprite.|sprite:Asset.GMSprite:sprite asset;subimg:Real:frame;x:Real:left;y:Real:top;w:Real:width;h:Real:height;colour:Constant.Colour:blend colour;alpha:Real:opacity|Undefined
+draw_sprite_tiled|spr|Tiles a sprite over the whole draw target.|sprite:Asset.GMSprite:sprite asset;subimg:Real:frame;x:Real:x origin;y:Real:y origin|Undefined
+draw_sprite_tiled_ext|spr|Tiles a scaled, tinted sprite.|sprite:Asset.GMSprite:sprite asset;subimg:Real:frame;x:Real:x origin;y:Real:y origin;xscale:Real:horizontal scale;yscale:Real:vertical scale;colour:Constant.Colour:blend colour;alpha:Real:opacity|Undefined
+draw_sprite_pos|spr|Draws a sprite onto four free corner points.|sprite:Asset.GMSprite:sprite asset;subimg:Real:frame;x1:Real:top left x;y1:Real:top left y;x2:Real:top right x;y2:Real:top right y;x3:Real:bottom right x;y3:Real:bottom right y;x4:Real:bottom left x;y4:Real:bottom left y;alpha:Real:opacity|Undefined
+draw_self|spr|Draws the calling instance with its own sprite settings.||Undefined
+draw_tile|spr|Draws a tile from a tile set.|tileset:Asset.GMTileSet:tile set;tiledata:Real:tile index and flags;frame:Real:animation frame;x:Real:x position;y:Real:y position|Undefined
+draw_background|spr|Draws a background.|index:Real:background;x:Real:x position;y:Real:y position|Undefined|D
+draw_set_blend_mode|gpu|Sets the blend mode.|mode:Constant.BlendMode:bm_ constant|Undefined|D
+gpu_set_blendmode|gpu|Sets the blend mode.|mode:Constant.BlendMode:bm_ constant|Undefined
+gpu_set_blendmode_ext|gpu|Sets source and destination blend factors.|src:Constant.BlendModeFactor:source factor;dest:Constant.BlendModeFactor:destination factor|Undefined
+gpu_set_blendenable|gpu|Turns blending on or off.|enable:Bool:on or off|Undefined
+gpu_set_alphatestenable|gpu|Turns the alpha test on or off.|enable:Bool:on or off|Undefined
+gpu_set_alphatestref|gpu|Sets the alpha test threshold.|value:Real:0 to 255|Undefined
+gpu_set_colorwriteenable|gpu|Chooses which colour channels are written.|red:Bool:write red;green:Bool:write green;blue:Bool:write blue;alpha:Bool:write alpha|Undefined
+gpu_set_zwriteenable|gpu|Turns depth writing on or off.|enable:Bool:on or off|Undefined
+gpu_set_ztestenable|gpu|Turns depth testing on or off.|enable:Bool:on or off|Undefined
+gpu_set_cullmode|gpu|Sets which triangle faces are skipped.|cullmode:Constant.CullMode:cull_ constant|Undefined
+gpu_set_texfilter|gpu|Turns texture smoothing on or off.|linear:Bool:smooth the textures|Undefined
+gpu_set_texrepeat|gpu|Turns texture repeating on or off.|repeat:Bool:repeat the textures|Undefined
+gpu_set_fog|gpu|Sets fog for 3D drawing.|enable:Bool:on or off;col:Constant.Colour:fog colour;start:Real:near distance;end:Real:far distance|Undefined
+gpu_push_state|gpu|Saves the GPU state on a stack.||Undefined
+gpu_pop_state|gpu|Restores the last saved GPU state.||Undefined
+gpu_get_blendmode|gpu|Returns the blend mode.||Constant.BlendMode
+shader_set|gpu|Starts using a shader.|shader:Asset.GMShader:shader asset|Undefined
+shader_reset|gpu|Goes back to the default shader.||Undefined
+shader_get_uniform|gpu|Finds a uniform of a shader.|shader:Asset.GMShader:shader asset;name:String:uniform name|Id.Uniform
+shader_get_sampler_index|gpu|Finds a texture sampler of a shader.|shader:Asset.GMShader:shader asset;name:String:sampler name|Id.Sampler
+shader_set_uniform_f|gpu|Sets a float uniform.|uniform:Id.Uniform:uniform handle;...value:Real:one to four floats|Undefined
+shader_set_uniform_i|gpu|Sets an integer uniform.|uniform:Id.Uniform:uniform handle;...value:Real:one to four integers|Undefined
+shader_set_uniform_f_array|gpu|Sets a float array uniform.|uniform:Id.Uniform:uniform handle;array:Array:values|Undefined
+shader_set_uniform_matrix|gpu|Sets a matrix uniform to the current matrix.|uniform:Id.Uniform:uniform handle|Undefined
+shader_is_compiled|gpu|Tells whether a shader compiled.|shader:Asset.GMShader:shader asset|Bool
+texture_set_stage|gpu|Binds a texture to a sampler.|sampler:Id.Sampler:sampler handle;texture:Pointer:texture pointer|Undefined
+sprite_get_texture|gpu|Returns the texture pointer of a sprite frame.|sprite:Asset.GMSprite:sprite asset;subimg:Real:frame|Pointer
+surface_create|srf|Makes a surface.|w:Real:width;h:Real:height;?format:Constant.SurfaceFormat:pixel format|Id.Surface
+surface_free|srf|Frees a surface.|surface:Id.Surface:the surface|Undefined
+surface_exists|srf|Tells whether a surface exists.|surface:Id.Surface:the surface|Bool
+surface_set_target|srf|Draws to a surface from now on.|surface:Id.Surface:the surface|Undefined
+surface_reset_target|srf|Draws to the previous target again.||Undefined
+surface_get_width|srf|Width of a surface.|surface:Id.Surface:the surface|Real
+surface_get_height|srf|Height of a surface.|surface:Id.Surface:the surface|Real
+surface_resize|srf|Changes the size of a surface.|surface:Id.Surface:the surface;w:Real:new width;h:Real:new height|Undefined
+surface_copy|srf|Copies a surface onto another one.|dest:Id.Surface:target;x:Real:x;y:Real:y;src:Id.Surface:source|Undefined
+surface_getpixel|srf|Reads the colour of a surface pixel.|surface:Id.Surface:the surface;x:Real:x;y:Real:y|Constant.Colour
+surface_save|srf|Saves a surface to a PNG file.|surface:Id.Surface:the surface;filename:String:file name|Undefined
+draw_surface|srf|Draws a surface.|surface:Id.Surface:the surface;x:Real:x position;y:Real:y position|Undefined
+draw_surface_ext|srf|Draws a surface scaled, rotated and tinted.|surface:Id.Surface:the surface;x:Real:x position;y:Real:y position;xscale:Real:horizontal scale;yscale:Real:vertical scale;rot:Real:rotation;col:Constant.Colour:blend colour;alpha:Real:opacity|Undefined
+draw_surface_part|srf|Draws a rectangle of a surface.|surface:Id.Surface:the surface;left:Real:part left;top:Real:part top;width:Real:part width;height:Real:part height;x:Real:x position;y:Real:y position|Undefined
+draw_surface_stretched|srf|Draws a surface stretched to a box.|surface:Id.Surface:the surface;x:Real:left;y:Real:top;w:Real:width;h:Real:height|Undefined
+application_surface_enable|srf|Turns the application surface on or off.|enable:Bool:on or off|Undefined
+application_surface_is_enabled|srf|Tells whether the application surface is on.||Bool
+application_surface_draw_enable|srf|Turns automatic drawing of the application surface on or off.|enable:Bool:on or off|Undefined
+vertex_format_begin|prm|Starts a vertex format.||Undefined
+vertex_format_end|prm|Finishes the vertex format and returns it.||Id.VertexFormat
+vertex_format_add_position|prm|Adds a 2D position to the format.||Undefined
+vertex_format_add_position_3d|prm|Adds a 3D position to the format.||Undefined
+vertex_format_add_colour|prm|Adds a colour to the format.||Undefined
+vertex_format_add_texcoord|prm|Adds texture coordinates to the format.||Undefined
+vertex_format_add_normal|prm|Adds a normal to the format.||Undefined
+vertex_create_buffer|prm|Makes a vertex buffer.||Id.VertexBuffer
+vertex_delete_buffer|prm|Deletes a vertex buffer.|vbuff:Id.VertexBuffer:the buffer|Undefined
+vertex_begin|prm|Starts writing vertices.|vbuff:Id.VertexBuffer:the buffer;format:Id.VertexFormat:vertex format|Undefined
+vertex_end|prm|Finishes writing vertices.|vbuff:Id.VertexBuffer:the buffer|Undefined
+vertex_freeze|prm|Makes a vertex buffer read only and fast.|vbuff:Id.VertexBuffer:the buffer|Undefined
+vertex_position|prm|Writes a 2D position.|vbuff:Id.VertexBuffer:the buffer;x:Real:x;y:Real:y|Undefined
+vertex_position_3d|prm|Writes a 3D position.|vbuff:Id.VertexBuffer:the buffer;x:Real:x;y:Real:y;z:Real:z|Undefined
+vertex_colour|prm|Writes a colour.|vbuff:Id.VertexBuffer:the buffer;col:Constant.Colour:colour;alpha:Real:opacity|Undefined
+vertex_texcoord|prm|Writes texture coordinates.|vbuff:Id.VertexBuffer:the buffer;u:Real:u;v:Real:v|Undefined
+vertex_normal|prm|Writes a normal.|vbuff:Id.VertexBuffer:the buffer;nx:Real:x;ny:Real:y;nz:Real:z|Undefined
+vertex_submit|prm|Draws a vertex buffer.|vbuff:Id.VertexBuffer:the buffer;prim:Constant.PrimitiveType:pr_ constant;texture:Pointer:texture or -1|Undefined
+draw_primitive_begin|prm|Starts a primitive.|kind:Constant.PrimitiveType:pr_ constant|Undefined
+draw_primitive_end|prm|Draws the primitive.||Undefined
+draw_vertex|prm|Adds a vertex to the primitive.|x:Real:x;y:Real:y|Undefined
+draw_vertex_colour|prm|Adds a coloured vertex.|x:Real:x;y:Real:y;col:Constant.Colour:colour;alpha:Real:opacity|Undefined
+draw_vertex_texture|prm|Adds a vertex with texture coordinates.|x:Real:x;y:Real:y;xtex:Real:u;ytex:Real:v|Undefined
+draw_enable_drawevent|gpu|Turns the Draw events on or off.|enable:Bool:on or off|Undefined
+draw_flush|gpu|Sends the pending draw batch to the GPU.||Undefined
+part_system_create|par|Makes a particle system.|?ind:Asset.GMParticleSystem:particle system asset|Id.ParticleSystem
+part_system_destroy|par|Destroys a particle system.|ind:Id.ParticleSystem:the system|Undefined
+part_system_depth|par|Sets the depth of a particle system.|ind:Id.ParticleSystem:the system;depth:Real:draw depth|Undefined
+part_system_position|par|Moves a particle system.|ind:Id.ParticleSystem:the system;x:Real:x;y:Real:y|Undefined
+part_system_automatic_update|par|Turns automatic updating on or off.|ind:Id.ParticleSystem:the system;automatic:Bool:on or off|Undefined
+part_system_automatic_draw|par|Turns automatic drawing on or off.|ind:Id.ParticleSystem:the system;automatic:Bool:on or off|Undefined
+part_system_update|par|Steps a particle system.|ind:Id.ParticleSystem:the system|Undefined
+part_system_drawit|par|Draws a particle system.|ind:Id.ParticleSystem:the system|Undefined
+part_particles_create|par|Creates particles at a point.|ind:Id.ParticleSystem:the system;x:Real:x;y:Real:y;parttype:Id.ParticleType:particle type;number:Real:how many|Undefined
+part_particles_clear|par|Removes all particles of a system.|ind:Id.ParticleSystem:the system|Undefined
+part_type_create|par|Makes a particle type.||Id.ParticleType
+part_type_destroy|par|Destroys a particle type.|ind:Id.ParticleType:the type|Undefined
+part_type_sprite|par|Gives a particle type a sprite.|ind:Id.ParticleType:the type;sprite:Asset.GMSprite:sprite asset;animat:Bool:animate;stretch:Bool:stretch over life;random:Bool:random frame|Undefined
+part_type_shape|par|Gives a particle type a built-in shape.|ind:Id.ParticleType:the type;shape:Constant.ParticleShape:pt_shape_ constant|Undefined
+part_type_size|par|Sets the size range of a particle type.|ind:Id.ParticleType:the type;size_min:Real:smallest;size_max:Real:largest;size_incr:Real:change per step;size_wiggle:Real:random wobble|Undefined
+part_type_speed|par|Sets the speed range of a particle type.|ind:Id.ParticleType:the type;speed_min:Real:slowest;speed_max:Real:fastest;speed_incr:Real:change per step;speed_wiggle:Real:random wobble|Undefined
+part_type_direction|par|Sets the direction range of a particle type.|ind:Id.ParticleType:the type;dir_min:Real:lowest;dir_max:Real:highest;dir_incr:Real:change per step;dir_wiggle:Real:random wobble|Undefined
+part_type_life|par|Sets the life span range of a particle type.|ind:Id.ParticleType:the type;life_min:Real:shortest;life_max:Real:longest|Undefined
+part_type_colour1|par|Gives a particle type one colour.|ind:Id.ParticleType:the type;colour1:Constant.Colour:colour|Undefined
+part_type_alpha1|par|Gives a particle type one opacity.|ind:Id.ParticleType:the type;alpha1:Real:opacity|Undefined
+part_type_gravity|par|Sets gravity of a particle type.|ind:Id.ParticleType:the type;grav_amount:Real:amount;grav_dir:Real:direction|Undefined
+part_type_blend|par|Turns additive blending on or off for a particle type.|ind:Id.ParticleType:the type;additive:Bool:additive blending|Undefined

@@ -1,0 +1,120 @@
+# @var name|category|type|summary|flags (R read only, G global)
+# @const first-name-or-prefix*|category|summary|manual page (optional, under GML_Reference)
+@var x|Instance|Real|Horizontal position of the instance in the room.
+@var y|Instance|Real|Vertical position of the instance in the room.
+@var xprevious|Instance|Real|Horizontal position at the end of the last step.
+@var yprevious|Instance|Real|Vertical position at the end of the last step.
+@var xstart|Instance|Real|Horizontal position where the instance was created.
+@var ystart|Instance|Real|Vertical position where the instance was created.
+@var speed|Movement|Real|Speed in pixels per step along the direction.
+@var direction|Movement|Real|Direction of movement in degrees, 0 is right.
+@var hspeed|Movement|Real|Horizontal part of the speed.
+@var vspeed|Movement|Real|Vertical part of the speed.
+@var friction|Movement|Real|Amount the speed shrinks each step.
+@var gravity|Movement|Real|Amount added to the speed towards gravity_direction each step.
+@var gravity_direction|Movement|Real|Direction of gravity in degrees, 270 is down.
+@var sprite_index|Sprite|Asset.GMSprite|Sprite the instance draws.
+@var image_index|Sprite|Real|Current frame of the sprite.
+@var image_speed|Sprite|Real|Animation speed, 1 is the sprite's own speed.
+@var image_number|Sprite|Real|Number of frames of the sprite.|R
+@var image_xscale|Sprite|Real|Horizontal scale of the sprite.
+@var image_yscale|Sprite|Real|Vertical scale of the sprite.
+@var image_angle|Sprite|Real|Rotation of the sprite in degrees.
+@var image_alpha|Sprite|Real|Opacity of the sprite from 0 to 1.
+@var image_blend|Sprite|Constant.Colour|Colour the sprite is tinted with.
+@var sprite_width|Sprite|Real|Drawn width of the sprite.|R
+@var sprite_height|Sprite|Real|Drawn height of the sprite.|R
+@var sprite_xoffset|Sprite|Real|X origin of the sprite.|R
+@var sprite_yoffset|Sprite|Real|Y origin of the sprite.|R
+@var mask_index|Sprite|Asset.GMSprite|Sprite used as collision mask.
+@var bbox_left|Sprite|Real|Left edge of the bounding box in the room.|R
+@var bbox_right|Sprite|Real|Right edge of the bounding box in the room.|R
+@var bbox_top|Sprite|Real|Top edge of the bounding box in the room.|R
+@var bbox_bottom|Sprite|Real|Bottom edge of the bounding box in the room.|R
+@var depth|Instance|Real|Draw depth, higher is further back.
+@var visible|Instance|Bool|Whether the instance is drawn.
+@var solid|Instance|Bool|Whether the instance counts as solid.
+@var persistent|Instance|Bool|Whether the instance survives room changes.
+@var id|Instance|Id.Instance|Unique id of the instance.|R
+@var object_index|Instance|Asset.GMObject|Object the instance was made from.|R
+@var layer|Instance|Id.Layer|Layer the instance is on.
+@var alarm|Instance|Array|Alarm counters, 12 slots counting down each step.
+@var path_index|Movement|Asset.GMPath|Path the instance follows.|R
+@var path_position|Movement|Real|Position on the path from 0 to 1.
+@var path_speed|Movement|Real|Speed along the path.
+@var room|Game|Asset.GMRoom|The current room.
+@var room_speed|Game|Real|Game steps per second.|G
+@var room_width|Game|Real|Width of the room in pixels.
+@var room_height|Game|Real|Height of the room in pixels.
+@var room_first|Game|Asset.GMRoom|First room in the room order.|R
+@var room_last|Game|Asset.GMRoom|Last room in the room order.|R
+@var fps|Game|Real|Frames per second the game runs at, rounded.|R
+@var fps_real|Game|Real|Frames per second the game could reach.|R
+@var delta_time|Game|Real|Microseconds since the last step.|R
+@var current_time|Game|Real|Milliseconds since the game started.|R
+@var instance_count|Game|Real|Number of active instances.|R
+@var instance_id|Game|Array|Ids of all active instances.|R
+@var view_current|View|Real|Index of the view being drawn.|R
+@var view_camera|View|Array|Camera of each of the 8 views.
+@var view_visible|View|Array|Whether each view is on.
+@var view_xport|View|Array|X of each view port.
+@var view_yport|View|Array|Y of each view port.
+@var view_wport|View|Array|Width of each view port.
+@var view_hport|View|Array|Height of each view port.
+@var application_surface|View|Id.Surface|The surface the game draws to before the display.|R
+@var mouse_x|Input|Real|Mouse x in the room.|R
+@var mouse_y|Input|Real|Mouse y in the room.|R
+@var async_load|Async|Id.DsMap|Map with the data of an Async event.|R
+@var event_data|Async|Id.DsMap|Map with the data of an Async event.|R
+@var working_directory|System|String|Folder the game reads and writes files in.|R
+@var program_directory|System|String|Folder the game was started from.|R
+@var temp_directory|System|String|Folder for temporary files.|R
+@var game_id|System|Real|Unique id of the game.|R
+@var game_save_id|System|String|Folder name of the save area.|R
+@var GM_version|System|String|Version of the runtime.|R
+@var argument|Script|Array|The arguments passed to a script.|R
+@var argument_count|Script|Real|How many arguments were passed to a script.|R
+@var self|Scope|Any|The instance or struct the code runs in.|R
+@var other|Scope|Any|The other instance in a collision or with block.|R
+@var global|Scope|Struct|Holds the global variables.|R
+@var pi|Maths|Real|The number pi, about 3.14159.|R
+@var undefined|Scope|Undefined|The undefined value.|R
+@var noone|Scope|Real|Value -4: no instance.|R
+@var all|Scope|Real|Value -3: every instance.|R
+@const c_*|Colour|A named colour value, for example c_red.|draw_set_color
+@const fa_*|Text|Text alignment (fa_left, fa_center, fa_right, fa_top, fa_middle, fa_bottom) or a file attribute.|draw_set_halign
+@const vk_*|Keyboard|Virtual key code of a keyboard key, for keyboard_check and keyboard_lastkey.|keyboard_check
+@const mb_*|Mouse|Mouse button constant.|mouse_check_button
+@const gp_axis*|Gamepad|Gamepad axis constant.|gamepad_axis_value
+@const gp_*|Gamepad|Gamepad button constant.|gamepad_button_check
+@const ev_gesture*|Events|Gesture event number, used with event_perform.
+@const ev_*|Events|Event type or event number, used with event_perform and event_perform_object.|event_perform
+@const bm_*|Blend mode|Blend mode or blend factor, used with gpu_set_blendmode.|gpu_set_blendmode
+@const cr_*|Mouse|Mouse cursor shape, used with window_set_cursor and cursor variables.|window_set_cursor
+@const pr_*|Drawing|Primitive type, used with vertex_submit and draw_primitive_begin.|draw_primitive_begin
+@const cull_*|Drawing|Face culling mode, used with gpu_set_cullmode.|gpu_set_cullmode
+@const cmpfunc_*|Drawing|Comparison function for the depth and stencil tests.
+@const buffer_*|Buffers|Buffer type, data type or seek mode, used by the buffer functions.|buffer_create
+@const audio_*|Audio|Audio constant such as an emitter falloff model.
+@const os_*|System|Operating system or platform constant, compared with os_type.
+@const browser_*|System|Browser constant, compared with os_browser.
+@const phy_*|Physics|Physics constant for joints, particles and debug drawing.
+@const ds_type_*|Data structures|Kind of data structure, used with ds_map_add_list and similar.|ds_exists
+@const asset_*|Assets|Kind of asset, used with asset_get_type and tag functions.|asset_get_type
+@const layerelementtype_*|Layers|Kind of layer element, returned by layer_get_element_type.|layer_get_element_type
+@const lb_*|Leaderboard|Leaderboard constant.
+@const achievement_*|Achievements|Achievement constant.
+@const network_*|Networking|Network socket type or config, used with network_create_socket.
+@const display_*|Display|Display or orientation constant.
+@const tile_*|Tiles|Bit flag inside tile data.
+@const matrix_*|Maths|Matrix type, used with matrix_get and matrix_set.|matrix_get
+@const spritespeed_*|Sprites|Unit of an animation speed.
+@const gamespeed_*|Game|Unit of the game speed, used with game_set_speed.|game_set_speed
+@const time_source_*|Time sources|Time source unit, state or expiry type.|time_source_create
+@const sequence_*|Sequences|Sequence constant.
+@const seqtracktype_*|Sequences|Kind of sequence track.
+@const pt_shape_*|Particles|Built-in particle shape.
+@const ps_*|Particles|Particle system emitter shape or distribution.
+@const ef_*|Effects|Effect kind, used with effect_create_above and effect_create_below.
+@const true|Maths|The bool value true, equal to 1.
+@const false|Maths|The bool value false, equal to 0.

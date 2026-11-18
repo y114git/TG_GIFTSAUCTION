@@ -1,0 +1,112 @@
+using Avalonia.Controls;
+using Avalonia.Controls.Templates;
+using G3MStudio.Core.Workspace;
+using G3MStudio.Localization;
+
+namespace G3MStudio.History;
+
+/// <summary>One line of the history list: <see cref="Position"/> is the number of commands applied when this line is the current state.</summary>
+public sealed record HistoryRow(int Position, string Text, bool Applied, string Time = "");
+
+/// <summary>Edit > Undo History (design/shell.md 14.4 item 2): the whole stack newest first, a click undoes or redoes to that point.</summary>
+public sealed class HistoryView : UserControl
+{
+    private static readonly Nicknames Plain = new();
+
+    private readonly ListBox _list = new() { Name = "HistoryList" };
+    private Workspace? _workspace;
+
+    public HistoryView()
+    {
+        // A fixed time column keeps the text of every row, the opened state included, on one line.
+        _list.ItemTemplate = new FuncDataTemplate<HistoryRow>((row, _) =>
+        {
+            var cls = row?.Applied == false ? "muted" : "plain";
+            var time = new TextBlock { Text = row?.Time, Width = 72, Classes = { cls } };
+            var text = new TextBlock { Text = row?.Text, Classes = { cls }, TextTrimming = Avalonia.Media.TextTrimming.CharacterEllipsis };
+            DockPanel.SetDock(time, Avalonia.Controls.Dock.Left);
+            return new DockPanel { Children = { time, text } };
+        });
+        _list.Tapped += (_, e) =>
+        {
+            if (e.Source is Control { DataContext: HistoryRow row }) GoTo(row);
+        };
+        Content = _list;
+        // Loc is static: hold the handler only while the view is shown, so a closed window can be collected.
+        void OnLanguage(object? _, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Loc.Current.Language)) Refresh();
+        }
+
+        LanguageWatch.Follow(this, OnLanguage);
+    }
+
+    public IReadOnlyList<HistoryRow> Rows { get; private set; } = [];
+
+    public void Bind(Workspace? workspace)
+    {
+        _workspace?.History.Changed -= Refresh;
+        _workspace = workspace;
+        workspace?.History.Changed += Refresh;
+        Refresh();
+    }
+
+    public void GoTo(HistoryRow row)
+    {
+        if (_workspace is { History.Frozen: false } workspace) workspace.MoveTo(row.Position);
+    }
+
+    /// <summary>The nicknames changed: the lines are made again.</summary>
+    public void Relabel() => Refresh();
+
+    private void Refresh()
+    {
+        var rows = new List<HistoryRow>();
+        if (_workspace is { } workspace)
+        {
+            var history = workspace.History;
+            for (var i = history.Items.Count; i >= 1; i--)
+                rows.Add(new HistoryRow(i, Describe(history.Items[i - 1], workspace.Nicknames), i <= history.Position, $"{history.Items[i - 1].Time:HH:mm:ss}"));
+            rows.Add(new HistoryRow(0, Loc.Current["history.start"], true));
+        }
+
+        Rows = rows;
+        _list.ItemsSource = rows;
+        _list.SelectedItem = _workspace is null ? null : rows.FirstOrDefault(r => r.Position == _workspace.History.Position);
+    }
+
+    // A rename reads "old nickname or name to new name" (the nickname follows the rename, so it sits on the new name, or back on the old one while the rename is undone).
+    internal static string Describe(EditCommand command, Nicknames? nicknames = null) => command switch
+    {
+        RenameResourceCommand => Loc.Current.Format("history.rename", ("old", OldLabel(nicknames ?? Plain, command.Args)), ("new", command.Args["new"])),
+        ResourceListCommand when command.Args["operation"] == ResourceListCommand.New => Loc.Current.Format("history.newResource", ("type", TypeLabel(command.Args["type"])), ("name", (nicknames ?? Plain).Label(command.Args["type"], command.Args["name"]))),
+        ResourceListCommand when command.Args["operation"] == ResourceListCommand.Delete => Loc.Current.Format("history.deleteResource", ("type", TypeLabel(command.Args["type"])), ("name", (nicknames ?? Plain).Label(command.Args["type"], command.Args["name"]))),
+        EditCodeCommand => Loc.Current.Format("history.code", ("entry", (nicknames ?? Plain).CodeLabel(command.Args["entry"]))),
+        CopyResourcesCommand copy => copy.Steps.Count == 1
+            ? Loc.Current.Format("history.copyResource", ("type", TypeLabel(copy.Steps[0].Type)), ("name", (nicknames ?? Plain).Label(copy.Steps[0].Type, copy.Steps[0].Name)))
+            : Loc.Current.Format("history.copyResources", ("count", copy.Steps.Count)),
+        GroupCommand group => DescribeGroup(group, nicknames),
+        _ => KindLabel(command.Kind),
+    };
+
+    private static string OldLabel(Nicknames nicknames, IReadOnlyDictionary<string, string> args) => nicknames.Of(args["type"], args["new"]) ?? nicknames.Label(args["type"], args["old"]);
+
+    internal static string KindLabel(string kind) => Loc.Current["history.kind." + kind];
+
+    // A group made around resource lists (a delete that clears uses first, a copy with its code) is named by the list edits inside it.
+    private static string DescribeGroup(GroupCommand group, Nicknames? nicknames)
+    {
+        var lists = Flatten(group).OfType<ResourceListCommand>().ToList();
+        if (lists.Count == 0) return KindLabel(group.Kind);
+        var operation = lists[0].Args["operation"];
+        if (lists.Count > 1 && lists.All(l => l.Args["operation"] == operation))
+            return Loc.Current.Format(operation == ResourceListCommand.Delete ? "history.deleteResources" : "history.newResources", ("count", lists.Count));
+        // A mix is a new resource with edits around it, or a delete: the first new one names it, else the last list edit.
+        return Describe(lists.FirstOrDefault(l => l.Args["operation"] == ResourceListCommand.New) ?? lists[^1], nicknames);
+    }
+
+    private static IEnumerable<EditCommand> Flatten(GroupCommand group) => group.Items.SelectMany(i => i is GroupCommand inner ? Flatten(inner) : [i]);
+
+    // Types that cannot be created have no singular name of their own, so they use the name of their list.
+    private static string TypeLabel(string type) => Loc.Current["explorer.typeOne." + type] is var one && one != "explorer.typeOne." + type ? one : Loc.Current["explorer.type." + type];
+}

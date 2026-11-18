@@ -1,0 +1,19 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Thin marks that replace Fluent's heavier ones; the keys are Fluent's own, so every control that uses them changes. Colours come from the control foreground (tokens). -->
+  <StreamGeometry x:Key="ButtonSpinnerIncreaseButtonIcon">M 2.53,10.03 L 7.00,5.56 L 11.47,10.03 L 12.53,8.97 L 7.00,3.44 L 1.47,8.97 Z</StreamGeometry>
+  <StreamGeometry x:Key="ButtonSpinnerDecreaseButtonIcon">M 1.47,5.03 L 7.00,10.56 L 12.53,5.03 L 11.47,3.97 L 7.00,8.44 L 2.53,3.97 Z</StreamGeometry>
+  <StreamGeometry x:Key="MenuItemChevronPathData">M 3.97,2.53 L 8.44,7.00 L 3.97,11.47 L 5.03,12.53 L 10.56,7.00 L 5.03,1.47 Z</StreamGeometry>
+  <StreamGeometry x:Key="CheckMarkPathData">M 1.88,9.15 L 6.25,13.28 L 14.16,4.61 L 12.84,3.39 L 6.15,10.72 L 3.12,7.85 Z</StreamGeometry>
+  <!-- The dock library's own marks (close, maximize, add tab, the dock and float status of a drag), redrawn in the same thin style as GlyphIcons. -->
+  <!-- A triangle with an exclamation mark cut out of it: the status of a recent file that is gone. -->
+  <StreamGeometry x:Key="WarningGlyph">F1 M6,1 L11.4,10.6 L0.6,10.6 Z M5.4,4.4 L5.6,7.6 L6.4,7.6 L6.6,4.4 Z M5.4,8.2 L5.4,9.4 L6.6,9.4 L6.6,8.2 Z</StreamGeometry>
+  <StreamGeometry x:Key="DockIconCloseGeometry">M2,3.4 L3.4,2 L6,4.6 L8.6,2 L10,3.4 L7.4,6 L10,8.6 L8.6,10 L6,7.4 L3.4,10 L2,8.6 L4.6,6 Z</StreamGeometry>
+  <StreamGeometry x:Key="DockToolIconCloseGeometry">M2,3.4 L3.4,2 L6,4.6 L8.6,2 L10,3.4 L7.4,6 L10,8.6 L8.6,10 L6,7.4 L3.4,10 L2,8.6 L4.6,6 Z</StreamGeometry>
+  <StreamGeometry x:Key="DockIconAddDocumentGeometry">M5.2,1.5 L6.8,1.5 L6.8,5.2 L10.5,5.2 L10.5,6.8 L6.8,6.8 L6.8,10.5 L5.2,10.5 L5.2,6.8 L1.5,6.8 L1.5,5.2 L5.2,5.2 Z</StreamGeometry>
+  <StreamGeometry x:Key="DockIconMinimizeGeometry">M2,5.2 L10,5.2 L10,6.8 L2,6.8 Z</StreamGeometry>
+  <StreamGeometry x:Key="DockIconMaximizeGeometry">F1 M2,2 L10,2 L10,10 L2,10 Z M3.2,3.2 L3.2,8.8 L8.8,8.8 L8.8,3.2 Z</StreamGeometry>
+  <StreamGeometry x:Key="DockIconRestoreGeometry">F1 M4,2 L10,2 L10,8 L8.8,8 L8.8,3.2 L4,3.2 Z M2,4 L8,4 L8,10 L2,10 Z M3.2,5.2 L3.2,8.8 L6.8,8.8 L6.8,5.2 Z</StreamGeometry>
+  <StreamGeometry x:Key="DockIconStatusDockGeometry">F1 M2,2 L10,2 L10,10 L2,10 Z M3.2,3.2 L3.2,4.6 L8.8,4.6 L8.8,3.2 Z M3.2,5.8 L3.2,8.8 L8.8,8.8 L8.8,5.8 Z</StreamGeometry>
+  <StreamGeometry x:Key="DockIconStatusFloatGeometry">F1 M4,2 L10,2 L10,8 L8.8,8 L8.8,3.2 L4,3.2 Z M2,4 L8,4 L8,10 L2,10 Z M3.2,5.2 L3.2,8.8 L6.8,8.8 L6.8,5.2 Z</StreamGeometry>
+</ResourceDictionary>

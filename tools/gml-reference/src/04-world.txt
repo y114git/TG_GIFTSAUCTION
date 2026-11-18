@@ -1,0 +1,206 @@
+@group ins|Asset_Management/Instances|Instances and objects
+@group obj|Asset_Management/Objects|Objects
+@group asp|Asset_Management/Sprites/Sprite_Information|Assets: Sprites
+@group aud|Audio|Audio
+@group rom|Asset_Management/Rooms|Rooms
+@group lay|Asset_Management/Rooms/Layers|Rooms: Layers
+@group ast|Asset_Management/Assets_And_Tags|Assets
+@group mov|Movement_And_Collisions/Movement|Movement
+@group col2|Movement_And_Collisions/Collisions|Collisions
+@group mpl|Movement_And_Collisions/Motion_Planning|Motion planning
+@group tms|Time_Sources|Time sources
+@group fnt|Asset_Management/Fonts|Assets: Fonts
+@group pth|Asset_Management/Paths|Assets: Paths
+instance_create_layer|ins|Creates an instance on a layer.|x:Real:x position;y:Real:y position;layer_id:Any:layer id or name;obj:Asset.GMObject:object to create;?var_struct:Struct:variables to set|Id.Instance
+instance_create_depth|ins|Creates an instance at a depth.|x:Real:x position;y:Real:y position;depth:Real:depth;obj:Asset.GMObject:object to create;?var_struct:Struct:variables to set|Id.Instance
+instance_destroy|ins|Destroys an instance (the caller by default).|?id:Id.Instance:instance or object;?execute_event_flag:Bool:run the Destroy and Clean Up events|Undefined
+instance_exists|ins|Tells whether an instance or any of an object exists.|obj:Any:instance id or object|Bool
+instance_find|ins|Returns the nth instance of an object.|obj:Asset.GMObject:object or all;n:Real:index|Id.Instance
+instance_number|ins|Counts the instances of an object.|obj:Asset.GMObject:object or all|Real
+instance_nearest|ins|Nearest instance of an object to a point.|x:Real:x position;y:Real:y position;obj:Asset.GMObject:object|Id.Instance
+instance_furthest|ins|Furthest instance of an object from a point.|x:Real:x position;y:Real:y position;obj:Asset.GMObject:object|Id.Instance
+instance_place|ins|Instance of an object that overlaps the caller at a position.|x:Real:x position;y:Real:y position;obj:Asset.GMObject:object|Id.Instance
+instance_position|ins|Instance of an object that covers a point.|x:Real:x position;y:Real:y position;obj:Asset.GMObject:object|Id.Instance
+instance_activate_all|ins|Activates all deactivated instances.||Undefined
+instance_activate_object|ins|Activates instances of an object.|obj:Asset.GMObject:object|Undefined
+instance_deactivate_all|ins|Deactivates all instances.|notme:Bool:keep the caller active|Undefined
+instance_deactivate_object|ins|Deactivates instances of an object.|obj:Asset.GMObject:object|Undefined
+instance_deactivate_region|ins|Deactivates instances inside or outside a box.|left:Real:left;top:Real:top;width:Real:width;height:Real:height;inside:Bool:inside or outside;notme:Bool:keep the caller active|Undefined
+instance_activate_region|ins|Activates instances inside or outside a box.|left:Real:left;top:Real:top;width:Real:width;height:Real:height;inside:Bool:inside or outside|Undefined
+instance_change|ins|Turns the caller into another object.|obj:Asset.GMObject:new object;perf:Bool:run the Destroy and Create events|Undefined
+instance_copy|ins|Copies the caller.|performevent:Bool:run the Create event|Id.Instance
+instance_deactivate_layer|ins|Deactivates the instances of a layer.|layer_id:Any:layer id or name|Undefined
+instance_activate_layer|ins|Activates the instances of a layer.|layer_id:Any:layer id or name|Undefined
+event_perform|ins|Runs an event of the caller.|type:Constant.EventType:ev_ constant;numb:Real:event number|Undefined
+event_user|ins|Runs a User Defined event.|numb:Real:0 to 15|Undefined
+event_inherited|ins|Runs the same event of the parent object.||Undefined
+event_perform_object|ins|Runs an event of another object on the caller.|obj:Asset.GMObject:object;type:Constant.EventType:ev_ constant;numb:Real:event number|Undefined
+object_get_name|obj|Name of an object asset.|ind:Asset.GMObject:object|String
+object_get_sprite|obj|Sprite of an object asset.|ind:Asset.GMObject:object|Asset.GMSprite
+object_get_parent|obj|Parent of an object asset.|ind:Asset.GMObject:object|Asset.GMObject
+object_is_ancestor|obj|Tells whether an object descends from another.|ind:Asset.GMObject:object;obj:Asset.GMObject:ancestor|Bool
+object_exists|obj|Tells whether an object asset exists.|ind:Asset.GMObject:object|Bool
+object_set_sprite|obj|Changes the default sprite of an object asset.|ind:Asset.GMObject:object;sprite:Asset.GMSprite:sprite|Undefined
+object_set_mask|obj|Changes the mask of an object asset.|ind:Asset.GMObject:object;spr:Asset.GMSprite:sprite|Undefined
+sprite_get_width|asp|Width of a sprite.|ind:Asset.GMSprite:sprite|Real
+sprite_get_height|asp|Height of a sprite.|ind:Asset.GMSprite:sprite|Real
+sprite_get_number|asp|Number of frames of a sprite.|ind:Asset.GMSprite:sprite|Real
+sprite_get_name|asp|Name of a sprite asset.|ind:Asset.GMSprite:sprite|String
+sprite_get_speed|asp|Animation speed of a sprite.|ind:Asset.GMSprite:sprite|Real
+sprite_get_speed_type|asp|Unit of the animation speed.|ind:Asset.GMSprite:sprite|Constant.SpriteSpeed
+sprite_get_xoffset|asp|X origin of a sprite.|ind:Asset.GMSprite:sprite|Real
+sprite_get_yoffset|asp|Y origin of a sprite.|ind:Asset.GMSprite:sprite|Real
+sprite_get_bbox_left|asp|Left of the bounding box.|ind:Asset.GMSprite:sprite|Real
+sprite_get_bbox_right|asp|Right of the bounding box.|ind:Asset.GMSprite:sprite|Real
+sprite_get_bbox_top|asp|Top of the bounding box.|ind:Asset.GMSprite:sprite|Real
+sprite_get_bbox_bottom|asp|Bottom of the bounding box.|ind:Asset.GMSprite:sprite|Real
+sprite_exists|asp|Tells whether a sprite asset exists.|ind:Asset.GMSprite:sprite|Bool
+sprite_set_offset|asp|Sets the origin of a sprite.|ind:Asset.GMSprite:sprite;xoff:Real:x origin;yoff:Real:y origin|Undefined
+sprite_set_speed|asp|Sets the animation speed of a sprite.|ind:Asset.GMSprite:sprite;speed:Real:speed;type:Constant.SpriteSpeed:unit|Undefined
+sprite_duplicate|asp|Makes a copy of a sprite.|ind:Asset.GMSprite:sprite|Asset.GMSprite
+sprite_delete|asp|Removes a sprite that was added at runtime.|ind:Asset.GMSprite:sprite|Undefined
+sprite_add|asp|Loads an image file as a sprite.|fname:String:file name;imgnum:Real:frames;removeback:Bool:remove background;smooth:Bool:smooth edges;xorig:Real:x origin;yorig:Real:y origin|Asset.GMSprite
+sprite_add_from_surface|asp|Makes a sprite from part of a surface.|ind:Asset.GMSprite:sprite to replace or -1;surface:Id.Surface:source;x:Real:x;y:Real:y;w:Real:width;h:Real:height;removeback:Bool:remove background;smooth:Bool:smooth edges|Asset.GMSprite
+sprite_save|asp|Saves a sprite frame to a PNG file.|ind:Asset.GMSprite:sprite;subimg:Real:frame;fname:String:file name|Undefined
+sprite_collision_mask|asp|Changes the collision mask of a sprite.|ind:Asset.GMSprite:sprite;sepmasks:Bool:separate masks;bboxmode:Real:bounding box mode;bbleft:Real:left;bbtop:Real:top;bbright:Real:right;bbbottom:Real:bottom;kind:Real:mask shape;tolerance:Real:alpha tolerance|Undefined
+asset_get_index|ast|Finds an asset by name.|name:String:asset name|Any
+asset_get_type|ast|Returns the kind of an asset by name.|name:String:asset name|Constant.AssetType
+asset_has_tags|ast|Tells whether an asset has tags.|asset:Any:asset or name;tags:Any:tag or array of tags;?type:Constant.AssetType:asset type|Bool
+asset_add_tags|ast|Adds tags to an asset.|asset:Any:asset or name;tags:Any:tag or array of tags;?type:Constant.AssetType:asset type|Bool
+asset_remove_tags|ast|Removes tags from an asset.|asset:Any:asset or name;tags:Any:tag or array of tags;?type:Constant.AssetType:asset type|Bool
+asset_get_tags|ast|Lists the tags of an asset.|asset:Any:asset or name;?type:Constant.AssetType:asset type|Array
+tag_get_asset_ids|ast|Lists the assets that have a tag.|tags:Any:tag or array of tags;type:Constant.AssetType:asset type|Array
+room_goto|rom|Switches to a room.|numb:Asset.GMRoom:room|Undefined
+room_goto_next|rom|Switches to the next room.||Undefined
+room_goto_previous|rom|Switches to the previous room.||Undefined
+room_restart|rom|Restarts the current room.||Undefined
+room_get_name|rom|Name of a room asset.|index:Asset.GMRoom:room|String
+room_exists|rom|Tells whether a room asset exists.|index:Asset.GMRoom:room|Bool
+room_next|rom|Room after the given one in the room order.|numb:Asset.GMRoom:room|Asset.GMRoom
+room_previous|rom|Room before the given one in the room order.|numb:Asset.GMRoom:room|Asset.GMRoom
+room_set_width|rom|Sets the width of a room asset.|index:Asset.GMRoom:room;w:Real:width|Undefined
+room_set_height|rom|Sets the height of a room asset.|index:Asset.GMRoom:room;h:Real:height|Undefined
+room_set_persistent|rom|Makes a room persistent or not.|index:Asset.GMRoom:room;persistent:Bool:on or off|Undefined
+room_instance_add|rom|Adds an instance to a room asset.|index:Asset.GMRoom:room;x:Real:x;y:Real:y;obj:Asset.GMObject:object|Id.Instance
+layer_create|lay|Makes a layer.|depth:Real:depth;?name:String:layer name|Id.Layer
+layer_destroy|lay|Destroys a layer.|layer_id:Any:layer id or name|Undefined
+layer_exists|lay|Tells whether a layer exists.|layer_id:Any:layer id or name|Bool
+layer_get_id|lay|Finds a layer by name.|name:String:layer name|Id.Layer
+layer_get_name|lay|Name of a layer.|layer_id:Any:layer id|String
+layer_get_depth|lay|Depth of a layer.|layer_id:Any:layer id or name|Real
+layer_depth|lay|Sets the depth of a layer.|layer_id:Any:layer id or name;depth:Real:new depth|Undefined
+layer_set_visible|lay|Shows or hides a layer.|layer_id:Any:layer id or name;visible:Bool:on or off|Undefined
+layer_get_visible|lay|Tells whether a layer is visible.|layer_id:Any:layer id or name|Bool
+layer_x|lay|Sets the x offset of a layer.|layer_id:Any:layer id or name;x:Real:x offset|Undefined
+layer_y|lay|Sets the y offset of a layer.|layer_id:Any:layer id or name;y:Real:y offset|Undefined
+layer_get_x|lay|X offset of a layer.|layer_id:Any:layer id or name|Real
+layer_get_y|lay|Y offset of a layer.|layer_id:Any:layer id or name|Real
+layer_hspeed|lay|Sets the horizontal scroll speed of a layer.|layer_id:Any:layer id or name;speed:Real:pixels per step|Undefined
+layer_vspeed|lay|Sets the vertical scroll speed of a layer.|layer_id:Any:layer id or name;speed:Real:pixels per step|Undefined
+layer_get_all|lay|Lists all layers of the room.||Array
+layer_get_all_elements|lay|Lists the elements of a layer.|layer_id:Any:layer id or name|Array
+layer_get_element_type|lay|Kind of a layer element.|element_id:Id.LayerElement:the element|Constant.LayerElementType
+layer_background_get_id|lay|Finds the background element of a layer.|layer_id:Any:layer id or name|Id.LayerElement
+layer_background_sprite|lay|Sets the sprite of a background element.|element_id:Id.LayerElement:the element;sprite:Asset.GMSprite:sprite|Undefined
+layer_sprite_create|lay|Makes a sprite element on a layer.|layer_id:Any:layer id or name;x:Real:x;y:Real:y;sprite:Asset.GMSprite:sprite|Id.LayerElement
+layer_sprite_destroy|lay|Destroys a sprite element.|element_id:Id.LayerElement:the element|Undefined
+layer_tilemap_create|lay|Makes a tile map on a layer.|layer_id:Any:layer id or name;x:Real:x;y:Real:y;tileset:Asset.GMTileSet:tile set;width:Real:columns;height:Real:rows|Id.TileMap
+layer_tilemap_get_id|lay|Finds the tile map of a layer.|layer_id:Any:layer id or name|Id.TileMap
+layer_add_instance|lay|Moves an instance onto a layer.|layer_id:Any:layer id or name;instance:Id.Instance:instance|Undefined
+layer_has_instance|lay|Tells whether a layer holds an instance.|layer_id:Any:layer id or name;instance:Id.Instance:instance|Bool
+layer_script_begin|lay|Sets a script that runs before a layer draws.|layer_id:Any:layer id or name;script:Function:script|Undefined
+layer_script_end|lay|Sets a script that runs after a layer draws.|layer_id:Any:layer id or name;script:Function:script|Undefined
+layer_shader|lay|Applies a shader to a layer.|layer_id:Any:layer id or name;shader:Asset.GMShader:shader|Undefined
+tilemap_get|lay|Reads the tile data at a cell.|tilemap_element_id:Id.TileMap:tile map;cell_x:Real:column;cell_y:Real:row|Real
+tilemap_set|lay|Writes the tile data at a cell.|tilemap_element_id:Id.TileMap:tile map;tiledata:Real:tile data;cell_x:Real:column;cell_y:Real:row|Bool
+tilemap_get_at_pixel|lay|Reads the tile data at a room position.|tilemap_element_id:Id.TileMap:tile map;x:Real:x;y:Real:y|Real
+tilemap_set_at_pixel|lay|Writes the tile data at a room position.|tilemap_element_id:Id.TileMap:tile map;tiledata:Real:tile data;x:Real:x;y:Real:y|Bool
+tilemap_get_cell_x_at_pixel|lay|Column of a room x position.|tilemap_element_id:Id.TileMap:tile map;x:Real:x;y:Real:y|Real
+tilemap_get_cell_y_at_pixel|lay|Row of a room y position.|tilemap_element_id:Id.TileMap:tile map;x:Real:x;y:Real:y|Real
+tilemap_get_width|lay|Columns of a tile map.|tilemap_element_id:Id.TileMap:tile map|Real
+tilemap_get_height|lay|Rows of a tile map.|tilemap_element_id:Id.TileMap:tile map|Real
+tilemap_get_tile_width|lay|Width of one tile of a tile map.|tilemap_element_id:Id.TileMap:tile map|Real
+tilemap_get_tile_height|lay|Height of one tile of a tile map.|tilemap_element_id:Id.TileMap:tile map|Real
+tile_get_index|lay|Tile index in tile data.|tiledata:Real:tile data|Real
+motion_set|mov|Sets direction and speed.|dir:Real:direction in degrees;speed:Real:speed|Undefined
+motion_add|mov|Adds speed in a direction to the current motion.|dir:Real:direction in degrees;speed:Real:speed to add|Undefined
+move_towards_point|mov|Moves the caller towards a point.|x:Real:x position;y:Real:y position;sp:Real:speed|Undefined
+move_bounce_all|mov|Bounces the caller off solid instances.|advanced:Bool:use precise bounce|Undefined
+move_bounce_solid|mov|Bounces the caller off solid instances.|advanced:Bool:use precise bounce|Undefined
+move_contact_solid|mov|Moves in a direction until touching a solid.|dir:Real:direction in degrees;maxdist:Real:most distance, -1 for unlimited|Undefined
+move_contact_all|mov|Moves in a direction until touching any instance.|dir:Real:direction in degrees;maxdist:Real:most distance|Undefined
+move_outside_solid|mov|Moves out of a solid in a direction.|dir:Real:direction in degrees;maxdist:Real:most distance|Undefined
+move_outside_all|mov|Moves out of any instance in a direction.|dir:Real:direction in degrees;maxdist:Real:most distance|Undefined
+move_snap|mov|Snaps the caller to a grid.|hsnap:Real:horizontal grid;vsnap:Real:vertical grid|Undefined
+move_wrap|mov|Wraps the caller around the room edges.|hor:Bool:wrap horizontally;vert:Bool:wrap vertically;margin:Real:distance beyond the edge|Undefined
+place_free|col2|Tells whether a position is free of solids.|x:Real:x position;y:Real:y position|Bool
+place_empty|col2|Tells whether a position is free of all instances.|x:Real:x position;y:Real:y position|Bool
+place_meeting|col2|Tells whether the caller would touch an object at a position.|x:Real:x position;y:Real:y position;obj:Asset.GMObject:object|Bool
+place_snapped|col2|Tells whether the caller is on a grid.|hsnap:Real:horizontal grid;vsnap:Real:vertical grid|Bool
+position_empty|col2|Tells whether no instance covers a point.|x:Real:x position;y:Real:y position|Bool
+position_meeting|col2|Tells whether an object covers a point.|x:Real:x position;y:Real:y position;obj:Asset.GMObject:object|Bool
+position_destroy|col2|Destroys instances that cover a point.|x:Real:x position;y:Real:y position|Undefined
+collision_point|col2|Instance of an object at a point.|x:Real:x position;y:Real:y position;obj:Asset.GMObject:object;prec:Bool:precise check;notme:Bool:ignore the caller|Id.Instance
+collision_rectangle|col2|Instance of an object inside a rectangle.|x1:Real:left;y1:Real:top;x2:Real:right;y2:Real:bottom;obj:Asset.GMObject:object;prec:Bool:precise check;notme:Bool:ignore the caller|Id.Instance
+collision_circle|col2|Instance of an object inside a circle.|x1:Real:centre x;y1:Real:centre y;rad:Real:radius;obj:Asset.GMObject:object;prec:Bool:precise check;notme:Bool:ignore the caller|Id.Instance
+collision_ellipse|col2|Instance of an object inside an ellipse.|x1:Real:left;y1:Real:top;x2:Real:right;y2:Real:bottom;obj:Asset.GMObject:object;prec:Bool:precise check;notme:Bool:ignore the caller|Id.Instance
+collision_line|col2|Instance of an object along a line.|x1:Real:start x;y1:Real:start y;x2:Real:end x;y2:Real:end y;obj:Asset.GMObject:object;prec:Bool:precise check;notme:Bool:ignore the caller|Id.Instance
+collision_point_list|col2|Fills a list with instances at a point.|x:Real:x position;y:Real:y position;obj:Asset.GMObject:object;prec:Bool:precise check;notme:Bool:ignore the caller;list:Id.DsList:target list;ordered:Bool:sort by distance|Real
+instance_place_list|col2|Fills a list with instances the caller would touch.|x:Real:x position;y:Real:y position;obj:Asset.GMObject:object;list:Id.DsList:target list;ordered:Bool:sort by distance|Real
+mp_potential_step|mpl|Takes a step towards a point, avoiding obstacles.|x:Real:target x;y:Real:target y;stepsize:Real:step length;checkall:Bool:avoid all instances|Bool
+mp_linear_step|mpl|Takes a straight step towards a point.|x:Real:target x;y:Real:target y;stepsize:Real:step length;checkall:Bool:avoid all instances|Bool
+mp_grid_create|mpl|Makes a motion planning grid.|left:Real:left;top:Real:top;hcells:Real:columns;vcells:Real:rows;cellwidth:Real:cell width;cellheight:Real:cell height|Id.MpGrid
+mp_grid_destroy|mpl|Destroys a motion planning grid.|id:Id.MpGrid:the grid|Undefined
+mp_grid_add_instances|mpl|Marks cells under instances as blocked.|id:Id.MpGrid:the grid;obj:Asset.GMObject:object;prec:Bool:precise check|Undefined
+mp_grid_path|mpl|Finds a path across a grid.|id:Id.MpGrid:the grid;path:Asset.GMPath:path to fill;xstart:Real:start x;ystart:Real:start y;xgoal:Real:goal x;ygoal:Real:goal y;allowdiag:Bool:allow diagonals|Bool
+path_start|pth|Makes the caller follow a path.|path:Asset.GMPath:path;speed:Real:speed;endaction:Constant.PathAction:action at the end;absolute:Bool:use room coordinates|Undefined
+path_end|pth|Stops the path of the caller.||Undefined
+path_add|pth|Makes an empty path.||Asset.GMPath
+path_add_point|pth|Adds a point to a path.|path:Asset.GMPath:path;x:Real:x;y:Real:y;speed:Real:speed percentage|Undefined
+path_get_number|pth|Number of points of a path.|path:Asset.GMPath:path|Real
+path_get_length|pth|Length of a path in pixels.|path:Asset.GMPath:path|Real
+path_get_x|pth|X on a path at a position from 0 to 1.|path:Asset.GMPath:path;pos:Real:position|Real
+path_get_y|pth|Y on a path at a position from 0 to 1.|path:Asset.GMPath:path;pos:Real:position|Real
+time_source_create|tms|Makes a time source.|parent:Id.TimeSource:parent source;period:Real:length;units:Constant.TimeSourceUnits:time_source_units_ constant;callback:Function:function to call;?args:Array:arguments;?reps:Real:repeats;?expiry:Constant.TimeSourceExpiry:expiry type|Id.TimeSource
+time_source_start|tms|Starts a time source.|id:Id.TimeSource:the time source|Undefined
+time_source_stop|tms|Stops a time source.|id:Id.TimeSource:the time source|Undefined
+time_source_pause|tms|Pauses a time source.|id:Id.TimeSource:the time source|Undefined
+time_source_resume|tms|Resumes a time source.|id:Id.TimeSource:the time source|Undefined
+time_source_reset|tms|Resets a time source.|id:Id.TimeSource:the time source|Undefined
+time_source_destroy|tms|Destroys a time source.|id:Id.TimeSource:the time source|Undefined
+time_source_exists|tms|Tells whether a time source exists.|id:Id.TimeSource:the time source|Bool
+time_source_get_state|tms|State of a time source.|id:Id.TimeSource:the time source|Constant.TimeSourceState
+call_later|tms|Calls a function after a delay.|period:Real:delay;units:Constant.TimeSourceUnits:time_source_units_ constant;callback:Function:function to call;?loop:Bool:repeat|Id.TimeSource
+call_cancel|tms|Cancels a call made with call_later.|handle:Id.TimeSource:the handle|Undefined
+font_add_sprite|fnt|Makes a font from a sprite.|sprite:Asset.GMSprite:sprite;first:Real:first character code;prop:Bool:proportional;sep:Real:spacing|Asset.GMFont
+font_add_sprite_ext|fnt|Makes a font from a sprite and a character list.|sprite:Asset.GMSprite:sprite;string_map:String:characters in order;prop:Bool:proportional;sep:Real:spacing|Asset.GMFont
+font_get_name|fnt|Name of a font asset.|font:Asset.GMFont:font|String
+font_exists|fnt|Tells whether a font asset exists.|font:Asset.GMFont:font|Bool
+font_delete|fnt|Removes a font added at runtime.|font:Asset.GMFont:font|Undefined
+font_get_size|fnt|Size of a font asset.|font:Asset.GMFont:font|Real
+audio_play_sound|aud|Plays a sound.|soundid:Asset.GMSound:sound;priority:Real:priority;loop:Bool:loop it;?gain:Real:volume;?offset:Real:start time;?pitch:Real:pitch|Id.Sound
+audio_play_sound_at|aud|Plays a sound at a position in 3D.|soundid:Asset.GMSound:sound;x:Real:x;y:Real:y;z:Real:z;falloff_ref:Real:reference distance;falloff_max:Real:maximum distance;falloff_factor:Real:falloff factor;loop:Bool:loop it;priority:Real:priority|Id.Sound
+audio_stop_sound|aud|Stops a playing sound.|soundid:Any:sound or playing sound|Undefined
+audio_stop_all|aud|Stops all sounds.||Undefined
+audio_pause_sound|aud|Pauses a playing sound.|soundid:Any:sound or playing sound|Undefined
+audio_pause_all|aud|Pauses all sounds.||Undefined
+audio_resume_sound|aud|Resumes a paused sound.|soundid:Any:sound or playing sound|Undefined
+audio_resume_all|aud|Resumes all paused sounds.||Undefined
+audio_is_playing|aud|Tells whether a sound is playing.|soundid:Any:sound or playing sound|Bool
+audio_is_paused|aud|Tells whether a sound is paused.|soundid:Any:sound or playing sound|Bool
+audio_exists|aud|Tells whether a sound exists.|soundid:Any:sound or playing sound|Bool
+audio_sound_gain|aud|Changes the volume of a sound over time.|soundid:Any:sound or playing sound;volume:Real:0 to 1 or more;time:Real:fade time in milliseconds|Undefined
+audio_sound_pitch|aud|Sets the pitch of a sound.|soundid:Any:sound or playing sound;pitch:Real:pitch factor|Undefined
+audio_sound_get_gain|aud|Reads the volume of a sound.|soundid:Any:sound or playing sound|Real
+audio_sound_get_pitch|aud|Reads the pitch of a sound.|soundid:Any:sound or playing sound|Real
+audio_sound_length|aud|Length of a sound in seconds.|soundid:Any:sound or playing sound|Real
+audio_sound_get_track_position|aud|Playback position in seconds.|soundid:Any:playing sound|Real
+audio_sound_set_track_position|aud|Moves the playback position.|soundid:Any:playing sound;time:Real:seconds|Undefined
+audio_master_gain|aud|Sets the master volume.|volume:Real:0 to 1|Undefined
+audio_group_load|aud|Loads an audio group.|groupid:Asset.GMAudioGroup:audio group|Undefined
+audio_group_is_loaded|aud|Tells whether an audio group is loaded.|groupid:Asset.GMAudioGroup:audio group|Bool
+audio_listener_position|aud|Sets the 3D listener position.|x:Real:x;y:Real:y;z:Real:z|Undefined
+audio_emitter_create|aud|Makes an audio emitter.||Id.AudioEmitter
+audio_emitter_free|aud|Frees an audio emitter.|emitterid:Id.AudioEmitter:the emitter|Undefined
+audio_create_stream|aud|Opens a sound file for streaming.|filename:String:file name|Asset.GMSound
+audio_destroy_stream|aud|Closes a streamed sound.|soundid:Asset.GMSound:stream|Undefined

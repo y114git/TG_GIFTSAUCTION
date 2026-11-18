@@ -1,0 +1,347 @@
+name: Build and Release G3MStudio
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_release:
+        description: "Publish a GitHub release after building?"
+        required: false
+        type: boolean
+        default: false
+      release_name:
+        description: "Release name (required only when publishing)"
+        required: false
+        type: string
+      release_tag:
+        description: "Optional custom release tag (default: UTC date and run number, YYYY.MM.DD-N)"
+        required: false
+        type: string
+      prerelease:
+        description: "Mark the release as a pre-release"
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_VERSION: "10.0.x"
+
+jobs:
+  prepare:
+    name: Select platforms
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.matrix.outputs.value }}
+    steps:
+      - name: Validate release inputs
+        if: ${{ inputs.publish_release }}
+        env:
+          RELEASE_NAME: ${{ inputs.release_name }}
+        run: |
+          if [ -z "$RELEASE_NAME" ]; then
+            echo "ERROR: release_name is required when publishing a release"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+        if: ${{ inputs.publish_release }}
+
+      - name: Reject an existing release tag
+        if: ${{ inputs.publish_release && inputs.release_tag != '' }}
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" > /dev/null; then
+            echo "ERROR: tag $RELEASE_TAG already exists"
+            exit 1
+          fi
+
+      - id: matrix
+        shell: pwsh
+        run: |
+          $platforms = @(
+            @{ Name = 'Windows x64'; Runner = 'windows-latest'; Rid = 'win-x64'; Suffix = 'Windows-x64'; Extension = '.exe' },
+            @{ Name = 'Windows arm64'; Runner = 'windows-11-arm'; Rid = 'win-arm64'; Suffix = 'Windows-arm64'; Extension = '.exe' },
+            @{ Name = 'Linux x64'; Runner = 'ubuntu-latest'; Rid = 'linux-x64'; Suffix = 'Linux-x64'; Extension = '' },
+            @{ Name = 'Linux arm64'; Runner = 'ubuntu-24.04-arm'; Rid = 'linux-arm64'; Suffix = 'Linux-arm64'; Extension = '' },
+            @{ Name = 'macOS x64'; Runner = 'macos-26-intel'; Rid = 'osx-x64'; Suffix = 'macOS-x64'; Extension = '' },
+            @{ Name = 'macOS arm64'; Runner = 'macos-26'; Rid = 'osx-arm64'; Suffix = 'macOS-arm64'; Extension = '' }
+          )
+
+          $include = foreach ($platform in $platforms) {
+            [ordered]@{
+              name = $platform.Name
+              runner = $platform.Runner
+              rid = $platform.Rid
+              suffix = $platform.Suffix
+              extension = $platform.Extension
+            }
+          }
+
+          $matrix = @{ include = @($include) } | ConvertTo-Json -Compress
+          "value=$matrix" >> $env:GITHUB_OUTPUT
+
+  startup:
+    name: Startup ${{ matrix.name }}
+    needs: prepare
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore G3MStudio.Tests/G3MStudio.Tests.csproj
+
+      - name: Startup tests
+        run: dotnet test G3MStudio.Tests --configuration Release --no-restore --filter "Category=Startup" --blame-hang-timeout 25m --blame-hang-dump-type none
+
+  build:
+    name: ${{ matrix.name }}
+    needs: [prepare, startup]
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Publish
+        env:
+          SentryDsn: ${{ secrets.SENTRY_DSN }} # empty without the secret: no key is built in and crash reporting stays off
+        run: dotnet publish G3MStudio/G3MStudio.csproj --configuration Release --runtime ${{ matrix.rid }} --output publish/${{ matrix.rid }}
+
+      - name: Bundle
+        id: bundle
+        shell: pwsh
+        run: |
+          $versionOutput = @(dotnet msbuild G3MStudio/G3MStudio.csproj -getProperty:Version -nologo -verbosity:quiet)
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $version = ($versionOutput | Where-Object { $_.Trim() } | Select-Object -Last 1).Trim()
+          if ([string]::IsNullOrWhiteSpace($version)) { throw 'Could not determine the version.' }
+
+          $publishDirectory = "publish/${{ matrix.rid }}"
+          $executableName = "G3MStudio${{ matrix.extension }}"
+          $executable = Join-Path $publishDirectory $executableName
+          if (-not (Test-Path -LiteralPath $executable)) { throw "Published executable not found: $executable" }
+
+          $archivePath = "G3MStudio-${{ matrix.suffix }}-$version.zip"
+          $bundleDirectory = 'bundle'
+          New-Item -ItemType Directory -Path $bundleDirectory | Out-Null
+
+          # Everything sits in the zip root. macOS ships the app bundle at the root (questions Q38, Q51).
+          if ('${{ matrix.rid }}' -like 'osx-*') {
+            $macOsDirectory = Join-Path $bundleDirectory 'G3MStudio.app/Contents/MacOS'
+            New-Item -ItemType Directory -Force -Path $macOsDirectory | Out-Null
+            Copy-Item -LiteralPath $executable -Destination $macOsDirectory
+            & chmod +x (Join-Path $macOsDirectory 'G3MStudio')
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $resourcesDirectory = Join-Path $bundleDirectory 'G3MStudio.app/Contents/Resources'
+            New-Item -ItemType Directory -Force -Path $resourcesDirectory | Out-Null
+            Copy-Item -LiteralPath 'G3MStudio/Assets/G3MStudio.icns' -Destination $resourcesDirectory
+            @"
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "https://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleDevelopmentRegion</key>
+            <string>en</string>
+            <key>CFBundleExecutable</key>
+            <string>G3MStudio</string>
+            <key>CFBundleIconFile</key>
+            <string>G3MStudio</string>
+            <key>CFBundleIdentifier</key>
+            <string>space.y114.g3mstudio</string>
+            <key>CFBundleName</key>
+            <string>G3MStudio</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>CFBundleShortVersionString</key>
+            <string>$version</string>
+            <key>CFBundleVersion</key>
+            <string>$version</string>
+            <key>NSHighResolutionCapable</key>
+            <true/>
+          </dict>
+          </plist>
+          "@ | Set-Content -LiteralPath (Join-Path $bundleDirectory 'G3MStudio.app/Contents/Info.plist') -Encoding utf8NoBOM
+            $required = 'G3MStudio.app/Contents/MacOS/G3MStudio', 'G3MStudio.app/Contents/Info.plist'
+          } else {
+            Copy-Item -LiteralPath $executable -Destination $bundleDirectory
+            if (-not $IsWindows) {
+              & chmod +x (Join-Path $bundleDirectory $executableName)
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            }
+            $required = @($executableName)
+          }
+          Copy-Item -LiteralPath LICENSE -Destination $bundleDirectory
+          $required += 'LICENSE'
+          Copy-Item -LiteralPath THIRD-PARTY-NOTICES.txt -Destination $bundleDirectory
+          $required += 'THIRD-PARTY-NOTICES.txt'
+          Copy-Item -LiteralPath packaging/README-BETA.txt -Destination $bundleDirectory
+          $required += 'README-BETA.txt'
+
+          if ($IsWindows) {
+            Compress-Archive -Path "$bundleDirectory/*" -DestinationPath $archivePath
+          } else {
+            Push-Location $bundleDirectory
+            & zip -q -r -y "../$archivePath" .
+            $zipExitCode = $LASTEXITCODE
+            Pop-Location
+            if ($zipExitCode -ne 0) { exit $zipExitCode }
+          }
+
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $archive = [System.IO.Compression.ZipFile]::OpenRead($archivePath)
+          try {
+            $entryNames = $archive.Entries.FullName
+            foreach ($file in $required) {
+              if ($file -notin $entryNames) { throw "Archive is missing $file" }
+            }
+          } finally {
+            $archive.Dispose()
+          }
+
+          "archive=$archivePath" >> $env:GITHUB_OUTPUT
+
+      - name: Smoke
+        id: smoke
+        shell: pwsh
+        run: |
+          # Start the app from the zip: it opens the window, waits 2 s and exits 0 (--smoke).
+          $archive = (Resolve-Path '${{ steps.bundle.outputs.archive }}').Path
+          $directory = Join-Path $PWD 'smoke'
+          if ($IsWindows) {
+            Expand-Archive -LiteralPath $archive -DestinationPath $directory
+          } else {
+            & unzip -q $archive -d $directory
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+          $program = if ('${{ matrix.rid }}' -like 'osx-*') { Join-Path $directory 'G3MStudio.app/Contents/MacOS/G3MStudio' } else { Join-Path $directory "G3MStudio${{ matrix.extension }}" }
+          "program=$program" >> $env:GITHUB_OUTPUT
+          $file = $program
+          $arguments = @('--smoke')
+          if ($IsLinux) {
+            if (-not (Get-Command xvfb-run -ErrorAction SilentlyContinue)) {
+              sudo apt-get update
+              sudo apt-get install -y xvfb
+            }
+            $file = 'xvfb-run'
+            $arguments = @('-a', $program, '--smoke')
+          }
+
+          $errorFile = Join-Path $PWD 'smoke-error.txt'
+          $process = Start-Process -FilePath $file -ArgumentList $arguments -PassThru -RedirectStandardError $errorFile
+          if (-not $process.WaitForExit(90000)) {
+            $process.Kill($true)
+            throw 'The app did not exit within 90 s.'
+          }
+          if ($process.ExitCode -ne 0) {
+            Get-Content -LiteralPath $errorFile -ErrorAction SilentlyContinue
+            throw "The app exited with code $($process.ExitCode)."
+          }
+
+      - name: Crash report check
+        shell: pwsh
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        run: |
+          # Only with a key: sends one clearly marked test event and prints the server answer, never the key.
+          if ([string]::IsNullOrEmpty($env:SENTRY_DSN)) { return }
+          $resultFile = Join-Path $PWD 'sentry-result.txt'
+          $program = '${{ steps.smoke.outputs.program }}'
+          if ($IsWindows) {
+            # A WinExe is not awaited by the call operator, so $LASTEXITCODE would stay empty.
+            $process = Start-Process -FilePath $program -ArgumentList '--sentry-test', $resultFile -Wait -PassThru
+            $exitCode = $process.ExitCode
+          } else {
+            if ($IsLinux) { & xvfb-run -a $program --sentry-test $resultFile *> $null }
+            else { & $program --sentry-test $resultFile *> $null }
+            $exitCode = $LASTEXITCODE
+          }
+          Get-Content -LiteralPath $resultFile | Where-Object { $_ -like 'Server answer:*' }
+          if ($exitCode -ne 0) { throw "The crash report check failed with code $exitCode." }
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: G3MStudio-${{ matrix.suffix }}
+          path: ${{ steps.bundle.outputs.archive }}
+          if-no-files-found: error
+
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ inputs.publish_release }}
+    permissions:
+      contents: write
+    concurrency:
+      group: g3mstudio-release
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Validate release inputs
+        env:
+          RELEASE_NAME: ${{ inputs.release_name }}
+        run: |
+          if [ -z "$RELEASE_NAME" ]; then
+            echo "ERROR: release_name is required when publishing a release"
+            exit 1
+          fi
+
+      - name: Choose release tag
+        id: release_tag
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          tag="$RELEASE_TAG"
+          if [[ "$tag" == *$'\n'* || "$tag" == *$'\r'* ]]; then
+            echo "ERROR: release_tag must be a single line"
+            exit 1
+          fi
+          if [ -z "$tag" ]; then
+            tag="$(date -u +'%Y.%m.%d')-${GITHUB_RUN_NUMBER}"
+          fi
+          echo "value=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Download release archives
+        uses: actions/download-artifact@v8
+        with:
+          path: release_assets
+          merge-multiple: true
+
+      - name: Verify release contents
+        run: |
+          actual="$(find release_assets -maxdepth 1 -type f -name 'G3MStudio-*.zip' | wc -l)"
+          find release_assets -maxdepth 1 -type f -name 'G3MStudio-*.zip' -print
+          test "$actual" -eq 6
+
+      - name: Create or update GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ steps.release_tag.outputs.value }}
+          target_commitish: ${{ github.sha }}
+          name: ${{ inputs.release_name }}
+          draft: false
+          prerelease: ${{ inputs.prerelease }}
+          generate_release_notes: true
+          make_latest: ${{ inputs.prerelease && 'false' || 'true' }}
+          overwrite_files: true
+          fail_on_unmatched_files: true
+          files: release_assets/G3MStudio-*.zip

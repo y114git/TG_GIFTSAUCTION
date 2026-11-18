@@ -1,0 +1,226 @@
+@group kbd|Game_Input/Keyboard_Input|Input: Keyboard
+@group mse|Game_Input/Mouse_Input|Input: Mouse
+@group pad|Game_Input/GamePad_Input|Input: Gamepad
+@group dsl|Data_Structures/DS_Lists|Data structures: Lists
+@group dsm|Data_Structures/DS_Maps|Data structures: Maps
+@group dsg|Data_Structures/DS_Grids|Data structures: Grids
+@group dss|Data_Structures/DS_Stacks|Data structures: Stacks
+@group dsq|Data_Structures/DS_Queues|Data structures: Queues
+@group dsp|Data_Structures/DS_Priority_Queues|Data structures: Priority queues
+@group buf|Buffers|Buffers
+@group fil|File_Handling/Text_Files|Files
+@group ini|File_Handling/INI_Files|Files: INI
+@group cam|Cameras_And_Display/Cameras_And_Viewports|Cameras and display
+@group win|Cameras_And_Display/The_Game_Window|Window
+@group dsp2|Cameras_And_Display/Display|Display
+@group os|OS_And_Compiler|OS and compiler
+keyboard_check|kbd|True while a key is held.|key:Constant.VirtualKey:vk_ constant or character code|Bool
+keyboard_check_pressed|kbd|True in the step a key went down.|key:Constant.VirtualKey:vk_ constant or character code|Bool
+keyboard_check_released|kbd|True in the step a key came up.|key:Constant.VirtualKey:vk_ constant or character code|Bool
+keyboard_check_direct|kbd|Reads a key from the hardware, ignoring window focus.|key:Constant.VirtualKey:vk_ constant or character code|Bool
+keyboard_clear|kbd|Clears the state of a key.|key:Constant.VirtualKey:vk_ constant or character code|Undefined
+keyboard_key_press|kbd|Simulates a key press.|key:Constant.VirtualKey:vk_ constant|Undefined
+keyboard_key_release|kbd|Simulates a key release.|key:Constant.VirtualKey:vk_ constant|Undefined
+keyboard_set_map|kbd|Maps one key to another.|key1:Constant.VirtualKey:key to remap;key2:Constant.VirtualKey:key it acts as|Undefined
+keyboard_lastchar|kbd|Last typed character.||String|V
+keyboard_lastkey|kbd|Last key pressed.||Constant.VirtualKey|V
+keyboard_key|kbd|Key currently held.||Constant.VirtualKey|V
+keyboard_string|kbd|Text typed since it was last cleared.||String|V
+mouse_check_button|mse|True while a mouse button is held.|button:Constant.MouseButton:mb_ constant|Bool
+mouse_check_button_pressed|mse|True in the step a button went down.|button:Constant.MouseButton:mb_ constant|Bool
+mouse_check_button_released|mse|True in the step a button came up.|button:Constant.MouseButton:mb_ constant|Bool
+mouse_clear|mse|Clears the state of a mouse button.|button:Constant.MouseButton:mb_ constant|Undefined
+mouse_wheel_up|mse|True when the wheel turned up.||Bool
+mouse_wheel_down|mse|True when the wheel turned down.||Bool
+window_mouse_get_x|mse|Mouse x in window coordinates.||Real
+window_mouse_get_y|mse|Mouse y in window coordinates.||Real
+window_mouse_set|mse|Moves the mouse pointer.|x:Real:x;y:Real:y|Undefined
+window_set_cursor|mse|Sets the mouse cursor shape.|cursor:Constant.Cursor:cr_ constant|Undefined
+device_mouse_x|mse|Mouse or touch x in room coordinates.|device:Real:device index|Real
+device_mouse_y|mse|Mouse or touch y in room coordinates.|device:Real:device index|Real
+device_mouse_x_to_gui|mse|Mouse or touch x in GUI coordinates.|device:Real:device index|Real
+device_mouse_y_to_gui|mse|Mouse or touch y in GUI coordinates.|device:Real:device index|Real
+device_mouse_check_button|mse|True while a button of a device is held.|device:Real:device index;button:Constant.MouseButton:mb_ constant|Bool
+device_mouse_check_button_pressed|mse|True in the step a device button went down.|device:Real:device index;button:Constant.MouseButton:mb_ constant|Bool
+gamepad_is_connected|pad|Tells whether a gamepad is connected.|device:Real:gamepad index|Bool
+gamepad_get_device_count|pad|Number of gamepad slots.||Real
+gamepad_get_description|pad|Name of a gamepad.|device:Real:gamepad index|String
+gamepad_button_check|pad|True while a gamepad button is held.|device:Real:gamepad index;button:Constant.GamepadButton:gp_ constant|Bool
+gamepad_button_check_pressed|pad|True in the step a gamepad button went down.|device:Real:gamepad index;button:Constant.GamepadButton:gp_ constant|Bool
+gamepad_button_check_released|pad|True in the step a gamepad button came up.|device:Real:gamepad index;button:Constant.GamepadButton:gp_ constant|Bool
+gamepad_button_value|pad|Analogue value of a gamepad button.|device:Real:gamepad index;button:Constant.GamepadButton:gp_ constant|Real
+gamepad_axis_value|pad|Value of a gamepad axis from -1 to 1.|device:Real:gamepad index;axis:Constant.GamepadAxis:gp_axis constant|Real
+gamepad_set_axis_deadzone|pad|Sets the dead zone of the sticks.|device:Real:gamepad index;deadzone:Real:0 to 1|Undefined
+gamepad_set_vibration|pad|Sets the rumble strength of a gamepad.|device:Real:gamepad index;left:Real:left motor;right:Real:right motor|Undefined
+ds_list_create|dsl|Makes a list.||Id.DsList
+ds_list_destroy|dsl|Frees a list.|id:Id.DsList:the list|Undefined
+ds_list_clear|dsl|Empties a list.|id:Id.DsList:the list|Undefined
+ds_list_add|dsl|Appends values to a list.|id:Id.DsList:the list;...value:Any:values to add|Undefined
+ds_list_insert|dsl|Inserts a value at a position.|id:Id.DsList:the list;pos:Real:position;value:Any:value|Undefined
+ds_list_delete|dsl|Removes the value at a position.|id:Id.DsList:the list;pos:Real:position|Undefined
+ds_list_find_index|dsl|Position of a value, or -1.|id:Id.DsList:the list;value:Any:value to find|Real
+ds_list_find_value|dsl|Value at a position.|id:Id.DsList:the list;pos:Real:position|Any
+ds_list_replace|dsl|Overwrites the value at a position.|id:Id.DsList:the list;pos:Real:position;value:Any:new value|Undefined
+ds_list_set|dsl|Overwrites the value at a position.|id:Id.DsList:the list;pos:Real:position;value:Any:new value|Undefined
+ds_list_size|dsl|Number of values in a list.|id:Id.DsList:the list|Real
+ds_list_empty|dsl|Tells whether a list is empty.|id:Id.DsList:the list|Bool
+ds_list_sort|dsl|Sorts a list.|id:Id.DsList:the list;ascending:Bool:ascending order|Undefined
+ds_list_shuffle|dsl|Shuffles a list.|id:Id.DsList:the list|Undefined
+ds_list_copy|dsl|Copies a list into another.|id:Id.DsList:target;source:Id.DsList:source|Undefined
+ds_list_exists|dsl|Tells whether a list exists.|id:Id.DsList:the list|Bool
+ds_map_create|dsm|Makes a map.||Id.DsMap
+ds_map_destroy|dsm|Frees a map.|id:Id.DsMap:the map|Undefined
+ds_map_clear|dsm|Empties a map.|id:Id.DsMap:the map|Undefined
+ds_map_add|dsm|Adds a key if it is new.|id:Id.DsMap:the map;key:Any:key;value:Any:value|Bool
+ds_map_set|dsm|Sets the value of a key, adding it when missing.|id:Id.DsMap:the map;key:Any:key;value:Any:value|Undefined
+ds_map_replace|dsm|Replaces the value of an existing key.|id:Id.DsMap:the map;key:Any:key;value:Any:value|Undefined
+ds_map_delete|dsm|Removes a key.|id:Id.DsMap:the map;key:Any:key|Undefined
+ds_map_exists|dsm|Tells whether a key is in a map.|id:Id.DsMap:the map;key:Any:key|Bool
+ds_map_find_value|dsm|Value of a key.|id:Id.DsMap:the map;key:Any:key|Any
+ds_map_size|dsm|Number of keys in a map.|id:Id.DsMap:the map|Real
+ds_map_empty|dsm|Tells whether a map is empty.|id:Id.DsMap:the map|Bool
+ds_map_find_first|dsm|First key of a map.|id:Id.DsMap:the map|Any
+ds_map_find_next|dsm|Key after the given one.|id:Id.DsMap:the map;key:Any:key|Any
+ds_map_keys_to_array|dsm|Copies the keys into an array.|id:Id.DsMap:the map;?array:Array:target array|Array
+ds_map_values_to_array|dsm|Copies the values into an array.|id:Id.DsMap:the map;?array:Array:target array|Array
+ds_map_exists|dsm|Tells whether a key is in a map.|id:Id.DsMap:the map;key:Any:key|Bool
+ds_grid_create|dsg|Makes a grid.|w:Real:width;h:Real:height|Id.DsGrid
+ds_grid_destroy|dsg|Frees a grid.|id:Id.DsGrid:the grid|Undefined
+ds_grid_clear|dsg|Sets every cell to a value.|id:Id.DsGrid:the grid;val:Any:value|Undefined
+ds_grid_set|dsg|Sets one cell.|id:Id.DsGrid:the grid;x:Real:column;y:Real:row;val:Any:value|Undefined
+ds_grid_get|dsg|Reads one cell.|id:Id.DsGrid:the grid;x:Real:column;y:Real:row|Any
+ds_grid_width|dsg|Columns of a grid.|id:Id.DsGrid:the grid|Real
+ds_grid_height|dsg|Rows of a grid.|id:Id.DsGrid:the grid|Real
+ds_grid_resize|dsg|Changes the size of a grid.|id:Id.DsGrid:the grid;w:Real:width;h:Real:height|Undefined
+ds_stack_create|dss|Makes a stack.||Id.DsStack
+ds_stack_destroy|dss|Frees a stack.|id:Id.DsStack:the stack|Undefined
+ds_stack_push|dss|Pushes values.|id:Id.DsStack:the stack;...value:Any:values|Undefined
+ds_stack_pop|dss|Removes and returns the top value.|id:Id.DsStack:the stack|Any
+ds_stack_top|dss|Returns the top value.|id:Id.DsStack:the stack|Any
+ds_stack_size|dss|Number of values in a stack.|id:Id.DsStack:the stack|Real
+ds_stack_empty|dss|Tells whether a stack is empty.|id:Id.DsStack:the stack|Bool
+ds_queue_create|dsq|Makes a queue.||Id.DsQueue
+ds_queue_destroy|dsq|Frees a queue.|id:Id.DsQueue:the queue|Undefined
+ds_queue_enqueue|dsq|Adds values at the back.|id:Id.DsQueue:the queue;...value:Any:values|Undefined
+ds_queue_dequeue|dsq|Removes and returns the front value.|id:Id.DsQueue:the queue|Any
+ds_queue_head|dsq|Returns the front value.|id:Id.DsQueue:the queue|Any
+ds_queue_size|dsq|Number of values in a queue.|id:Id.DsQueue:the queue|Real
+ds_queue_empty|dsq|Tells whether a queue is empty.|id:Id.DsQueue:the queue|Bool
+ds_priority_create|dsp|Makes a priority queue.||Id.DsPriority
+ds_priority_destroy|dsp|Frees a priority queue.|id:Id.DsPriority:the queue|Undefined
+ds_priority_add|dsp|Adds a value with a priority.|id:Id.DsPriority:the queue;value:Any:value;priority:Real:priority|Undefined
+ds_priority_delete_min|dsp|Removes and returns the lowest priority value.|id:Id.DsPriority:the queue|Any
+ds_priority_delete_max|dsp|Removes and returns the highest priority value.|id:Id.DsPriority:the queue|Any
+ds_priority_size|dsp|Number of values in a priority queue.|id:Id.DsPriority:the queue|Real
+ds_priority_empty|dsp|Tells whether a priority queue is empty.|id:Id.DsPriority:the queue|Bool
+buffer_create|buf|Makes a buffer.|size:Real:bytes;type:Constant.BufferType:buffer_ constant;alignment:Real:alignment|Id.Buffer
+buffer_delete|buf|Frees a buffer.|buffer:Id.Buffer:the buffer|Undefined
+buffer_write|buf|Writes a value at the write position.|buffer:Id.Buffer:the buffer;type:Constant.BufferDataType:buffer_ type;value:Any:value|Real
+buffer_read|buf|Reads a value at the read position.|buffer:Id.Buffer:the buffer;type:Constant.BufferDataType:buffer_ type|Any
+buffer_poke|buf|Writes a value at an offset.|buffer:Id.Buffer:the buffer;offset:Real:byte offset;type:Constant.BufferDataType:buffer_ type;value:Any:value|Undefined
+buffer_peek|buf|Reads a value at an offset.|buffer:Id.Buffer:the buffer;offset:Real:byte offset;type:Constant.BufferDataType:buffer_ type|Any
+buffer_seek|buf|Moves the read and write position.|buffer:Id.Buffer:the buffer;base:Constant.BufferSeek:buffer_seek_ constant;offset:Real:bytes|Undefined
+buffer_tell|buf|Current position in a buffer.|buffer:Id.Buffer:the buffer|Real
+buffer_get_size|buf|Size of a buffer in bytes.|buffer:Id.Buffer:the buffer|Real
+buffer_resize|buf|Changes the size of a buffer.|buffer:Id.Buffer:the buffer;size:Real:bytes|Undefined
+buffer_copy|buf|Copies bytes between buffers.|src_buffer:Id.Buffer:source;src_offset:Real:source offset;size:Real:bytes;dest_buffer:Id.Buffer:target;dest_offset:Real:target offset|Undefined
+buffer_fill|buf|Fills bytes with a value.|buffer:Id.Buffer:the buffer;offset:Real:byte offset;type:Constant.BufferDataType:buffer_ type;value:Any:value;size:Real:bytes|Undefined
+buffer_save|buf|Saves a buffer to a file.|buffer:Id.Buffer:the buffer;filename:String:file name|Undefined
+buffer_load|buf|Loads a file into a new buffer.|filename:String:file name|Id.Buffer
+buffer_compress|buf|Compresses part of a buffer into a new one.|buffer:Id.Buffer:the buffer;offset:Real:byte offset;size:Real:bytes|Id.Buffer
+buffer_decompress|buf|Decompresses a buffer into a new one.|buffer:Id.Buffer:the buffer|Id.Buffer
+buffer_base64_encode|buf|Encodes bytes of a buffer as base64.|buffer:Id.Buffer:the buffer;offset:Real:byte offset;size:Real:bytes|String
+buffer_base64_decode|buf|Decodes base64 into a new buffer.|string:String:encoded text|Id.Buffer
+buffer_exists|buf|Tells whether a buffer exists.|buffer:Id.Buffer:the buffer|Bool
+file_exists|fil|Tells whether a file exists.|fname:String:file name|Bool
+file_delete|fil|Deletes a file.|fname:String:file name|Bool
+file_copy|fil|Copies a file.|src:String:source;dest:String:target|Bool
+file_rename|fil|Renames a file.|oldname:String:current name;newname:String:new name|Bool
+file_text_open_read|fil|Opens a text file for reading.|fname:String:file name|Id.TextFile
+file_text_open_write|fil|Opens a text file for writing.|fname:String:file name|Id.TextFile
+file_text_open_append|fil|Opens a text file for appending.|fname:String:file name|Id.TextFile
+file_text_close|fil|Closes a text file.|file:Id.TextFile:the file|Undefined
+file_text_read_string|fil|Reads a string up to the line end.|file:Id.TextFile:the file|String
+file_text_read_real|fil|Reads a number.|file:Id.TextFile:the file|Real
+file_text_readln|fil|Skips to the next line.|file:Id.TextFile:the file|Real
+file_text_write_string|fil|Writes a string.|file:Id.TextFile:the file;str:String:text|Undefined
+file_text_write_real|fil|Writes a number.|file:Id.TextFile:the file;val:Real:number|Undefined
+file_text_writeln|fil|Writes a line break.|file:Id.TextFile:the file|Undefined
+file_text_eof|fil|Tells whether the end of a file is reached.|file:Id.TextFile:the file|Bool
+file_text_eoln|fil|Tells whether the end of a line is reached.|file:Id.TextFile:the file|Bool
+file_find_first|fil|Starts a directory search.|mask:String:file mask;attr:Real:attributes|String
+file_find_next|fil|Next result of a directory search.||String
+file_find_close|fil|Ends a directory search.||Undefined
+directory_exists|fil|Tells whether a directory exists.|dname:String:directory|Bool
+directory_create|fil|Makes a directory.|dname:String:directory|Undefined
+directory_destroy|fil|Deletes a directory.|dname:String:directory|Undefined
+ini_open|ini|Opens an INI file.|name:String:file name|Undefined
+ini_close|ini|Closes the INI file and returns its text.||String
+ini_read_string|ini|Reads a string from the INI file.|section:String:section;key:String:key;default:String:value when missing|String
+ini_read_real|ini|Reads a number from the INI file.|section:String:section;key:String:key;default:Real:value when missing|Real
+ini_write_string|ini|Writes a string to the INI file.|section:String:section;key:String:key;value:String:text|Undefined
+ini_write_real|ini|Writes a number to the INI file.|section:String:section;key:String:key;value:Real:number|Undefined
+ini_key_exists|ini|Tells whether a key exists.|section:String:section;key:String:key|Bool
+ini_section_exists|ini|Tells whether a section exists.|section:String:section|Bool
+camera_create|cam|Makes a camera.||Id.Camera
+camera_create_view|cam|Makes a camera with a view.|x:Real:x;y:Real:y;w:Real:width;h:Real:height;?angle:Real:rotation;?object:Id.Instance:instance to follow;?xspeed:Real:horizontal follow speed;?yspeed:Real:vertical follow speed;?xborder:Real:horizontal border;?yborder:Real:vertical border|Id.Camera
+camera_destroy|cam|Destroys a camera.|camera:Id.Camera:the camera|Undefined
+camera_apply|cam|Applies a camera to the draw target.|camera:Id.Camera:the camera|Undefined
+camera_get_active|cam|Camera in use.||Id.Camera
+camera_set_view_pos|cam|Sets the view position of a camera.|camera:Id.Camera:the camera;x:Real:x;y:Real:y|Undefined
+camera_set_view_size|cam|Sets the view size of a camera.|camera:Id.Camera:the camera;w:Real:width;h:Real:height|Undefined
+camera_set_view_angle|cam|Sets the view rotation of a camera.|camera:Id.Camera:the camera;angle:Real:degrees|Undefined
+camera_get_view_x|cam|View x of a camera.|camera:Id.Camera:the camera|Real
+camera_get_view_y|cam|View y of a camera.|camera:Id.Camera:the camera|Real
+camera_get_view_width|cam|View width of a camera.|camera:Id.Camera:the camera|Real
+camera_get_view_height|cam|View height of a camera.|camera:Id.Camera:the camera|Real
+camera_set_view_target|cam|Makes a camera follow an instance.|camera:Id.Camera:the camera;object:Id.Instance:instance|Undefined
+camera_set_view_border|cam|Sets the follow border of a camera.|camera:Id.Camera:the camera;xborder:Real:horizontal;yborder:Real:vertical|Undefined
+camera_set_view_speed|cam|Sets the follow speed of a camera.|camera:Id.Camera:the camera;xspeed:Real:horizontal;yspeed:Real:vertical|Undefined
+camera_set_proj_mat|cam|Sets the projection matrix of a camera.|camera:Id.Camera:the camera;matrix:Array:matrix|Undefined
+camera_set_view_mat|cam|Sets the view matrix of a camera.|camera:Id.Camera:the camera;matrix:Array:matrix|Undefined
+view_get_camera|cam|Camera of a view.|view:Real:view index|Id.Camera
+view_set_camera|cam|Gives a view a camera.|view:Real:view index;camera:Id.Camera:the camera|Undefined
+view_get_visible|cam|Tells whether a view is on.|view:Real:view index|Bool
+view_set_visible|cam|Turns a view on or off.|view:Real:view index;visible:Bool:on or off|Undefined
+view_get_wport|cam|Port width of a view.|view:Real:view index|Real
+view_get_hport|cam|Port height of a view.|view:Real:view index|Real
+view_set_wport|cam|Sets the port width of a view.|view:Real:view index;w:Real:width|Undefined
+view_set_hport|cam|Sets the port height of a view.|view:Real:view index;h:Real:height|Undefined
+window_set_size|win|Resizes the game window.|w:Real:width;h:Real:height|Undefined
+window_get_width|win|Width of the game window.||Real
+window_get_height|win|Height of the game window.||Real
+window_set_fullscreen|win|Turns full screen on or off.|full:Bool:on or off|Undefined
+window_get_fullscreen|win|Tells whether the window is full screen.||Bool
+window_set_caption|win|Sets the window title.|caption:String:title|Undefined
+window_set_position|win|Moves the window.|x:Real:x;y:Real:y|Undefined
+window_center|win|Centres the window on the screen.||Undefined
+window_set_min_width|win|Sets the smallest window width.|minwidth:Real:pixels|Undefined
+window_set_min_height|win|Sets the smallest window height.|minheight:Real:pixels|Undefined
+window_has_focus|win|Tells whether the window has focus.||Bool
+display_get_width|dsp2|Width of the display.||Real
+display_get_height|dsp2|Height of the display.||Real
+display_get_gui_width|dsp2|Width of the GUI layer.||Real
+display_get_gui_height|dsp2|Height of the GUI layer.||Real
+display_set_gui_size|dsp2|Sets the size of the GUI layer.|width:Real:width;height:Real:height|Undefined
+display_set_gui_maximise|dsp2|Scales the GUI layer to the display.|?xscale:Real:horizontal scale;?yscale:Real:vertical scale;?xoffset:Real:x offset;?yoffset:Real:y offset|Undefined
+display_reset|dsp2|Sets antialiasing and vertical sync.|aa:Real:antialiasing level;vsync:Bool:vertical sync|Undefined
+display_get_dpi_x|dsp2|Horizontal pixel density of the display.||Real
+display_get_dpi_y|dsp2|Vertical pixel density of the display.||Real
+gc_collect|os|Runs the garbage collector.||Undefined
+gc_enable|os|Turns the garbage collector on or off.|enable:Bool:on or off|Undefined
+gc_get_stats|os|Returns garbage collector statistics.||Struct
+os_get_info|os|Returns information about the system.||Id.DsMap
+os_get_language|os|Language of the system.||String
+os_get_region|os|Region of the system.||String
+os_is_network_connected|os|Tells whether the network is connected.|?attempt_connection:Bool:try to connect|Bool
+os_browser|os|Browser the game runs in.||Constant.Browser|V
+os_type|os|Operating system type.||Constant.OsType|V
+os_version|os|Operating system version.||Real|V
+environment_get_variable|os|Reads an environment variable.|name:String:variable name|String
+parameter_count|os|Number of command line parameters.||Real
+parameter_string|os|Command line parameter by index.|n:Real:index|String
+url_open|os|Opens a web address in the browser.|url:String:address|Undefined
+clipboard_has_text|os|Tells whether the clipboard holds text.||Bool
+clipboard_get_text|os|Reads text from the clipboard.||String
+clipboard_set_text|os|Writes text to the clipboard.|text:String:text|Undefined
