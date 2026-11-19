@@ -30,6 +30,22 @@ public sealed partial class UtmtProjectImporter
         return existing;
     }
 
+    /// <summary>
+    /// The conversion writes the data file again in <c>build</c>, the exported resources, and (with git) a second copy of everything in the repository: about four
+    /// times the base file. A drive with less room than that is refused before anything is written, so a full drive never ends a conversion half done.
+    /// </summary>
+    private static void RequireRoom(string baseFile, string destination, bool git, Func<string, long?>? freeSpace)
+    {
+        var folder = destination;
+        while (folder is not null && !Directory.Exists(folder)) folder = Path.GetDirectoryName(folder); // the new folder does not exist yet: its drive is the nearest folder that does
+        if (folder is null) return;
+        long? free;
+        try { free = freeSpace?.Invoke(folder) ?? new DriveInfo(Path.GetPathRoot(Path.GetFullPath(folder)) ?? "").AvailableFreeSpace; }
+        catch (Exception e) when (e is IOException or ArgumentException or UnauthorizedAccessException) { return; } // a path without a drive (a share): no check
+        var needed = new FileInfo(baseFile).Length * (git ? 4 : 3);
+        if (free < needed) throw new UtmtImportException($"Not enough free space on the drive of \"{destination}\": about {needed / (1024 * 1024)} MB are needed, {free / (1024 * 1024)} MB are free. Free some space or choose another folder.");
+    }
+
     private static bool Inside(string path, string folder)
     {
         var relative = Path.GetRelativePath(folder, path);

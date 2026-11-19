@@ -12,6 +12,9 @@ namespace G3MStudio.Core.Projects;
 /// </summary>
 public sealed partial class UtmtProjectImporter(ProjectService projects, IReadOnlyDictionary<string, string>? gitEnvironment = null)
 {
+    /// <summary>The free bytes on the drive of a folder; the real drive when none is set (tests set it).</summary>
+    public Func<string, long?>? FreeSpace { get; init; }
+
     public async Task<UtmtImportReport> ImportAsync(UtmtImportRequest request, IProgress<string>? stage = null, IProgress<BatchProgress>? progress = null, CancellationToken cancellationToken = default)
     {
         var info = Inspect(request.ProjectPath);
@@ -20,6 +23,7 @@ public sealed partial class UtmtProjectImporter(ProjectService projects, IReadOn
         if (info.Scripts.Count > 0 && !request.RunScripts) throw new UtmtImportException($"The project runs scripts ({string.Join(", ", info.Scripts)}). Allow the scripts to convert it, or remove them from the project options.");
         var destination = Path.GetFullPath(request.Destination);
         var before = CheckDestination(info, baseFile, destination);
+        RequireRoom(baseFile, destination, request.InitGit, FreeSpace);
         var name = ProjectService.SafeName(info.Name);
         var buildFolder = Path.Combine(destination, "build");
         var dataFile = Path.Combine(buildFolder, Path.GetFileName(baseFile));

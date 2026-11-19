@@ -101,6 +101,16 @@ public sealed class UtmtImportTests
     }
 
     [Fact]
+    public async Task AFullDriveRefusesTheConversionBeforeAnythingIsWritten()
+    {
+        using var f = new Fixture();
+        var importer = new UtmtProjectImporter(f.Projects) { FreeSpace = _ => 1024 };
+        var error = await Assert.ThrowsAsync<UtmtImportException>(() => importer.ImportAsync(f.Request(), cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Contains("Not enough free space", error.Message, StringComparison.Ordinal);
+        Assert.False(Directory.Exists(f.Out));
+    }
+
+    [Fact]
     public async Task TheOriginalProjectAndTheBaseDataFileAreNeverChanged()
     {
         using var f = new Fixture();
