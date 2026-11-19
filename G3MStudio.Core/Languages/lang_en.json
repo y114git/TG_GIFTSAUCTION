@@ -1065,6 +1065,7 @@
     "empty": "Nothing open. Press Ctrl+P to find a resource, or double-click one in the Explorer."
   },
   "save": {
+    "diskFull": "The drive is full, so the last change could not be saved. Free some space and try again.",
     "done": "Saved {name}",
     "locked": "Could not save '{name}': the file is in use by {holder}. Your edits are kept.",
     "lockedUnknown": "Could not save '{name}': the file is in use by another program. Your edits are kept.",

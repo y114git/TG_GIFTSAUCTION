@@ -1065,6 +1065,7 @@
     "empty": "No hay nada abierto. Pulsa Ctrl+P para buscar un recurso o haz doble clic en uno del Explorador."
   },
   "save": {
+    "diskFull": "La unidad está llena, así que no se pudo guardar el último cambio. Libere espacio e inténtelo de nuevo.",
     "done": "{name} guardado",
     "locked": "No se pudo guardar «{name}»: {holder} está usando el archivo. Tus ediciones se conservan.",
     "lockedUnknown": "No se pudo guardar «{name}»: otro programa está usando el archivo. Tus ediciones se conservan.",

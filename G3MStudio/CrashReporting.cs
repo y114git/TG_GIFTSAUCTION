@@ -168,7 +168,7 @@ public static partial class CrashReporting
     // An unhandled exception on the UI thread ends the app, so it is sent before that. A locked-resource refusal is shown to the user by the window, not a failure.
     private static void OnUiException(object? sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        if (e.Handled || e.Exception is ResourceLockedException) return;
+        if (e.Handled || e.Exception is ResourceLockedException || DiskFull.Is(e.Exception)) return;
         try
         {
             e.Exception.Data[Mechanism.HandledKey] = false;

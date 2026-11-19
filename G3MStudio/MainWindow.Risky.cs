@@ -41,11 +41,18 @@ public partial class MainWindow
         }
     }
 
-    // Many editors call Workspace.Edit without a catch; a refusal for a locked resource is shown here instead of ending the app.
+    // Many editors call Workspace.Edit without a catch, and the lists the program keeps for itself are saved as the user works: a refusal for a locked resource or a full drive is shown here instead of ending the app.
     private void ReportLockedEdits()
     {
         void Report(object? sender, Avalonia.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
+            if (DiskFull.Is(e.Exception))
+            {
+                e.Handled = true;
+                Notify(NotificationLevel.Error, Loc.Current["save.diskFull"]);
+                return;
+            }
+
             if (e.Exception is not ResourceLockedException locked) return;
             e.Handled = true;
             Notify(NotificationLevel.Error, locked.Message); // Notify adds the nickname behind the quoted name
