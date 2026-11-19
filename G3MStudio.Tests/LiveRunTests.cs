@@ -62,7 +62,9 @@ public sealed class LiveRunTests
         live.Finished += e => exit = e;
         await live.StartAsync(() => Task.FromResult<RunSpec?>(Child(dir.File("d.win"), Sleeper, Sleeper)));
         Assert.Equal(RunState.Running, live.State);
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         await live.StopAsync();
+        Assert.True(watch.Elapsed < TimeSpan.FromSeconds(15), "stop waited for the 30 s child: " + watch.Elapsed); // a child that outlives its shell must not hold the stop
         Assert.Equal(RunState.Idle, live.State);
         Assert.NotNull(exit);
         Assert.True(exit.Stopped);
@@ -117,16 +119,31 @@ public sealed class LiveRunTests
     {
         using var dir = new TempDir();
         var data = dir.File("data.win");
-        var tool = dir.File("tool.exe");
+        var tool = dir.File(OperatingSystem.IsWindows() ? "tool.exe" : "tool"); // a .exe runner on Linux and macOS is a Windows program (see the next test)
         File.WriteAllText(tool, "");
         File.WriteAllText(dir.File("Game.exe"), "");
         Assert.Equal(RunnerCheck.Known, RunLocator.Check(dir.File("Game.exe"), data, "Game.exe"));
         Assert.Equal(RunnerCheck.Unknown, RunLocator.Check(tool, data, "Game.exe"));
-        Assert.Equal(RunnerCheck.Missing, RunLocator.Check(dir.File("nothing.exe"), data, "Game.exe"));
+        Assert.Equal(RunnerCheck.Missing, RunLocator.Check(dir.File("nothing"), data, "Game.exe"));
         var (spec, check, _) = RunPlan.Resolve(new AppSettings { RunRunner = tool }, data, "Game.exe", data);
         Assert.NotNull(spec);
         Assert.Equal(RunnerCheck.Unknown, check);
-        Assert.Null(RunPlan.Resolve(new AppSettings { RunRunner = dir.File("nothing.exe") }, data, "Game.exe", data).Spec);
+        Assert.Null(RunPlan.Resolve(new AppSettings { RunRunner = dir.File("nothing") }, data, "Game.exe", data).Spec);
+    }
+
+    [Fact]
+    public void OnLinuxAndMacAnExeRunnerNeedsACompatibilityToolAndOtherProgramsRunNatively()
+    {
+        using var dir = new TempDir();
+        var data = dir.File("data.win");
+        var script = dir.File("start.sh");
+        File.WriteAllText(script, "");
+        var native = RunPlan.Resolve(new AppSettings { RunRunner = script }, data, "Game.exe", data, probe: new FakeProbe());
+        Assert.NotNull(native.Spec); // a script or a binary without an extension is started as it is, with the unknown-program warning
+        Assert.Equal(RunnerCheck.Unknown, native.Check);
+        var windows = RunPlan.Resolve(new AppSettings { RunRunner = dir.File("tool.exe") }, data, "Game.exe", data, probe: new FakeProbe());
+        Assert.Null(windows.Spec);
+        Assert.True(windows.NoTool); // the UI shows "no compatibility tool", not a crash
     }
 
     [Fact]

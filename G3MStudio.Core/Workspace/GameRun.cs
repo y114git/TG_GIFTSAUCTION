@@ -188,10 +188,12 @@ public sealed class GameRun : IDisposable
     {
         if (!IsRunning) return;
         StopRequested = true;
+        // A launcher script that ended while its game lives on keeps the output pipe open, so the whole tree gets the signals, not only the process Studio started.
+        var tree = OperatingSystem.IsWindows() ? [] : Tree();
         try
         {
             if (OperatingSystem.IsWindows()) _process.CloseMainWindow();
-            else using (Process.Start(new ProcessStartInfo("kill") { ArgumentList = { "-TERM", _process.Id.ToString(System.Globalization.CultureInfo.InvariantCulture) }, UseShellExecute = false })) { }
+            else Signal("-TERM", tree);
         }
         catch (Exception e) when (e is InvalidOperationException or System.ComponentModel.Win32Exception)
         {
@@ -200,9 +202,47 @@ public sealed class GameRun : IDisposable
 
         using var wait = new CancellationTokenSource();
         var delay = Task.Delay(grace, wait.Token);
-        if (await Task.WhenAny(Exited, delay) != Exited) Stop();
+        if (await Task.WhenAny(Exited, delay) != Exited)
+        {
+            if (!OperatingSystem.IsWindows()) Signal("-KILL", tree);
+            Stop();
+        }
+
         await wait.CancelAsync(); // the timer must not run on after the game ended
         await Exited;
+    }
+
+    /// <summary>The process and everything it started (Linux and macOS), read from one <c>ps</c> listing.</summary>
+    private List<int> Tree()
+    {
+        var pids = new List<int> { _process.Id };
+        try
+        {
+            using var ps = Process.Start(new ProcessStartInfo("ps") { ArgumentList = { "-A", "-o", "pid=,ppid=" }, RedirectStandardOutput = true, UseShellExecute = false });
+            if (ps is null) return pids;
+            var rows = new List<(int Pid, int Parent)>();
+            foreach (var line in ps.StandardOutput.ReadToEnd().Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                var part = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (part.Length == 2 && int.TryParse(part[0], out var pid) && int.TryParse(part[1], out var parent)) rows.Add((pid, parent));
+            }
+
+            for (var i = 0; i < pids.Count; i++) pids.AddRange(rows.Where(r => r.Parent == pids[i]).Select(r => r.Pid));
+        }
+        catch (Exception e) when (e is IOException or InvalidOperationException or System.ComponentModel.Win32Exception)
+        {
+            // without ps only the process itself is signalled
+        }
+
+        return pids;
+    }
+
+    private static void Signal(string signal, List<int> pids)
+    {
+        var info = new ProcessStartInfo("kill") { UseShellExecute = false };
+        info.ArgumentList.Add(signal);
+        foreach (var pid in pids) info.ArgumentList.Add(pid.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        using (Process.Start(info)) { }
     }
 
     private async Task<int> WaitAsync()

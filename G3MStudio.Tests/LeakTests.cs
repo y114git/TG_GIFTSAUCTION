@@ -8,9 +8,11 @@ namespace G3MStudio.Tests;
 #pragma warning disable CA2000
 public sealed class LeakTests(ITestOutputHelper output)
 {
-    private static async Task Settle()
+    // At least four rounds; then on until done holds (at most 30 s), since the deferred layout reset of a closed file runs on a 150 ms timer a slow machine may reach late.
+    private static async Task Settle(Func<bool>? done = null)
     {
-        for (var i = 0; i < 4; i++)
+        var limit = Stopwatch.StartNew();
+        for (var i = 0; i < 4 || (done is not null && !done() && limit.Elapsed < TimeSpan.FromSeconds(30)); i++)
         {
             Dispatcher.UIThread.RunJobs();
             await Task.Delay(30);
@@ -96,14 +98,16 @@ public sealed class LeakTests(ITestOutputHelper output)
             for (var round = 0; round < 10; round++)
             {
                 weak.Add(await OpenAndCloseFile(dir, path));
-                await Settle();
+                await Settle(() => weak.Take(weak.Count - 1).All(w => !w.IsAlive)); // only the newest closed workspace may still be pending
                 heap.Add(GC.GetTotalMemory(true));
             }
 
             output.WriteLine("managed heap after each close (KB): " + string.Join(", ", heap.Select(x => x / 1024)));
             var alive = weak.Count(w => w.IsAlive);
             Assert.True(alive <= 1, $"{alive} of {weak.Count} closed workspaces are still reachable");
-            Assert.True(heap[^1] - heap[2] < 4 * 1024 * 1024, $"heap grew by {(heap[^1] - heap[2]) / 1024} KB over the last 7 reopenings");
+            // The heap swings by 10 MB or more between rounds (JIT, caches), so the floors of the early and the late rounds are compared, not single readings.
+            var growth = heap.Skip(7).Min() - heap.Skip(2).Take(3).Min();
+            Assert.True(growth < 4 * 1024 * 1024, $"heap floor grew by {growth / 1024} KB over the reopenings");
         });
     }
 }

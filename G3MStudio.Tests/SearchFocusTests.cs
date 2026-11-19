@@ -39,7 +39,7 @@ public sealed class SearchFocusTests
                 for (var round = 0; round < 3; round++)
                 {
                     if (round == 1) window.KeyPressQwerty(PhysicalKey.F, HeadlessApp.Command);
-                    else if (round == 2) window.KeyPressQwerty(PhysicalKey.H, HeadlessApp.Command);
+                    else if (round == 2) window.KeyPressQwerty(OperatingSystem.IsMacOS() ? PhysicalKey.F : PhysicalKey.H, OperatingSystem.IsMacOS() ? HeadlessApp.Command | RawInputModifiers.Alt : HeadlessApp.Command); // the editor binds Replace to Cmd+Alt+F on macOS, Ctrl+H elsewhere
                     else tab.ShowFind();
                     Settle(window);
                     var box = Focused(window);
