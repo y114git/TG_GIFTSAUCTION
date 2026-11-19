@@ -48,7 +48,7 @@ public sealed partial class UtmtProjectImporter
         JsonElement root;
         try
         {
-            root = JsonDocument.Parse(File.ReadAllText(main), Lenient).RootElement;
+            root = JsonElement.Parse(File.ReadAllText(main), Lenient);
         }
         catch (Exception e) when (e is JsonException or IOException or UnauthorizedAccessException)
         {
