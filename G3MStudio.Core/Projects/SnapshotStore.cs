@@ -41,7 +41,15 @@ public sealed class SnapshotStore(string root)
         var manifest = ManifestFile(snapshot.Id);
         File.WriteAllText(manifest + ".tmp", JsonSerializer.Serialize(snapshot));
         File.Move(manifest + ".tmp", manifest, true);
-        Prune(MaxSnapshots);
+        try
+        {
+            Prune(MaxSnapshots);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            // an old snapshot a scanner holds is dropped by the next prune; the new one is already stored
+        }
+
         return snapshot;
     }
 

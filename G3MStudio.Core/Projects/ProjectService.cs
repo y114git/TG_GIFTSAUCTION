@@ -64,10 +64,11 @@ public sealed partial class ProjectService(UserData userData, SettingsStore? set
             return;
         }
 
-        Registry.Remove(link.Record.Id);
+        // The record goes last: a folder a program still holds fails here with the project still listed, and a retry finishes the job.
         if (Directory.Exists(link.Folder)) Directory.Delete(link.Folder, true);
         var snapshots = _userData.Combine("projects", link.Record.Id);
         if (Directory.Exists(snapshots)) Directory.Delete(snapshots, true);
+        Registry.Remove(link.Record.Id);
     }
 
     /// <summary>The newest rotating backup of a data file, or null.</summary>

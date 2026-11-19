@@ -48,7 +48,7 @@ public sealed partial class AudioTransport
         if (ActiveRegion() is not var (start, end)) return false;
         var step = direction * (big ? 0.1 : 0.01);
         if (_wave.EndEdge) end = Math.Clamp(end + step, Math.Min(start + 0.01, _duration), _duration);
-        else start = Math.Clamp(start + step, 0, end - 0.01);
+        else start = Math.Clamp(start + step, 0, Math.Max(0, end - 0.01));
         RegionChanged?.Invoke(Math.Round(start, 2), Math.Round(end, 2));
         return true;
     }

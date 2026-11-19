@@ -27,7 +27,7 @@ public static class FolderPackage
             finally
             {
                 CopyPackage.TryDelete(folder);
-                if (File.Exists(temp)) File.Delete(temp);
+                FileCleanup.TryDeleteFile(temp);
             }
         }, cancellationToken);
 }

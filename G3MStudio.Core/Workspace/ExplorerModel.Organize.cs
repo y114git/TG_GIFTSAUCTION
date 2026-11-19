@@ -134,11 +134,20 @@ public sealed partial class ExplorerModel
         return true;
     }
 
+    // One pass over up to tens of thousands of rows: hide, gray out and count visibility together, one copy of a row at most.
     private List<ExplorerRow> FinishRows(List<ExplorerRow> rows)
     {
-        if (HideItem is not null) rows = [.. rows.Where(r => !IsHidden(r))];
-        if (DimItem is { } dim) rows = [.. rows.Select(r => r.IsItem && dim(r.Item) ? r with { Dim = true } : r)];
-        return ShowCounts ? rows : [.. rows.Select(r => r with { ShowCount = false })];
+        var (hide, dim) = (HideItem is not null, DimItem);
+        if (!hide && dim is null && ShowCounts) return rows;
+        var result = new List<ExplorerRow>(rows.Count);
+        foreach (var row in rows)
+        {
+            if (hide && IsHidden(row)) continue;
+            var grey = dim is not null && row.IsItem && dim(row.Item);
+            result.Add(grey || !ShowCounts ? row with { Dim = grey || row.Dim, ShowCount = ShowCounts && row.ShowCount } : row);
+        }
+
+        return result;
     }
 
     /// <summary>Builds the rows again, for when what <see cref="HideItem"/> says changed.</summary>

@@ -127,7 +127,7 @@ public sealed class SequenceGraphView : DockPanel
         _tracks.SelectedIndex = Tracks.Count == 0 ? -1 : Math.Clamp(wasTrack, 0, Tracks.Count - 1);
         var wasChannel = _channels.SelectedIndex;
         _channels.ItemsSource = Enumerable.Range(0, Current?.Channels ?? 0).Select(c => c.ToString(CultureInfo.InvariantCulture)).ToList();
-        _channels.SelectedIndex = Current is null ? -1 : Math.Clamp(wasChannel, 0, Current.Channels - 1);
+        _channels.SelectedIndex = Current is null ? -1 : Math.Clamp(wasChannel, 0, Math.Max(0, Current.Channels - 1));
         var point = CurrentPoints.FirstOrDefault(p => p.Index == Selected);
         var has = point is not null && Selected >= 0;
         (_frame.IsEnabled, _value.IsEnabled) = (has && _workspace is not null, has && _workspace is not null);

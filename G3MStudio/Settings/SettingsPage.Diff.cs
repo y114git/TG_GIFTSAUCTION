@@ -18,7 +18,7 @@ public sealed partial class SettingsPage
             return box;
         }
 
-        var mode = new ComboBox { Name = "DiffOptPictureMode", Width = 160, ItemsSource = new[] { Loc.Current["mods.diff.pictureOverlay"], Loc.Current["mods.diff.pictureSwipe"], Loc.Current["mods.diff.pictureDifference"] }, SelectedIndex = Math.Max(Array.IndexOf(PictureModes, o.PictureMode), 0) };
+        var mode = new ComboBox { Name = "DiffOptPictureMode", MinWidth = 160, ItemsSource = new[] { Loc.Current["mods.diff.pictureOverlay"], Loc.Current["mods.diff.pictureSwipe"], Loc.Current["mods.diff.pictureDifference"] }, SelectedIndex = Math.Max(Array.IndexOf(PictureModes, o.PictureMode), 0) };
         mode.SelectionChanged += (_, _) => { if (!_building && mode.SelectedIndex >= 0) _store.Update(x => x with { Diff = x.Diff with { PictureMode = PictureModes[mode.SelectedIndex] } }); };
         return
         [

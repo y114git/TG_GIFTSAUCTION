@@ -35,7 +35,7 @@ public sealed partial class ProjectService
         catch
         {
             Registry.Remove(id);
-            if (Directory.Exists(folder)) Directory.Delete(folder, true);
+            CopyPackage.TryDelete(folder);
             throw;
         }
 
@@ -131,10 +131,17 @@ public sealed partial class ProjectService
         return target;
     }
 
+    [System.Text.RegularExpressions.GeneratedRegex(@"^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\..*)?$", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant)]
+    private static partial System.Text.RegularExpressions.Regex ReservedDeviceName();
+
     internal static string SafeName(string name)
     {
         var text = new StringBuilder();
         foreach (var c in name) text.Append(Path.GetInvalidFileNameChars().Contains(c) || c == ' ' ? '_' : c);
-        return text.Length == 0 ? "project" : text.ToString();
+        var safe = text.ToString().TrimEnd('.');
+        if (safe.Length > 60) safe = safe[..60].TrimEnd('.');
+        if (safe.Length == 0) return "project";
+        // CON, NUL, COM1 and the like cannot be folder names on Windows, with or without an extension.
+        return ReservedDeviceName().IsMatch(safe) ? "_" + safe : safe;
     }
 }

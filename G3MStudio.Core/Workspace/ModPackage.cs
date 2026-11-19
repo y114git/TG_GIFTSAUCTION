@@ -50,7 +50,7 @@ public static partial class ModPackage
         }
         finally
         {
-            if (File.Exists(temp)) File.Delete(temp);
+            FileCleanup.TryDeleteFile(temp);
         }
     }
 

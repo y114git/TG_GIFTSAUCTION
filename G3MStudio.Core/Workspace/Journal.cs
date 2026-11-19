@@ -196,7 +196,7 @@ public sealed class Journal : IDisposable
         if (!Directory.Exists(BlobFolder(_file))) return;
         var used = kept.SelectMany(r => r.Blobs?.Values ?? Enumerable.Empty<string>()).ToHashSet();
         foreach (var blob in Directory.EnumerateFiles(BlobFolder(_file)))
-            if (!used.Contains(Path.GetFileName(blob))) File.Delete(blob);
+            if (!used.Contains(Path.GetFileName(blob))) FileCleanup.TryDeleteFile(blob);
     }
 
     public void Dispose()

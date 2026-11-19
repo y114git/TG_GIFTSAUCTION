@@ -473,4 +473,14 @@ public sealed class ProjectTests
         await File.WriteAllTextAsync(session.UserData.Combine("projects.json"), "{ broken", TestContext.Current.CancellationToken);
         Assert.Empty(ProjectRegistry.Load(session.UserData).Projects);
     }
+    [Theory]
+    [InlineData("My Game.", "My_Game")]
+    [InlineData("CON", "_CON")]
+    [InlineData("nul.win", "_nul.win")]
+    [InlineData("data.win", "data.win")]
+    [InlineData("", "project")]
+    public void AProjectFolderNameIsSafeOnEverySystem(string name, string expected) => Assert.Equal(expected, ProjectService.SafeName(name));
+
+    [Fact]
+    public void AVeryLongNameIsCutShort() => Assert.True(ProjectService.SafeName(new string('a', 200)).Length <= 60);
 }

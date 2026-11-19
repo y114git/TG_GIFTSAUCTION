@@ -28,15 +28,18 @@ public static class PopupScale
         });
     }
 
+    /// <summary>The interface scale a popup placed against <paramref name="target"/> opens at; a size limit for the popup is the window size divided by this.</summary>
+    public static double Of(TopLevel? target) => target switch
+    {
+        Window { Content: LayoutTransformControl { LayoutTransform: { } transform } } => transform.Value.M11,
+        PopupRoot { Transform: { } transform } => transform.Value.M11, // the description of a completion list sits against the list's own window
+        _ => 1,
+    };
+
     private static void OnOpened(object? sender, EventArgs e)
     {
         if (sender is not Popup { Child: { } child, PlacementTarget: TopLevel target }) return;
-        var scale = target switch
-        {
-            Window { Content: LayoutTransformControl { LayoutTransform: { } transform } } => transform.Value.M11,
-            PopupRoot { Transform: { } transform } => transform.Value.M11, // the description of a completion list sits against the list's own window
-            _ => 1,
-        };
+        var scale = Of(target);
         if (scale == 1) return;
         // The host is a window of its own, or a layer of the window for a popup that stays inside it.
         if (TopLevel.GetTopLevel(child) is PopupRoot root) root.Transform = new ScaleTransform(scale, scale);

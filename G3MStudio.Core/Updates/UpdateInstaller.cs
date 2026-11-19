@@ -49,7 +49,7 @@ public static class UpdateInstaller
         }
         catch (Exception e) when (e is InvalidDataException or IOException)
         {
-            if (Directory.Exists(staging)) Directory.Delete(staging, true);
+            Workspace.CopyPackage.TryDelete(staging);
             throw new UpdateException(UpdateError.BadArchive, "The update file could not be unpacked.", zipPath);
         }
         return staging;

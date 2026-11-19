@@ -18,7 +18,7 @@ public sealed partial class SettingsPage
 
         TextBox Text(string name, string value, Func<ImageOptions, string, ImageOptions> set, string placeholder = "settings.imageColourDefault")
         {
-            var box = new TextBox { Name = name, Text = value, Width = 160, PlaceholderText = Loc.Current[placeholder] };
+            var box = new TextBox { Name = name, Text = value, MinWidth = 160, PlaceholderText = Loc.Current[placeholder] };
             box.LostFocus += (_, _) => { if (!_building) _store.Update(x => x with { Image = set(x.Image, box.Text ?? "") }); };
             return box;
         }

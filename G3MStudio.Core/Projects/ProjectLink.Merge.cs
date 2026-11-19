@@ -75,7 +75,8 @@ public sealed partial class ProjectLink
     public async Task<MergePlan> PlanMergeAsync(IProgress<BatchProgress>? progress = null, CancellationToken cancellationToken = default)
     {
         var theirsDir = Path.Combine(MergeDir, "theirs");
-        if (Directory.Exists(theirsDir)) Directory.Delete(theirsDir, true);
+        CopyPackage.TryDelete(theirsDir);
+        if (Directory.Exists(theirsDir)) theirsDir += "-" + Guid.NewGuid().ToString("N")[..8]; // still held by a scanner: use a fresh name
         // Each phase hands its memory back before the next one starts (the export, the three project files, the build), so the peak is the largest phase and not their sum.
         var theirsFile = await Exclusive(() =>
         {
@@ -92,7 +93,7 @@ public sealed partial class ProjectLink
         }
         finally
         {
-            Directory.Delete(theirsDir, true);
+            CopyPackage.TryDelete(theirsDir);
         }
     }
 
@@ -173,7 +174,7 @@ public sealed partial class ProjectLink
         }
         finally
         {
-            File.Delete(built);
+            FileCleanup.TryDeleteFile(built);
         }
     }
 

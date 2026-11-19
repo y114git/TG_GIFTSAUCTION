@@ -64,8 +64,11 @@ public partial class ExplorerView : UserControl
     {
         var settings = CurrentSettings?.Invoke();
         var content = ExplorerFilterPopup.Build(Model.Options, Model.Quick.TagNames, FilterBox.Text ?? "", change => EditQuick?.Invoke(change), settings, EditSettings);
-        // Scrolls when the window is short or the text scaling is large: the popup never grows past the screen.
-        new Flyout { Content = new ScrollViewer { Content = content, MaxHeight = Math.Max(200, (TopLevel.GetTopLevel(this)?.ClientSize.Height ?? 700) * 0.8), HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled } }.ShowAt(FilterOptions);
+        // The popup opens at the interface scale, so its limits are the window size divided by it; it scrolls instead of growing past the window.
+        var top = TopLevel.GetTopLevel(this);
+        var scale = Math.Max(0.5, G3MStudio.Theme.PopupScale.Of(top));
+        var size = top?.ClientSize ?? new Size(900, 700);
+        new Flyout { Content = new ScrollViewer { Content = content, MaxHeight = Math.Max(200, size.Height * 0.8 / scale), MaxWidth = Math.Max(240, size.Width * 0.9 / scale), HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto } }.ShowAt(FilterOptions);
     }
 
     /// <summary>Types text into the filter box, as the user would.</summary>
