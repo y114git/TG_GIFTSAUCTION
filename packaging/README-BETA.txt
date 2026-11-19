@@ -52,9 +52,13 @@ KNOWN LIMITS
   - Beta software: some features are unfinished and some data may not
     round trip exactly.
   - The program is not signed or notarized, hence the first start steps.
-  - Open UTMT Project converts a UndertaleModTool 0.9 project once. It needs the
-    original data file. Project options (patches, external files, copies,
-    scripts) are applied but not kept, and fonts and backgrounds of a UTMT
-    project are converted without a test of their own yet.
+  - Project > Open Project converts a UndertaleModTool 0.9 project once (or you
+    drop its folder on the window). It needs the original data file. Project
+    options (patches, external files, copies, scripts) are applied but not kept,
+    and fonts and backgrounds of a UTMT project are converted without a test of
+    their own yet.
+  - Running a game on Linux and macOS (Wine, Proton, umu, PortProton or your
+    own command, Settings > Run) is tested only with simulated setups, not
+    yet on real machines. Tell us how it goes.
 
 Thank you for testing.
