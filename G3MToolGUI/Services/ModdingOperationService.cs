@@ -4,7 +4,6 @@ using G3MLib.Modding.Diffing;
 using G3MLib.Modding.Logging;
 using G3MLib.Modding.Merging;
 using G3MLib.Modding.Patching;
-using G3MLib.Modding.XDelta;
 
 namespace G3MToolGUI.Services;
 
@@ -60,22 +59,37 @@ public sealed class ModdingOperationService(ScriptInteraction? interaction = nul
         using var logging = LogService.BeginScope(OnLogMessage, OnProgress, verbose: true);
         try
         {
+            return await ExecuteAsync(request, cancellationToken);
+        }
+        finally
+        {
+            LogService.ProgressComplete();
+        }
+    }
+
+    /// <summary>Runs one operation inside the caller's logging scope. Batches call it per item, so progress and the log stay in one scope.</summary>
+    private async Task<ModdingOperationResult> ExecuteAsync(ModdingOperationRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (request.Operation is not (ModdingOperation.Inspect or ModdingOperation.ValidatePatch or ModdingOperation.Compare or ModdingOperation.RunScript or ModdingOperation.RunProgram))
+                EmbeddedXDeltaPathProvider.TryConfigure();
             return request.Operation switch
             {
-                ModdingOperation.CreatePatch => await CreatePatchAsync(request),
+                ModdingOperation.CreatePatch => await CreatePatchAsync(request, cancellationToken),
                 ModdingOperation.ApplyPatch => await ApplyPatchAsync(request, cancellationToken),
-                ModdingOperation.ValidatePatch => await ValidatePatchAsync(request),
+                ModdingOperation.ValidatePatch => await ValidatePatchAsync(request, cancellationToken),
                 ModdingOperation.MergePatches => await MergeAsync(request, cancellationToken),
                 ModdingOperation.Compare => await CompareAsync(request, cancellationToken),
-                ModdingOperation.Inspect => await InspectAsync(request),
+                ModdingOperation.Inspect => await InspectAsync(request, cancellationToken),
                 ModdingOperation.BatchCreate => await BatchCreateAsync(request, cancellationToken),
                 ModdingOperation.BatchApply => await BatchApplyAsync(request, cancellationToken),
                 ModdingOperation.BatchMerge => await BatchMergeAsync(request, cancellationToken),
-                ModdingOperation.CreateXDelta => await CreateXDeltaAsync(request),
-                ModdingOperation.ApplyXDelta => await ApplyXDeltaAsync(request),
-                ModdingOperation.RunXDelta => await RunXDeltaAsync(request),
-                ModdingOperation.RunScript => await RunScriptAsync(request),
-                ModdingOperation.RunProgram => await RunProgramAsync(request),
+                ModdingOperation.CreateXDelta => await CreateXDeltaAsync(request, cancellationToken),
+                ModdingOperation.ApplyXDelta => await ApplyXDeltaAsync(request, cancellationToken),
+                ModdingOperation.RunXDelta => await RunXDeltaAsync(request, cancellationToken),
+                ModdingOperation.RunScript => await RunScriptAsync(request, cancellationToken),
+                ModdingOperation.RunProgram => await RunProgramAsync(request, cancellationToken),
                 _ => ModdingOperationResult.Failure("Unsupported operation.")
             };
         }
@@ -89,10 +103,6 @@ public sealed class ModdingOperationService(ScriptInteraction? interaction = nul
             LogService.Error(exception.Message);
             return ModdingOperationResult.Failure(exception.Message);
         }
-        finally
-        {
-            LogService.ProgressComplete();
-        }
     }
 
     public void Dispose()
@@ -101,13 +111,13 @@ public sealed class ModdingOperationService(ScriptInteraction? interaction = nul
         ProgressChanged = null;
     }
 
-    private async Task<ModdingOperationResult> CreatePatchAsync(ModdingOperationRequest request)
+    private async Task<ModdingOperationResult> CreatePatchAsync(ModdingOperationRequest request, CancellationToken cancellationToken)
     {
         var error = RequireFiles(request.OriginalPath, request.PrimaryPath) ?? RequireOutput(request.OutputPath) ?? string.Empty;
         if (error.Length != 0) return ModdingOperationResult.Failure(error);
 
         LogService.SetOperation("Creating patch");
-        return await CreatePatchFileAsync(request.OriginalPath, request.PrimaryPath, request.OutputPath, request.IncludeXDeltaFallback, CacheOptions(request));
+        return await CreatePatchFileAsync(request.OriginalPath, request.PrimaryPath, request.OutputPath, request.IncludeXDeltaFallback, CacheOptions(request), cancellationToken: cancellationToken);
     }
 
     private async Task<ModdingOperationResult> ApplyPatchAsync(ModdingOperationRequest request, CancellationToken cancellationToken)
@@ -122,7 +132,7 @@ public sealed class ModdingOperationService(ScriptInteraction? interaction = nul
         {
             if (IsXDelta(request.PrimaryPath) || Path.GetExtension(request.PrimaryPath).Equals(".csx", StringComparison.OrdinalIgnoreCase))
             {
-                var materialized = await MaterializeInputAsync(request.OriginalPath, request.PrimaryPath, temporaryDirectory);
+                var materialized = await MaterializeInputAsync(request.OriginalPath, request.PrimaryPath, temporaryDirectory, cancellationToken);
                 PatchInputService.CopyDataFile(materialized, request.OutputPath);
                 return new(true, "Patch applied.", [request.OutputPath]);
             }
@@ -134,11 +144,11 @@ public sealed class ModdingOperationService(ScriptInteraction? interaction = nul
         }
         finally
         {
-            Directory.Delete(temporaryDirectory, recursive: true);
+            DeleteDirectory(temporaryDirectory);
         }
     }
 
-    private static async Task<ModdingOperationResult> ValidatePatchAsync(ModdingOperationRequest request)
+    private static async Task<ModdingOperationResult> ValidatePatchAsync(ModdingOperationRequest request, CancellationToken cancellationToken)
     {
         var error = RequireFile(request.PrimaryPath, "Patch") ?? string.Empty;
         if (error.Length != 0) return ModdingOperationResult.Failure(error);
@@ -146,7 +156,7 @@ public sealed class ModdingOperationService(ScriptInteraction? interaction = nul
             return ModdingOperationResult.Failure("Original data file was not found.");
 
         LogService.SetOperation("Validating patch");
-        var result = await PatchService.ValidatePatchAsync(request.PrimaryPath, EmptyToNull(request.OriginalPath), CacheOptions(request));
+        var result = await PatchService.ValidatePatchAsync(request.PrimaryPath, EmptyToNull(request.OriginalPath), CacheOptions(request), cancellationToken);
         if (!result.Success) return ModdingOperationResult.Failure(result.Error ?? "Patch validation failed.");
 
         var statistics = result.Manifest?.Statistics;
@@ -169,7 +179,7 @@ public sealed class ModdingOperationService(ScriptInteraction? interaction = nul
         {
             foreach (var input in request.InputPaths)
                 inputs.Add(Path.GetExtension(input).Equals(".csx", StringComparison.OrdinalIgnoreCase)
-                    ? await MaterializeInputAsync(request.OriginalPath, input, Path.Combine(temporaryDirectory, Guid.NewGuid().ToString("N")))
+                    ? await MaterializeInputAsync(request.OriginalPath, input, Path.Combine(temporaryDirectory, Guid.NewGuid().ToString("N")), cancellationToken)
                     : input);
             result = await MergeService.MergePatchesAsync(request.OriginalPath, inputs, new MergeOptions
             {
@@ -184,7 +194,7 @@ public sealed class ModdingOperationService(ScriptInteraction? interaction = nul
         }
         finally
         {
-            if (Directory.Exists(temporaryDirectory)) Directory.Delete(temporaryDirectory, recursive: true);
+            DeleteDirectory(temporaryDirectory);
         }
         if (!result.Success) return ModdingOperationResult.Failure(result.Error ?? "Patch merge failed.");
 
@@ -210,24 +220,30 @@ public sealed class ModdingOperationService(ScriptInteraction? interaction = nul
             : ModdingOperationResult.Failure(result.Error ?? "Comparison failed.");
     }
 
-    private static async Task<ModdingOperationResult> InspectAsync(ModdingOperationRequest request)
+    private static async Task<ModdingOperationResult> InspectAsync(ModdingOperationRequest request, CancellationToken cancellationToken)
     {
         var error = RequireFile(request.PrimaryPath, "File") ?? string.Empty;
         if (error.Length != 0) return ModdingOperationResult.Failure(error);
 
         LogService.SetOperation("Inspecting file");
-        if (Path.GetExtension(request.PrimaryPath).Equals(".g3mpatch", StringComparison.OrdinalIgnoreCase))
+        if (IsPatchExtension(Path.GetExtension(request.PrimaryPath)))
         {
-            var patch = await PatchService.ValidatePatchAsync(request.PrimaryPath, cacheOptions: CacheOptions(request));
+            var patch = await PatchService.ValidatePatchAsync(request.PrimaryPath, cacheOptions: CacheOptions(request), cancellationToken: cancellationToken);
             if (!patch.Success) return ModdingOperationResult.Failure(patch.Error ?? "Patch inspection failed.");
             var stats = patch.Manifest?.Statistics;
             return new(true, stats is null ? "Patch is valid." : $"Patch: {stats.TotalChanged} changed, {stats.TotalNew} new, {stats.TotalDeleted} deleted.", []);
         }
 
-        using FileStream stream = new(request.PrimaryPath, FileMode.Open, FileAccess.Read, FileShare.Read, 1024 * 1024, FileOptions.SequentialScan);
-        using var data = await GameMakerIO.ReadAsync(stream);
-        var snapshot = G3MCacheService.BuildInfoSnapshot(request.PrimaryPath, data);
-        await G3MCacheService.WriteDataInfoCacheAsync(request.PrimaryPath, snapshot, CacheOptions(request));
+        var snapshot = G3MCacheService.TryReadDataInfoSnapshot(request.PrimaryPath, CacheOptions(request));
+        if (snapshot is null)
+        {
+            using FileStream stream = new(request.PrimaryPath, FileMode.Open, FileAccess.Read, FileShare.Read, 1024 * 1024, FileOptions.SequentialScan);
+            using var data = await GameMakerIO.ReadAsync(stream, cancellationToken: cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            snapshot = G3MCacheService.BuildInfoSnapshot(request.PrimaryPath, data);
+            cancellationToken.ThrowIfCancellationRequested();
+            await G3MCacheService.WriteDataInfoCacheAsync(request.PrimaryPath, snapshot, CacheOptions(request));
+        }
         LogService.Info($"Game: {snapshot.Game}");
         LogService.Info($"Bytecode: {snapshot.BytecodeVersion}");
         foreach ((var type, var count) in snapshot.ResourceCounts.OrderBy(item => item.Key, StringComparer.OrdinalIgnoreCase))
@@ -247,10 +263,13 @@ public sealed class ModdingOperationService(ScriptInteraction? interaction = nul
         var failed = 0;
         foreach ((var input, var index) in request.InputPaths.Select((path, index) => (path, index + 1)))
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            if (cancellationToken.IsCancellationRequested) return Cancelled(completed, request.InputPaths.Count, outputs, failed);
             var output = UniquePath(Path.Combine(request.OutputPath, Path.GetFileNameWithoutExtension(input) + (request.CreateXDelta ? ".xdelta" : ".g3mpatch")));
-            var item = await CreatePatchFileAsync(request.OriginalPath, input, output, request.IncludeXDeltaFallback, CacheOptions(request), request.CreateXDelta);
+            ModdingOperationResult item;
+            try { item = await CreatePatchFileAsync(request.OriginalPath, input, output, request.IncludeXDeltaFallback, CacheOptions(request), request.CreateXDelta, cancellationToken); }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { return Cancelled(completed, request.InputPaths.Count, outputs, failed); }
             if (item.Success) { completed++; outputs.Add(output); }
+            else if (cancellationToken.IsCancellationRequested) return Cancelled(completed, request.InputPaths.Count, outputs, failed);
             else { failed++; LogService.Error(item.Summary); if (!request.ContinueOnError) break; }
             LogService.Progress(index, request.InputPaths.Count);
         }
@@ -270,9 +289,9 @@ public sealed class ModdingOperationService(ScriptInteraction? interaction = nul
         var extension = Path.GetExtension(request.OriginalPath);
         foreach ((var input, var index) in request.InputPaths.Select((path, index) => (path, index + 1)))
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            if (cancellationToken.IsCancellationRequested) return Cancelled(completed, request.InputPaths.Count, outputs, failed);
             var output = UniquePath(Path.Combine(request.OutputPath, stem + "_" + Path.GetFileNameWithoutExtension(input) + extension));
-            var item = await RunAsync(new ModdingOperationRequest
+            var item = await ExecuteAsync(new ModdingOperationRequest
             {
                 Operation = ModdingOperation.ApplyPatch,
                 OriginalPath = request.OriginalPath,
@@ -282,6 +301,7 @@ public sealed class ModdingOperationService(ScriptInteraction? interaction = nul
                 IncludeXDeltaFallback = request.IncludeXDeltaFallback
             }, cancellationToken);
             if (item.Success) { completed++; outputs.Add(output); }
+            else if (cancellationToken.IsCancellationRequested) return Cancelled(completed, request.InputPaths.Count, outputs, failed);
             else { failed++; LogService.Error(item.Summary); if (!request.ContinueOnError) break; }
             LogService.Progress(index, request.InputPaths.Count);
         }
@@ -300,7 +320,7 @@ public sealed class ModdingOperationService(ScriptInteraction? interaction = nul
         var failed = 0;
         for (var index = 0; index < request.InputPaths.Count; index++)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            if (cancellationToken.IsCancellationRequested) return Cancelled(completed, request.InputPaths.Count, outputs, failed);
             List<string> inputs = [.. request.InputPaths[index].Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
             var stem = "merge_" + (index + 1).ToString("D2", System.Globalization.CultureInfo.InvariantCulture);
             string dataOutput;
@@ -313,7 +333,7 @@ public sealed class ModdingOperationService(ScriptInteraction? interaction = nul
                 var report = request.FullReport ? ReportPath(patchOutput, dataOutput) : null;
                 if (!new[] { dataOutput, patchOutput, report }.Any(path => File.Exists(path) || Directory.Exists(path))) break;
             }
-            var item = await RunAsync(new ModdingOperationRequest
+            var item = await ExecuteAsync(new ModdingOperationRequest
             {
                 Operation = ModdingOperation.MergePatches,
                 OriginalPath = request.OriginalPath,
@@ -327,98 +347,129 @@ public sealed class ModdingOperationService(ScriptInteraction? interaction = nul
                 FullReport = request.FullReport
             }, cancellationToken);
             if (item.Success) { completed++; outputs.AddRange(item.Outputs); }
+            else if (cancellationToken.IsCancellationRequested) return Cancelled(completed, request.InputPaths.Count, outputs, failed);
             else { failed++; LogService.Error(item.Summary); if (!request.ContinueOnError) break; }
             LogService.Progress(index + 1, request.InputPaths.Count);
         }
         return BatchSummary(completed, failed, request.InputPaths.Count, outputs);
     }
 
-    private static async Task<ModdingOperationResult> CreateXDeltaAsync(ModdingOperationRequest request)
+    private static async Task<ModdingOperationResult> CreateXDeltaAsync(ModdingOperationRequest request, CancellationToken cancellationToken)
     {
         var error = RequireFiles(request.OriginalPath, request.PrimaryPath) ?? RequireOutput(request.OutputPath) ?? string.Empty;
         if (error.Length != 0) return ModdingOperationResult.Failure(error);
         LogService.SetOperation("Creating XDelta patch");
-        var result = await new XDeltaService().CreatePatchAsync(request.OriginalPath, request.PrimaryPath, request.OutputPath);
-        return result.Success ? new(true, "XDelta patch created.", [request.OutputPath]) : ModdingOperationResult.Failure(result.Error ?? "XDelta creation failed.");
+        return await CreateXDeltaFileAsync(request.OriginalPath, request.PrimaryPath, request.OutputPath, cancellationToken);
     }
 
-    private static async Task<ModdingOperationResult> ApplyXDeltaAsync(ModdingOperationRequest request)
+    private static Task<ModdingOperationResult> CreateXDeltaFileAsync(string originalPath, string modifiedPath, string outputPath, CancellationToken cancellationToken) =>
+        RunXDeltaFileAsync(["-e", "-s", Path.GetFullPath(originalPath), Path.GetFullPath(modifiedPath), Path.GetFullPath(outputPath)], outputPath, "XDelta patch created.", "XDelta creation failed.", cancellationToken);
+
+    private static async Task<ModdingOperationResult> ApplyXDeltaAsync(ModdingOperationRequest request, CancellationToken cancellationToken)
     {
         var error = RequireFiles(request.OriginalPath, request.PrimaryPath) ?? RequireOutput(request.OutputPath) ?? string.Empty;
         if (error.Length != 0) return ModdingOperationResult.Failure(error);
         LogService.SetOperation("Applying XDelta patch");
-        var result = await new XDeltaService().ApplyPatchAsync(request.OriginalPath, request.PrimaryPath, request.OutputPath);
-        return result.Success ? new(true, "XDelta patch applied.", [request.OutputPath]) : ModdingOperationResult.Failure(result.Error ?? "XDelta application failed.");
+        return await RunXDeltaFileAsync(["-d", "-s", Path.GetFullPath(request.OriginalPath), Path.GetFullPath(request.PrimaryPath), Path.GetFullPath(request.OutputPath)], request.OutputPath, "XDelta patch applied.", "XDelta application failed.", cancellationToken);
     }
 
-    private static async Task<ModdingOperationResult> RunXDeltaAsync(ModdingOperationRequest request)
+    /// <summary>
+    /// Runs xdelta as a child process so Cancel can kill it, and removes a half-written output that this run created.
+    /// The library's xdelta service takes no token.
+    /// </summary>
+    private static async Task<ModdingOperationResult> RunXDeltaFileAsync(string[] arguments, string outputPath, string success, string failure, CancellationToken cancellationToken)
+    {
+        var fullOutput = Path.GetFullPath(outputPath);
+        var existedBefore = File.Exists(fullOutput);
+        Directory.CreateDirectory(Path.GetDirectoryName(fullOutput)!);
+        try
+        {
+            var result = await ExternalProcessService.RunAsync(EmbeddedXDeltaPathProvider.Resolve(), arguments, errorOutputIsError: false, cancellationToken: cancellationToken);
+            if (result.ExitCode == 0) return new(true, success, [outputPath]);
+            DeleteNewFile(fullOutput, existedBefore);
+            return ModdingOperationResult.Failure(string.IsNullOrWhiteSpace(result.ErrorText) ? $"{failure} xdelta exited with code {result.ExitCode}." : $"{failure} {result.ErrorText}");
+        }
+        catch (OperationCanceledException)
+        {
+            DeleteNewFile(fullOutput, existedBefore);
+            throw;
+        }
+    }
+
+    private static void DeleteNewFile(string path, bool existedBefore)
+    {
+        try { if (!existedBefore && File.Exists(path)) File.Delete(path); }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException) { LogService.Warning($"Could not delete the partial file {path}."); }
+    }
+
+    private static async Task<ModdingOperationResult> RunXDeltaAsync(ModdingOperationRequest request, CancellationToken cancellationToken)
     {
         if (request.InputPaths.Count == 0) return ModdingOperationResult.Failure("Enter one XDelta argument per line.");
         LogService.SetOperation("Running XDelta");
-        var result = await new XDeltaService().ExecuteRawAsync([.. request.InputPaths]);
-        if (!string.IsNullOrWhiteSpace(result.Output)) LogService.Info(result.Output.TrimEnd());
-        return result.Success ? new(true, "XDelta completed.", []) : ModdingOperationResult.Failure(result.Error ?? "XDelta failed.");
+        var result = await ExternalProcessService.RunAsync(EmbeddedXDeltaPathProvider.Resolve(), request.InputPaths, errorOutputIsError: false, cancellationToken: cancellationToken);
+        return result.ExitCode == 0 ? new(true, "XDelta completed.", []) : ModdingOperationResult.Failure(string.IsNullOrWhiteSpace(result.ErrorText) ? $"XDelta failed with exit code {result.ExitCode}." : "XDelta failed. " + result.ErrorText);
     }
 
-    private async Task<ModdingOperationResult> RunScriptAsync(ModdingOperationRequest request)
+    private async Task<ModdingOperationResult> RunScriptAsync(ModdingOperationRequest request, CancellationToken cancellationToken)
     {
         var error = RequireFile(request.PrimaryPath, "Script") ?? string.Empty;
         if (error.Length != 0) return ModdingOperationResult.Failure(error);
         LogService.SetOperation("Running script");
-        var result = await ScriptExecutionService.RunAsync(request.PrimaryPath, EmptyToNull(request.OriginalPath), EmptyToNull(request.OutputPath), request.InputPaths, _interaction);
+        var result = await ScriptExecutionService.RunAsync(request.PrimaryPath, EmptyToNull(request.OriginalPath), EmptyToNull(request.OutputPath), request.InputPaths, _interaction, cancellationToken);
         return result.Success
             ? new(true, "Script completed.", string.IsNullOrWhiteSpace(request.OutputPath) ? [] : [request.OutputPath])
             : ModdingOperationResult.Failure(result.Error ?? "Script execution failed.");
     }
 
-    private static async Task<ModdingOperationResult> RunProgramAsync(ModdingOperationRequest request)
+    private static async Task<ModdingOperationResult> RunProgramAsync(ModdingOperationRequest request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.PrimaryPath)) return ModdingOperationResult.Failure("Enter a program path or command name.");
         LogService.SetOperation("Running program");
-        var result = await ExternalProcessService.RunAsync(request.PrimaryPath, request.InputPaths);
+        var result = await ExternalProcessService.RunAsync(request.PrimaryPath, request.InputPaths, cancellationToken: cancellationToken);
         return result.ExitCode == 0
             ? new(true, "Program completed.", [])
             : ModdingOperationResult.Failure($"Program exited with code {result.ExitCode}.");
     }
 
-    private async Task<ModdingOperationResult> CreatePatchFileAsync(string originalPath, string inputPath, string outputPath, bool includeXDeltaFallback, G3MCacheOptions cacheOptions, bool createXDelta = false)
+    private async Task<ModdingOperationResult> CreatePatchFileAsync(string originalPath, string inputPath, string outputPath, bool includeXDeltaFallback, G3MCacheOptions cacheOptions, bool createXDelta = false, CancellationToken cancellationToken = default)
     {
         var temporaryDirectory = Path.Combine(Path.GetTempPath(), "g3mtool-gui", Guid.NewGuid().ToString("N"));
         try
         {
-            var materialized = await MaterializeInputAsync(originalPath, inputPath, temporaryDirectory);
+            var materialized = await MaterializeInputAsync(originalPath, inputPath, temporaryDirectory, cancellationToken);
             if (createXDelta)
             {
-                var delta = await new XDeltaService().CreatePatchAsync(originalPath, materialized, outputPath);
-                return delta.Success ? new(true, "XDelta patch created.", [outputPath]) : ModdingOperationResult.Failure(delta.Error ?? "XDelta creation failed.");
+                return await CreateXDeltaFileAsync(originalPath, materialized, outputPath, cancellationToken);
             }
-            var result = await PatchService.CreatePatchAsync(originalPath, materialized, outputPath, includeXdeltaFallback: includeXDeltaFallback, cacheOptions: cacheOptions);
+            var result = await PatchService.CreatePatchAsync(originalPath, materialized, outputPath, includeXdeltaFallback: includeXDeltaFallback, cacheOptions: cacheOptions, cancellationToken: cancellationToken);
             return result.Success
                 ? new(true, DescribePatchCreated(result), [outputPath])
                 : ModdingOperationResult.Failure(result.Error ?? "Patch creation failed.");
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is not OperationCanceledException)
         {
             return ModdingOperationResult.Failure(exception.Message);
         }
         finally
         {
-            if (Directory.Exists(temporaryDirectory)) Directory.Delete(temporaryDirectory, recursive: true);
+            DeleteDirectory(temporaryDirectory);
         }
     }
 
-    private async Task<string> MaterializeInputAsync(string originalPath, string inputPath, string temporaryDirectory)
+    private async Task<string> MaterializeInputAsync(string originalPath, string inputPath, string temporaryDirectory, CancellationToken cancellationToken)
     {
         Directory.CreateDirectory(temporaryDirectory);
         if (!Path.GetExtension(inputPath).Equals(".csx", StringComparison.OrdinalIgnoreCase))
             return await PatchInputService.MaterializeDataAsync(originalPath, inputPath, temporaryDirectory);
 
         var output = Path.Combine(temporaryDirectory, "script-output" + Path.GetExtension(originalPath));
-        var result = await ScriptExecutionService.RunAsync(inputPath, originalPath, output, [], _interaction);
+        var result = await ScriptExecutionService.RunAsync(inputPath, originalPath, output, [], _interaction, cancellationToken);
         if (!result.Success) throw new InvalidOperationException(result.Error ?? "Script execution failed.");
         PatchInputService.CopyExternalAudioGroups(originalPath, output);
         return output;
     }
+
+    private static ModdingOperationResult Cancelled(int completed, int total, IReadOnlyList<string> outputs, int failed = 0) => new(false, failed == 0 ? $"Cancelled; {completed}/{total} completed." : $"Cancelled; {completed}/{total} completed; {failed} failed.", outputs);
 
     private static ModdingOperationResult BatchSummary(int completed, int failed, int total, IReadOnlyList<string> outputs) => new(failed == 0 && completed == total, $"{completed}/{total} completed; {failed} failed.", outputs);
 
@@ -451,13 +502,21 @@ public sealed class ModdingOperationService(ScriptInteraction? interaction = nul
         }
     }
 
+    private static bool IsPatchExtension(string extension) => extension.Equals(".g3mpatch", StringComparison.OrdinalIgnoreCase) || extension.Equals(".zip", StringComparison.OrdinalIgnoreCase);
+
+    private static void DeleteDirectory(string path)
+    {
+        try { if (Directory.Exists(path)) Directory.Delete(path, recursive: true); }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException) { LogService.Warning($"Could not delete the temporary folder {path}."); }
+    }
+
     private static bool IsXDelta(string path) => Path.GetExtension(path).Equals(".xdelta", StringComparison.OrdinalIgnoreCase) || Path.GetExtension(path).Equals(".vcdiff", StringComparison.OrdinalIgnoreCase);
     private static string? EmptyToNull(string value) => string.IsNullOrWhiteSpace(value) ? null : value;
     private static string? RequireFile(string path, string name) => File.Exists(path) ? null : $"{name} was not found.";
     private static string? RequireFiles(string original, string input) => RequireFile(original, "Original data file") ?? RequireFile(input, "Input file");
     private static string? RequireOutput(string path) => string.IsNullOrWhiteSpace(path) ? "Choose an output path." : null;
     private static string? RequireDirectory(string path) => string.IsNullOrWhiteSpace(path) ? "Choose an output directory." : null;
-    private static string? RequireAtLeast(IReadOnlyList<string> paths, int count, string name) => paths.Count >= count && paths.All(File.Exists) ? null : $"Choose at least {count} {name}.";
+    private static string? RequireAtLeast(IReadOnlyList<string> paths, int count, string name) => paths.Count < count ? $"Choose at least {count} {name}." : paths.FirstOrDefault(path => !File.Exists(path)) is { } missing ? $"File was not found: {missing}" : null;
     private void OnLogMessage(ModdingLogMessage message) => LogReceived?.Invoke(message);
     private void OnProgress(ModdingProgress progress) => ProgressChanged?.Invoke(progress);
 }

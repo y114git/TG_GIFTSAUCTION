@@ -23,7 +23,15 @@ public static class ScriptPatchInputService
         }
         finally
         {
-            if (Directory.Exists(temporaryDirectory)) Directory.Delete(temporaryDirectory, recursive: true);
+            try
+            {
+                if (Directory.Exists(temporaryDirectory)) Directory.Delete(temporaryDirectory, recursive: true);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                // A locked temporary folder must not replace the merge result; say where it stayed.
+                G3MLib.Modding.Logging.LogService.Warning($"Could not delete the temporary folder {temporaryDirectory}.");
+            }
         }
     }
 
@@ -49,7 +57,7 @@ public static class ScriptPatchInputService
 
         Directory.CreateDirectory(tempDir);
         var output = Path.Combine(tempDir, $"materialized_{Guid.NewGuid():N}{Path.GetExtension(originalPath)}");
-        var result = await ExecuteService.ExecuteScriptAsync(scriptPath, originalPath, output, []);
+        var result = await ExecuteService.ExecuteScriptAsync(scriptPath, originalPath, output, [], cancellationToken: Program.Cancellation);
         if (!result.Success)
         {
             throw new InvalidOperationException("CSX execution failed for '" + Path.GetFileName(scriptPath) + "': " + result.Error);
@@ -75,8 +83,9 @@ public static class ScriptPatchInputService
                 {
                     File.Delete(dataPath);
                 }
-                catch
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
                 {
+                    // Best-effort cleanup of a temporary file.
                 }
             }
             throw new InvalidDataException("Validation failed for materialized input '" + Path.GetFileName(inputPath) + "': " + ex.Message, ex);

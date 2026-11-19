@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using G3MToolCLI.Services.Execution;
 
 namespace G3MToolCLI.Services.Patching;
 
@@ -48,7 +49,7 @@ internal static class BatchPatchService
     {
         var outputDirectory = RequireOutputDirectory(options);
         var inputs = NormalizeFiles(patchPaths, "patch");
-        return RunAsync(CreateJobsAsync(inputs, options.OriginalPath, input => Path.Combine(outputDirectory, $"{Name(options.OriginalPath)}_{Name(input)}{Extension(options.OriginalPath)}"), "apply", options.XdeltaFallback), options, ApplyAsync);
+        return RunAsync(CreateJobsAsync(inputs, options.OriginalPath, input => Path.Combine(outputDirectory, $"{Name(options.OriginalPath)}_{Name(input)}{Extension(options.OriginalPath)}"), "apply", [options.XdeltaFallback], options.CancellationToken), options, ApplyAsync);
     }
 
     public static Task<BatchResult> CreateBatchAsync(IReadOnlyList<string> modifiedPaths, BatchOptions options)
@@ -56,7 +57,7 @@ internal static class BatchPatchService
         var outputDirectory = RequireOutputDirectory(options);
         var inputs = NormalizeFiles(modifiedPaths, "modified");
         var extension = options.CreateXdelta ? ".xdelta" : ".g3mpatch";
-        return RunAsync(CreateJobsAsync(inputs, options.OriginalPath, input => Path.Combine(outputDirectory, Name(input) + extension), "create", options.CreateXdelta, options.IncludeXdeltaFallback), options, CreateAsync);
+        return RunAsync(CreateJobsAsync(inputs, options.OriginalPath, input => Path.Combine(outputDirectory, Name(input) + extension), "create", [options.CreateXdelta, options.IncludeXdeltaFallback], options.CancellationToken), options, CreateAsync);
     }
 
     public static async Task<BatchResult> MergeBatchAsync(IReadOnlyList<string> setSpecs, BatchOptions options)
@@ -68,7 +69,7 @@ internal static class BatchPatchService
         if (patchDirectory is not null) Directory.CreateDirectory(patchDirectory);
 
         List<string[]> sets = [.. ParseSets(setSpecs).Select(paths => NormalizeFiles(paths, "merge patch").ToArray())];
-        var hashes = await HashAsync([options.OriginalPath, .. sets.SelectMany(set => set)]);
+        var hashes = await HashAsync([options.OriginalPath, .. sets.SelectMany(set => set)], options.CancellationToken);
         var originalHash = hashes[Path.GetFullPath(options.OriginalPath)];
         var jobs = new List<Job>(sets.Count);
         var usedOutputs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -93,11 +94,11 @@ internal static class BatchPatchService
         return await RunAsync(jobs, options, MergeAsync);
     }
 
-    private static async Task<List<Job>> CreateJobsAsync(IEnumerable<string> inputs, string originalPath, Func<string, string> output, string kind, params object[] keyParts)
+    private static async Task<List<Job>> CreateJobsAsync(IEnumerable<string> inputs, string originalPath, Func<string, string> output, string kind, object[] keyParts, CancellationToken cancellationToken)
     {
         ValidateOriginal(originalPath);
         List<string> inputList = [.. inputs];
-        var hashes = await HashAsync([originalPath, .. inputList]);
+        var hashes = await HashAsync([originalPath, .. inputList], cancellationToken);
         var originalHash = hashes[Path.GetFullPath(originalPath)];
         var usedOutputs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var jobs = new List<Job>(inputList.Count);
@@ -176,13 +177,13 @@ internal static class BatchPatchService
             var input = await ScriptPatchInputService.MaterializeDataAsync(options.OriginalPath, job.Inputs[0], temporaryDirectory);
             if (options.CreateXdelta)
             {
-                var xdelta = await new XDeltaService().CreatePatchAsync(options.OriginalPath, input, job.Outputs[0]);
+                var xdelta = await EmbeddedXDeltaPathProvider.CreateService().CreatePatchAsync(options.OriginalPath, input, job.Outputs[0]);
                 return xdelta.Success ? Succeeded(job, timer.Elapsed.TotalSeconds) : Failed(job, xdelta.Error, timer.Elapsed.TotalSeconds);
             }
-            var patch = await PatchService.CreatePatchAsync(options.OriginalPath, input, job.Outputs[0], null, null, null, null, null, options.IncludeXdeltaFallback, options.CacheOptions);
+            var patch = await PatchService.CreatePatchAsync(options.OriginalPath, input, job.Outputs[0], null, null, null, null, null, options.IncludeXdeltaFallback, options.CacheOptions, options.CancellationToken);
             return patch.Success ? Succeeded(job, timer.Elapsed.TotalSeconds) : Failed(job, patch.Error, timer.Elapsed.TotalSeconds);
         }
-        catch (Exception exception) { return Failed(job, exception.Message, timer.Elapsed.TotalSeconds); }
+        catch (Exception exception) when (exception is not OperationCanceledException) { return Failed(job, exception.Message, timer.Elapsed.TotalSeconds); }
         finally { DeleteDirectory(temporaryDirectory); }
     }
 
@@ -209,10 +210,15 @@ internal static class BatchPatchService
         catch (Exception exception) when (exception is not OperationCanceledException) { return Failed(job, exception.Message, timer.Elapsed.TotalSeconds); }
     }
 
-    private static async Task<Dictionary<string, string>> HashAsync(IEnumerable<string> paths)
+    private static async Task<Dictionary<string, string>> HashAsync(IEnumerable<string> paths, CancellationToken cancellationToken)
     {
-        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var path in paths.Select(Path.GetFullPath).Distinct(StringComparer.OrdinalIgnoreCase)) result.Add(path, await HashService.ComputeFileHashAsync(path));
+        var comparer = OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+        var result = new Dictionary<string, string>(comparer);
+        foreach (var path in paths.Select(Path.GetFullPath).Distinct(comparer))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            result.Add(path, await HashService.ComputeFileHashAsync(path));
+        }
         return result;
     }
 
@@ -285,6 +291,9 @@ internal static class BatchPatchService
     private static void DeleteDirectory(string? path)
     {
         try { if (!string.IsNullOrWhiteSpace(path) && Directory.Exists(path)) Directory.Delete(path, true); }
-        catch { }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            G3MLib.Modding.Logging.LogService.Warning($"Could not delete the temporary folder {path}.");
+        }
     }
 }

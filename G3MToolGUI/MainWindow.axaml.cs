@@ -25,6 +25,8 @@ public sealed partial class MainWindow : Window, IDisposable
     private readonly ModdingOperationService _operations;
     private readonly StringBuilder _log = new();
     private readonly Queue<LogLine> _logLines = new();
+    private const int LogLimit = 1_000_000;
+    private bool _scrollPending;
     private bool _isRunning;
     private CancellationTokenSource? _cancellation;
     private bool _closeAfterOperation;
@@ -56,7 +58,9 @@ public sealed partial class MainWindow : Window, IDisposable
             if (!_isRunning) return;
             args.Cancel = true;
             _closeAfterOperation = true;
-            ProgressText.Text = "Waiting for the current operation before closing…";
+            ProgressText.Text = "Cancelling the current operation before closing…";
+            CancelButton.IsEnabled = false;
+            _cancellation?.Cancel();
         };
         SizeChanged += (_, _) => UpdateLogPanelHeight();
     }
@@ -320,34 +324,32 @@ public sealed partial class MainWindow : Window, IDisposable
         LogLine line = new(message.Level, text);
         _log.Append(text);
         _logLines.Enqueue(line);
-        var trimmed = false;
-        while (_log.Length > 1_000_000 && _logLines.TryDequeue(out var removed))
+        LogBox.Inlines?.Add(CreateLogRun(line));
+        if (_log.Length > LogLimit)
         {
-            _log.Remove(0, removed.Text.Length);
-            trimmed = true;
+            // Trim to a low-water mark so the cost is paid once per many messages.
+            var trimmed = 0;
+            while (_log.Length - trimmed > LogLimit * 4 / 5 && _logLines.TryDequeue(out var removed))
+            {
+                trimmed += removed.Text.Length;
+                if (LogBox.Inlines is { Count: > 0 } inlines) inlines.RemoveAt(0);
+            }
+
+            _log.Remove(0, trimmed);
         }
 
-        if (trimmed)
+        if (_scrollPending) return;
+        _scrollPending = true;
+        Dispatcher.UIThread.Post(() =>
         {
-            RenderLog();
-        }
-        else
-        {
-            LogBox.Inlines?.Add(CreateLogRun(line));
-        }
-
-        Dispatcher.UIThread.Post(() => LogScroll.Offset = new Vector(0, LogScroll.Extent.Height));
+            _scrollPending = false;
+            LogScroll.Offset = new Vector(0, LogScroll.Extent.Height);
+        });
     }
 
     private void UpdateLogPanelHeight()
     {
         LogPanel.Height = _logsExpanded ? Math.Max(220, (Bounds.Height - 80) * .85) : 110;
-    }
-
-    private void RenderLog()
-    {
-        LogBox.Inlines?.Clear();
-        foreach (var line in _logLines) LogBox.Inlines?.Add(CreateLogRun(line));
     }
 
     private static Run CreateLogRun(LogLine line) => new(line.Text)

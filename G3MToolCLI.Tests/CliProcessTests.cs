@@ -24,7 +24,7 @@ public sealed class CliProcessTests
             await File.WriteAllTextAsync(parent, "RunUMTScript(\"../outside.csx\");", TestContext.Current.CancellationToken);
             result = await RunToolInDirectoryAsync(directory, "execute", "parent.csx");
             Assert.NotEqual(0, result.ExitCode);
-            Assert.Contains("escapes the mod directory", result.StandardError, StringComparison.Ordinal);
+            Assert.Contains("escapes the script directory", result.StandardError, StringComparison.Ordinal);
         }
         finally { Directory.Delete(directory, recursive: true); }
     }
@@ -387,6 +387,129 @@ public sealed class CliProcessTests
                 CancellationToken = cancellation.Token
             }));
             Assert.Empty(Directory.GetFiles(outputs));
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
+
+    [Fact]
+    public async Task CancelledBatchCreateThrowsAndWritesNothing()
+    {
+        var directory = Directory.CreateTempSubdirectory("g3mtool-cancel-").FullName;
+        try
+        {
+            var original = Path.Combine(directory, "original.win");
+            var modified = Path.Combine(directory, "modified.win");
+            var outputs = Path.Combine(directory, "out");
+            CreateRoomDataFile(original);
+            ModifyDataFile(original, modified, data => data.Rooms[1].Width = 123);
+            using var cancellation = new CancellationTokenSource();
+            await cancellation.CancelAsync();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => G3MToolCLI.Services.Patching.BatchPatchService.CreateBatchAsync([modified], new Services.Patching.BatchOptions
+            {
+                OriginalPath = original,
+                OutDir = outputs,
+                CancellationToken = cancellation.Token
+            }));
+            Assert.Empty(Directory.GetFiles(outputs));
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
+
+    [Fact]
+    public async Task ExecuteWritesExportsToOutputDirectoryAndSavesDataOnlyForAFilePath()
+    {
+        var directory = Directory.CreateTempSubdirectory("g3mtool-execute-output-").FullName;
+        try
+        {
+            var original = Path.Combine(directory, "original.win");
+            var script = Path.Combine(directory, "export.csx");
+            CreateRoomDataFile(original);
+            await File.WriteAllTextAsync(script, "File.WriteAllText(Path.Combine(OutputDir, \"marker.txt\"), \"ok\");", TestContext.Current.CancellationToken);
+
+            var exports = Path.Combine(directory, "exports") + Path.DirectorySeparatorChar;
+            var result = await RunToolInDirectoryAsync(directory, "execute", script, "--data", original, "--output", exports);
+            Assert.True(result.ExitCode == 0, result.StandardError);
+            Assert.True(File.Exists(Path.Combine(exports, "marker.txt")));
+            Assert.Empty(Directory.GetFiles(exports, "*.win"));
+
+            File.Delete(Path.Combine(directory, "marker.txt"));
+            result = await RunToolInDirectoryAsync(directory, "execute", script, "--data", original);
+            Assert.True(result.ExitCode == 0, result.StandardError);
+            Assert.True(File.Exists(Path.Combine(directory, "marker.txt")));
+            Assert.Equal([original], Directory.GetFiles(directory, "*.win"));
+
+            var saved = Path.Combine(directory, "saved", "out.win");
+            result = await RunToolInDirectoryAsync(directory, "execute", script, "--data", original, "--output", saved);
+            Assert.True(result.ExitCode == 0, result.StandardError);
+            Assert.True(File.Exists(saved));
+            Assert.True(File.Exists(Path.Combine(directory, "saved", "marker.txt")));
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
+
+    [Fact]
+    public async Task ExecuteStopsAScriptAfterTheTimeout()
+    {
+        var directory = Directory.CreateTempSubdirectory("g3mtool-execute-timeout-").FullName;
+        try
+        {
+            var script = Path.Combine(directory, "loop.csx");
+            await File.WriteAllTextAsync(script, "while (true) ScriptMessage(\"tick\");", TestContext.Current.CancellationToken);
+            var result = await RunToolInDirectoryAsync(directory, "execute", script, "--timeout", "1");
+            Assert.Equal(1, result.ExitCode);
+            Assert.Contains("timed out", result.StandardError, StringComparison.Ordinal);
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
+
+    [Fact]
+    public async Task XdeltaCommandsHonourJson()
+    {
+        var directory = Directory.CreateTempSubdirectory("g3mtool-xdelta-json-").FullName;
+        try
+        {
+            var original = Path.Combine(directory, "a.bin");
+            var modified = Path.Combine(directory, "b.bin");
+            var patch = Path.Combine(directory, "a.xdelta");
+            await File.WriteAllBytesAsync(original, [1, 2, 3, 4], TestContext.Current.CancellationToken);
+            await File.WriteAllBytesAsync(modified, [1, 9, 3, 4, 5], TestContext.Current.CancellationToken);
+            var created = await RunToolAsync("--json", "xpatch", "create", original, modified, patch);
+            Assert.Equal(0, created.ExitCode);
+            using (var document = JsonDocument.Parse(created.StandardOutput))
+            {
+                Assert.True(document.RootElement.GetProperty("success").GetBoolean());
+                Assert.Equal(patch, document.RootElement.GetProperty("output").GetString());
+            }
+            var failed = await RunToolAsync("--json", "xpatch", "apply", original, Path.Combine(directory, "missing.xdelta"), Path.Combine(directory, "out.bin"));
+            Assert.Equal(1, failed.ExitCode);
+            using (var document = JsonDocument.Parse(failed.StandardOutput))
+                Assert.False(document.RootElement.GetProperty("success").GetBoolean());
+            var raw = await RunToolAsync("--json", "execute", "xdelta", "--", "-V");
+            Assert.Equal(0, raw.ExitCode);
+            using (var document = JsonDocument.Parse(raw.StandardOutput))
+                Assert.Contains("Xdelta", document.RootElement.GetProperty("output").GetString(), StringComparison.Ordinal);
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
+
+    [Fact]
+    public async Task PatchMergePrintsTheResultInTextMode()
+    {
+        var directory = Directory.CreateTempSubdirectory("g3mtool-merge-text-").FullName;
+        try
+        {
+            var original = Path.Combine(directory, "original.win");
+            var first = Path.Combine(directory, "first.win");
+            var second = Path.Combine(directory, "second.win");
+            var merged = Path.Combine(directory, "merged.g3mpatch");
+            CreateRoomDataFile(original);
+            ModifyDataFile(original, first, data => data.Rooms[1].Width = 123);
+            ModifyDataFile(original, second, data => data.Rooms[2].Height = 456);
+            var result = await RunToolAsync("patch", "merge", original, first, second, "--out", merged);
+            Assert.True(result.ExitCode == 0, result.StandardError);
+            Assert.Contains("Merged 2 patches.", result.StandardOutput, StringComparison.Ordinal);
+            Assert.Contains(merged, result.StandardOutput, StringComparison.Ordinal);
+            Assert.Contains("Conflicts: 0", result.StandardOutput, StringComparison.Ordinal);
         }
         finally { Directory.Delete(directory, recursive: true); }
     }

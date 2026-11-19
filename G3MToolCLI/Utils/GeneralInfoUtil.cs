@@ -92,7 +92,7 @@ public static class GeneralInfoUtil
         Console.WriteLine($"  Release: {gi.Release}");
         Console.WriteLine($"  Build: {gi.Build}");
         Console.WriteLine($"  Bytecode Version: {gi.BytecodeVersion}");
-        Console.WriteLine($"  Branch: {gi.Branch}");
+        Console.WriteLine($"  Branch: {gi.Branch}" + (string.IsNullOrEmpty(gi.BranchSource) ? string.Empty : $" (detected from the {gi.BranchSource} chunk)"));
         Console.WriteLine();
         Console.WriteLine("Window:");
         Console.WriteLine($"  Default Width: {gi.DefaultWindowWidth}");

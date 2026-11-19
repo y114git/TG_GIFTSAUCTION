@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.Text.Json;
+using G3MToolCLI.Services.Execution;
 using G3MToolCLI.Services.Logging;
 using G3MToolCLI.Services.Patching;
 using G3MToolCLI.Utils;
@@ -50,80 +51,79 @@ public static class PatchCommand
             var outputPath = output?.FullName ?? defaultOutput;
             var tempDir = Path.Combine(Path.GetTempPath(), $"g3mtool_create_{Guid.NewGuid():N}");
             Directory.CreateDirectory(tempDir);
-            string materialized;
             try
             {
-                materialized = await ScriptPatchInputService.MaterializeDataAsync(original.FullName, modified.FullName, tempDir);
+                var materialized = await ScriptPatchInputService.MaterializeDataAsync(original.FullName, modified.FullName, tempDir);
+                LogService.Log("Creating G3M patch...");
+                LogService.Log("  Original: " + original.FullName);
+                LogService.Log("  Modified: " + modified.FullName);
+                LogService.Log("  Output:   " + outputPath);
+                LogService.Log("  Xdelta fallback: " + (xdeltaFallback ? "enabled" : "disabled"));
+                if (cacheDir != null)
+                {
+                    LogService.Log("  Cache:    " + cacheDir.FullName);
+                }
+                if (xdeltaOutput)
+                {
+                    var xresult = await EmbeddedXDeltaPathProvider.CreateService().CreatePatchAsync(original.FullName, materialized, outputPath);
+                    if (!xresult.Success)
+                    {
+                        WriteErrorJsonOrText("patch create", xresult.Error);
+                        Environment.ExitCode = 1;
+                    }
+                    else
+                    {
+                        WriteSuccessJsonOrText("patch create", outputPath, new
+                        {
+                            format = "xdelta"
+                        });
+                    }
+                    return;
+                }
+                var result = await PatchService.CreatePatchAsync(original.FullName, materialized, outputPath, null, null, null, null, null, xdeltaFallback, G3MCacheOptions.FromDirectory(cacheDir?.FullName), Program.Cancellation);
+                if (result.Success)
+                {
+                    var s = result.Statistics;
+                    if (Program.JsonOutput)
+                    {
+                        WriteJson(new
+                        {
+                            success = true,
+                            command = "patch create",
+                            original = original.FullName,
+                            modified = modified.FullName,
+                            output = outputPath,
+                            xdeltaFallback,
+                            statistics = s,
+                            warnings = Array.Empty<string>()
+                        });
+                    }
+                    else
+                    {
+                        Console.WriteLine("Patch created successfully: " + outputPath);
+                        if (s != null)
+                        {
+                            Console.WriteLine((s.TotalChangedFiles > 0) ? $"  Changed: {s.TotalChanged} ({s.TotalChangedFiles} files)" : $"  Changed: {s.TotalChanged}");
+                            Console.WriteLine((s.TotalNewFiles > 0) ? $"  New:     {s.TotalNew} ({s.TotalNewFiles} files)" : $"  New:     {s.TotalNew}");
+                            Console.WriteLine($"  Deleted: {s.TotalDeleted}");
+                        }
+                    }
+                }
+                else
+                {
+                    WriteErrorJsonOrText("patch create", result.Error);
+                    Environment.ExitCode = 1;
+                }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 WriteErrorJsonOrText("patch create", ex.Message);
                 Environment.ExitCode = 1;
+            }
+            finally
+            {
                 DeleteTemporaryDirectory(tempDir);
-                return;
             }
-            LogService.Log("Creating G3M patch...");
-            LogService.Log("  Original: " + original.FullName);
-            LogService.Log("  Modified: " + modified.FullName);
-            LogService.Log("  Output:   " + outputPath);
-            LogService.Log("  Xdelta fallback: " + (xdeltaFallback ? "enabled" : "disabled"));
-            if (cacheDir != null)
-            {
-                LogService.Log("  Cache:    " + cacheDir.FullName);
-            }
-            if (xdeltaOutput)
-            {
-                var xresult = await new XDeltaService().CreatePatchAsync(original.FullName, materialized, outputPath);
-                if (!xresult.Success)
-                {
-                    WriteErrorJsonOrText("patch create", xresult.Error);
-                    Environment.ExitCode = 1;
-                }
-                else
-                {
-                    WriteSuccessJsonOrText("patch create", outputPath, new
-                    {
-                        format = "xdelta"
-                    });
-                }
-                DeleteTemporaryDirectory(tempDir);
-                return;
-            }
-            var result = await PatchService.CreatePatchAsync(original.FullName, materialized, outputPath, null, null, null, null, null, xdeltaFallback, G3MCacheOptions.FromDirectory(cacheDir?.FullName));
-            if (result.Success)
-            {
-                var s = result.Statistics;
-                if (Program.JsonOutput)
-                {
-                    WriteJson(new
-                    {
-                        success = true,
-                        command = "patch create",
-                        original = original.FullName,
-                        modified = modified.FullName,
-                        output = outputPath,
-                        xdeltaFallback,
-                        statistics = s,
-                        warnings = Array.Empty<string>()
-                    });
-                }
-                else
-                {
-                    Console.WriteLine("Patch created successfully: " + outputPath);
-                    if (s != null)
-                    {
-                        Console.WriteLine((s.TotalChangedFiles > 0) ? $"  Changed: {s.TotalChanged} ({s.TotalChangedFiles} files)" : $"  Changed: {s.TotalChanged}");
-                        Console.WriteLine((s.TotalNewFiles > 0) ? $"  New:     {s.TotalNew} ({s.TotalNewFiles} files)" : $"  New:     {s.TotalNew}");
-                        Console.WriteLine($"  Deleted: {s.TotalDeleted}");
-                    }
-                }
-            }
-            else
-            {
-                WriteErrorJsonOrText("patch create", result.Error);
-                Environment.ExitCode = 1;
-            }
-            DeleteTemporaryDirectory(tempDir);
         });
         var applyCommand = new Command("apply", "Apply a .g3mpatch to a data file. .xdelta input is applied directly; data-file input is converted first.\n  Usage: patch apply <data> <patch> [output] [--xdelta-fallback] [--cache <dir>] [--xdelta-path <path>]");
         var dataArg = new Argument<FileInfo>("data") { Description = "Path to original data file (.win/.ios/.droid/.unx)" };
@@ -154,12 +154,12 @@ public static class PatchCommand
                     PatchInputService.CopyDataFile(materialized, outputPath);
                     WriteSuccessJsonOrText("patch apply", outputPath, new { inputKind = ScriptPatchInputService.IsXDelta(patch.FullName) ? "xdelta" : "csx", data = data.FullName, patch = patch.FullName });
                 }
-                catch (Exception exception)
+                catch (Exception exception) when (exception is not OperationCanceledException)
                 {
                     WriteErrorJsonOrText("patch apply", exception.Message);
                     Environment.ExitCode = 1;
                 }
-                finally { Directory.Delete(temporaryDirectory, recursive: true); }
+                finally { DeleteTemporaryDirectory(temporaryDirectory); }
             }
             else
             {
@@ -202,7 +202,7 @@ public static class PatchCommand
                 }
                 finally
                 {
-                    if (Directory.Exists(temporaryDirectory)) Directory.Delete(temporaryDirectory, recursive: true);
+                    DeleteTemporaryDirectory(temporaryDirectory);
                 }
             }
         });
@@ -222,7 +222,7 @@ public static class PatchCommand
             {
                 Console.WriteLine("Validating G3M patch: " + patch.FullName);
             }
-            var result = await PatchService.ValidatePatchAsync(patch.FullName, data?.FullName, G3MCacheOptions.FromDirectory(cacheDir?.FullName));
+            var result = await PatchService.ValidatePatchAsync(patch.FullName, data?.FullName, G3MCacheOptions.FromDirectory(cacheDir?.FullName), Program.Cancellation);
             if (result.Success)
             {
                 if (Program.JsonOutput)
@@ -480,13 +480,19 @@ public static class PatchCommand
                     warnings = result.TotalConflicts <= 0 ? [] : s_mergeConflictWarnings
                 });
             }
+            else
+            {
+                Console.WriteLine($"Merged {patchPaths.Count} patches.");
+                if (!string.IsNullOrEmpty(result.OutputPath)) Console.WriteLine("  Patch:  " + result.OutputPath);
+                if (!string.IsNullOrEmpty(applyPath)) Console.WriteLine("  Data:   " + applyPath);
+                Console.WriteLine($"  Conflicts: {result.TotalConflicts}, auto-merged: {result.AutoMerged}");
+            }
         });
         command.Add(createCommand);
         command.Add(applyCommand);
         command.Add(validateCommand);
         command.Add(batchCommand);
         command.Add(mergeCommand);
-        return command;
         static Option<DirectoryInfo?> BatchCacheOption()
         {
             return new Option<DirectoryInfo?>("--cache") { Description = "Read and write reusable .g3mcache analysis files in this directory." };
@@ -503,9 +509,10 @@ public static class PatchCommand
         {
             return new Option<bool>("--continue-on-error") { Description = "Continue remaining batch jobs after a failure." };
         }
+        return command;
     }
 
-    private static void WriteSuccessJsonOrText<T>(string command, string outputPath, T details)
+    internal static void WriteSuccessJsonOrText<T>(string command, string outputPath, T details)
     {
         if (Program.JsonOutput)
         {
@@ -524,7 +531,7 @@ public static class PatchCommand
         }
     }
 
-    private static void WriteErrorJsonOrText(string command, string? error)
+    internal static void WriteErrorJsonOrText(string command, string? error)
     {
         if (Program.JsonOutput)
         {
@@ -545,14 +552,16 @@ public static class PatchCommand
     {
         try
         {
-            Directory.Delete(path, recursive: true);
+            if (Directory.Exists(path)) Directory.Delete(path, recursive: true);
         }
-        catch
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
+            // A locked temporary folder must not fail the command; say where it stayed.
+            G3MLib.Modding.Logging.LogService.Warning($"Could not delete the temporary folder {path}.");
         }
     }
 
-    private static void WriteJson<T>(T value)
+    internal static void WriteJson<T>(T value)
     {
         Console.WriteLine(JsonSerializer.Serialize(value, s_compactJsonOptions));
     }
