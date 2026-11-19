@@ -1003,6 +1003,15 @@
     "showParent": "親へ移動",
     "switchTip": "未保存の変更を先に保存します",
     "fallbackAssembly": "デコンパイラが失敗しました: {reason}。アセンブリを表示しています。",
+    "child": {
+      "banner": "これは {parent} の中にある関数です。GML に逆コンパイルできるのは親だけなので、ここではアセンブリを表示しています。関数は親で編集してください。",
+      "bannerAnonymous": "これは {parent} の中にある無名関数です。GML に逆コンパイルできるのは親だけなので、ここではアセンブリを表示しています。関数は親で編集してください。",
+      "showDetails": "詳細",
+      "hideDetails": "詳細を隠す",
+      "kindNamed": "関数",
+      "kindAnonymous": "無名関数",
+      "details": "名前: {name}\n親エントリ: {parent}\n種類: {kind}\n引数: {arguments}\nローカル変数: {locals}\n親の {offset} バイト目から開始、長さ {length} バイト"
+    },
     "rename": {
       "title": "シンボルの名前を変更",
       "none": "変更する箇所がありません。",
@@ -1191,7 +1200,7 @@
     "installIdNote": "このPCで作られたランダムな数値です。レポートでインストールを区別するために使われ、あなたやこのPCの情報からは作られません。リセットすると新しい値になります。",
     "shortcuts": "キーボードショートカット",
     "shortcutFilter": "コマンドまたはショートカットを絞り込み",
-    "pressKeys": "キーを押してください...",
+    "pressKeys": "キーまたはマウスボタンを押してください...",
     "noShortcut": "なし",
     "addShortcut": "別のショートカットを追加",
     "reset": "リセット",

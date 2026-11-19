@@ -27,7 +27,7 @@ public sealed class UnsharePicturesCommand(string type, string name) : TextureFi
     {
         List<(GameMakerTexturePageItem Item, List<GameMakerSprite.TextureEntry> Frames)> items = ResourceTypes.Find(data, ResourceTypes.KeyOf(type, name)) switch
         {
-            GameMakerSprite sprite => [.. sprite.Textures.Where(t => t.Texture is not null).GroupBy(t => t.Texture!, ReferenceEqualityComparer.Instance).Select(g => (g.First().Texture!, g.ToList()))],
+            GameMakerSprite sprite => [.. sprite.Textures.Where(t => t.Texture is not null).GroupBy(t => t.Texture, ReferenceEqualityComparer.Instance).Select(g => (g.Select(t => t.Texture).OfType<GameMakerTexturePageItem>().First(), g.ToList()))],
             GameMakerFont { Texture: { } texture } => [(texture, [])],
             GameMakerBackground { Texture: { } texture } => [(texture, [])],
             _ => throw new InvalidOperationException($"'{name}' was not found in {type}, or has no picture."),

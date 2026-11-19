@@ -63,9 +63,9 @@ public sealed partial class MainWindow
         var drop = hits.Count == 0;
         if (!await EditOrForceAsync(workspace, keep => new GroupCommand(
         [
-            .. plan.Kind == FunctionDeletePlan.Way.OwnScript
-                ? new EditCommand[] { new ClearReferencesCommand("scripts", plan.Script, keep), new ResourceListCommand("scripts", ResourceListCommand.Delete, plan.Script) }
-                : [new EditCodeCommand(plan.Entry, text!)],
+            .. plan.Kind != FunctionDeletePlan.Way.OwnScript && text is { } source
+                ? [new EditCodeCommand(plan.Entry, source)]
+                : new EditCommand[] { new ClearReferencesCommand("scripts", plan.Script, keep), new ResourceListCommand("scripts", ResourceListCommand.Delete, plan.Script) },
             .. drop ? [new ResourceListCommand("functions", ResourceListCommand.Delete, name)] : Array.Empty<EditCommand>(),
         ]), name)) return;
 

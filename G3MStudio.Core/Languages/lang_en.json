@@ -1003,6 +1003,15 @@
     "showParent": "Go to Parent",
     "switchTip": "Saves unsaved changes first",
     "fallbackAssembly": "Decompiler failed: {reason}. Showing assembly.",
+    "child": {
+      "banner": "This is a function inside {parent}. Only the parent decompiles to GML, so its assembly is shown here. Edit the function in the parent.",
+      "bannerAnonymous": "This is an anonymous function inside {parent}. Only the parent decompiles to GML, so its assembly is shown here. Edit the function in the parent.",
+      "showDetails": "Details",
+      "hideDetails": "Hide Details",
+      "kindNamed": "function",
+      "kindAnonymous": "anonymous function",
+      "details": "Name: {name}\nParent entry: {parent}\nKind: {kind}\nArguments: {arguments}\nLocals: {locals}\nStarts at byte {offset} of the parent, {length} bytes long"
+    },
     "rename": {
       "title": "Rename Symbol",
       "none": "Nothing to rename.",
@@ -1191,7 +1200,7 @@
     "installIdNote": "A random number made on this PC. It tells one install from another in the reports and is made from nothing about you or this machine. Reset gives this install a new one.",
     "shortcuts": "Keyboard shortcuts",
     "shortcutFilter": "Filter commands or shortcuts",
-    "pressKeys": "Press the keys...",
+    "pressKeys": "Press the keys or a mouse button...",
     "noShortcut": "None",
     "addShortcut": "Add another shortcut",
     "reset": "Reset",

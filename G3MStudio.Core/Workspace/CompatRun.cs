@@ -30,54 +30,6 @@ public interface ICompatProbe
     string? OnPath(string name);
 }
 
-/// <summary>The real machine.</summary>
-public sealed class SystemProbe : ICompatProbe
-{
-    public static SystemProbe Instance { get; } = new();
-
-    public bool IsWindows => OperatingSystem.IsWindows();
-
-    public bool IsMacOS => OperatingSystem.IsMacOS();
-
-    public string Home => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-
-    public bool FileExists(string path) => File.Exists(path);
-
-    public bool DirectoryExists(string path) => Directory.Exists(path);
-
-    public IReadOnlyList<string> Files(string folder) => List(() => Directory.GetFiles(folder));
-
-    public IReadOnlyList<string> Folders(string folder) => List(() => Directory.GetDirectories(folder));
-
-    public string? ReadText(string path)
-    {
-        try
-        {
-            return File.Exists(path) && new FileInfo(path).Length <= 4 * 1024 * 1024 ? File.ReadAllText(path) : null;
-        }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
-        {
-            return null;
-        }
-    }
-
-    public string? Env(string name) => Environment.GetEnvironmentVariable(name);
-
-    public string? OnPath(string name) => RunLocator.Resolve(name);
-
-    private static string[] List(Func<string[]> read)
-    {
-        try
-        {
-            return read();
-        }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
-        {
-            return [];
-        }
-    }
-}
-
 /// <summary>What the user set for compatibility, as <see cref="RunPlan"/> read it from the settings or a run options file.</summary>
 public sealed record CompatOptions(CompatMode Mode, string Program, string Prefix, string Command, string UserEnvironment, string WorkingDir);
 
@@ -102,13 +54,12 @@ public enum CompatKind
     /// <summary>Nothing to run.</summary>
     None,
 
-    /// <summary>A program of this system.</summary>
     Native,
 
-    /// <summary>A Windows program with a compatibility tool.</summary>
+    /// <summary>A Windows program that runs through Wine, Proton or another compatibility tool.</summary>
     Compat,
 
-    /// <summary>A Windows program, but the tool is missing.</summary>
+    /// <summary>A Windows program, but no compatibility tool is installed.</summary>
     NoTool,
 }
 
@@ -174,7 +125,6 @@ public static partial class CompatRun
 
     public static bool IsExe(string path) => path.EndsWith(".exe", StringComparison.OrdinalIgnoreCase);
 
-    // ---- finding the game ----
 
     private static string? FindNative(ICompatProbe probe, string dataFile, string? gameFileName)
     {
@@ -224,7 +174,6 @@ public static partial class CompatRun
         return null;
     }
 
-    // ---- Steam ----
 
     private sealed record SteamGame(string Steamapps, string AppId)
     {
@@ -320,7 +269,6 @@ public static partial class CompatRun
         return a.Length != b.Length ? a.Length.CompareTo(b.Length) : string.CompareOrdinal(a, b);
     }
 
-    // ---- the tools ----
 
     private static CompatLaunch? Launch(ICompatProbe probe, CompatOptions o, string exe, string dataFile, string? gameFileName)
     {
@@ -452,7 +400,6 @@ public static partial class CompatRun
         }
     }
 
-    // ---- small helpers ----
 
     /// <summary>A program given as a full path (or ~/path), or a bare name looked up like a tool. Null when it is not there.</summary>
     private static string? FindProgram(ICompatProbe probe, string text)

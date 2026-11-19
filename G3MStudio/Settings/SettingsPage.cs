@@ -92,6 +92,7 @@ public sealed partial class SettingsPage : UserControl
 
     /// <summary>
     /// Settings search: a row shows when its label contains the text, a whole section shows when its heading does.
+    /// In the shortcuts section the commands are the rows: those whose name or keys contain the text stay.
     /// Children after the title and the search box belong to the heading before them.
     /// </summary>
     private static bool Filter(StackPanel page, string text, int selected)
@@ -113,7 +114,9 @@ public sealed partial class SettingsPage : UserControl
             var any = headingHit;
             foreach (var item in items)
             {
-                var shown = headingHit || text.Length > 0 && item.Tag is string label && label.Contains(text, StringComparison.CurrentCultureIgnoreCase);
+                bool shown;
+                if (item is ShortcutsEditor keys) shown = keys.Narrow(headingHit ? "" : text) && (headingHit || text.Length > 0);
+                else shown = headingHit || text.Length > 0 && item.Tag is string label && label.Contains(text, StringComparison.CurrentCultureIgnoreCase);
                 item.Classes.Set(SectionHidden, !shown);
                 SyncVisible(item);
                 any |= shown;

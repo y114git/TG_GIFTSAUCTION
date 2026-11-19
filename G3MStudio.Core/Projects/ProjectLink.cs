@@ -88,6 +88,7 @@ public sealed partial class ProjectLink
             Warnings.AddRange(result.Warnings);
             SetWriting(false);
             SaveBase();
+            ProcessMemory.Reclaim(); // what the export decoded and encoded is garbage now; the next phase starts from the size of the data
             return 0;
         }, cancellationToken);
 

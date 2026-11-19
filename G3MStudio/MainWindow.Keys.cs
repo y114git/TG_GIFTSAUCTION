@@ -41,6 +41,14 @@ public sealed partial class MainWindow
         }
     }
 
+    private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (Settings.ShortcutsEditor.Capturing || _blocked) return;
+        if (MouseGestures.Match(Registry, e) is not { } command || !Registry.IsEnabled(command)) return;
+        Registry.Execute(command.Id);
+        e.Handled = true;
+    }
+
     /// <summary>
     /// A plain letter, digit or punctuation key in a text box or the code editor is typing, not a shortcut: the single-key tool shortcuts of the image
     /// editor (B, E, M and the rest) must not swallow it. Function keys, Escape and anything with Ctrl, Alt or the Windows key stay shortcuts.

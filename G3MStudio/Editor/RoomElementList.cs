@@ -27,7 +27,7 @@ public sealed class RoomElementList : ListBox
         Name = "RoomElements";
         MinHeight = 76;
         SelectionMode = SelectionMode.Multiple; // a click selects one row, Ctrl+click toggles one, Shift+click takes a range
-        ItemTemplate = new FuncDataTemplate<object>((element, _) => Row(element)); // a row is built from its element once, so it is never reused for another
+        ItemTemplate = new FuncDataTemplate<object>((element, _) => element is null ? new StackPanel() : Row(element)); // a row is built from its element once, so it is never reused for another
         // The row of an element is made when it scrolls into view, so a room with thousands of instances builds at once.
         ContainerPrepared += (_, e) =>
         {

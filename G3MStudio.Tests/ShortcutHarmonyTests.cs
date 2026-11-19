@@ -37,7 +37,7 @@ public sealed partial class ShortcutHarmonyTests
         {
             foreach (var gesture in command.Gestures)
             {
-                Assert.NotNull(Shortcuts.Parse(gesture));
+                Assert.True(Shortcuts.Parse(gesture) is not null || MouseGestures.Is(gesture), gesture);
                 var clash = registry.All.Where(o => o.Id != command.Id && (o.When is null || command.When is null || o.When == command.When) && o.Gestures.Select(Canonical).Contains(Canonical(gesture), StringComparer.OrdinalIgnoreCase));
                 Assert.True(!clash.Any(), $"{gesture} on {command.Id} also on {string.Join(", ", clash.Select(c => c.Id))}");
             }

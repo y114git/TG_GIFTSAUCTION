@@ -1,3 +1,6 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.VisualTree;
 using Avalonia.Media;
 using AvaloniaEdit;
 
@@ -100,9 +103,24 @@ public static class EditorOptions
 
     public static void ApplyTo(TextEditor editor, FontFamily themeFont)
     {
+        // A new font size or wrapping changes the height of every line, and the editor keeps its scroll in pixels: the line at the top is put back at the top afterwards.
+        var view = editor.TextArea.TextView;
+        var top = view.VisualLinesValid && editor.ViewportHeight > 0 ? view.GetDocumentLineByVisualTop(editor.VerticalOffset)?.LineNumber : null;
+        var changed = editor.FontSize != FontSize || editor.WordWrap != WordWrap || !Equals(editor.FontFamily, Family ?? themeFont);
         editor.FontFamily = Family ?? themeFont;
         editor.FontSize = FontSize;
         editor.WordWrap = WordWrap;
+        if (changed && top is > 1 and var line)
+        {
+            void Restore()
+            {
+                if (editor.Document is { } document && line <= document.LineCount && editor.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault() is { } scroller) scroller.Offset = new Vector(0, view.GetVisualTopByDocumentLine(line) + 1); // one pixel in, so rounding never reads the line above
+            }
+
+            // The line heights are measured again after the change, so the offset is put right again once they are known.
+            Avalonia.Threading.Dispatcher.UIThread.Post(Restore, Avalonia.Threading.DispatcherPriority.Loaded);
+            Avalonia.Threading.Dispatcher.UIThread.Post(Restore, Avalonia.Threading.DispatcherPriority.Background);
+        }
         editor.ShowLineNumbers = LineNumbers;
         editor.Options.HighlightCurrentLine = true;
         editor.Options.IndentationSize = TabWidth;

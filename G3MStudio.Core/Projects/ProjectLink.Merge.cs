@@ -76,18 +76,32 @@ public sealed partial class ProjectLink
     {
         var theirsDir = Path.Combine(MergeDir, "theirs");
         if (Directory.Exists(theirsDir)) Directory.Delete(theirsDir, true);
-        var theirsFile = await Exclusive(() => G3MProjectService.Export(_workspace.Data, theirsDir, null, new G3MProjectOptions { Name = Record.Name }, progress, cancellationToken).Path, cancellationToken);
+        // Each phase hands its memory back before the next one starts (the export, the three project files, the build), so the peak is the largest phase and not their sum.
+        var theirsFile = await Exclusive(() =>
+        {
+            var path = G3MProjectService.Export(_workspace.Data, theirsDir, null, new G3MProjectOptions { Name = Record.Name }, progress, cancellationToken).Path;
+            ProcessMemory.Reclaim();
+            return path;
+        }, cancellationToken);
         try
         {
-            var theirs = await G3MProjectService.OpenAsync(theirsFile, null, cancellationToken);
-            var ours = await G3MProjectService.OpenAsync(ProjectFile, null, cancellationToken);
-            var baseProject = File.Exists(BaseFile) ? await G3MProjectService.OpenAsync(BaseFile, null, cancellationToken) : null;
-            return MergePlan.Classify(baseProject, ours, theirs);
+            var plan = await ClassifyAsync(theirsFile, cancellationToken);
+            // The three project files are only needed for the comparison, and this method has ended with them: they are freed before the build loads the data file again.
+            await Task.Run(() => ProcessMemory.Reclaim(), CancellationToken.None);
+            return plan;
         }
         finally
         {
             Directory.Delete(theirsDir, true);
         }
+    }
+
+    private async Task<MergePlan> ClassifyAsync(string theirsFile, CancellationToken cancellationToken)
+    {
+        var theirs = await G3MProjectService.OpenAsync(theirsFile, null, cancellationToken);
+        var ours = await G3MProjectService.OpenAsync(ProjectFile, null, cancellationToken);
+        var baseProject = File.Exists(BaseFile) ? await G3MProjectService.OpenAsync(BaseFile, null, cancellationToken) : null;
+        return MergePlan.Classify(baseProject, ours, theirs);
     }
 
     /// <summary>
@@ -133,6 +147,7 @@ public sealed partial class ProjectLink
             // Theirs-only resources are written from the open model, which is the data file; deletions go on the project file so Build removes them.
             G3MProjectService.Update(_workspace.Data, Folder, null, new G3MProjectOptions { Name = Record.Name, Only = Group(theirs, info), Deleted = Group(deleted, info) });
             G3MProjectService.Build(ProjectFile, _workspace.Path, built);
+            ProcessMemory.Reclaim();
             return 0;
         }, cancellationToken);
 
@@ -141,6 +156,7 @@ public sealed partial class ProjectLink
             using var merged = await GameMakerIO.ReadAsync(built, NoProgress.Instance, cancellationToken);
             var result = await pipeline.SaveAsync(merged, _workspace.Path, null, cancellationToken);
             if (!result.Saved) return result;
+            await Task.Run(() => ProcessMemory.Reclaim(), CancellationToken.None);
             _workspace.RememberStamp(); // the merge wrote the file itself, so it is not a change by another program
             var identity = await DataFileIdentity.ComputeAsync(_workspace.Path, CancellationToken.None);
             await Task.Run(() =>

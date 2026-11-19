@@ -13,6 +13,8 @@ public sealed partial class CodeEditorTab
     private readonly SelectableTextBlock _bannerText = new() { Name = "FallbackText", TextWrapping = Avalonia.Media.TextWrapping.Wrap, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
     private readonly Button _retry = new() { Name = "Retry" };
     private readonly Button _showParent = new() { Name = "ShowParent" };
+    private readonly Button _childDetails = new() { Name = "ChildDetailsToggle" };
+    private readonly SelectableTextBlock _childText = new() { Name = "ChildDetails", IsVisible = false, TextWrapping = Avalonia.Media.TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0) };
     private readonly Button _assembly = new() { Name = "AssemblyToggle" };
     private Border? _banner;
 
@@ -42,6 +44,8 @@ public sealed partial class CodeEditorTab
         _copyDetails.Content = Loc.Current["code.copyDetails"];
         _retry.Content = Loc.Current["code.retry"];
         _showParent.Content = Loc.Current["code.showParent"];
+        _childDetails.Content = Loc.Current[_childText.IsVisible ? "code.child.hideDetails" : "code.child.showDetails"];
+        if (_shown?.Child is { } child) _childText.Text = ChildDetails(child);
         _assembly.Content = Loc.Current[ShowAssembly ? "code.showGml" : "code.showAssembly"];
         ToolTip.SetTip(_assembly, Loc.Current["code.switchTip"]);
     }
@@ -61,8 +65,13 @@ public sealed partial class CodeEditorTab
         {
             if (_shown?.ParentName is { } parent) GoToRequested?.Invoke(ResourceTypes.KeyOf("code", parent));
         };
-        var row = new WrapPanel { Margin = new Thickness(8, 4), Children = { _bannerText, _retry, _showParent } };
-        _banner = new Border { Name = "FallbackBanner", IsVisible = false, Child = row };
+        _childDetails.Click += (_, _) =>
+        {
+            _childText.IsVisible = !_childText.IsVisible;
+            RelabelBanner();
+        };
+        var row = new WrapPanel { Children = { _bannerText, _retry, _showParent, _childDetails } };
+        _banner = new Border { Name = "FallbackBanner", IsVisible = false, Margin = new Thickness(8, 4), Child = new StackPanel { Children = { row, _childText } } };
         SetDock(_banner, Avalonia.Controls.Dock.Top);
         return _banner;
     }
@@ -72,8 +81,17 @@ public sealed partial class CodeEditorTab
         if (_banner is null) return;
         _banner.IsVisible = load.Mode == CodeMode.Assembly && !ShowAssembly;
         _showParent.IsVisible = load.Mode == CodeMode.Assembly && load.ParentName is not null;
-        _bannerText.Text = load.Mode == CodeMode.Assembly ? Loc.Current.Format("code.fallbackAssembly", ("reason", load.Reason ?? "")) : "";
+        _childDetails.IsVisible = load.Child is not null;
+        _assembly.IsVisible = load.Child is null; // a function inside another entry is only shown as assembly, there is no GML to switch to
+        if (load.Child is null) _childText.IsVisible = false;
+        _bannerText.Text = load.Child is { } child ? Loc.Current.Format(child.Anonymous ? "code.child.bannerAnonymous" : "code.child.banner", ("parent", child.Parent))
+            : load.Mode == CodeMode.Assembly ? Loc.Current.Format("code.fallbackAssembly", ("reason", load.Reason ?? "")) : "";
+        RelabelBanner();
     }
+
+    private string ChildDetails(CodeChild child) => Loc.Current.Format("code.child.details", ("name", Entry), ("parent", child.Parent),
+        ("kind", Loc.Current[child.Anonymous ? "code.child.kindAnonymous" : "code.child.kindNamed"]), ("arguments", child.Arguments), ("locals", child.Locals),
+        ("offset", child.Offset), ("length", child.Length));
 
     private void CopyDetails()
     {

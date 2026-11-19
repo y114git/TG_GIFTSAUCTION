@@ -1003,6 +1003,15 @@
     "showParent": "Ir al padre",
     "switchTip": "Primero guarda los cambios pendientes",
     "fallbackAssembly": "El descompilador falló: {reason}. Se muestra el ensamblador.",
+    "child": {
+      "banner": "Esta es una función dentro de {parent}. Solo el padre se descompila a GML, por eso aquí se muestra su ensamblador. Edita la función en el padre.",
+      "bannerAnonymous": "Esta es una función anónima dentro de {parent}. Solo el padre se descompila a GML, por eso aquí se muestra su ensamblador. Edita la función en el padre.",
+      "showDetails": "Detalles",
+      "hideDetails": "Ocultar detalles",
+      "kindNamed": "función",
+      "kindAnonymous": "función anónima",
+      "details": "Nombre: {name}\nEntrada padre: {parent}\nTipo: {kind}\nArgumentos: {arguments}\nLocales: {locals}\nEmpieza en el byte {offset} del padre, {length} bytes de largo"
+    },
     "rename": {
       "title": "Cambiar nombre del símbolo",
       "none": "No hay nada que renombrar.",
@@ -1191,7 +1200,7 @@
     "installIdNote": "Un número aleatorio creado en este equipo. Distingue una instalación de otra en los informes y no se forma con nada sobre ti ni sobre este equipo. Restablecer le da a esta instalación uno nuevo.",
     "shortcuts": "Atajos de teclado",
     "shortcutFilter": "Filtrar comandos o atajos",
-    "pressKeys": "Pulsa las teclas...",
+    "pressKeys": "Pulsa las teclas o un botón del ratón...",
     "noShortcut": "Ninguno",
     "addShortcut": "Añadir otro atajo",
     "reset": "Restablecer",

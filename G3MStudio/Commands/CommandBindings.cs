@@ -39,7 +39,10 @@ public static partial class Shortcuts
     [("OemComma", ","), ("OemPeriod", "."), ("OemPlus", "+"), ("OemMinus", "-"), ("OemQuestion", "/"), ("OemSemicolon", ";"), ("OemOpenBrackets", "["), ("OemCloseBrackets", "]"), ("OemPipe", "\\"), ("OemQuotes", "'"), ("OemTilde", "`"), ("OemBackslash", "\\"), ("Oem1", ";"), ("Oem2", "/"), ("Oem3", "`"), ("Oem4", "["), ("Oem5", "\\"), ("Oem6", "]"), ("Oem7", "'")];
 
     /// <summary>The text a person reads for a shortcut: punctuation keys as the character, not the key enum name, and Cmd where macOS reads Ctrl (see <see cref="Parse"/>).</summary>
-    public static string Display(string? shortcut) => Display(shortcut is null ? null : Parse(shortcut)?.ToString() ?? shortcut, OperatingSystem.IsMacOS()); // the platform's own key names, as the menus show them
+    public static string Display(string? shortcut) => shortcut is not null && MouseGestures.Is(shortcut) ? MouseButton().Replace(shortcut, "Mouse $1") : Display(shortcut is null ? null : Parse(shortcut)?.ToString() ?? shortcut, OperatingSystem.IsMacOS()); // the platform's own key names, as the menus show them
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"Mouse(\d)")]
+    private static partial System.Text.RegularExpressions.Regex MouseButton();
 
     internal static string Display(string? shortcut, bool macOS)
     {

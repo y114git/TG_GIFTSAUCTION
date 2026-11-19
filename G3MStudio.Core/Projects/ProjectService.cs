@@ -18,6 +18,15 @@ public sealed partial class ProjectService(UserData userData, SettingsStore? set
     /// <summary>What the location question shows first.</summary>
     public string SuggestedRoot => Registry.RememberedRoot ?? DefaultRoot;
 
+    /// <summary>A new or empty folder for a project of this name in the projects folder: the name, then the name with -2, -3 and so on.</summary>
+    public string FreeFolder(string name)
+    {
+        var safe = SafeName(name);
+        var folder = Path.Combine(SuggestedRoot, safe);
+        for (var n = 2; Directory.Exists(folder) && Directory.EnumerateFileSystemEntries(folder).Any(); n++) folder = Path.Combine(SuggestedRoot, $"{safe}-{n}");
+        return folder;
+    }
+
     /// <summary>
     /// Opens the project of an opened data file, matched by path, then by size and MD5 (ADR-0011 scenarios). Null when there is none or
     /// its folder is gone (Enable project exports it again). The data file is compared with the last synced state.

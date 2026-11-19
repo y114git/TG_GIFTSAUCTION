@@ -17,6 +17,7 @@ public sealed class ShortcutsEditor : UserControl
     private readonly StackPanel _rows = new() { Spacing = 2 };
     private readonly TextBlock _note = new() { Name = "ShortcutNote", Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap };
     private string? _capturing;
+    private string _outer = ""; // what the search box of the Settings page asks for (see Narrow)
     private int _slot; // 0 is the primary gesture, k the alias k, AddSlot a new alias
     private const int AddSlot = int.MaxValue;
 
@@ -30,6 +31,7 @@ public sealed class ShortcutsEditor : UserControl
         Content = new StackPanel { Spacing = 6, Children = { _filter, _note, _rows } };
         _filter.TextChanged += (_, _) => Fill();
         AddHandler(KeyDownEvent, OnKeyDown, Avalonia.Interactivity.RoutingStrategies.Tunnel);
+        AddHandler(PointerPressedEvent, OnPointerPressed, Avalonia.Interactivity.RoutingStrategies.Tunnel);
         DetachedFromVisualTree += (_, _) => Capturing = false;
         Fill();
     }
@@ -55,7 +57,7 @@ public sealed class ShortcutsEditor : UserControl
         foreach (var command in _registry.All.OrderBy(c => c.Id, StringComparer.Ordinal))
         {
             var title = command.Title ?? MainWindow.PaletteTitle(command.Id, Loc.Current);
-            if (text.Length > 0 && !title.Contains(text, StringComparison.CurrentCultureIgnoreCase) && !command.Id.Contains(text, StringComparison.OrdinalIgnoreCase) && !command.Gestures.Any(g => g.Contains(text, StringComparison.OrdinalIgnoreCase) || G3MStudio.Commands.Shortcuts.Display(g).Contains(text, StringComparison.OrdinalIgnoreCase))) continue;
+            if (!Hit(command, title, text) || !Hit(command, title, _outer)) continue;
             var id = command.Id;
             var buttons = new WrapPanel { [Grid.ColumnProperty] = 1, ItemSpacing = 8 };
             Button Slot(string name, int slot, string label)
@@ -92,6 +94,26 @@ public sealed class ShortcutsEditor : UserControl
         if (focus is not null) Avalonia.Threading.Dispatcher.UIThread.Post(() => focus.Focus());
     }
 
+    private static bool Hit(Command command, string title, string text) =>
+        text.Length == 0 || title.Contains(text, StringComparison.CurrentCultureIgnoreCase) || command.Id.Contains(text, StringComparison.OrdinalIgnoreCase)
+        || command.Gestures.Any(g => g.Contains(text, StringComparison.OrdinalIgnoreCase) || G3MStudio.Commands.Shortcuts.Display(g).Contains(text, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
+    /// Makes the list show only the commands that match the search of the Settings page (an empty text shows all of them, next to this page's own filter).
+    /// True when at least one command matches.
+    /// </summary>
+    public bool Narrow(string text)
+    {
+        text = text.Trim();
+        if (text != _outer)
+        {
+            _outer = text;
+            Fill();
+        }
+
+        return text.Length == 0 || _registry.All.Any(c => Hit(c, c.Title ?? MainWindow.PaletteTitle(c.Id, Loc.Current), text));
+    }
+
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         if (_capturing is not { } id) return;
@@ -99,6 +121,14 @@ public sealed class ShortcutsEditor : UserControl
         if (e.Key == Key.Escape) { _capturing = null; Fill(); return; }
         if (e.Key is Key.Back or Key.Delete && e.KeyModifiers == KeyModifiers.None) { Set(id, _slot, null); return; }
         if (Describe(e) is { } shortcut) Set(id, _slot, shortcut);
+    }
+
+    // Mouse buttons are gestures too (a bare left or right click stays a click, so the button that starts the capture is not taken).
+    private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (_capturing is not { } id || G3MStudio.Commands.MouseGestures.Describe(e) is not { } gesture) return;
+        e.Handled = true;
+        Set(id, _slot, gesture);
     }
 
     /// <summary>Puts a gesture (or none, which removes an alias or clears the primary) into a slot of a command.</summary>

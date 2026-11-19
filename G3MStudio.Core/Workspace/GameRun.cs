@@ -227,7 +227,15 @@ public sealed class GameRun : IDisposable
                 if (part.Length == 2 && int.TryParse(part[0], out var pid) && int.TryParse(part[1], out var parent)) rows.Add((pid, parent));
             }
 
-            for (var i = 0; i < pids.Count; i++) pids.AddRange(rows.Where(r => r.Parent == pids[i]).Select(r => r.Pid));
+            var queue = new Queue<int>(pids);
+            while (queue.TryDequeue(out var parent))
+            {
+                foreach (var (pid, _) in rows.Where(r => r.Parent == parent))
+                {
+                    pids.Add(pid);
+                    queue.Enqueue(pid);
+                }
+            }
         }
         catch (Exception e) when (e is IOException or InvalidOperationException or System.ComponentModel.Win32Exception)
         {

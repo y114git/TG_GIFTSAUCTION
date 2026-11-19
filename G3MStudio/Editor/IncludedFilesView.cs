@@ -111,9 +111,10 @@ public sealed class IncludedFilesView : Grid
         _ = RefreshAsync();
     }
 
-    private static Avalonia.Controls.Templates.FuncDataTemplate<IncludedFile> RowTemplate() => new((f, _) =>
+    internal static Avalonia.Controls.Templates.FuncDataTemplate<IncludedFile> RowTemplate() => new((f, _) =>
     {
         var row = Columns();
+        if (f is null) return row; // a recycled container clears its content: the template is built for no file
         Cell(row, 0, f.Path);
         Cell(row, 1, Loc.Current[KindKeys[f.Kind]]);
         Cell(row, 2, $"{f.Size / 1024.0:0.#} KB", true);

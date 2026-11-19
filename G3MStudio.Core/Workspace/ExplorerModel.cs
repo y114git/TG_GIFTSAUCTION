@@ -38,8 +38,8 @@ public sealed record ExplorerRow(ExplorerRowKind Kind, string Key, string Text, 
 
     public bool IsItem => Kind == ExplorerRowKind.Item;
 
-    /// <summary>Levels of indent: an entry starts under the text of its heading, not one level further in.</summary>
-    public int IndentDepth => IsItem ? Math.Max(0, Depth - 1) : Depth;
+    /// <summary>Levels of indent: every row sits one level further in than the heading it is listed under, so an entry never lines up with the text of its parent.</summary>
+    public int IndentDepth => Depth;
 
     /// <summary>A group or type heading, the rows that open and close.</summary>
     public bool IsHeader => Kind is ExplorerRowKind.Group or ExplorerRowKind.Type or ExplorerRowKind.Folder or ExplorerRowKind.Collection;

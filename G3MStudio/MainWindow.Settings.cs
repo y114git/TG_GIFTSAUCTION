@@ -185,7 +185,7 @@ public partial class MainWindow
         foreach (var command in Registry.All.ToList())
         {
             Registry.SetShortcut(command.Id, s.Shortcuts.TryGetValue(command.Id, out var shortcut) ? (shortcut.Length == 0 ? null : shortcut) : Registry.DefaultShortcut(command.Id));
-            Registry.SetAliases(command.Id, s.ShortcutAliases.TryGetValue(command.Id, out var aliases) ? [.. aliases.Where(a => Shortcuts.Parse(a) is not null)] : Registry.DefaultAliases(command.Id));
+            Registry.SetAliases(command.Id, s.ShortcutAliases.TryGetValue(command.Id, out var aliases) ? [.. aliases.Where(a => Shortcuts.Parse(a) is not null || MouseGestures.Is(a))] : Registry.DefaultAliases(command.Id));
         }
         foreach (var (user, other, gesture) in Registry.OverrideClashes())
         {

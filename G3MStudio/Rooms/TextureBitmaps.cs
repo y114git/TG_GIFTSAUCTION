@@ -73,6 +73,7 @@ public sealed class TextureBitmaps(ModelLock? gate = null, long budget = Texture
     // Past the budget the least recently asked pages leave the cache (not disposed: a view may draw one, and a bitmap frees its pixels when it is finalized).
     private void Enforce(GameMakerEmbeddedTexture keep, Bitmap added)
     {
+        // Only a completed task is read, so Result does not block.
         static long Size(Task<Bitmap?> t) => t.IsCompletedSuccessfully && t.Result is { } b ? (long)b.PixelSize.Width * b.PixelSize.Height * 4 : 0;
         var total = _pages.Where(p => !ReferenceEquals(p.Key, keep)).Sum(p => Size(p.Value.Bitmap)) + (long)added.PixelSize.Width * added.PixelSize.Height * 4; // the page being added has not completed yet
         foreach (var old in _pages.Where(p => !ReferenceEquals(p.Key, keep)).OrderBy(p => p.Value.Stamp).Select(p => p.Key).ToList())

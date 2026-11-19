@@ -30,7 +30,7 @@ public partial class App : Application
 
             var probe = desktop.Args?.FirstOrDefault(a => a.StartsWith("--memory-probe=", StringComparison.Ordinal));
             if (probe is null) window.OpenStartupFile(desktop.Args ?? []);
-            else window.Opened += (_, _) => _ = window.RunMemoryProbeAsync(probe["--memory-probe=".Length..], desktop.Args!.FirstOrDefault(a => !a.StartsWith("--", StringComparison.Ordinal)), () => desktop.Shutdown());
+            else window.Opened += (_, _) => _ = window.RunMemoryProbeAsync(probe["--memory-probe=".Length..], (desktop.Args ?? []).FirstOrDefault(a => !a.StartsWith("--", StringComparison.Ordinal)), () => desktop.Shutdown());
             var givenFile = desktop.Args?.Any(a => !a.StartsWith("--", StringComparison.Ordinal)) == true;
             if (!smoke)
             {

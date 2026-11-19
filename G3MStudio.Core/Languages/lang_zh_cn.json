@@ -1003,6 +1003,15 @@
     "showParent": "转到父级",
     "switchTip": "先保存未保存的更改",
     "fallbackAssembly": "反编译失败：{reason}。正在显示汇编。",
+    "child": {
+      "banner": "这是 {parent} 内部的一个函数。只有父项能反编译为 GML，所以这里显示它的汇编。请在父项中编辑该函数。",
+      "bannerAnonymous": "这是 {parent} 内部的一个匿名函数。只有父项能反编译为 GML，所以这里显示它的汇编。请在父项中编辑该函数。",
+      "showDetails": "详细信息",
+      "hideDetails": "隐藏详细信息",
+      "kindNamed": "函数",
+      "kindAnonymous": "匿名函数",
+      "details": "名称：{name}\n父条目：{parent}\n类型：{kind}\n参数：{arguments}\n局部变量：{locals}\n从父项的第 {offset} 字节开始，长 {length} 字节"
+    },
     "rename": {
       "title": "重命名符号",
       "none": "没有可重命名的内容。",
@@ -1191,7 +1200,7 @@
     "installIdNote": "在这台电脑上生成的随机数。报告中用它区分不同的安装，它不由你或这台电脑的任何信息生成。重置后会换成新的数字。",
     "shortcuts": "键盘快捷键",
     "shortcutFilter": "筛选命令或快捷键",
-    "pressKeys": "请按下按键...",
+    "pressKeys": "请按下按键或鼠标按键...",
     "noShortcut": "无",
     "addShortcut": "添加另一个快捷键",
     "reset": "重置",

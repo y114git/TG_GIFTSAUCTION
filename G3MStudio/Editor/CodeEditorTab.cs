@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 using Avalonia.Threading;
 using AvaloniaEdit;
 using AvaloniaEdit.Folding;
@@ -260,13 +261,22 @@ public sealed partial class CodeEditorTab : DockPanel
     public void ShowFind()
     {
         _search.Open();
-        // The panel builds its parts when it first shows, so the texts are put on and the caret goes into the box once that has happened.
-        Dispatcher.UIThread.Post(() =>
+        // An open panel takes the caret at once, so what is typed right after the shortcut does not land in the code.
+        _search.Reactivate();
+        // The panel builds its parts when it first shows, so the texts are put on and the caret goes into the box once that has happened; the focus is asked for
+        // again for a few frames when the editor still holds it (the system moves the focus after the key press on some platforms).
+        var tries = 0;
+        void Place()
         {
             SearchPanelTexts.Apply(_search);
             _search.Reactivate();
-        }, DispatcherPriority.Loaded);
+            if (!FindBoxHasFocus() && ++tries < 10) Dispatcher.UIThread.Post(Place, DispatcherPriority.Background);
+        }
+
+        Dispatcher.UIThread.Post(Place, DispatcherPriority.Loaded);
     }
+
+    private bool FindBoxHasFocus() => TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement() is Control { } focused && focused.FindAncestorOfType<SearchPanel>(true) is not null;
 
     /// <summary>Puts the caret on a one-based line and column and scrolls there (a double click in the Problems panel).</summary>
     public void GoTo(int line, int column)
@@ -382,7 +392,10 @@ public sealed partial class CodeEditorTab : DockPanel
         {
             var data = _workspace.Data;
             var context = _workspace.DecompileContext();
-            var parentName = data.Code.ByName(Entry)?.ParentEntry?.Name?.Content;
+            var code = data.Code.ByName(Entry);
+            var parentName = code?.ParentEntry?.Name?.Content;
+            // A function inside another entry has no GML of its own: the assembly is shown with an explanation, not a failed decompile.
+            if (code is { ParentEntry: { } parent } && !ShowAssembly) return new CodeLoad(CodeText.Disassemble(data, Entry), CodeMode.Assembly, null, parentName, CodeChild.Of(code, parent));
             if (ShowAssembly) return new CodeLoad(CodeText.Disassemble(data, Entry), CodeMode.Assembly, null, parentName);
             return CodeLoader.Load(() => CodeText.Decompile(data, Entry, context), () => CodeText.Disassemble(data, Entry), parentName);
         }

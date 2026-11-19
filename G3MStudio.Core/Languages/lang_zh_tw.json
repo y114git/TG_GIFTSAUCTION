@@ -1003,6 +1003,15 @@
     "showParent": "前往父層",
     "switchTip": "先儲存未儲存的變更",
     "fallbackAssembly": "反編譯失敗：{reason}。正在顯示組合語言。",
+    "child": {
+      "banner": "這是 {parent} 內部的一個函式。只有父項能反編譯為 GML，所以這裡顯示它的組合語言。請在父項中編輯該函式。",
+      "bannerAnonymous": "這是 {parent} 內部的一個匿名函式。只有父項能反編譯為 GML，所以這裡顯示它的組合語言。請在父項中編輯該函式。",
+      "showDetails": "詳細資訊",
+      "hideDetails": "隱藏詳細資訊",
+      "kindNamed": "函式",
+      "kindAnonymous": "匿名函式",
+      "details": "名稱：{name}\n父項目：{parent}\n類型：{kind}\n參數：{arguments}\n區域變數：{locals}\n從父項的第 {offset} 位元組開始，長 {length} 位元組"
+    },
     "rename": {
       "title": "重新命名符號",
       "none": "沒有可重新命名的內容。",
@@ -1191,7 +1200,7 @@
     "installIdNote": "在這台電腦上產生的隨機數字。報告中用它區分不同的安裝，它不由你或這台電腦的任何資訊產生。重設後會換成新的數字。",
     "shortcuts": "鍵盤快速鍵",
     "shortcutFilter": "篩選命令或快速鍵",
-    "pressKeys": "請按下按鍵...",
+    "pressKeys": "請按下按鍵或滑鼠按鍵...",
     "noShortcut": "無",
     "addShortcut": "新增另一個快速鍵",
     "reset": "重設",

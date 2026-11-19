@@ -370,7 +370,7 @@ internal static partial class ProjectDialogs
         window.Title = title;
         int? answer = null;
         var caption = new TextBlock { Text = label, TextWrapping = TextWrapping.Wrap };
-        var list = new ListBox { Name = "ChoiceList", ItemsSource = items, SelectedIndex = selected, MaxHeight = 280, ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<string>((text, _) => columns is null ? new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap } : ChoiceRow(text.Split('\t'), false)) }.LabeledBy(caption);
+        var list = new ListBox { Name = "ChoiceList", ItemsSource = items, SelectedIndex = selected, MaxHeight = 280, ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<string>((text, _) => columns is null || text is null ? new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap } : ChoiceRow(text.Split('\t'), false)) }.LabeledBy(caption);
         ScrollViewer.SetHorizontalScrollBarVisibility(list, Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled);
         list.DoubleTapped += (_, _) =>
         {

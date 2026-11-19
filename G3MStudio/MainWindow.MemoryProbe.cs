@@ -36,7 +36,7 @@ public sealed partial class MainWindow
 
         async Task OpenTabs()
         {
-            var data = Workspaces.Current!.Data;
+            var data = Workspaces.Current?.Data ?? throw new InvalidOperationException("The probe needs an open file.");
             var wanted = new (string Type, int Count)[] { ("code", 5), ("sprites", 3), ("rooms", 3), ("embeddedTextures", 3), ("objects", 3), ("sounds", 2), ("fonts", 2), ("shaders", 2) };
             foreach (var (type, count) in wanted.Where(w => Environment.GetEnvironmentVariable("G3MSTUDIO_PROBE_KINDS") is not { } only || only.Split(',').Contains(w.Type)))
             {

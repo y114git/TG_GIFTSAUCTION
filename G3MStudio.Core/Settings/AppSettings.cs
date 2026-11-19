@@ -277,7 +277,6 @@ public sealed record AppSettings
     /// <summary>Dialog sizes the user gave by resizing, window type name to size; the dialog opens at that size again.</summary>
     public IReadOnlyDictionary<string, DialogSize> DialogSizes { get; init; } = new Dictionary<string, DialogSize>();
 
-    /// <summary>The Run options of these settings as a profile.</summary>
     public RunProfile ToRunProfile(string name = "") => new(name, RunRunner, RunArguments, RunDebugOutput, RunWorkingDir, RunEnvironment, RunCompat, RunCompatProgram, RunWinePrefix, RunCompatCommand);
 
     /// <summary>These settings with the Run options of the profile.</summary>

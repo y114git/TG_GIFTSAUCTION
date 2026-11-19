@@ -42,7 +42,7 @@ public sealed partial class MainWindow
     private async Task ConvertUtmtProjectAsync(string path)
     {
         var info = UtmtProjectImporter.Inspect(path);
-        var request = await (UtmtAsker?.Invoke(info) ?? ProjectDialogs.AskUtmtAsync(this, info, info.Folder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + "-g3m", await GitService.IsInstalledAsync()));
+        var request = await (UtmtAsker?.Invoke(info) ?? ProjectDialogs.AskUtmtAsync(this, info, Workspaces.Projects.FreeFolder(info.Name), await GitService.IsInstalledAsync()));
         if (request is null) return;
         if (File.Exists(request.BaseDataFile) && await UtmtProjectImporter.CheckBaseAsync(info, request.BaseDataFile) == UtmtBaseCheck.Mismatch
             && !await Confirm(Loc.Current["project.utmt.mismatchTitle"], Loc.Current["project.utmt.mismatchAsk"])) return;

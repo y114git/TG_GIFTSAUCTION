@@ -34,6 +34,46 @@ public sealed class CodeFallbackTests
     }
 
     [Fact]
+    public async Task AFunctionInsideAnotherEntryExplainsItselfAndShowsItsFactsOnDemand()
+    {
+        using var dir = new TempDir();
+        var path = TestData.WriteSample(dir, withCode: true);
+        var userData = new UserData(dir.File("user"));
+        using var workspace = await new WorkspaceService(userData, RecentFiles.Load(userData)).OpenAsync(path, null, TestContext.Current.CancellationToken);
+        await HeadlessApp.Run(async () =>
+        {
+            var child = new CodeChild("gml_Script_parent", true, 2, 0, 200, 96);
+            var tab = new CodeEditorTab(workspace, "gml_Script_anon_1", () => new CodeLoad("pushi.e 1", CodeMode.Assembly, null, "gml_Script_parent", child));
+            var window = new Window { Content = tab, Width = 700, Height = 400 };
+            window.Show();
+            try
+            {
+                await tab.Ready;
+                T Of<T>(string name) where T : Control => tab.GetVisualDescendants().OfType<T>().Single(c => c.Name == name);
+                Assert.True(tab.ShowsFallback);
+                Assert.Contains("anonymous function inside gml_Script_parent", Of<SelectableTextBlock>("FallbackText").Text, StringComparison.Ordinal);
+                Assert.DoesNotContain("failed", Of<SelectableTextBlock>("FallbackText").Text, StringComparison.OrdinalIgnoreCase);
+                Assert.False(Of<Button>("AssemblyToggle").IsVisible); // there is no GML to switch to
+                Assert.True(Of<Button>("ShowParent").IsVisible);
+                Assert.False(Of<SelectableTextBlock>("ChildDetails").IsVisible); // compact by default
+
+                Of<Button>("ChildDetailsToggle").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+                var details = Of<SelectableTextBlock>("ChildDetails");
+                Assert.True(details.IsVisible);
+                Assert.Contains("Parent entry: gml_Script_parent", details.Text, StringComparison.Ordinal);
+                Assert.Contains("Kind: anonymous function", details.Text, StringComparison.Ordinal);
+                Assert.Contains("Arguments: 2", details.Text, StringComparison.Ordinal);
+                Assert.Contains("byte 200", details.Text, StringComparison.Ordinal);
+                Assert.Contains("Name: gml_Script_anon_1", details.Text, StringComparison.Ordinal);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
     public async Task TheTabShowsTheAssemblyUnderABannerAndGoToParentAsksForTheParentTab()
     {
         using var dir = new TempDir();

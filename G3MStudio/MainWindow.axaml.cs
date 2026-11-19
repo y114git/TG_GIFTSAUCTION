@@ -129,6 +129,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
         UpdateTexts();
         FollowStatics();
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
+        AddHandler(PointerPressedEvent, OnPointerPressed, RoutingStrategies.Tunnel);
         DragDrop.SetAllowDrop(this, true);
         AddHandler(DragDrop.DropEvent, (_, e) => OpenDropped(e.DataTransfer.TryGetFiles()?.Select(f => f.TryGetLocalPath()).OfType<string>() ?? []));
     }
