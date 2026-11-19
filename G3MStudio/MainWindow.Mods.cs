@@ -401,6 +401,8 @@ public sealed partial class MainWindow
             _exportName = null;
             Progress.IsVisible = false;
             UpdateTexts();
+            // A patch, compare or pack build leaves the copies of the data file it worked on as garbage; the file is still open, so the working set is not trimmed.
+            ReclaimAfterFile();
         }
     }
 }

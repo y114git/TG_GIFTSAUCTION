@@ -223,11 +223,20 @@ public partial class ExplorerView : UserControl
 
     private void ApplyZoom()
     {
+        // Rows grow or shrink together, so the same share of the list stays above the view: the scroll position is kept as a share and put back once the new size is laid out.
+        var scroll = List.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
+        var share = scroll is { Extent.Height: > 0 } ? scroll.Offset.Y / scroll.Extent.Height : 0;
         List.FontSize = this.Size("FontSize.Body", 13) * Zoom;
+        StickyChevron.Width = ChevronSlot * Zoom;
+        StickyText.FontSize = StickyCount.FontSize = StickyChevron.FontSize = List.FontSize;
         // The row kept for the keyboard focus stays in the tree while scrolled away and is not among the realized ones: dress it too, or it comes back with the old size.
         foreach (var container in List.GetVisualDescendants().OfType<ListBoxItem>()) Dress(container);
         StickyRow = null;
         UpdateSticky();
+        if (scroll is null || share <= 0) return;
+        void Restore() => scroll.Offset = new Vector(scroll.Offset.X, share * scroll.Extent.Height);
+        Avalonia.Threading.Dispatcher.UIThread.Post(Restore, Avalonia.Threading.DispatcherPriority.Loaded);
+        Avalonia.Threading.Dispatcher.UIThread.Post(Restore, Avalonia.Threading.DispatcherPriority.Background);
     }
 
     private readonly Dictionary<Image, CancellationTokenSource> _pending = [];

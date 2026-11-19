@@ -251,8 +251,11 @@ public sealed partial class MainWindow
 
     public void Find()
     {
-        // The Explorer filter is the search box of the Explorer; anything else that has the focus goes to the code tab in front.
-        if (FocusManager?.GetFocusedElement() is Control focused && focused.FindAncestorOfType<ExplorerView>() is not null) Explorer.FocusFilter();
+        // The Explorer filter is the search box of the Explorer; a text file or shader box with the focus opens its own find panel; anything else goes to the code tab in front.
+        var focused = FocusManager?.GetFocusedElement() as Control;
+        if (focused?.FindAncestorOfType<ExplorerView>() is not null) Explorer.FocusFilter();
+        else if (focused?.FindAncestorOfType<TextFileView>() is { } textFile) textFile.ShowFind();
+        else if (focused?.FindAncestorOfType<ShaderSourceView>() is { } shader && shader.ShowFind(focused)) { }
         else if (Docking.ActiveTabId is { } id && _codeTabs.TryGetValue(id, out var tab)) tab.ShowFind();
         else Explorer.FocusFilter();
     }

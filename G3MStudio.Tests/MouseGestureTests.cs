@@ -44,6 +44,8 @@ public sealed class MouseGestureTests
     [InlineData("Ctrl+Shift+Mouse4", true)]
     [InlineData("Ctrl+S", false)]
     [InlineData("Mouse0", false)]
+    [InlineData("Mouse1", false)]
+    [InlineData("mouse2", false)]
     [InlineData("Ctrl+Mouse1", true)]
     [InlineData("Mouse6", false)]
     [InlineData("Foo+Mouse4", false)]

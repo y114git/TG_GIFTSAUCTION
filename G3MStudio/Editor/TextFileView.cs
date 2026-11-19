@@ -19,6 +19,9 @@ public sealed class TextFileView : DockPanel
     private readonly SearchPanel _search;
     private string _applied;
 
+    /// <summary>Opens the find panel of the text (Ctrl+F).</summary>
+    public void ShowFind() => SearchPanelTexts.Show(_search, this);
+
     public TextFileView(string text)
     {
         _applied = text;

@@ -2,6 +2,7 @@ using G3MStudio.Theme;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.VisualTree;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Models;
 using G3MStudio.Commands;
@@ -14,6 +15,15 @@ namespace G3MStudio.Editor;
 public sealed class ShaderSourceView : TabControl
 {
     private readonly Dictionary<string, AvaloniaEdit.TextEditor> _boxes = [];
+    private readonly Dictionary<AvaloniaEdit.TextEditor, AvaloniaEdit.Search.SearchPanel> _searches = [];
+
+    /// <summary>Opens the find panel of the shader box that holds the focus (Ctrl+F); false when the focus is in none.</summary>
+    public bool ShowFind(Control focused)
+    {
+        if (focused.FindAncestorOfType<AvaloniaEdit.TextEditor>(true) is not { } box || !_searches.TryGetValue(box, out var search)) return false;
+        SearchPanelTexts.Show(search, this);
+        return true;
+    }
     private readonly List<Func<bool>> _savers = []; // one per source tab, in tab order
     private readonly GameMakerShader _shader;
 
@@ -37,6 +47,7 @@ public sealed class ShaderSourceView : TabControl
             box.Name = "Shader_" + property;
             _boxes[property] = box;
             var search = AvaloniaEdit.Search.SearchPanel.Install(box); // the same find and replace as the code tab
+            _searches[box] = search;
             search.IsReplaceMode = workspace is not null;
             box.AttachedToVisualTree += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(() => SearchPanelTexts.Apply(search), Avalonia.Threading.DispatcherPriority.Loaded);
             box.TextChanged += (_, _) =>

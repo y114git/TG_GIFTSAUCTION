@@ -17,12 +17,16 @@ public static class MouseGestures
     {
         if (gesture is null) return false;
         var parts = gesture.Split('+');
-        return Buttons.Contains(parts[^1], StringComparer.OrdinalIgnoreCase) && parts[..^1].All(m => m is "Ctrl" or "Alt" or "Shift");
+        // A bare left or right click is never produced by Describe, so such a text would be a binding that cannot fire.
+        return Buttons.Contains(parts[^1], StringComparer.OrdinalIgnoreCase) && parts[..^1].All(m => m is "Ctrl" or "Alt" or "Shift")
+            && (parts.Length > 1 || !parts[0].Equals(Buttons[0], StringComparison.OrdinalIgnoreCase) && !parts[0].Equals(Buttons[1], StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>The gesture of a button press, or null for a bare left or right click.</summary>
     public static string? Describe(PointerPressedEventArgs e)
     {
+        // A touch tap reads as a left press and a pen barrel as a right one: only a mouse makes a gesture.
+        if (e.Pointer.Type != PointerType.Mouse) return null;
         var button = e.GetCurrentPoint(null).Properties.PointerUpdateKind switch
         {
             PointerUpdateKind.LeftButtonPressed => Buttons[0],

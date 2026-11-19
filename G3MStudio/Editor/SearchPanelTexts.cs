@@ -30,6 +30,27 @@ public static class SearchPanelTexts
     private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Control, string> ContentKeys = [];
     private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Control, string> HintKeys = [];
 
+    /// <summary>
+    /// Opens the find panel of an editor and puts the caret in its box, so what is typed right after the shortcut does not land in the text. The panel builds its
+    /// parts when it first shows: the texts are put on then, and the focus is asked for again for a few frames while the editor still holds it (some platforms
+    /// move the focus after the key press).
+    /// </summary>
+    public static void Show(AvaloniaEdit.Search.SearchPanel panel, Control owner)
+    {
+        panel.Open();
+        panel.Reactivate();
+        var tries = 0;
+        void Place()
+        {
+            Apply(panel);
+            panel.Reactivate();
+            var focused = TopLevel.GetTopLevel(owner)?.FocusManager?.GetFocusedElement() as Control;
+            if (focused?.FindAncestorOfType<AvaloniaEdit.Search.SearchPanel>(true) is null && ++tries < 10) Avalonia.Threading.Dispatcher.UIThread.Post(Place, Avalonia.Threading.DispatcherPriority.Background);
+        }
+
+        Avalonia.Threading.Dispatcher.UIThread.Post(Place, Avalonia.Threading.DispatcherPriority.Loaded);
+    }
+
     public static void Apply(Control panel)
     {
         foreach (var control in panel.GetVisualDescendants().OfType<Control>().Prepend(panel))

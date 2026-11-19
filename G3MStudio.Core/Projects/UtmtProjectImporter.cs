@@ -44,6 +44,8 @@ public sealed partial class UtmtProjectImporter(ProjectService projects, IReadOn
             }
 
             stage?.Report("export");
+            // The write left its buffers behind: they go before the export allocates its own.
+            await Task.Run(() => ProcessMemory.Reclaim(false), CancellationToken.None);
             var exported = await Task.Run(() => G3MProjectService.Export(data, destination, dataFile, new G3MProjectOptions { Name = name }, progress, cancellationToken), cancellationToken);
             KeepCodeSources(info.Folder, destination);
             var warnings = Notes(info, context.Warnings, exported.Warnings);

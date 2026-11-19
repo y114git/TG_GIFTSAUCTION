@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
-using Avalonia.VisualTree;
 using Avalonia.Threading;
 using AvaloniaEdit;
 using AvaloniaEdit.Folding;
@@ -258,25 +257,7 @@ public sealed partial class CodeEditorTab : DockPanel
     }
 
     /// <summary>Opens the search box of the editor (Ctrl+F).</summary>
-    public void ShowFind()
-    {
-        _search.Open();
-        // An open panel takes the caret at once, so what is typed right after the shortcut does not land in the code.
-        _search.Reactivate();
-        // The panel builds its parts when it first shows, so the texts are put on and the caret goes into the box once that has happened; the focus is asked for
-        // again for a few frames when the editor still holds it (the system moves the focus after the key press on some platforms).
-        var tries = 0;
-        void Place()
-        {
-            SearchPanelTexts.Apply(_search);
-            _search.Reactivate();
-            if (!FindBoxHasFocus() && ++tries < 10) Dispatcher.UIThread.Post(Place, DispatcherPriority.Background);
-        }
-
-        Dispatcher.UIThread.Post(Place, DispatcherPriority.Loaded);
-    }
-
-    private bool FindBoxHasFocus() => TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement() is Control { } focused && focused.FindAncestorOfType<SearchPanel>(true) is not null;
+    public void ShowFind() => SearchPanelTexts.Show(_search, this);
 
     /// <summary>Puts the caret on a one-based line and column and scrolls there (a double click in the Problems panel).</summary>
     public void GoTo(int line, int column)

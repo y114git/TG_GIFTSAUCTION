@@ -230,6 +230,7 @@ public sealed partial class MainWindow
                 _ => (NotificationLevel.Error, Loc.Current.Format("save.invalid", ("name", name), ("detail", result.Message ?? ""))),
             };
             Notify(level, text);
+            if (result.Saved) ReclaimAfterFile(); // the encoded pictures and write buffers of the save are garbage now
             if (result is { Saved: true, Warning: { } warning }) Notify(NotificationLevel.Warning, Loc.Current.Format("save.checksumWarning", ("name", name), ("reason", warning)));
             return result.Saved;
         }

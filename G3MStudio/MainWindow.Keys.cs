@@ -46,7 +46,8 @@ public sealed partial class MainWindow
         if (Settings.ShortcutsEditor.Capturing || _blocked) return;
         if (MouseGestures.Match(Registry, e) is not { } command || !Registry.IsEnabled(command)) return;
         Registry.Execute(command.Id);
-        e.Handled = true;
+        // A left or middle click also has a job in the control under it (selecting, go to definition, panning): the command runs and the click goes on.
+        if (MouseGestures.Describe(e) is { } gesture && !gesture.EndsWith("Mouse1", StringComparison.Ordinal) && !gesture.EndsWith("Mouse3", StringComparison.Ordinal)) e.Handled = true;
     }
 
     /// <summary>
