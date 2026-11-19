@@ -29,7 +29,7 @@ public static class XPatchCommand
                 Console.WriteLine("  Modified: " + modified.FullName);
                 Console.WriteLine("  Output:   " + outputPath);
             }
-            await RunAsync("xpatch create", outputPath, "Patch created successfully: ", service => service.CreatePatchAsync(original.FullName, modified.FullName, outputPath));
+            await RunAsync("xpatch create", outputPath, "Patch created successfully: ", xdelta => XDeltaProcess.CreateAsync(xdelta, original.FullName, modified.FullName, outputPath, Program.Cancellation));
         });
         var applyCommand = new Command("apply", "Apply an xdelta patch to a file.\n  Usage: xpatch apply <original> <patch> [output] [--xdelta-path <path>] [--json]");
         var applyOriginalArg = new Argument<FileInfo>("original") { Description = "Path to original file" };
@@ -51,19 +51,19 @@ public static class XPatchCommand
                 Console.WriteLine("  Patch:    " + patch.FullName);
                 Console.WriteLine("  Output:   " + outputPath);
             }
-            await RunAsync("xpatch apply", outputPath, "Patch applied successfully: ", service => service.ApplyPatchAsync(original.FullName, patch.FullName, outputPath));
+            await RunAsync("xpatch apply", outputPath, "Patch applied successfully: ", xdelta => XDeltaProcess.ApplyAsync(xdelta, original.FullName, patch.FullName, outputPath, Program.Cancellation));
         });
         command.Add(createCommand);
         command.Add(applyCommand);
         return command;
     }
 
-    private static async Task RunAsync(string commandName, string outputPath, string successText, Func<XDeltaService, Task<XDeltaResult>> run)
+    private static async Task RunAsync(string commandName, string outputPath, string successText, Func<string, Task<XDeltaRun>> run)
     {
         string? error;
         try
         {
-            var result = await run(EmbeddedXDeltaPathProvider.CreateService());
+            var result = await run(EmbeddedXDeltaPathProvider.Resolve());
             error = result.Success ? null : result.Error;
         }
         catch (InvalidOperationException exception)

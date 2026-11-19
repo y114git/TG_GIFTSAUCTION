@@ -1,4 +1,5 @@
 using G3MLib.DataFile;
+using G3MToolCLI.Services.Execution;
 using G3MLib.Modding.Caching;
 using G3MLib.Modding.Diffing;
 using G3MLib.Modding.Logging;
@@ -72,7 +73,7 @@ public sealed class ModdingOperationService(ScriptInteraction? interaction = nul
     {
         try
         {
-            if (request.Operation is not (ModdingOperation.Inspect or ModdingOperation.ValidatePatch or ModdingOperation.Compare or ModdingOperation.RunScript or ModdingOperation.RunProgram))
+            if (request.Operation is not (ModdingOperation.Inspect or ModdingOperation.ValidatePatch or ModdingOperation.Compare or ModdingOperation.RunProgram))
                 EmbeddedXDeltaPathProvider.TryConfigure();
             return request.Operation switch
             {
@@ -363,51 +364,36 @@ public sealed class ModdingOperationService(ScriptInteraction? interaction = nul
     }
 
     private static Task<ModdingOperationResult> CreateXDeltaFileAsync(string originalPath, string modifiedPath, string outputPath, CancellationToken cancellationToken) =>
-        RunXDeltaFileAsync(["-e", "-s", Path.GetFullPath(originalPath), Path.GetFullPath(modifiedPath), Path.GetFullPath(outputPath)], outputPath, "XDelta patch created.", "XDelta creation failed.", cancellationToken);
+        RunXDeltaFileAsync(executable => XDeltaProcess.CreateAsync(executable, originalPath, modifiedPath, outputPath, cancellationToken), outputPath, "XDelta patch created.", "XDelta creation failed.");
 
     private static async Task<ModdingOperationResult> ApplyXDeltaAsync(ModdingOperationRequest request, CancellationToken cancellationToken)
     {
         var error = RequireFiles(request.OriginalPath, request.PrimaryPath) ?? RequireOutput(request.OutputPath) ?? string.Empty;
         if (error.Length != 0) return ModdingOperationResult.Failure(error);
         LogService.SetOperation("Applying XDelta patch");
-        return await RunXDeltaFileAsync(["-d", "-s", Path.GetFullPath(request.OriginalPath), Path.GetFullPath(request.PrimaryPath), Path.GetFullPath(request.OutputPath)], request.OutputPath, "XDelta patch applied.", "XDelta application failed.", cancellationToken);
+        return await RunXDeltaFileAsync(executable => XDeltaProcess.ApplyAsync(executable, request.OriginalPath, request.PrimaryPath, request.OutputPath, cancellationToken), request.OutputPath, "XDelta patch applied.", "XDelta application failed.");
     }
 
-    /// <summary>
-    /// Runs xdelta as a child process so Cancel can kill it, and removes a half-written output that this run created.
-    /// The library's xdelta service takes no token.
-    /// </summary>
-    private static async Task<ModdingOperationResult> RunXDeltaFileAsync(string[] arguments, string outputPath, string success, string failure, CancellationToken cancellationToken)
+    // The library's xdelta service takes no token, so xdelta runs through the shared child-process helper that Cancel can kill.
+    private static async Task<ModdingOperationResult> RunXDeltaFileAsync(Func<string, Task<XDeltaRun>> run, string outputPath, string success, string failure)
     {
-        var fullOutput = Path.GetFullPath(outputPath);
-        var existedBefore = File.Exists(fullOutput);
-        Directory.CreateDirectory(Path.GetDirectoryName(fullOutput)!);
-        try
-        {
-            var result = await ExternalProcessService.RunAsync(EmbeddedXDeltaPathProvider.Resolve(), arguments, errorOutputIsError: false, cancellationToken: cancellationToken);
-            if (result.ExitCode == 0) return new(true, success, [outputPath]);
-            DeleteNewFile(fullOutput, existedBefore);
-            return ModdingOperationResult.Failure(string.IsNullOrWhiteSpace(result.ErrorText) ? $"{failure} xdelta exited with code {result.ExitCode}." : $"{failure} {result.ErrorText}");
-        }
-        catch (OperationCanceledException)
-        {
-            DeleteNewFile(fullOutput, existedBefore);
-            throw;
-        }
-    }
-
-    private static void DeleteNewFile(string path, bool existedBefore)
-    {
-        try { if (!existedBefore && File.Exists(path)) File.Delete(path); }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException) { LogService.Warning($"Could not delete the partial file {path}."); }
+        var result = await run(EmbeddedXDeltaPathProvider.Resolve());
+        LogOutput(result.Output);
+        return result.Success ? new(true, success, [outputPath]) : ModdingOperationResult.Failure($"{failure} {result.Error}");
     }
 
     private static async Task<ModdingOperationResult> RunXDeltaAsync(ModdingOperationRequest request, CancellationToken cancellationToken)
     {
         if (request.InputPaths.Count == 0) return ModdingOperationResult.Failure("Enter one XDelta argument per line.");
         LogService.SetOperation("Running XDelta");
-        var result = await ExternalProcessService.RunAsync(EmbeddedXDeltaPathProvider.Resolve(), request.InputPaths, errorOutputIsError: false, cancellationToken: cancellationToken);
-        return result.ExitCode == 0 ? new(true, "XDelta completed.", []) : ModdingOperationResult.Failure(string.IsNullOrWhiteSpace(result.ErrorText) ? $"XDelta failed with exit code {result.ExitCode}." : "XDelta failed. " + result.ErrorText);
+        var result = await XDeltaProcess.RunAsync(EmbeddedXDeltaPathProvider.Resolve(), request.InputPaths, cancellationToken);
+        LogOutput(result.Output);
+        return result.Success ? new(true, "XDelta completed.", []) : ModdingOperationResult.Failure("XDelta failed. " + result.Error);
+    }
+
+    private static void LogOutput(string text)
+    {
+        foreach (var line in text.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) LogService.Info(line);
     }
 
     private async Task<ModdingOperationResult> RunScriptAsync(ModdingOperationRequest request, CancellationToken cancellationToken)

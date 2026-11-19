@@ -65,7 +65,7 @@ public static class PatchCommand
                 }
                 if (xdeltaOutput)
                 {
-                    var xresult = await EmbeddedXDeltaPathProvider.CreateService().CreatePatchAsync(original.FullName, materialized, outputPath);
+                    var xresult = await XDeltaProcess.CreateAsync(EmbeddedXDeltaPathProvider.Resolve(), original.FullName, materialized, outputPath, Program.Cancellation);
                     if (!xresult.Success)
                     {
                         WriteErrorJsonOrText("patch create", xresult.Error);

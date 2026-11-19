@@ -137,6 +137,8 @@ internal static class Program
         LogService.Verbose = parseResult.GetValue(verboseOption);
         JsonOutput = parseResult.GetValue(jsonOption);
         XDeltaPathOverride = parseResult.GetValue(xdeltaPathOption);
+        // Interactive mode runs many commands in one process: nothing from the previous command may stay configured.
+        G3MLib.Modding.XDelta.XDeltaService.DefaultExecutablePath = null;
         LogService.Suppress = JsonOutput;
         G3MLib.Modding.Logging.LogService.Verbose = LogService.Verbose;
         G3MLib.Modding.Logging.LogService.Suppress = LogService.Suppress;

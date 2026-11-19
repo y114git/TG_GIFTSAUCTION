@@ -105,6 +105,7 @@ public sealed class ModdingOperationServiceTests
             await File.WriteAllTextAsync(script, """
                 if (ScriptQuestion("Continue?")) throw new Exception("Expected No");
                 if (ScriptInputDialog("Title", "Label", "Default", "Cancel", "OK", false, false) != "value") throw new Exception("Input");
+                if (ScriptInputDialog("Title", "Label", "Default", false, true) != "value") throw new Exception("Old input");
                 if (PromptLoadFile("win", "All|*") != "input.win") throw new Exception("Open");
                 if (PromptSaveFile("win", "All|*") != "output.win") throw new Exception("Save");
                 if (PromptChooseDirectory() != null) throw new Exception("Cancel");
@@ -522,6 +523,32 @@ public sealed class ModdingOperationServiceTests
             var result = await service.RunAsync(new ModdingOperationRequest { Operation = ModdingOperation.RunScript, PrimaryPath = script }, cancellation.Token).WaitAsync(TimeSpan.FromSeconds(60), TestContext.Current.CancellationToken);
 
             Assert.False(result.Success);
+            Assert.Equal("Cancelled.", result.Summary);
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
+
+    [Fact]
+    public async Task CancelEndsAScriptWaitingInADialog()
+    {
+        var directory = Directory.CreateTempSubdirectory("g3mtool-cancel-dialog-").FullName;
+        try
+        {
+            var script = Path.Combine(directory, "ask.csx");
+            await File.WriteAllTextAsync(script, "ScriptQuestion(\"Continue?\");", TestContext.Current.CancellationToken);
+            var never = new TaskCompletionSource<bool>();
+            using ModdingOperationService service = new(new ScriptInteraction
+            {
+                Question = _ => never.Task,
+                Input = (_, _, _, _) => Task.FromResult<string?>(null),
+                OpenFile = (_, _) => Task.FromResult<string?>(null),
+                SaveFile = (_, _) => Task.FromResult<string?>(null),
+                ChooseDirectory = () => Task.FromResult<string?>(null)
+            });
+            using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+
+            var result = await service.RunAsync(new ModdingOperationRequest { Operation = ModdingOperation.RunScript, PrimaryPath = script }, cancellation.Token).WaitAsync(TimeSpan.FromSeconds(60), TestContext.Current.CancellationToken);
+
             Assert.Equal("Cancelled.", result.Summary);
         }
         finally { Directory.Delete(directory, recursive: true); }

@@ -393,4 +393,18 @@ public class ExecuteServiceTests
         using var stream = File.OpenRead(path);
         return GameMakerIO.Read(stream);
     }
+
+    [Fact]
+    public async Task ScriptsKeepTheShortScriptInputDialogForm()
+    {
+        var directory = Directory.CreateTempSubdirectory("g3mtool-short-dialog-").FullName;
+        try
+        {
+            var script = Path.Combine(directory, "dialog.csx");
+            await File.WriteAllTextAsync(script, "if (ScriptInputDialog(\"Title\", \"Label\", \"Default\", false, true) != \"Default\") throw new Exception(\"Input\");", TestContext.Current.CancellationToken);
+            var result = await ExecuteService.ExecuteScriptAsync(script, null, null, [], cancellationToken: TestContext.Current.CancellationToken);
+            Assert.True(result.Success, result.Error);
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
 }

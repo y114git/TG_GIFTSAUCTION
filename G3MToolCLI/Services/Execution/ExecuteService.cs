@@ -88,15 +88,36 @@ public static class ExecuteService
         }
     }
 
-    private static async Task<ScriptResult> RunAsync(string scriptPath, CliScriptGlobals globals, TimeSpan? timeout, CancellationToken cancellationToken)
+    private static readonly Lock s_consoleLock = new();
+    private static int s_silenced;
+    private static TextWriter? s_savedOut;
+
+    // Counted, so overlapping runs never save the silent writer as the original or restore too early.
+    private static void SilenceConsole()
     {
-        // Script output goes to the console only with --verbose.
-        TextWriter? originalOut = null;
-        if (!LogService.Verbose)
+        using (s_consoleLock.EnterScope())
         {
-            originalOut = Console.Out;
+            if (s_silenced++ != 0) return;
+            s_savedOut = Console.Out;
             Console.SetOut(TextWriter.Null);
         }
+    }
+
+    private static void RestoreConsole()
+    {
+        using (s_consoleLock.EnterScope())
+        {
+            if (--s_silenced != 0 || s_savedOut is null) return;
+            Console.SetOut(s_savedOut);
+            s_savedOut = null;
+        }
+    }
+
+    private static async Task<ScriptResult> RunAsync(string scriptPath, CliScriptGlobals globals, TimeSpan? timeout, CancellationToken cancellationToken)
+    {
+        // Script output goes to the console only with --verbose. Scripts print through Console directly, so the writer is swapped for the whole process.
+        var silenced = !LogService.Verbose;
+        if (silenced) SilenceConsole();
         try
         {
             var result = await ScriptRunner.RunAsync(scriptPath, globals, cancellationToken, timeout);
@@ -105,10 +126,7 @@ public static class ExecuteService
         }
         finally
         {
-            if (originalOut != null)
-            {
-                Console.SetOut(originalOut);
-            }
+            if (silenced) RestoreConsole();
         }
     }
 }

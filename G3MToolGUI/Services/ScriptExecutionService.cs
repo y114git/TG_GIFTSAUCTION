@@ -71,25 +71,28 @@ public sealed class GuiScriptGlobals : ScriptGlobals
 
     public override bool Verbose => true;
 
-    public override bool ScriptQuestion(string message) => RequireInteraction().Question(message).GetAwaiter().GetResult()!;
+    public override bool ScriptQuestion(string message) => Wait(RequireInteraction().Question(message))!;
 
     public override string ScriptInputDialog(string title, string label, string defaultInput, string cancelText, string submitText, bool isMultiline, bool preventClose) =>
-        RequireInteraction().Input(title, label, defaultInput, isMultiline).GetAwaiter().GetResult()!;
+        Wait(RequireInteraction().Input(title, label, defaultInput, isMultiline))!;
 
     public override string SimpleTextInput(string title, string label, string defaultValue, bool allowMultiline, bool showDialog = true) =>
-        showDialog ? RequireInteraction().Input(title, label, defaultValue, allowMultiline).GetAwaiter().GetResult()! : defaultValue;
+        showDialog ? Wait(RequireInteraction().Input(title, label, defaultValue, allowMultiline))! : defaultValue;
 
-    public override string PromptLoadFile(string defaultExt, string filter) => RequireInteraction().OpenFile(filter, string.Empty).GetAwaiter().GetResult()!;
+    public override string PromptLoadFile(string defaultExt, string filter) => Wait(RequireInteraction().OpenFile(filter, string.Empty))!;
 
-    public override string PromptSaveFile(string defaultExt, string filter) => RequireInteraction().SaveFile(filter, string.Empty).GetAwaiter().GetResult()!;
+    public override string PromptSaveFile(string defaultExt, string filter) => Wait(RequireInteraction().SaveFile(filter, string.Empty))!;
 
-    public override string PromptChooseDirectory() => RequireInteraction().ChooseDirectory().GetAwaiter().GetResult()!;
+    public override string PromptChooseDirectory() => Wait(RequireInteraction().ChooseDirectory())!;
 
     protected override void ReportProgress(string label, string status, int value, double maximum)
     {
         if (!string.IsNullOrEmpty(status)) LogService.SetOperation(status);
         LogService.Progress(value, (int)maximum);
     }
+
+    // A script waiting for the user must still end when the operation is cancelled.
+    private T Wait<T>(Task<T> task) => task.WaitAsync(CancellationToken).GetAwaiter().GetResult();
 
     private ScriptInteraction RequireInteraction() => Interaction ?? throw new ScriptException("Interactive script input requires a window host.");
 }

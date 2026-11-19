@@ -174,12 +174,14 @@ G3MTool execute xdelta -- <args>
 
 Runs an external program, a `.csx` script, or xdelta. For `.csx` scripts, `--data` loads a data file and `--input` passes an input directory as the first script argument. `--timeout <seconds>` stops a script that runs too long, and Ctrl+C cancels it.
 
+`--data`, `--output`, `--input` and `--timeout` apply to scripts only; other targets reject them. With `--data` and no file path the command prints a one-line note that the data file was not saved. `--json` reports scripts, programs, and xdelta as one JSON object (a program's output is collected into it).
+
 `--output` decides where results go:
 
 | `--output` | Script exports (`OutputDir`) | Data file |
 | --- | --- | --- |
-| a folder (existing, or a path ending with `/` or `\`) | that folder, created when missing | not written |
-| a file path | the folder of that file | written to that path |
+| a folder: an existing one, a path ending with `/` or `\`, or a path without an extension | that folder, created when missing | not written |
+| any other path | the folder of that path | written to that path |
 | omitted | the current folder | not written |
 
 Put `--` before external-program or xdelta arguments so their options are passed through unchanged. When the `target` is `xdelta`, place `--xdelta-path <path>` before the separator to use a specific xdelta executable.

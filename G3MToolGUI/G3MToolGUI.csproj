@@ -39,6 +39,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\G3MToolCLI\Services\Execution\XDeltaProcess.cs" Link="Services\XDeltaProcess.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <AvaloniaResource Include="Assets\images\G3MTool_bg.png" />
     <AvaloniaResource Include="Assets\images\G3MTool_logo.png" />
     <AvaloniaResource Include="Assets\icons\G3MTool_icon.ico" />

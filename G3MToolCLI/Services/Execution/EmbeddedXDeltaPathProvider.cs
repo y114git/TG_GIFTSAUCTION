@@ -11,12 +11,8 @@ internal static class EmbeddedXDeltaPathProvider
     /// <summary>Extracts the bundled xdelta on first use. Throws <see cref="InvalidOperationException"/> when this build bundles none for the platform.</summary>
     public static string GetPath() => ExecutablePath.Value;
 
-    /// <summary>Creates an xdelta service from --xdelta-path or the bundled binary. Throws <see cref="InvalidOperationException"/> with a clear message when neither exists.</summary>
-    public static XDeltaService CreateService()
-    {
-        XDeltaService.DefaultExecutablePath = Program.XDeltaPathOverride ?? GetPath();
-        return new XDeltaService();
-    }
+    /// <summary>The xdelta to run: --xdelta-path or the bundled binary. Throws <see cref="InvalidOperationException"/> with a clear message when neither exists.</summary>
+    public static string Resolve() => Program.XDeltaPathOverride ?? GetPath();
 
     /// <summary>
     /// Points the library at xdelta for commands that may read xdelta input, without failing when none is bundled:
@@ -24,7 +20,7 @@ internal static class EmbeddedXDeltaPathProvider
     /// </summary>
     public static void TryConfigure()
     {
-        try { XDeltaService.DefaultExecutablePath = Program.XDeltaPathOverride ?? GetPath(); }
+        try { XDeltaService.DefaultExecutablePath = Resolve(); }
         catch (InvalidOperationException exception) { LogService.Warning(exception.Message); }
     }
 

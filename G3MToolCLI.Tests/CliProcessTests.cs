@@ -463,6 +463,52 @@ public sealed class CliProcessTests
     }
 
     [Fact]
+    public async Task ExecuteRejectsScriptOnlyOptionsForProgramsAndXdelta()
+    {
+        foreach (var option in new[] { new[] { "--output", "x" }, ["--timeout", "5"], ["--data", "x.win"] })
+        {
+            var xdelta = await RunToolAsync(["execute", "xdelta", .. option, "--", "-V"]);
+            Assert.Equal(1, xdelta.ExitCode);
+            Assert.Contains("applies to .csx scripts only", xdelta.StandardError, StringComparison.Ordinal);
+        }
+        var program = await RunToolAsync("--json", "execute", ToolPath, "--timeout", "5", "--", "--version");
+        Assert.Equal(1, program.ExitCode);
+        using var document = JsonDocument.Parse(program.StandardOutput);
+        Assert.False(document.RootElement.GetProperty("success").GetBoolean());
+    }
+
+    [Fact]
+    public async Task ExecuteReportsScriptsAndProgramsAsJsonAndTreatsAPathWithoutExtensionAsAFolder()
+    {
+        var directory = Directory.CreateTempSubdirectory("g3mtool-execute-json-").FullName;
+        try
+        {
+            var original = Path.Combine(directory, "original.win");
+            var script = Path.Combine(directory, "export.csx");
+            CreateRoomDataFile(original);
+            await File.WriteAllTextAsync(script, "File.WriteAllText(Path.Combine(OutputDir, \"marker.txt\"), \"ok\");", TestContext.Current.CancellationToken);
+
+            var result = await RunToolInDirectoryAsync(directory, "--json", "execute", script, "--data", original, "--output", "exports");
+            Assert.True(result.ExitCode == 0, result.StandardError);
+            using (var document = JsonDocument.Parse(result.StandardOutput))
+            {
+                Assert.True(document.RootElement.GetProperty("success").GetBoolean());
+                Assert.Equal(JsonValueKind.Null, document.RootElement.GetProperty("saved").ValueKind);
+            }
+            Assert.True(File.Exists(Path.Combine(directory, "exports", "marker.txt")));
+
+            var noOutput = await RunToolInDirectoryAsync(directory, "execute", script, "--data", original);
+            Assert.Contains("not saved", noOutput.StandardError, StringComparison.Ordinal);
+
+            var program = await RunToolAsync("--json", "execute", ToolPath, "--", "--version");
+            Assert.Equal(0, program.ExitCode);
+            using var programDocument = JsonDocument.Parse(program.StandardOutput);
+            Assert.NotEmpty(programDocument.RootElement.GetProperty("output").GetString()!.Trim());
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
+
+    [Fact]
     public async Task XdeltaCommandsHonourJson()
     {
         var directory = Directory.CreateTempSubdirectory("g3mtool-xdelta-json-").FullName;

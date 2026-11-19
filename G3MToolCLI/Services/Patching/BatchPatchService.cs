@@ -177,7 +177,7 @@ internal static class BatchPatchService
             var input = await ScriptPatchInputService.MaterializeDataAsync(options.OriginalPath, job.Inputs[0], temporaryDirectory);
             if (options.CreateXdelta)
             {
-                var xdelta = await EmbeddedXDeltaPathProvider.CreateService().CreatePatchAsync(options.OriginalPath, input, job.Outputs[0]);
+                var xdelta = await XDeltaProcess.CreateAsync(EmbeddedXDeltaPathProvider.Resolve(), options.OriginalPath, input, job.Outputs[0], options.CancellationToken);
                 return xdelta.Success ? Succeeded(job, timer.Elapsed.TotalSeconds) : Failed(job, xdelta.Error, timer.Elapsed.TotalSeconds);
             }
             var patch = await PatchService.CreatePatchAsync(options.OriginalPath, input, job.Outputs[0], null, null, null, null, null, options.IncludeXdeltaFallback, options.CacheOptions, options.CancellationToken);
