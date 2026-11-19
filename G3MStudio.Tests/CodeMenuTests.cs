@@ -36,6 +36,35 @@ public sealed class CodeMenuTests
     }
 
     [Fact]
+    public async Task ANumberListsItsResourcesAndItsColourAtTheTopOfTheMenu()
+    {
+        using var dir = new TempDir();
+        var path = TestData.WriteSample(dir, objects: 3, withCode: true);
+        var userData = new UserData(dir.File("user"));
+        using var workspace = await new WorkspaceService(userData, RecentFiles.Load(userData)).OpenAsync(path, null, TestContext.Current.CancellationToken);
+        await HeadlessApp.Run(async () =>
+        {
+            var tab = new CodeEditorTab(workspace, "gml_Script_probe");
+            var window = new Window { Content = tab, Width = 900, Height = 600 };
+            window.Show();
+            try
+            {
+                await tab.Ready;
+                var text = "a = 2; b = 16777215; c = $0000FF; d = 5000; e = 12345678;";
+                string Texts(string number) => string.Join("|", tab.NumberItems(workspace, text.IndexOf(number, StringComparison.Ordinal) + 1)
+                    .OfType<MenuItem>().Select(i => i.Header as string ?? ((TextBlock)((StackPanel)i.Header!).Children[1]).Text));
+                tab.Editor.Text = text;
+                Assert.Contains("Objects: ", Texts("2;"), StringComparison.Ordinal);
+                Assert.Equal("Colour: c_white", Texts("16777215"));
+                Assert.Equal("Colour: c_red", Texts("$0000FF"));
+                Assert.Equal("", Texts("5000"));
+                Assert.Equal("", Texts("12345678"));
+            }
+            finally { window.Close(); }
+        });
+    }
+
+    [Fact]
     public async Task TheReferenceTabShowsAShortTitleInEveryLanguage()
     {
         await HeadlessApp.Run(() =>

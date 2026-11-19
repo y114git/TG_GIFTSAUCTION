@@ -1,3 +1,4 @@
+using G3MLib.DataFile.Models;
 using G3MStudio.Core.Notifications;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Editor;
@@ -96,26 +97,47 @@ public sealed partial class MainWindow
 
     public void ImportSheet() => _ = ImportSheetAsync();
 
+    public void NewSpriteFromSheet() => _ = ImportSheetAsync(true);
+
     /// <summary>Cuts a picture (or the frames of a GIF) into frames of the sprite in front, as one undoable step.</summary>
-    public async Task ImportSheetAsync()
+    public async Task ImportSheetAsync(bool newSprite = false, string? file = null)
     {
-        if (Workspaces.Current is not { } workspace || Docking.ActiveTabId is not { } id || !_frameViews.ContainsKey(id)
-            || Docking.Tabs.Get(id)?.Key is not { } key || ResourceTypes.SplitKey(key) is not var (_, sprite)
-            || workspace.Data.Sprites.FirstOrDefault(s => s.Name.Content == sprite) is not { } target)
+        if (Workspaces.Current is not { } workspace)
         {
             Notify(NotificationLevel.Info, Loc.Current["sprites.noSprite"]);
             return;
         }
 
-        if (await PickPatchFile(Loc.Current["sprites.pickSheet"], false) is not { } path) return;
+        var sprite = "";
+        GameMakerSprite? target = null;
+        if (!newSprite)
+        {
+            if (Docking.ActiveTabId is not { } id || !_frameViews.ContainsKey(id) || Docking.Tabs.Get(id)?.Key is not { } key || ResourceTypes.SplitKey(key) is not var (_, name)
+                || workspace.Data.Sprites.FirstOrDefault(s => s.Name.Content == name) is not { } found)
+            {
+                Notify(NotificationLevel.Info, Loc.Current["sprites.noSprite"]);
+                return;
+            }
+
+            (sprite, target) = (name, found);
+        }
+
+        if ((file ?? await PickPatchFile(Loc.Current["sprites.pickSheet"], false)) is not { } path) return;
         try
         {
             var frames = await Task.Run(() => SheetSplit.Read(File.ReadAllBytes(path)));
-            var window = new SheetImportWindow(frames, SheetSplit.StripCount(path), ((int)target.Width, (int)target.Height));
+            var window = new SheetImportWindow(frames, SheetSplit.StripCount(path), target is null ? (frames[0].Width, frames[0].Height) : ((int)target.Width, (int)target.Height));
             SheetImportOpened?.Invoke(window);
             if (!await window.AskAsync(this)) return;
-            var command = FramesImportCommand.Build(workspace.Data, sprite, window.Frames, window.Replace);
+            EditCommand command;
+            using (workspace.Lock.Read())
+            {
+                if (newSprite) command = ResourceTemplates.NewSprite(workspace.Data, sprite = FileImport.NameFor(workspace.Data, path), window.Frames);
+                else command = FramesImportCommand.Build(workspace.Data, sprite, window.Frames, window.Replace);
+            }
+
             workspace.Edit(command);
+            if (newSprite) Docking.OpenTab("resource", ResourceTypes.KeyOf("sprites", sprite), false);
             Notify(NotificationLevel.Info, Loc.Current.Format("sprites.sheetImported", ("count", window.Frames.Count), ("sprite", Shown("sprites", sprite))));
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or MagickException or InvalidDataException or InvalidOperationException)

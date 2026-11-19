@@ -114,6 +114,18 @@ public sealed record AppSettings
     /// <summary>Environment variables of the run as <c>NAME=value</c> pairs separated by semicolons or line breaks.</summary>
     public string RunEnvironment { get; init; } = "";
 
+    /// <summary>How a Windows game is started on Linux and macOS (Wine, Proton, umu, PortProton, a custom command); Auto uses the best tool found. No effect on Windows.</summary>
+    public CompatMode RunCompat { get; init; } = CompatMode.Auto;
+
+    /// <summary>The compatibility tool to use instead of detecting it: a program, or for Proton the <c>proton</c> file or its folder. Empty detects.</summary>
+    public string RunCompatProgram { get; init; } = "";
+
+    /// <summary>The Wine prefix folder of the run. Empty uses the Steam prefix of a Steam game, else the tool's own default.</summary>
+    public string RunWinePrefix { get; init; } = "";
+
+    /// <summary>The command of <see cref="CompatMode.Custom"/>, with the tokens {exe} {data} {dir} {prefix} {args}.</summary>
+    public string RunCompatCommand { get; init; } = "";
+
     /// <summary>Run on the data file itself after saving it (with the usual backup) instead of on a working copy.</summary>
     public bool RunSaveInPlace { get; init; }
 
@@ -248,7 +260,7 @@ public sealed record AppSettings
     public bool CodeLiveCheck { get; init; } = true;
 
     /// <summary>Milliseconds the pointer rests on a name before a tooltip or the info card shows; 300 to 3000.</summary>
-    public int CodeHoverDelayMs { get; init; } = 1000;
+    public int CodeHoverDelayMs { get; init; } = 400;
 
     /// <summary>Names of the functions starred in the Function Reference and the completion list.</summary>
     public IReadOnlyList<string> FavouriteFunctions { get; init; } = [];
@@ -264,6 +276,12 @@ public sealed record AppSettings
 
     /// <summary>Dialog sizes the user gave by resizing, window type name to size; the dialog opens at that size again.</summary>
     public IReadOnlyDictionary<string, DialogSize> DialogSizes { get; init; } = new Dictionary<string, DialogSize>();
+
+    /// <summary>The Run options of these settings as a profile.</summary>
+    public RunProfile ToRunProfile(string name = "") => new(name, RunRunner, RunArguments, RunDebugOutput, RunWorkingDir, RunEnvironment, RunCompat, RunCompatProgram, RunWinePrefix, RunCompatCommand);
+
+    /// <summary>These settings with the Run options of the profile.</summary>
+    public AppSettings WithRunProfile(RunProfile p) => this with { RunRunner = p.Runner, RunArguments = p.Arguments, RunDebugOutput = p.DebugOutput, RunWorkingDir = p.WorkingDir, RunEnvironment = p.Environment, RunCompat = p.Compat, RunCompatProgram = p.CompatProgram, RunWinePrefix = p.WinePrefix, RunCompatCommand = p.CompatCommand };
 
     internal AppSettings Clamped()
     {
@@ -284,6 +302,10 @@ public sealed record AppSettings
             UndoLimitMb = Math.Clamp(UndoLimitMb, 16, 1_048_576),
             BackupCount = Math.Clamp(BackupCount, 1, MaxBackups),
             RunStopSeconds = Math.Clamp(RunStopSeconds, 1, 60),
+            RunCompat = Enum.IsDefined(RunCompat) ? RunCompat : CompatMode.Auto,
+            RunCompatProgram = RunCompatProgram ?? "",
+            RunWinePrefix = RunWinePrefix ?? "",
+            RunCompatCommand = RunCompatCommand ?? "",
             UiScale = UiScale <= 0 ? 0 : Math.Clamp(UiScale, UiSizing.MinManual, UiSizing.MaxScale),
             Density = UiSizing.NormalDensity(Density),
             HelpLevel = Enum.IsDefined(HelpLevel) ? HelpLevel : HelpLevel.All,
@@ -340,7 +362,20 @@ public enum RunOptionsLocation
     BesideDataFile,
 }
 
-public sealed record RunProfile(string Name, string Runner, string Arguments, bool DebugOutput, string WorkingDir = "", string Environment = "");
+/// <summary>How a Windows game is started on Linux and macOS. Native never uses a compatibility tool; Auto picks the best one found.</summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+public enum CompatMode
+{
+    Auto,
+    Native,
+    Wine,
+    Proton,
+    Umu,
+    PortProton,
+    Custom,
+}
+
+public sealed record RunProfile(string Name, string Runner, string Arguments, bool DebugOutput, string WorkingDir = "", string Environment = "", CompatMode Compat = CompatMode.Auto, string CompatProgram = "", string WinePrefix = "", string CompatCommand = "");
 
 /// <summary>Position and size of the main window in device pixels, and whether it was maximized; the numbers are those of the normal window.</summary>
 public sealed record WindowPlacement(int X, int Y, int Width, int Height, bool Maximized);

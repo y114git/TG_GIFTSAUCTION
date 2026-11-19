@@ -25,6 +25,20 @@ public partial class MainWindow
 
     private string? _unusualName;
 
+    // An unusual name is warned about once in the dialog; the same name sent again, or the setting that allows risky actions, goes through.
+    private bool ForceUnusualName(string name)
+    {
+        var choice = RiskPolicy.Of(Workspaces.Settings.Current);
+        return choice == RiskChoice.Allow || choice == RiskChoice.Ask && _unusualName == name;
+    }
+
+    private string UnusualNameReply(UnusualNameException e, string name)
+    {
+        if (RiskPolicy.Of(Workspaces.Settings.Current) == RiskChoice.Refuse) return e.Message;
+        _unusualName = name;
+        return Loc.Current.Format(e.Taken ? "explorer.nameTaken" : "explorer.nameUnusual", ("name", name));
+    }
+
     // The warning about an unusual name belongs to one dialog: a later dialog starts with a clean slate.
     private async Task AskNameAsync(RenameWindow dialog)
     {
@@ -44,16 +58,12 @@ public partial class MainWindow
         if (!ResourceListCommand.CanHold(workspace.Data, type)) return Loc.Current.Format("explorer.noSection", ("type", Loc.Current["explorer.typeOne." + type]));
         try
         {
-            // An unusual name is warned about once in the dialog; the same name sent again, or the setting that allows risky actions, goes through.
-            var choice = RiskPolicy.Of(Workspaces.Settings.Current);
-            var make = ResourceTemplates.New(workspace.Data, type, name, choice == RiskChoice.Allow || choice == RiskChoice.Ask && _unusualName == name);
+            var make = ResourceTemplates.New(workspace.Data, type, name, ForceUnusualName(name));
             if (!workspace.Edit(audio is null ? make : new GroupCommand([make, new ReplaceAudioCommand(name, audio, changeKind: true)]))) return Queued();
         }
         catch (UnusualNameException e)
         {
-            if (RiskPolicy.Of(Workspaces.Settings.Current) == RiskChoice.Refuse) return e.Message;
-            _unusualName = name;
-            return Loc.Current.Format(e.Taken ? "explorer.nameTaken" : "explorer.nameUnusual", ("name", name));
+            return UnusualNameReply(e, name);
         }
         catch (InvalidOperationException e)
         {
@@ -94,30 +104,14 @@ public partial class MainWindow
     {
         try
         {
-            // The copy's code is decompiled from the model first; a name that is taken or not valid is refused by the command's first step before anything changes.
-            // An unusual name is warned about once in the dialog; the same name sent again, or the setting that allows risky actions, goes through.
-            var choice = RiskPolicy.Of(Workspaces.Settings.Current);
-            var allow = choice == RiskChoice.Allow || choice == RiskChoice.Ask && _unusualName == copy;
-            bool viaCopier;
-            using (workspace.Lock.Read()) viaCopier = ResourceDuplicate.NeedsCopier(workspace.Data, type, name);
-            if (viaCopier)
-            {
-                // The package is made off the UI thread: the dialog closes now and a failure is reported as a message.
-                ResourceDuplicate.CheckCopyName(copy, allow);
-                using (workspace.Lock.Read()) ResourceDuplicate.CheckCopyFree(workspace.Data, type, copy);
-                _ = GuardedAsync(() => DuplicateViaCopierAsync(workspace, [(type, name, copy)], ResourceTypes.KeyOf(type, copy), allow));
-                return null;
-            }
-
-            EditCommand command;
-            using (workspace.Lock.Read()) command = ResourceDuplicate.Build(workspace.Data, type, name, copy, allow);
-            if (!workspace.Edit(command)) return Queued();
+            // A name that is taken or not valid is refused before anything changes.
+            ResourceDuplicate.CheckCopyName(copy, ForceUnusualName(copy));
+            using (workspace.Lock.Read()) ResourceDuplicate.CheckCopyFree(workspace.Data, type, copy);
+            if (!workspace.Edit(ResourceDuplicate.Build(type, name, copy))) return Queued();
         }
         catch (UnusualNameException e)
         {
-            if (RiskPolicy.Of(Workspaces.Settings.Current) == RiskChoice.Refuse) return e.Message;
-            _unusualName = copy;
-            return Loc.Current.Format(e.Taken ? "explorer.nameTaken" : "explorer.nameUnusual", ("name", copy));
+            return UnusualNameReply(e, copy);
         }
         catch (Exception e) when (e is InvalidOperationException or CodeCompileException)
         {
@@ -129,24 +123,6 @@ public partial class MainWindow
         Explorer.Select(key, flash: true);
         Docking.OpenTab("resource", key, false);
         return null;
-    }
-
-    // Duplicates through the copy between files, with this file as source and target; the copy is one undo step. A name check that fails is reported here, as the dialog is gone.
-    private async Task DuplicateViaCopierAsync(Workspace workspace, IReadOnlyList<(string Type, string Name, string Copy)> items, string openKey, bool allowUnusual = false)
-    {
-        try
-        {
-            var command = await ResourceDuplicate.BuildCopyAsync(workspace, items, allowUnusual);
-            await workspace.EditInBackground(command);
-        }
-        catch (Exception e) when (e is InvalidOperationException or IOException or InvalidDataException)
-        {
-            Notify(NotificationLevel.Error, e.Message);
-            return;
-        }
-
-        Explorer.Select(openKey, flash: true);
-        Docking.OpenTab("resource", openKey, false);
     }
 
     /// <summary>Deletes the selected resource after a question, or says why it cannot go: a resource that something uses stays.</summary>
@@ -186,34 +162,21 @@ public partial class MainWindow
         // The folder, collection and tag entries stay: rows skip keys that do not exist, and undoing the delete brings the membership back.
     }
 
-    /// <summary>Copies every selected object or script as one undo step; the copies are named name_copy.</summary>
+    /// <summary>Copies every selected resource as one undo step; the copies are named name_copy.</summary>
     private void DuplicateMany(Workspace workspace, IReadOnlyList<(string Type, string Name)> items)
     {
         try
         {
             EditCommand command;
             IReadOnlyList<string> keys;
-            List<(string Type, string Name, string Copy)> viaCopier = [];
-            using (workspace.Lock.Read())
+            using (workspace.Lock.Read()) command = BulkResources.Duplicate(workspace.Data, items, out keys);
+            if (keys.Count == 0) return;
+            if (!workspace.Edit(command)) Queued();
+            else
             {
-                var taken = new HashSet<string>(StringComparer.Ordinal);
-                foreach (var (type, name) in items.Where(i => ResourceDuplicate.All.Contains(i.Type) && ResourceDuplicate.NeedsCopier(workspace.Data, i.Type, i.Name)))
-                    viaCopier.Add((type, name, BulkResources.CopyName(workspace.Data, name, taken)));
-                var plain = items.Where(i => ResourceDuplicate.Types.Contains(i.Type) && !ResourceDuplicate.NeedsCopier(workspace.Data, i.Type, i.Name)).ToList();
-                command = BulkResources.Duplicate(workspace.Data, plain, out keys);
+                Notify(NotificationLevel.Info, Loc.Current.Format("explorer.duplicatedMany", ("count", keys.Count)));
+                Explorer.Select(keys[^1], flash: MotionPolicy.FlashesItem(keys.Count));
             }
-
-            if (keys.Count > 0)
-            {
-                if (workspace.Edit(command))
-                {
-                    Notify(NotificationLevel.Info, Loc.Current.Format("explorer.duplicatedMany", ("count", keys.Count)));
-                    Explorer.Select(keys[^1], flash: MotionPolicy.FlashesItem(keys.Count));
-                }
-                else Queued();
-            }
-
-            if (viaCopier.Count > 0) _ = GuardedAsync(() => DuplicateViaCopierAsync(workspace, viaCopier, ResourceTypes.KeyOf(viaCopier[^1].Type, viaCopier[^1].Copy), RiskPolicy.Of(Workspaces.Settings.Current) == RiskChoice.Allow));
         }
         catch (Exception e) when (e is InvalidOperationException or CodeCompileException)
         {
@@ -237,8 +200,10 @@ public partial class MainWindow
         }
 
         var key = Explorer.SelectedKey ?? (Docking.ActiveTabId is { } id ? Docking.Tabs.Get(id)?.Key : null);
-        if (key is null || ResourceTypes.SplitKey(key) is not var (type, name) || !ResourceListCommand.Deletable.Contains(type)) return;
-        _ = DeleteAsync(workspace, key, type, name);
+        if (key is null || ResourceTypes.SplitKey(key) is not var (type, name)) return;
+        if (type == "functions") _ = DeleteFunctionAsync(workspace, name);
+        else if (type == "variables") _ = DeleteVariableAsync(workspace, name);
+        else if (ResourceListCommand.Deletable.Contains(type)) _ = DeleteAsync(workspace, key, type, name);
     }
 
     private async Task DeleteAsync(Workspace workspace, string key, string type, string name)
@@ -266,28 +231,29 @@ public partial class MainWindow
         MenuItem Item(string id) => RegistryItem(id);
         if (row.IsItem && Explorer.SelectedKeys.Count > 1)
         {
-            // Several selected: only the commands that work on all of them.
+            // Several selected: only the commands that work on all of them. Delete ends the organize group: a group of one would stand alone.
             menu.Items.Add(Item("file.exportSelection"));
             menu.Items.Add(Item("edit.duplicate"));
             menu.Items.Add(Item("edit.copyToOtherFile"));
             menu.Items.Add(new Separator());
             foreach (var id in OrganizeBulk) menu.Items.Add(Item(id));
             if (Explorer.ParentOf(row) is { } holder && IsContainer(holder)) menu.Items.Add(Item("organize.removeFromGroup"));
-            menu.Items.Add(new Separator());
             menu.Items.Add(Item("edit.delete"));
         }
         else if (row.IsItem)
         {
             foreach (var entry in ResourceMenuFor(ResourceTypes.KeyOf(row.Key, row.Text))) menu.Items.Add(entry);
-            menu.Items.Add(new Separator());
             menu.Items.Add(Item("file.exportSelection"));
             menu.Items.Add(new Separator());
             foreach (var id in OrganizeSingle) menu.Items.Add(Item(id));
             if (Explorer.ParentOf(row) is { } owner && IsContainer(owner)) menu.Items.Add(Item("organize.removeFromGroup"));
-            menu.Items.Add(new Separator());
-            if (ResourceMoveCommand.CanMove(Workspaces.Current.Data, row.Key, row.Text, -1)) menu.Items.Add(Item("edit.moveUp"));
-            if (ResourceMoveCommand.CanMove(Workspaces.Current.Data, row.Key, row.Text, 1)) menu.Items.Add(Item("edit.moveDown"));
-            if (ResourceListCommand.Deletable.Contains(row.Key)) menu.Items.Add(Item("edit.delete"));
+            // Move and Delete are a group of their own; a row that cannot move (a function, a variable) has Delete alone, which then ends the group above instead.
+            List<MenuItem> order = [];
+            if (ResourceMoveCommand.CanMove(Workspaces.Current.Data, row.Key, row.Text, -1)) order.Add(Item("edit.moveUp"));
+            if (ResourceMoveCommand.CanMove(Workspaces.Current.Data, row.Key, row.Text, 1)) order.Add(Item("edit.moveDown"));
+            if (order.Count > 0) menu.Items.Add(new Separator());
+            foreach (var item in order) menu.Items.Add(item);
+            if (ResourceListCommand.Deletable.Contains(row.Key) || ResourceListCommand.IsTableEntry(row.Key)) menu.Items.Add(Item("edit.delete"));
         }
 
         if (IsContainer(row)) AddContainerMenu(menu, row);

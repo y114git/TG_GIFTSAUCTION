@@ -2,8 +2,11 @@ using System.Diagnostics;
 
 namespace G3MStudio.Core.Workspace;
 
-/// <summary>What to start: the program, the data file it gets, and the options of the run. <c>{data}</c> in the arguments stands for the data file; without it the runner gets <c>-game</c> and the file first.</summary>
-public sealed record RunSpec(string Runner, string DataFile, string Arguments = "", string WorkingDir = "", string Environment = "", bool DebugOutput = false);
+/// <summary>
+/// What to start: the program, the data file it gets, and the options of the run. <c>{data}</c> in the arguments stands for the data file; without it the runner gets <c>-game</c> and the file first.
+/// <paramref name="Compat"/> says the program is a compatibility tool that starts a Windows game; <paramref name="Notes"/> are lines for the run log before the start.
+/// </summary>
+public sealed record RunSpec(string Runner, string DataFile, string Arguments = "", string WorkingDir = "", string Environment = "", bool DebugOutput = false, CompatLaunch? Compat = null, IReadOnlyList<string>? Notes = null);
 
 /// <summary>A running game: its output lines as they come, and a way to stop it. Only the process Studio started is ever touched.</summary>
 public sealed class GameRun : IDisposable
@@ -41,27 +44,52 @@ public sealed class GameRun : IDisposable
     public static string? FindRunner(string dataFile, string? gameFileName) => RunLocator.Find(dataFile, gameFileName);
 
     /// <summary>Starts the spec; <paramref name="line"/> gets each output line (true for the error stream).</summary>
-    public static GameRun Start(RunSpec spec, Action<string, bool> line)
+    public static GameRun Start(RunSpec spec, Action<string, bool> line) => Launch(Prepare(spec), spec.DataFile, line);
+
+    /// <summary>The program, arguments, folder and environment of a run, ready to start.</summary>
+    public static ProcessStartInfo Prepare(RunSpec spec)
     {
         // The game reads the files next to its data file, so it starts in that folder unless the run says otherwise.
         var folder = spec.WorkingDir.Length > 0 ? spec.WorkingDir : Path.GetDirectoryName(Path.GetFullPath(spec.DataFile)) ?? ".";
         var info = new ProcessStartInfo(spec.Runner) { WorkingDirectory = folder };
         var extra = SplitArguments(spec.Arguments);
+        // A Windows game under a compatibility tool gets its files as Windows paths.
+        var compat = spec.Compat;
+        string Shown(string path) => compat is null || !CompatRun.IsExe(compat.Exe) ? path : CompatRun.WinePath(path, folder);
+        var data = Shown(spec.DataFile);
+        var game = new List<string>();
         if (!extra.Any(a => a.Contains("{data}", StringComparison.Ordinal)))
         {
-            info.ArgumentList.Add("-game");
-            info.ArgumentList.Add(spec.DataFile);
+            game.Add("-game");
+            game.Add(data);
         }
 
         if (spec.DebugOutput)
         {
-            info.ArgumentList.Add("-debugoutput");
-            info.ArgumentList.Add(spec.DataFile + ".gamelog.txt");
+            game.Add("-debugoutput");
+            game.Add(Shown(spec.DataFile + ".gamelog.txt"));
         }
 
-        foreach (var argument in extra) info.ArgumentList.Add(argument.Replace("{data}", spec.DataFile, StringComparison.Ordinal));
-        foreach (var (name, value) in ParseEnvironment(spec.Environment)) info.Environment[name] = value;
-        return Launch(info, spec.DataFile, line);
+        game.AddRange(extra.Select(a => a.Replace("{data}", data, StringComparison.Ordinal)));
+        if (compat is null) game.ForEach(info.ArgumentList.Add);
+        else if (!compat.InlineArgs) foreach (var a in compat.Leading.Concat(game)) info.ArgumentList.Add(a);
+        else
+        {
+            // The token alone stands for the arguments as separate ones; inside a larger token (a shell string) each is quoted so a path with spaces stays whole.
+            // A command with neither {args} nor {data} gets the arguments at its end; one that places {data} itself decides what the game opens.
+            var placed = compat.Leading.Any(p => p.Contains("{args}", StringComparison.Ordinal) || p.Contains("{data}", StringComparison.Ordinal));
+            foreach (var part in compat.Leading.Select(p => p.Replace("{data}", data, StringComparison.Ordinal)))
+            {
+                if (part == "{args}") game.ForEach(info.ArgumentList.Add);
+                else info.ArgumentList.Add(part.Replace("{args}", JoinArguments(game), StringComparison.Ordinal));
+            }
+
+            if (!placed) game.ForEach(info.ArgumentList.Add);
+        }
+
+        if (compat is not null) foreach (var (name, value) in compat.Environment) info.Environment[name] = value;
+        foreach (var (name, value) in ParseEnvironment(spec.Environment)) info.Environment[name] = value; // the user's environment comes last, so it can override anything
+        return info;
     }
 
     /// <summary>Splits a command line the way a shell does for plain cases: spaces separate, double quotes group.</summary>
@@ -94,6 +122,10 @@ public sealed class GameRun : IDisposable
         if (any) result.Add(current.ToString());
         return result;
     }
+
+    /// <summary>The inverse of <see cref="SplitArguments"/>: spaces separate, and an argument with white space or none at all is put in double quotes.</summary>
+    public static string JoinArguments(IEnumerable<string> arguments) =>
+        string.Join(' ', arguments.Select(a => a.Length == 0 || a.Any(char.IsWhiteSpace) ? $"\"{a}\"" : a));
 
     /// <summary><c>NAME=value</c> pairs separated by semicolons or line breaks; a part without a name or an equals sign is skipped.</summary>
     public static List<(string Name, string Value)> ParseEnvironment(string text) =>

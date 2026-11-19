@@ -31,8 +31,8 @@ public sealed partial class CodeEditorTab
     /// <summary>Whether a live check is waiting for the typing pause, for tests.</summary>
     internal bool LivePending => _live.IsEnabled;
 
-    /// <summary>Reads the problems of a text; the parser, replaceable so tests can make it fail.</summary>
-    public Func<string, IReadOnlyList<GmlDiagnostic>> LiveParser { get; set; } = LiveCheck.Parse;
+    /// <summary>Reads the problems of a text; the parser, replaceable so tests can make it fail. The default expands the macros other entries declare, so they are never reported as errors.</summary>
+    public Func<string, IReadOnlyList<GmlDiagnostic>>? LiveParser { get; set; }
 
     private void InstallLive()
     {
@@ -95,7 +95,7 @@ public sealed partial class CodeEditorTab
         IReadOnlyList<LintIssue> issues = [];
         try
         {
-            found = await Task.Run(() => LiveParser(text));
+            found = await Task.Run(() => LiveParser?.Invoke(text) ?? LiveCheck.Parse(text, MacroRegistry.Of(_workspace.Data).Table(Target)));
             // The code check reads brackets and statements from tokens: on text the parser rejects it would guess, so it waits for a clean parse.
             if (context is not null && !found.Any(d => d.Severity == DiagnosticSeverity.Error) && run == _liveRun)
                 issues = await Task.Run(() => Lint(text, context, cancel));
@@ -146,9 +146,11 @@ public sealed partial class CodeEditorTab
 /// <summary>The problems the parser reports for a GML text, without touching the data file.</summary>
 public static class LiveCheck
 {
-    public static IReadOnlyList<GmlDiagnostic> Parse(string text)
+    /// <param name="text">The GML.</param>
+    /// <param name="macros">The macros other code entries declare, expanded like the compile does.</param>
+    public static IReadOnlyList<GmlDiagnostic> Parse(string text, IReadOnlyDictionary<string, string>? macros = null)
     {
-        var context = new CompileContext(text, CompileScriptKind.Script, null, new GameContextMock());
+        var context = new CompileContext(text, CompileScriptKind.Script, null, new GameContextMock()) { ExternalMacros = macros };
         context.Parse();
         return [.. context.Diagnostics];
     }

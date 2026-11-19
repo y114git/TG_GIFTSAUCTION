@@ -76,7 +76,8 @@ public static class PropertyModel
             try { value = property.GetValue(owner); }
             catch (Exception e) when (e is TargetInvocationException or InvalidOperationException or NotSupportedException) { continue; }
             var path = prefix + property.Name;
-            var settable = property.SetMethod is { IsPublic: true } && !(property.Name == "Name" && owner is GameMakerNamedResource); // a rename must also update what refers to the name
+            // a rename must also update what refers to the name; the chunk that decided the version or the LTS branch is evidence, not a setting
+            var settable = property.SetMethod is { IsPublic: true } && !(property.Name == "Name" && owner is GameMakerNamedResource) && !(property.Name is "VersionSource" or "BranchSource" && owner is GameMakerGeneralInfo);
             var type = property.PropertyType;
             if (NamedValues(owner, property) is { } names)
             {

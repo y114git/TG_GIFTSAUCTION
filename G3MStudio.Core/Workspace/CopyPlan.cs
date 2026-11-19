@@ -1,3 +1,4 @@
+using G3MLib.DataFile.References;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Models;
 
@@ -190,7 +191,7 @@ public static class CopyPlanner
 
     /// <summary>True when the target uses the name for any asset (GameMaker wants one name per asset) or, for code, for a code entry.</summary>
     public static bool NameTaken(GameMakerData data, string type, string name) =>
-        type == "code" ? data.Code.ByName(name) is not null : ResourceListCommand.NameTaken(data, name);
+        type == "code" ? data.Code.ByName(name) is not null : RenameService.IsNameInUse(data, name);
 
     // Emitters are shared by name, so one that exists in the target under a system of another name would be overwritten.
     private static string? EmitterClash(GameMakerParticleSystem system, GameMakerData target)

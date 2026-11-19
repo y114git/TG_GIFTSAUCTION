@@ -120,39 +120,53 @@ public sealed class CopyResourcesTests : IDisposable
     }
 
     [Fact]
-    public async Task ADuplicateInTheSameFileCopiesEveryTypeAsOneUndoStep()
+    public async Task ADuplicateInTheSameFileCopiesEveryTypeAsOneUndoStepAndPicturesAreNotShared()
     {
         var workspace = await new WorkspaceService(_userData, RecentFiles.Load(_userData)).OpenAsync(Corpus.Files(Corpus.Folder).First(), cancellationToken: TestContext.Current.CancellationToken);
         var items = new List<(string Type, string Name, string Copy)>();
         foreach (var type in ResourceDuplicate.All)
         {
-            var first = ResourceTypes.All.First(t => t.Key == type).Items(workspace.Data)?.Select(ResourceTypes.NameOf)
-                .FirstOrDefault(n => CopyPlanner.ItemRefusal(workspace.Data, workspace.Data, type, n) is null);
+            var first = ResourceTypes.All.First(t => t.Key == type).Items(workspace.Data)?.Select(ResourceTypes.NameOf).FirstOrDefault(n => CopyPlanner.ItemRefusal(workspace.Data, workspace.Data, type, n) is null);
             if (first is not null) items.Add((type, first, first + "_zzdup"));
         }
 
         Assert.True(items.Count >= 5);
-        var before = ResourceTypes.Counts(workspace.Data);
-        var command = await ResourceDuplicate.BuildCopyAsync(workspace, items, cancellationToken: TestContext.Current.CancellationToken);
-        await workspace.EditInBackground(command);
+        (string, int) Sizes() => (string.Join(',', ResourceTypes.Counts(workspace.Data).Values), workspace.Data.TexturePageItems.Count);
+        var before = Sizes();
+        Assert.True(workspace.Edit(new GroupCommand([.. items.Select(i => ResourceDuplicate.Build(i.Type, i.Name, i.Copy))])));
         var missing = items.Where(i => ResourceTypes.Find(workspace.Data, ResourceTypes.KeyOf(i.Type, i.Copy)) is null || ResourceTypes.Find(workspace.Data, ResourceTypes.KeyOf(i.Type, i.Name)) is null).Select(i => i.Type).ToList();
         Assert.Empty(missing);
+        foreach (var (type, name, copy) in items.Where(i => i.Type is "sprites" or "fonts" or "tileSets"))
+        {
+            var (from, to) = (Pictures(workspace.Data, type, name), Pictures(workspace.Data, type, copy));
+            Assert.Equal(from.Count, to.Count);
+            Assert.Empty(to.Intersect(from));
+        }
 
         workspace.Undo();
-        Assert.Equal(before, ResourceTypes.Counts(workspace.Data));
-        Assert.Throws<InvalidOperationException>(() => { _ = ResourceDuplicate.BuildCopyAsync(workspace, [(items[0].Type, items[0].Name, items[0].Name)], cancellationToken: TestContext.Current.CancellationToken); });
+        Assert.Equal(before, Sizes());
+        workspace.Redo();
+        Assert.All(items, i => Assert.NotNull(ResourceTypes.Find(workspace.Data, ResourceTypes.KeyOf(i.Type, i.Copy))));
+        Assert.Throws<InvalidOperationException>(() => ResourceDuplicate.CheckCopyFree(workspace.Data, items[0].Type, items[0].Name));
     }
 
+    private static List<G3MLib.DataFile.Models.GameMakerTexturePageItem> Pictures(G3MLib.DataFile.GameMakerData data, string type, string name) => ResourceTypes.Find(data, ResourceTypes.KeyOf(type, name)) switch
+    {
+        G3MLib.DataFile.Models.GameMakerSprite s => [.. s.Textures.Select(t => t.Texture!)],
+        G3MLib.DataFile.Models.GameMakerFont { Texture: { } t } => [t],
+        G3MLib.DataFile.Models.GameMakerBackground { Texture: { } t } => [t],
+        _ => [],
+    };
+
     [Fact]
-    public async Task AnObjectWithAMultiActionEventIsDuplicatedWholeThroughTheCopier()
+    public async Task AnObjectWithAMultiActionEventIsDuplicatedWhole()
     {
         foreach (var file in Corpus.Files(Corpus.Folder))
         {
             var workspace = await new WorkspaceService(_userData, RecentFiles.Load(_userData)).OpenAsync(file, cancellationToken: TestContext.Current.CancellationToken);
             var source = workspace.Data.GameObjects.FirstOrDefault(o => o.Events.SelectMany(e => e).Any(e => e.Actions.Count > 1));
             if (source is null) continue;
-            Assert.True(ResourceDuplicate.NeedsCopier(workspace.Data, "objects", source.Name.Content!));
-            await workspace.EditInBackground(await ResourceDuplicate.BuildCopyAsync(workspace, [("objects", source.Name.Content!, "zz_multi")], cancellationToken: TestContext.Current.CancellationToken));
+            Assert.True(workspace.Edit(ResourceDuplicate.Build("objects", source.Name.Content!, "zz_multi")));
             var copy = workspace.Data.GameObjects.Single(o => o.Name.Content == "zz_multi");
             Assert.Equal(source.Events.SelectMany(e => e).Select(e => e.Actions.Count), copy.Events.SelectMany(e => e).Select(e => e.Actions.Count));
             return;

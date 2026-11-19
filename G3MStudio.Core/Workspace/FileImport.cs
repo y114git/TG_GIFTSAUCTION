@@ -1,4 +1,5 @@
 using System.Text;
+using G3MLib.DataFile.References;
 using G3MLib.DataFile;
 
 namespace G3MStudio.Core.Workspace;
@@ -21,7 +22,7 @@ public static class FileImport
         var stem = new string([.. Path.GetFileNameWithoutExtension(path).Select(c => char.IsAsciiLetterOrDigit(c) || c == '_' ? c : '_')]);
         if (stem.Length == 0 || char.IsAsciiDigit(stem[0])) stem = "_" + stem;
         var name = stem;
-        for (var n = 1; ResourceListCommand.NameTaken(data, name) || data.Code.ByName("gml_Script_" + name) is not null; n++) name = $"{stem}_{n}";
+        for (var n = 1; RenameService.IsNameInUse(data, name) || data.Code.ByName("gml_Script_" + name) is not null; n++) name = $"{stem}_{n}";
         return name;
     }
 

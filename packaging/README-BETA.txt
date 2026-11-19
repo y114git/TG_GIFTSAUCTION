@@ -52,5 +52,9 @@ KNOWN LIMITS
   - Beta software: some features are unfinished and some data may not
     round trip exactly.
   - The program is not signed or notarized, hence the first start steps.
+  - Open UTMT Project converts a UndertaleModTool 0.9 project once. It needs the
+    original data file. Project options (patches, external files, copies,
+    scripts) are applied but not kept, and fonts and backgrounds of a UTMT
+    project are converted without a test of their own yet.
 
 Thank you for testing.

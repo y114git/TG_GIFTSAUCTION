@@ -73,6 +73,7 @@ public sealed class SheetImportWindow : Window
 
         body.Children.Add(_replace);
         body.Children.Add(_summary);
+        body.Children.Add(new TextBlock { Text = Loc.Current["sprites.sheetPacked"], Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap });
         Refresh();
         DialogFrame.Wire(this, _ok, () =>
         {

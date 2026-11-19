@@ -3,6 +3,7 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using G3MLib.DataFile;
 using G3MStudio.Core.Notifications;
+using G3MStudio.Core.Projects;
 using G3MStudio.Core.Settings;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
@@ -70,12 +71,20 @@ public sealed partial class MainWindow
             }
         }
 
+        // A dropped UTMT project (its folder or project.json) is converted, not opened.
+        if (list is [var project] && UtmtProjectImporter.Detect(project) is not null)
+        {
+            _ = OpenUtmtProjectAsync(project);
+            return;
+        }
+
         if (Workspaces.Current is not null && list.Any(p => FileImport.TypeOf(p) is not null)) ImportFilePaths(list);
         else if (list.FirstOrDefault() is { } path) _ = OpenAsync(path);
     }
 
     public async Task OpenAsync(string path, bool askAboutUnsaved = true)
     {
+        HangMonitor.Note("open data file");
         // Opening another file closes the current one: unsaved edits get the same question as on close.
         if (askAboutUnsaved && Workspaces.Current is { IsDirty: true } current && !PathRules.Same(current.Path, path) && File.Exists(path) && !await ConfirmCloseAsync()) return;
         var previous = _opening;
@@ -98,6 +107,7 @@ public sealed partial class MainWindow
                 CrashReporting.Describe("data.version", tags.GetValueOrDefault("data.version") ?? "unknown");
                 ApplyDecompiler(Workspaces.Settings.Current.Decompiler);
                 RememberModBaseOnOpen(opened.Path);
+                await _offer;
                 foreach (var (key, count) in LoadChecks.Find(opened.Data)) Notify(NotificationLevel.Warning, Loc.Current.Format(key, ("count", count)));
             }
         }

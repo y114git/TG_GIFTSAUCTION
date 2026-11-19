@@ -20,8 +20,16 @@ internal sealed class MinSizeScroller : Decorator
         Child = new ScrollViewer { HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, Content = _inner };
     }
 
-    /// <summary>Lets go of the panel so another host can take it; a panel is one control for the whole session.</summary>
-    public void Release() => _inner.Child = null;
+    /// <summary>
+    /// Lets go of the panel so another host can take it; a panel is one control for the whole session. The host takes itself apart too: the compositor still points
+    /// from the panel at the wrapper it had, and a wrapper that keeps its parents would keep the whole layout it belonged to alive.
+    /// </summary>
+    public void Release()
+    {
+        _inner.Child = null;
+        if (Child is ScrollViewer scroll) scroll.Content = null;
+        Child = null;
+    }
 
     protected override Size MeasureOverride(Size availableSize)
     {

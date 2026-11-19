@@ -41,7 +41,7 @@ public sealed partial class FontReplaceCommand(string font, byte[] fontFile) : E
 
     private GameMakerFont Find(GameMakerData data) => data.Fonts.FirstOrDefault(f => f.Name.Content == font) ?? throw new InvalidOperationException($"Font '{font}' does not exist.");
 
-    private readonly record struct Drawing(MagickImage Atlas, List<GlyphRect> Rects, uint Ascender, uint LineHeight, GMImage? Page, GMImage? PageBefore);
+    private readonly record struct Drawing(MagickImage Atlas, List<GlyphRect> Rects, uint Ascender, uint LineHeight, PreparedTextureReplace? Replace);
 
     private Drawing? _prepared;
 
@@ -63,17 +63,8 @@ public sealed partial class FontReplaceCommand(string font, byte[] fontFile) : E
         try
         {
             var (rects, ascender, lineHeight) = Render(target, atlas);
-            if (!composePage) return new Drawing(atlas, rects, ascender, lineHeight, null, null);
-            // The same steps as the library's ReplaceTexture, up to the swap of the page picture, so they can run without the write lock.
-            var data = item.TexturePage.TextureData;
-            lock (data)
-            {
-                using var final = TextureWorker.ResizeImage(atlas, item.SourceWidth, item.SourceHeight);
-                using var worker = new TextureWorker();
-                var embedded = worker.GetEmbeddedTexture(item.TexturePage);
-                embedded.Composite(final, item.SourceX, item.SourceY, CompositeOperator.Copy);
-                return new Drawing(atlas, rects, ascender, lineHeight, GMImage.FromMagickImage(embedded).ConvertToFormat(data.Image.Format), data.Image);
-            }
+            // The image work of the library's ReplaceTexture, so it can run without the write lock; Commit only swaps the page picture.
+            return new Drawing(atlas, rects, ascender, lineHeight, composePage ? item.PrepareReplace(atlas) : null);
         }
         catch
         {

@@ -95,7 +95,17 @@ public sealed class FieldTranslationTests
     private static readonly GameMakerData Data = new();
 
     [Fact]
-    public void TheGridAndTheEventListUseTheLanguageOfTheWindow()
+    public async Task TheGridAndTheEventListUseTheLanguageOfTheWindow()
+    {
+        // The shared localizer notifies bound controls, which belong to the UI thread: the switch must be made there.
+        await HeadlessApp.Run(() =>
+        {
+            CheckLanguages();
+            return Task.CompletedTask;
+        });
+    }
+
+    private static void CheckLanguages()
     {
         var ru = Localizer.LoadEmbedded();
         ru.SetLanguage("ru");

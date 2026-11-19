@@ -268,6 +268,31 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
         UpdateTexts();
     }
 
+    private bool _resetDue;
+
+    /// <summary>
+    /// Renews the layout for another file. When the file closes, its tabs leave first and the layout follows after a frame has dropped their drawing:
+    /// swapped at once, the panels move to the new layout while the compositor still points them into the old one, which keeps the last tab view, its editor and the
+    /// closed file reachable.
+    /// </summary>
+    private void ResetDocking(bool afterFrame)
+    {
+        if (afterFrame)
+        {
+            Docking.CloseAll();
+            if (_resetDue) return;
+            _resetDue = true;
+            Avalonia.Threading.DispatcherTimer.RunOnce(() =>
+            {
+                if (_resetDue) ResetDocking(false);
+            }, TimeSpan.FromMilliseconds(150));
+            return;
+        }
+
+        _resetDue = false;
+        Docking.Reset();
+    }
+
     private void ShowWorkspace(Workspace? workspace)
     {
         Registry.SetContext(AppCommands.WorkspaceOpen, workspace is not null);
@@ -275,6 +300,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
         UpdateSelectionContext();
         CloseFileTools();
         (_inspected, _inspectedHeader) = (null, null); // another file: whatever was shown no longer exists
+        _assetId = default; // it names the workspace of the status bar, which must not outlive the file
         _cut = []; // entries cut in one file are not pasted into another
         _ = _inspector.ShowAsync(workspace, null);
         Start.IsVisible = workspace is null;
@@ -284,7 +310,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
         try
         {
             Docking.Tabs.Load([]);
-            Docking.Reset();
+            ResetDocking(workspace is null);
             _codeTabs.Clear();
             _frameViews.Clear();
             _spriteViews.Clear();
@@ -303,6 +329,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
             _search.Bind(workspace);
             _usages.Clear();
             _deletedMembership.Clear();
+            _thumbs?.Clear();
             _textures.Dispose();
             _textures = new TextureBitmaps(workspace?.Lock);
             _layerAutosave?.Dispose();
@@ -332,6 +359,7 @@ public sealed partial class MainWindow : Window, IShell, IDisposable
 
         _viewPath = workspace?.Path;
         _viewSaved = null;
+        ReclaimAfterFile();
         if (workspace is not null)
         {
             workspace.History.Recorded += FollowRename;

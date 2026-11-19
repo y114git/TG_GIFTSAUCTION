@@ -100,6 +100,8 @@ public sealed class DialogLayoutTests
                     ("ProjectText", () => Ask(() => ProjectDialogs.AskTextAsync(owner, "Text", "Enter text", "", true))),
                     ("ProjectChoice", () => Ask(() => ProjectDialogs.AskChoiceAsync(owner, "Choose", "Pick one", ["2024.1\tC:\\runtimes\\a", "2023.8\tC:\\runtimes\\b"], ["Version", "Path"], 0))),
                     ("ProjectRebuild", () => Ask(() => ProjectDialogs.AskRebuildAsync(owner, "data.win"))),
+                    ("UtmtAsk", () => Ask(() => ProjectDialogs.AskUtmtAsync(owner, UtmtImportUiTests.SampleInfo(wide), @"C:\Users\someone\Documents\Mods\my mod-g3m", true))),
+                    ("UtmtReport", () => Ask(() => ProjectDialogs.ShowUtmtReportAsync(owner, UtmtImportUiTests.SampleReport(wide)))),
                 };
                 foreach (var (name, make) in cases)
                 {

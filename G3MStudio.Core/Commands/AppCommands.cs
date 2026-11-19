@@ -41,6 +41,7 @@ public static partial class AppCommands
         Add("file.import", null, shell.ImportResources, WorkspaceOpen);
         Add("file.importPackage", null, shell.ImportPackage, WorkspaceOpen);
         Add("file.importFiles", null, shell.ImportFiles, WorkspaceOpen);
+        Add("file.importSheetNew", null, shell.NewSpriteFromSheet, WorkspaceOpen);
         Add("file.importCodeFolder", null, shell.ImportCodeFolder, WorkspaceOpen);
         Add("file.importCodeFiles", null, shell.ImportCodeFiles, WorkspaceOpen);
         Add("help.checkUpdates", null, shell.CheckForUpdates);
@@ -115,7 +116,10 @@ public static partial class AppCommands
         Add("file.exit", "Ctrl+Q", shell.Exit);
         Add("edit.undo", "Ctrl+Z", shell.Undo, WorkspaceOpen);
         Add("edit.redo", "Ctrl+Y", shell.Redo, WorkspaceOpen);
+        Add("project.open", null, shell.OpenProject);
+        Add("project.new", null, shell.NewProject, ProjectOff);
         Add("project.enable", null, shell.EnableProject, ProjectOff);
+        Add("project.close", null, shell.CloseProject, ProjectOn);
         Add("project.sync", null, shell.SyncProject, ProjectOn);
         Add("project.options", null, shell.ProjectOptions, ProjectOn);
         Add("project.resolve", null, shell.ResolveExternalChange, ProjectOn);

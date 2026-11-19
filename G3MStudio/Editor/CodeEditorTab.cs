@@ -77,7 +77,7 @@ public sealed partial class CodeEditorTab : DockPanel
         Editor.Name = "Code";
         _colorizer.Classifier = GmlNames.For(workspace);
         _ = new GmlCompletion(Editor, new GmlCompletionSource(GmlNames.Completions(workspace), name => GmlNames.SignatureOf(workspace, name), (doc, dot) => GmlMembers.After(doc, dot, InstanceVariables, MemberContext(workspace)), name => GmlNames.IsGameFunction(workspace, name), () => GmlNames.Aliases(workspace), workspace.Nicknames.CodeLabel, () => _doc));
-        InstallGoTo(workspace);
+        InstallGoTo();
         InstallIntel(workspace);
         InstallLive();
         InstallGrowth();
@@ -181,7 +181,7 @@ public sealed partial class CodeEditorTab : DockPanel
         return new GmlMemberContext(variables, GmlNames.OwnerObject(Entry, variables));
     }
 
-    private void InstallGoTo(Workspace workspace)
+    private void InstallGoTo()
     {
         void GoTo(int offset) => GoToDefinition(offset);
 
@@ -197,24 +197,6 @@ public sealed partial class CodeEditorTab : DockPanel
             if (e.KeyModifiers != Avalonia.Input.KeyModifiers.Control || !e.GetCurrentPoint(Editor.TextArea).Properties.IsLeftButtonPressed) return;
             if (Editor.GetPositionFromPoint(e.GetPosition(Editor)) is not { } position) return;
             GoTo(Editor.Document.GetOffset(position.Location));
-            e.Handled = true;
-        }, Avalonia.Interactivity.RoutingStrategies.Tunnel);
-        // A right click on a number lists the assets with that index; a choice goes to the asset (UTMT-CODE-09).
-        Editor.TextArea.AddHandler(Avalonia.Input.InputElement.PointerPressedEvent, (_, e) =>
-        {
-            if (!e.GetCurrentPoint(Editor.TextArea).Properties.IsRightButtonPressed || Editor.GetPositionFromPoint(e.GetPosition(Editor)) is not { } position) return;
-            if (NumberAssets.NumberAt(Editor.Text, Editor.Document.GetOffset(position.Location)) is not { } number) return;
-            var assets = NumberAssets.Find(workspace.Data, number);
-            if (assets.Count == 0) return;
-            var menu = new ContextMenu();
-            foreach (var (type, name) in assets)
-            {
-                var item = new MenuItem { Header = Loc.Current["explorer.type." + type] + ": " + name };
-                item.Click += (_, _) => GoToRequested?.Invoke(ResourceTypes.KeyOf(type, name));
-                menu.Items.Add(item);
-            }
-
-            menu.Open(Editor.TextArea);
             e.Handled = true;
         }, Avalonia.Interactivity.RoutingStrategies.Tunnel);
     }
@@ -278,8 +260,12 @@ public sealed partial class CodeEditorTab : DockPanel
     public void ShowFind()
     {
         _search.Open();
-        // The panel builds its parts when it first shows, so the texts are put on once that has happened.
-        Dispatcher.UIThread.Post(() => SearchPanelTexts.Apply(_search), DispatcherPriority.Loaded);
+        // The panel builds its parts when it first shows, so the texts are put on and the caret goes into the box once that has happened.
+        Dispatcher.UIThread.Post(() =>
+        {
+            SearchPanelTexts.Apply(_search);
+            _search.Reactivate();
+        }, DispatcherPriority.Loaded);
     }
 
     /// <summary>Puts the caret on a one-based line and column and scrolls there (a double click in the Problems panel).</summary>

@@ -69,7 +69,7 @@ public sealed partial class LocalizationTests
     }
 
     // Values that stay the same as English on purpose: product and technical names, key names, Spanish words that are spelled the same.
-    private static readonly string[] SameAsEnglishPrefixes = ["metadata.", "events.sub.vk_", "properties.label.", "properties.choice."];
+    private static readonly string[] SameAsEnglishPrefixes = ["metadata.", "events.sub.vk_", "properties.label.", "properties.choice.", "compat.mode."];
 
     private static readonly HashSet<string> SameAsEnglishKeys = ["app.title", "settings.shortcutNum", "git.failed", "strings.regex", "panel.git", "dock.DocumentTabStripItemLayoutModeMdiString", "explorer.nullEntry"];
 

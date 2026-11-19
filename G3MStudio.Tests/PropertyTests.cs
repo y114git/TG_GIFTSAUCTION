@@ -17,6 +17,17 @@ public sealed class PropertyTests
     }
 
     [Fact]
+    public void TheGeneralInfoShowsTheBranchAndTheChunkThatDecidedItAsReadOnlyEvidence()
+    {
+        using var data = TestData.Create(1);
+        data.GeneralInfo!.BranchSource = "TGIN";
+        var rows = PropertyModel.Describe(data.GeneralInfo);
+        Assert.Contains(rows, r => r.Name == "Branch" && !r.ReadOnly);
+        Assert.Contains(rows, r => r.Name == "BranchSource" && r.ReadOnly && r.Value == "TGIN");
+        Assert.Contains(rows, r => r.Name == "VersionSource" && r.ReadOnly);
+    }
+
+    [Fact]
     public void ASetPropertyEditUndoesRedoesAndReplaysFromTheJournal()
     {
         using var data = TestData.Create(1);

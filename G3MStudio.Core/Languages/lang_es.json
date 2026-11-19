@@ -131,6 +131,7 @@
       "transfer": "Transferir recursos...",
       "import": "Importar recursos de otro archivo de datos...",
       "importFiles": "Importar imágenes, sonidos y scripts desde archivos...",
+      "importSheetNew": "Nuevo sprite desde hoja o tira...",
       "importCodeFolder": "Importar código desde una carpeta...",
       "importCodeFiles": "Importar código desde archivos...",
       "new": {
@@ -210,6 +211,10 @@
       "enable": "Activar proyecto",
       "sync": "Sincronizar con el archivo de datos",
       "options": "Configuración del proyecto...",
+      "open": "Abrir proyecto...",
+      "new": "Nuevo proyecto...",
+      "close": "Cerrar proyecto",
+      "recent": "Proyectos recientes",
       "moveDataFile": "Cambiar ubicación del archivo de datos...",
       "disable": "Desactivar proyecto...",
       "resolve": "Resolver cambios externos..."
@@ -466,6 +471,17 @@
     "deleteBody": "¿Eliminar {name}? Deshacer lo recupera hasta que se guarde el archivo.",
     "deleteUsed": "Lugares donde se usa {name}: {count}\n{places}\n\nEsos usos se ponen en ninguno o se quitan de sus listas. Un uso en código no se puede limpiar y detiene la eliminación. El juego puede comportarse distinto o dejar de funcionar. Deshacer lo recupera todo hasta que se guarde.",
     "deleteUsedTitle": "¿Eliminar {name} de todos modos?",
+    "deleteFunctionTitle": "¿Eliminar la función {name}?",
+    "deleteFunctionOwn": "Se quita el script {script} con su entrada de código {entry}, y la función sale de la lista de funciones.",
+    "deleteFunctionInside": "Se quita la declaración de {name} de la entrada de código {entry}: la entrada se descompila, se elimina el bloque de la función y la entrada se compila de nuevo. La función sale de la lista de funciones.",
+    "deleteFunctionUnused": "Ningún otro código la llama. Deshacer lo devuelve todo hasta que guardes.",
+    "deleteFunctionUsed": "Lugares que la llaman: {count}\n{places}\n\nEsas llamadas se quedan y nombran una función que ya no existe, así que el juego puede dejar de funcionar. Por ellas, la función conserva su sitio en la lista de funciones. Deshacer lo devuelve todo hasta que guardes.",
+    "deleteFunctionNoCode": "{name} no tiene entrada de código en este archivo (es una función integrada o de una extensión), así que no hay nada que eliminar.",
+    "deleteFunctionNoScript": "{name} tiene código pero no un script propio, así que no se puede eliminar desde aquí.",
+    "deleteFunctionNoSource": "No se encuentra la declaración de {name} como bloque aparte en {entry} (está dentro de otra función, está declarada dos veces o el código no tiene llaves), así que no se elimina. Edita el código.",
+    "deleteVariableTitle": "¿Eliminar la variable {name}?",
+    "deleteVariableBody": "Ningún código usa esta entrada de variable. Solo se quita la entrada. Deshacer la devuelve hasta que guardes.",
+    "deleteVariableUsed": "{name} se usa en el código en {count} lugares, así que su entrada se queda:\n{places}\n\nQuita primero esos usos.",
     "deleteCodeTitle": "¿Eliminar {name} y dejar el código que lo usa?",
     "deleteCode": "{reason}\n\nSi lo eliminas igualmente, ese código seguirá apuntando a algo que ya no existe. El juego puede cerrarse o fallar al ejecutar ese código. Deshacer lo devuelve todo hasta que guardes.",
     "nameUnusual": "'{name}' no es un nombre simple (letras, dígitos y guiones bajos, sin empezar por un dígito). El código GML no puede usarlo y otras herramientas pueden fallar. Pulsa el botón otra vez para usarlo igualmente. Deshacer lo quita hasta que guardes.",
@@ -654,6 +670,69 @@
     "packagePick": "Guardar {name} como paquete"
   },
   "project": {
+      "why": {
+        "noFile": "Abre primero un archivo de datos.",
+        "hasProject": "Este archivo ya tiene un proyecto.",
+        "noProject": "Este archivo aún no tiene proyecto. Usa primero Nuevo proyecto."
+      },
+      "open": {
+        "pick": "Elige un archivo de proyecto (.g3mproj o el project.json de un proyecto UTMT)",
+        "pickData": "Elige el archivo de datos de este proyecto",
+        "notProject": "'{path}' no es una carpeta ni un archivo de proyecto.",
+        "mismatch": "'{name}' no es el archivo de datos con el que se sincronizó el proyecto por última vez.",
+        "failed": "No se pudo abrir el proyecto: {reason}"
+      },
+      "found": "Existe un proyecto para este archivo: {name}.",
+      "foundAction": "Abrir proyecto",
+      "recent": {
+        "none": "No hay proyectos recientes."
+      },
+    "utmt": {
+      "title": "Abrir proyecto UTMT",
+      "intro": "Convierte este proyecto de UndertaleModTool en un proyecto de G3MStudio. La carpeta de UTMT no se modifica.",
+      "project": "Proyecto: {name}, {count} recursos",
+      "dataFile": "Archivo de datos original del juego",
+      "browse": "Examinar...",
+      "destination": "Carpeta del proyecto nuevo",
+      "git": "Crear un repositorio Git en la carpeta nueva",
+      "scripts": "Ejecutar los scripts del proyecto ({detail}). Se ejecutan con tus permisos.",
+      "convert": "Convertir",
+      "pickData": "Elige el archivo de datos original",
+      "pickFolder": "Elige la carpeta del proyecto nuevo",
+      "mismatchTitle": "Archivo de datos distinto",
+      "mismatchAsk": "Este archivo de datos no es el que se usó para crear el proyecto. ¿Convertir de todos modos?",
+      "stage": {
+        "read": "leyendo el archivo de datos",
+        "import": "aplicando el proyecto",
+        "write": "escribiendo el archivo de datos",
+        "export": "escribiendo el proyecto",
+        "git": "configurando Git"
+      },
+      "failed": "No se pudo convertir el proyecto: {reason}",
+      "needFields": "Elige primero el archivo de datos y la carpeta del proyecto nuevo.",
+      "report": {
+        "title": "Proyecto UTMT convertido",
+        "summary": "Se escribieron {count} recursos en {folder}. El archivo de datos con el proyecto aplicado es {file}.",
+        "gitInitialized": "Se creó un repositorio Git con un primer commit.",
+        "gitExisting": "Se conservó el repositorio Git existente; no se hizo ningún commit.",
+        "gitNone": "No se creó ningún repositorio Git.",
+        "warnings": "Avisos",
+        "none": "No se perdió nada.",
+        "details": "Detalles",
+        "open": "Abrir proyecto",
+        "close": "Cerrar"
+      },
+      "warn": {
+        "options": "Estas opciones del proyecto no se guardan en un proyecto de G3MStudio. Su efecto se aplicó una vez: {detail}",
+        "scripts": "Los scripts del proyecto se ejecutaron y no se conservan: {detail}",
+        "ignoredFolders": "Se omitieron las carpetas que UTMT no lee: {detail}",
+        "history": "La carpeta de UTMT conserva su propio historial de Git ({detail}). El proyecto nuevo empieza uno nuevo.",
+        "library": "{detail}",
+        "export": "{detail}",
+        "gitMissing": "Git no está instalado, así que no se creó ningún repositorio.",
+        "gitFailed": "La configuración de Git no terminó: {detail}"
+      }
+    },
     "state": {
       "synced": "Sincronizado",
       "syncing": "Sincronizando...",
@@ -750,7 +829,9 @@
       "clearReferences": "Borrar referencias",
       "code": "Editar código",
       "codeEntry": "Nueva entrada de código",
+      "cloneResource": "Duplicar recurso",
       "copyProperties": "Copiar propiedades",
+      "unsharePictures": "Imágenes propias para la copia",
       "copyResources": "Copiar recursos",
       "curvePoint": "Editar punto de curva",
       "deleteString": "Eliminar cadena",
@@ -900,6 +981,7 @@
     "menu": {
       "help": "Ayuda sobre el nombre",
       "peekDefinition": "Ver definición",
+      "colour": "Color: {name}",
       "rename": "Cambiar nombre del símbolo",
       "quickFix": "Corrección rápida...",
       "goToDefinition": "Ir a la definición",
@@ -1609,6 +1691,8 @@
       "BoundingHeight": "Alto del cuadro delimitador",
       "BoundingWidth": "Ancho del cuadro delimitador",
       "Branch": "Rama",
+      "BranchSource": "Rama detectada en",
+      "VersionSource": "Versión detectada en",
       "BroadcastMessages": "Mensajes de difusión",
       "Build": "Compilación",
       "BuiltinName": "Nombre integrado",
@@ -2504,6 +2588,7 @@
       "import": "Copiar recursos desde otro archivo de datos.",
       "importPackage": "Añadir los recursos de un paquete exportado.",
       "importFiles": "Añadir imágenes, sonidos y scripts desde archivos del disco.",
+      "importSheetNew": "Corta una hoja o tira de imágenes en los fotogramas de un sprite nuevo.",
       "importCodeFolder": "Leer código desde una carpeta de archivos.",
       "importCodeFiles": "Leer código de los archivos que elijas.",
       "copyToOtherFile": "Copiar los recursos seleccionados a otro archivo de datos.",
@@ -2700,6 +2785,7 @@
     "sheetCount": "Fotogramas (0 = todos)",
     "sheetReplace": "Reemplazar los fotogramas actuales y tomar el tamaño nuevo",
     "sheetSummary": "{count} {count:fotograma|fotogramas} de {width} por {height} píxeles.",
+    "sheetPacked": "Los fotogramas se colocan solos en las páginas de textura al guardar. Para ver o mover el elemento de página de un fotograma, usa Abrir en Texture Page Items.",
     "sheetGif": "GIF animado: {count} {count:fotograma|fotogramas} de {width} por {height} píxeles.",
     "sheetMismatch": "El sprite mide {width} por {height}. Marca Reemplazar para tomar el tamaño nuevo.",
     "sheetImported": "{count:Se importó|Se importaron} {count} {count:fotograma|fotogramas} al sprite {sprite}.",
@@ -3011,7 +3097,8 @@
     "confirm": "¿Ejecutar {name}?\n\nUn script puede cambiar cualquier cosa del archivo de datos y leer y escribir cualquier archivo de este equipo. El cambio no se puede deshacer; Revertir al guardado es la vuelta atrás. Ejecuta solo scripts de confianza.\n\nSe ejecutan scripts .csx al estilo de UndertaleModTool, pero aquí solo existe parte de las funciones de esa herramienta: Data, FilePath, ScriptPath, ScriptMessage, ScriptWarning, ScriptError y ScriptQuestion (respondida con sí). Los scripts que necesitan diálogos, las ayudas del descompilador o la interfaz se detienen con un error de compilación que nombra la función que falta.",
     "running": "Ejecutando {name}...",
     "done": "{name} terminó.",
-    "failed": "{name} falló: {reason}"
+    "failed": "{name} falló: {reason}",
+    "cancelled": "{name} se detuvo. Los cambios hechos hasta ahora se quedan; Volver a lo guardado los deshace."
   },
   "sequences": {
     "moments": "Momentos",
@@ -4098,11 +4185,39 @@
     "restart": "Reiniciar",
     "stop": "Detener"
   },
+  "compat": {
+    "title": "Compatibilidad (juegos de Windows en Linux y macOS)",
+    "modeLabel": "Ejecutar juegos de Windows con",
+    "mode": {
+      "Auto": "Automático",
+      "Native": "Solo nativo",
+      "Wine": "Wine",
+      "Proton": "Proton",
+      "Umu": "umu",
+      "PortProton": "PortProton",
+      "Custom": "Comando propio"
+    },
+    "program": "Programa o carpeta de la herramienta (vacío: detectar)",
+    "browse": "Examinar...",
+    "prefix": "Carpeta del prefijo de Wine (vacío: el prefijo de Steam en un juego de Steam, si no el de la herramienta)",
+    "command": "Comando propio: {exe} {data} {dir} {prefix} {args}",
+    "detected": "Detectado ahora",
+    "detect": "Detectar",
+    "detectedTool": "Automático usaría: {tool}",
+    "detectedPrefix": "Automático usaría: {tool}, prefijo {prefix}",
+    "detectedNone": "No se encontró nada: ni Wine, ni Proton, ni umu, ni PortProton",
+    "notNeeded": "No hace falta en Windows.",
+    "noTool": "Este es un juego de Windows y no se encontró Wine, Proton ni PortProton. Instala uno o elige una herramienta en Configuración > Ejecutar.",
+    "info": "Ejecutando {exe} con {tool} (prefijo {prefix})",
+    "infoNoPrefix": "Ejecutando {exe} con {tool}",
+    "steamHint": "Steam guarda el prefijo de Wine de este juego y sus partidas guardadas en {folder}; un prefijo de Wine normal está en otro lugar.",
+    "newPrefix": "La carpeta del prefijo {folder} aún no existe. Proton la crea en esta ejecución."
+  },
   "live": {
     "restarting": "Reiniciando el juego...",
     "missingExe": "No se encontró el programa {path}. Indícalo en Configuración > Ejecutar.",
     "trustTitle": "Opciones de ejecución junto a este archivo de datos",
-    "trustBody": "Este archivo de datos tiene opciones de ejecución guardadas a su lado. Pueden iniciar cualquier programa de tu PC. Programa: {runner}. Argumentos: {arguments}. Carpeta: {folder}. Entorno: {environment}. ¿Usarlas? Si las rechazas, se usa tu Configuración.",
+    "trustBody": "Este archivo de datos tiene opciones de ejecución guardadas a su lado. Pueden iniciar cualquier programa de tu PC. Programa: {runner}. Argumentos: {arguments}. Carpeta: {folder}. Entorno: {environment}. Compatibilidad: {compat}. ¿Usarlas? Si las rechazas, se usa tu Configuración.",
     "unknownExe": "{path} no es un ejecutor de juego conocido. Se ejecuta igualmente; su salida y su código de salida se muestran aquí.",
     "inPlaceWarning": "La ejecución guarda antes tu archivo de datos (se conserva una copia de seguridad como siempre) e inicia el juego con él.",
     "crashed": "{name} terminó con el código de salida {code}. Última salida: {lines}",

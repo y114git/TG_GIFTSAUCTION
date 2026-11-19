@@ -68,4 +68,42 @@ public sealed class LeakTests(ITestOutputHelper output)
             Assert.True(alive <= 1, $"{alive} of {weak.Count} closed windows are still reachable");
         });
     }
+
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    private static async Task<WeakReference> OpenAndCloseFile(TempDir dir, string path)
+    {
+        var window = TabsWorkspaceTests.NewWindow(dir);
+        await window.OpenAsync(path);
+        window.Docking.OpenTab("code", "code:gml_Script_probe", false);
+        window.Docking.OpenTab("resource", "objects:obj_0", false);
+        Dispatcher.UIThread.RunJobs();
+        var weak = new WeakReference(window.Workspaces.Current);
+        foreach (var tab in window.Docking.Tabs.Tabs.ToList()) window.Docking.CloseTab(tab.Id);
+        window.Workspaces.Close();
+        window.Close();
+        return weak;
+    }
+
+    [Fact]
+    public async Task ReopeningAFileTenTimesLeavesNoWorkspaceBehindAndTheHeapFlat()
+    {
+        using var dir = new TempDir();
+        var path = TestData.WriteSample(dir, objects: 200, withCode: true);
+        await HeadlessApp.Run(async () =>
+        {
+            var weak = new List<WeakReference>();
+            var heap = new List<long>();
+            for (var round = 0; round < 10; round++)
+            {
+                weak.Add(await OpenAndCloseFile(dir, path));
+                await Settle();
+                heap.Add(GC.GetTotalMemory(true));
+            }
+
+            output.WriteLine("managed heap after each close (KB): " + string.Join(", ", heap.Select(x => x / 1024)));
+            var alive = weak.Count(w => w.IsAlive);
+            Assert.True(alive <= 1, $"{alive} of {weak.Count} closed workspaces are still reachable");
+            Assert.True(heap[^1] - heap[2] < 4 * 1024 * 1024, $"heap grew by {(heap[^1] - heap[2]) / 1024} KB over the last 7 reopenings");
+        });
+    }
 }

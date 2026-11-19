@@ -56,14 +56,19 @@ public sealed partial class MainWindow
         Notify(NotificationLevel.Info, Loc.Current.Format("scripts.running", ("name", name)));
         var host = NewScriptHost(name);
         // The script holds the data lock and waits for the UI thread when it asks something, so nothing on the window may take that lock meanwhile.
-        IsEnabled = false;
+        // Only the progress overlay stays live: its Cancel button (or Escape) stops the script at its next call into the library.
+        using var source = _exporting = new CancellationTokenSource();
+        (_exportName, _exportDone, _exportTotal) = (name, 0, 0);
+        SetBlocked(true);
+        ShowProgress();
         try
         {
             var error = await ScriptRunner.RunAsync(workspace, path,
                 text => Avalonia.Threading.Dispatcher.UIThread.Post(() => Notify(NotificationLevel.Info, text)),
                 text => Avalonia.Threading.Dispatcher.UIThread.Post(() => Notify(NotificationLevel.Warning, text)),
-                host, allowUnsaved: true);
-            if (error is not null) Notify(NotificationLevel.Error, Loc.Current.Format("scripts.failed", ("name", name), ("reason", error)));
+                host, allowUnsaved: true, source.Token);
+            if (error is not null && source.IsCancellationRequested) Notify(NotificationLevel.Warning, Loc.Current.Format("scripts.cancelled", ("name", name)));
+            else if (error is not null) Notify(NotificationLevel.Error, Loc.Current.Format("scripts.failed", ("name", name), ("reason", error)));
             else if (host.FinishedMessage) Notify(NotificationLevel.Info, Loc.Current.Format("scripts.done", ("name", name)));
             if (host.Selections.Count > 0 && UsageSearch.TypeKeyOf(host.Selections[^1]) is { } type) OpenEntry(ResourceTypes.KeyOf(type, ResourceTypes.NameOf(host.Selections[^1])));
         }
@@ -73,10 +78,20 @@ public sealed partial class MainWindow
         }
         finally
         {
-            IsEnabled = true;
+            SetBlocked(false);
+            _exporting = null;
             _exportName = null;
             Progress.IsVisible = false;
         }
+    }
+
+    private bool _blocked;
+
+    // Everything but the progress overlay and the toasts stops taking input while a script runs (see RunScriptAsync).
+    private void SetBlocked(bool on)
+    {
+        _blocked = on;
+        foreach (var part in new Avalonia.Controls.Control[] { TabButtons, MainMenu, StatusBar, Start, WorkArea, SettingsHost }) part.IsEnabled = !on;
     }
 
     // The script runs on a pool thread and holds the write lock, so a prompt is shown on the UI thread and the script waits for the answer. The answer never touches the data.

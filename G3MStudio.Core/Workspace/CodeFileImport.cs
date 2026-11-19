@@ -1,4 +1,5 @@
 using System.Text;
+using G3MLib.DataFile.References;
 using G3MLib.DataFile;
 
 namespace G3MStudio.Core.Workspace;
@@ -43,7 +44,7 @@ public static class CodeFileImport
         {
             var entry = Path.GetFileNameWithoutExtension(file);
             if (top.Contains(entry)) matches.Add(new CodeFileMatch(file, entry, Path.GetExtension(file).Equals(".asm", StringComparison.OrdinalIgnoreCase)));
-            else if (createMissing && ResourceListCommand.IsValidName(entry) && data.Code.ByName(entry) is null) matches.Add(new CodeFileMatch(file, entry, Path.GetExtension(file).Equals(".asm", StringComparison.OrdinalIgnoreCase), true));
+            else if (createMissing && RenameService.IsValidName(entry) && data.Code.ByName(entry) is null) matches.Add(new CodeFileMatch(file, entry, Path.GetExtension(file).Equals(".asm", StringComparison.OrdinalIgnoreCase), true));
             else misses.Add(Path.GetFileName(file));
         }
 

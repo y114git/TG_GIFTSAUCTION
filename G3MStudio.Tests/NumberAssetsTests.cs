@@ -15,6 +15,24 @@ public sealed class NumberAssetsTests
     [InlineData("x = ;", 4, null)]
     public void ANumberIsFoundOnlyWhenItStandsAlone(string text, int offset, int? expected) => Assert.Equal(expected, NumberAssets.NumberAt(text, offset));
 
+    [Theory]
+    [InlineData("c = $0000FF;", 6, 255, true, 6)]
+    [InlineData("c = 0xFFFFFF;", 8, 16777215, true, 6)]
+    [InlineData("c = 16777215;", 6, 16777215, false, 0)]
+    [InlineData("c = $FF;", 5, 255, true, 2)]
+    [InlineData("c = $7FFFFFFFFFFFFFFF;", 8, long.MaxValue, true, 16)]
+    public void HexAndDecimalLiteralsAreRead(string text, int offset, long value, bool hex, int digits) => Assert.Equal(new NumberLiteral(value, hex, digits), NumberAssets.LiteralAt(text, offset));
+
+    [Theory]
+    [InlineData("c = 0x;", 5)]
+    [InlineData("c = $;", 5)]
+    [InlineData("c = abc;", 5)]
+    [InlineData("c = obj_1;", 8)]
+    [InlineData("c = $FFFFFFFFFFFFFFFF;", 8)]
+    [InlineData("c = 0xFFFFFFFFFFFFFFFF;", 10)]
+    [InlineData("c = 99999999999999999999;", 8)]
+    public void WordsEmptyHexAndTooLargeNumbersAreNotLiterals(string text, int offset) => Assert.Null(NumberAssets.LiteralAt(text, offset));
+
     [Fact]
     public async Task TheAssetsAtAnIndexComeFromEveryTypeThatHasOne()
     {

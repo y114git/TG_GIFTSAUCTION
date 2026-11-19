@@ -1,3 +1,4 @@
+using G3MLib.DataFile.References;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Models;
 
@@ -42,7 +43,7 @@ public sealed partial class GroupListCommand(bool audio, string operation, strin
     {
         if (!CopyPackage.IsSafeName(text)) throw new InvalidOperationException($"'{text}' cannot be a name: it is empty, too long, or has characters that a file name cannot hold.");
         if (NamesOf(data, audio).Contains(text)) throw new InvalidOperationException($"A group named '{text}' exists already.");
-        if (!force && !ResourceListCommand.IsValidName(text)) throw new UnusualNameException($"'{text}' is not a plain name: letters, digits and underscores, not starting with a digit. Code cannot use other names. Allow risky actions in Settings > Advanced to use it anyway.");
+        if (!force && !RenameService.IsValidName(text)) throw new UnusualNameException($"'{text}' is not a plain name: letters, digits and underscores, not starting with a digit. Code cannot use other names. Allow risky actions in Settings > Advanced to use it anyway.");
     }
 
     public override void Apply(GameMakerData data)

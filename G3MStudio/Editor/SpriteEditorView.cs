@@ -72,6 +72,7 @@ public sealed class SpriteEditorView : ScrollViewer
         Tools.Canvas.ResizeDropped += spec => CommitCanvasSize(workspace, sprite, spec);
         _hint.Text = ResizeScope.DragHint(sprite.Textures.Count > 1);
         Tools.Canvas.ResizeDragging += spec => ShowDrag(sprite, spec);
+        Tools.Canvas.ZoomChanged += () => _zoomText.Text = $"{Tools.Canvas.Zoom}x";
         Grid.SetRow(_hint, 2);
         _canvasColumn.Children.Add(_hint);
         Grid.SetRow(viewer, 1);

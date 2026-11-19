@@ -25,8 +25,7 @@ public sealed class ClearReferencesCommand(string type, string name, bool keepCo
 {
     public const string Name = "clearReferences";
 
-    private readonly List<(object Holder, System.Reflection.PropertyInfo Property, object? Value)> _cleared = [];
-    private readonly List<(System.Collections.IList List, int At, object? Item)> _removed = [];
+    private G3MLib.DataFile.References.ClearedReferences? _cleared;
 
     public override string Kind => Name;
 
@@ -48,51 +47,17 @@ public sealed class ClearReferencesCommand(string type, string name, bool keepCo
     public override void Apply(GameMakerData data)
     {
         var target = PropertyModel.FindRoot(data, type, name) ?? throw new InvalidOperationException($"'{name}' was not found in {type}.");
-        var uses = ReferenceCache.Of(data).Get(data).FindUsages(target);
-        var inCode = uses.Where(u => u.InstructionOffset >= 0).ToList();
-        if (keepCodeUses) uses = [.. uses.Where(u => u.InstructionOffset < 0)];
-        else if (inCode.Count > 0) throw new CodeUseException($"'{name}' is used in code ({inCode.Count} places, first in {inCode[0].OwnerName}): change that code first, or allow risky actions in Settings > Advanced to delete it anyway.");
-        _cleared.Clear();
-        _removed.Clear();
-        try
-        {
-            foreach (var use in uses)
-            {
-                var property = use.Holder.GetType().GetProperty(use.Member) ?? throw new InvalidOperationException($"{use.OwnerName}.{use.Member} cannot be cleared.");
-                var current = property.GetValue(use.Holder);
-                if (current is System.Collections.IList list)
-                {
-                    var at = IndexOf(list, target);
-                    if (at < 0) continue; // an earlier use of the same list already took it out
-                    _removed.Add((list, at, list[at]));
-                    list.RemoveAt(at);
-                    continue;
-                }
-
-                _cleared.Add((use.Holder, property, current));
-                property.SetValue(use.Holder, null);
-            }
-        }
-        catch (Exception e) when (e is InvalidOperationException or ArgumentException or System.Reflection.TargetInvocationException or NullReferenceException)
-        {
-            Revert(data);
-            throw new InvalidOperationException($"A reference to '{name}' could not be cleared: {e.Message}", e);
-        }
-    }
-
-    /// <summary>The place of the target in a list of resources or of reference wrappers (an entry with a Resource property).</summary>
-    private static int IndexOf(System.Collections.IList list, object target)
-    {
-        for (var i = 0; i < list.Count; i++)
-            if (ReferenceEquals(list[i], target) || (list[i]?.GetType().GetProperty("Resource")?.GetValue(list[i]) is { } inner && ReferenceEquals(inner, target))) return i;
-        return -1;
+        var index = ReferenceCache.Of(data).Get(data);
+        var inCode = index.FindUsages(target).Where(u => u.InstructionOffset >= 0).ToList();
+        if (!keepCodeUses && inCode.Count > 0) throw new CodeUseException($"'{name}' is used in code ({inCode.Count} places, first in {inCode[0].OwnerName}): change that code first, or allow risky actions in Settings > Advanced to delete it anyway.");
+        _cleared = index.ClearUsages(target);
     }
 
     public override void Revert(GameMakerData data)
     {
-        foreach (var (list, at, item) in Enumerable.Reverse(_removed)) list.Insert(at, item);
-        _removed.Clear();
-        foreach (var (holder, property, value) in Enumerable.Reverse(_cleared)) property.SetValue(holder, value);
-        _cleared.Clear();
+        if (_cleared is not { } cleared) return;
+        cleared.Undo();
+        ReferenceCache.Of(data).Get(data).Update(cleared.ChangedOwners);
+        _cleared = null;
     }
 }

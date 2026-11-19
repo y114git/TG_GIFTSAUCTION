@@ -14,9 +14,6 @@ namespace G3MStudio.Tests;
 /// sequences of canvas changes, crops, trims, scales, frame resizes, page resizes and repacks. After every step each picture reads back as expected and lies inside
 /// its page without overlapping another; after the sequence the file writes, reads back and passes the integrity check, undo gives the first page pixels back
 /// byte for byte, redo gives the result again, and the journal replays to the same pages.
-/// Files with groups use the non-LTS branch: G3MLib 1.1.3 writes a group of a 2026 LTS file with the spine sprite list, but reads any 2026 file as non-LTS,
-/// without that list, so a written LTS file with a group does not read back ("Reading misaligned" in TGIN). Font glyphs are left out of the written file for a
-/// similar reason (see <see cref="Written"/>).
 /// </summary>
 public sealed class TextureFuzzTests
 {
@@ -66,7 +63,7 @@ public sealed class TextureFuzzTests
                 Check(world);
             }
 
-            using (var back = GameMakerIO.Read(new MemoryStream(Written(data))))
+            using (var back = GameMakerIO.Read(new MemoryStream(TestData.Bytes(data))))
             {
                 var check = DataIntegrityService.ValidateOnly(back);
                 Assert.True(check.Success, string.Join("; ", check.Errors));
@@ -96,23 +93,6 @@ public sealed class TextureFuzzTests
         }
     }
 
-    // The file as written, with the glyphs of the fonts left out: G3MLib 1.1.3 does not read back the glyphs of a font made in a generated 2026 file (its FONT
-    // version check reads past the chunk). The sheet itself is still written and compared.
-    private static byte[] Written(GameMakerData data)
-    {
-        var glyphs = data.Fonts.Select(f => f.Glyphs.ToList()).ToList();
-        foreach (var font in data.Fonts) font.Glyphs.Clear();
-        try
-        {
-            return TestData.Bytes(data);
-        }
-        finally
-        {
-            foreach (var (font, list) in data.Fonts.Zip(glyphs))
-                foreach (var glyph in list) font.Glyphs.Add(glyph);
-        }
-    }
-
     // The colour of a pixel says which picture it is and where in it, and a margin of clear pixels gives a trim something to cut.
     private static PixelBuffer Pattern(int id, int width, int height, int margin)
     {
@@ -130,7 +110,6 @@ public sealed class TextureFuzzTests
         var groups = new List<GameMakerTextureGroupInfo>();
         if (random.Next(2) == 0)
         {
-            data.GeneralInfo.Branch = GameMakerGeneralInfo.BranchType.Post2022_0;
             for (var g = random.Next(1, 3); g > 0; g--)
             {
                 var group = new GameMakerTextureGroupInfo { Name = data.Strings.MakeString($"tg_{g}") };

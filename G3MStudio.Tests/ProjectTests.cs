@@ -393,6 +393,28 @@ public sealed class ProjectTests
     }
 
     [Fact]
+    public async Task AProjectInTheParentFolderIsOfferedOnlyWhenItWasMadeForTheDataFile()
+    {
+        using var dir = new TempDir();
+        var session = new Session(dir);
+        var ct = TestContext.Current.CancellationToken;
+        Directory.CreateDirectory(dir.File("build"));
+        var otherGame = await session.Open(TestData.WriteSample(dir, "other.win", objects: 5));
+        var other = (await session.Service.Projects.EnableAsync(otherGame, dir.File("projects-other"), cancellationToken: ct)).ProjectFile;
+        var game = TestData.WriteSample(dir, "data.win", objects: 3);
+        File.Move(game, dir.File("build/data.win"));
+        var workspace = await session.Open(dir.File("build/data.win"));
+        var made = (await session.Service.Projects.EnableAsync(workspace, dir.File("projects-made"), cancellationToken: ct)).ProjectFile;
+        session.Service.Projects.Disable(workspace, deleteProject: false);
+        foreach (var record in session.Service.Projects.Registry.Projects.ToList()) session.Service.Projects.Registry.Remove(record.Id); // as on another computer: nothing is registered
+
+        File.Copy(other, dir.File("unrelated.g3mproj"));
+        Assert.Null(await session.Service.Projects.FindClosedAsync(workspace, ct)); // another game's project in the parent folder is not offered
+        File.Copy(made, dir.File("made.g3mproj"));
+        Assert.Equal(dir.File("made.g3mproj"), await session.Service.Projects.FindClosedAsync(workspace, ct)); // its base file has the name of the data file
+    }
+
+    [Fact]
     public async Task DisableKeepsTheProjectArchivedOrDeletesItAndTheOfferComesOnce()
     {
         using var dir = new TempDir();

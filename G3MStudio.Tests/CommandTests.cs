@@ -49,6 +49,9 @@ internal sealed class FakeShell : IShell
     public void NewDataFile() { }
 
     public void OpenDataFile() { }
+    public void OpenProject() { }
+    public void NewProject() { }
+    public void CloseProject() { }
     public void CloseWorkspace() { }
     public void Save() { }
     public void SaveAs() { }
@@ -106,6 +109,7 @@ internal sealed class FakeShell : IShell
 
     public void ExportGif() { }
     public void ImportSheet() { }
+    public void NewSpriteFromSheet() { }
     public void ConvertImageToTiles() { }
 
     public void ExportAllAudio() { }
@@ -312,7 +316,7 @@ public sealed class CommandTests
         var registry = NewRegistry();
         var all = registry.All.ToList();
         var inMenus = AppCommands.Menus.SelectMany(m => m.Ids).Where(id => id != "-").Distinct().ToList(); // Edit Image sits in the Sprite, Font and Tile Set menus
-        Assert.Equal(all.Select(c => c.Id).Where(id => !AppCommands.TransferModes.Contains(id)).Order(), inMenus.Order()); // the transfer modes sit behind the one Transfer entry
+        Assert.Equal(all.Select(c => c.Id).Where(id => !AppCommands.TransferModes.Contains(id) && !AppCommands.OutsideMenuBar.Contains(id)).Order(), inMenus.Order()); // the transfer modes sit behind the one Transfer entry
         var shortcuts = all.SelectMany(c => c.Gestures).Select(g => Shortcuts.Parse(g)!.ToString()).ToList();
         Assert.Equal(shortcuts.Count, shortcuts.Distinct().Count());
     }
@@ -337,7 +341,7 @@ public sealed class CommandTests
                 var window = OpenWindow(executed);
                 try
                 {
-                    if (!AppCommands.TransferModes.Contains(id)) // a transfer mode has no menu entry of its own
+                    if (!AppCommands.TransferModes.Contains(id) && !AppCommands.OutsideMenuBar.Contains(id)) // a transfer mode has no menu entry of its own, nor has a command the menu bar leaves to another place
                     {
                         // Two menus may share a title (Edit > Select All, Image > Selection > Select All): one of the items runs this command.
                         var items = MenuItems(window).Where(m => m.Command is RegistryCommand && (string?)m.Header == Loc.Current[AppCommands.TitleKey(id)]).ToList();

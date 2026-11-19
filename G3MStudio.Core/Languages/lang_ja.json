@@ -131,6 +131,7 @@
       "transfer": "リソースを転送...",
       "import": "別のデータファイルからリソースをインポート...",
       "importFiles": "画像・サウンド・スクリプトのファイルをインポート...",
+      "importSheetNew": "シートまたはストリップから新しいスプライト...",
       "importCodeFolder": "フォルダーからコードをインポート...",
       "importCodeFiles": "ファイルからコードをインポート...",
       "new": {
@@ -210,6 +211,10 @@
       "enable": "プロジェクトを有効にする",
       "sync": "データファイルに同期",
       "options": "プロジェクトの設定...",
+      "open": "プロジェクトを開く...",
+      "new": "新しいプロジェクト...",
+      "close": "プロジェクトを閉じる",
+      "recent": "最近のプロジェクト",
       "moveDataFile": "データファイルの場所を変更...",
       "disable": "プロジェクトを無効にする...",
       "resolve": "外部の変更を解決..."
@@ -466,6 +471,17 @@
     "deleteBody": "{name} を削除しますか？ ファイルを保存するまでは元に戻すで復元できます。",
     "deleteUsed": "{name} は {count} か所で使われています:\n{places}\n\nこれらの使用は「なし」に設定されるか、リストから外されます。コード内の使用は消せないため削除は中止されます。ゲームの動作が変わったり動かなくなったりする可能性があります。保存するまでは元に戻すで復元できます。",
     "deleteUsedTitle": "{name} をそれでも削除しますか？",
+    "deleteFunctionTitle": "関数 {name} を削除しますか？",
+    "deleteFunctionOwn": "スクリプト {script} とそのコードエントリ {entry} を削除し、関数を関数一覧から外します。",
+    "deleteFunctionInside": "コードエントリ {entry} から {name} の宣言を取り除きます。エントリを逆コンパイルし、関数ブロックを削除して、再びコンパイルします。関数は関数一覧から消えます。",
+    "deleteFunctionUnused": "他のコードからは呼ばれていません。保存するまでは元に戻すで全て戻せます。",
+    "deleteFunctionUsed": "呼び出している場所: {count}\n{places}\n\nこれらの呼び出しは残り、存在しない関数を指すため、ゲームが動かなくなることがあります。そのため関数は関数一覧に残ります。保存するまでは元に戻すで全て戻せます。",
+    "deleteFunctionNoCode": "{name} はこのファイルにコードエントリがありません(組み込み関数または拡張機能の関数)。削除するものがありません。",
+    "deleteFunctionNoScript": "{name} にはコードがありますが専用のスクリプトがないため、ここからは削除できません。",
+    "deleteFunctionNoSource": "{entry} の中で {name} の宣言を独立したブロックとして見つけられません(別の関数の内側にある、二重に宣言されている、またはコードに波括弧がありません)。削除しませんでした。コードを直接編集してください。",
+    "deleteVariableTitle": "変数 {name} を削除しますか？",
+    "deleteVariableBody": "この変数エントリを使うコードはありません。エントリだけを削除します。保存するまでは元に戻すで戻せます。",
+    "deleteVariableUsed": "{name} はコードの {count} か所で使われているため、エントリは残ります:\n{places}\n\n先にこれらの使用を取り除いてください。",
     "deleteCodeTitle": "{name} を削除し、それを使うコードをそのまま残しますか？",
     "deleteCode": "{reason}\n\nそれでも削除すると、そのコードは存在しないものを指したままになります。コードの実行時にゲームがクラッシュしたり、誤動作したりすることがあります。保存するまでは、「元に戻す」ですべて戻せます。",
     "nameUnusual": "「{name}」は単純な名前（英数字とアンダースコア、先頭は数字不可）ではありません。GML コードでは使えず、他のツールでも問題が起きることがあります。それでも使うには、もう一度ボタンを押してください。保存するまでは「元に戻す」で取り消せます。",
@@ -654,6 +670,69 @@
     "packagePick": "{name} をパッケージとして保存"
   },
   "project": {
+      "why": {
+        "noFile": "先にデータファイルを開いてください。",
+        "hasProject": "このファイルにはすでにプロジェクトがあります。",
+        "noProject": "このファイルにはまだプロジェクトがありません。先に「新しいプロジェクト」を使ってください。"
+      },
+      "open": {
+        "pick": "プロジェクトファイル (.g3mproj または UTMT の project.json) を選択",
+        "pickData": "このプロジェクトのデータファイルを選択",
+        "notProject": "「{path}」はプロジェクトフォルダーでもプロジェクトファイルでもありません。",
+        "mismatch": "「{name}」は、このプロジェクトが最後に同期されたデータファイルではありません。",
+        "failed": "プロジェクトを開けませんでした: {reason}"
+      },
+      "found": "このファイルのプロジェクトがあります: {name}。",
+      "foundAction": "プロジェクトを開く",
+      "recent": {
+        "none": "最近のプロジェクトはありません。"
+      },
+    "utmt": {
+      "title": "UTMTプロジェクトを開く",
+      "intro": "このUndertaleModToolプロジェクトをG3MStudioプロジェクトに変換します。UTMTのフォルダーは変更されません。",
+      "project": "プロジェクト: {name}、リソース {count} 個",
+      "dataFile": "ゲームの元のデータファイル",
+      "browse": "参照...",
+      "destination": "新しいプロジェクトフォルダー",
+      "git": "新しいフォルダーにGitリポジトリを作成する",
+      "scripts": "プロジェクトのスクリプトを実行する ({detail})。ユーザー権限で実行されます。",
+      "convert": "変換",
+      "pickData": "元のデータファイルを選択",
+      "pickFolder": "新しいプロジェクトフォルダーを選択",
+      "mismatchTitle": "別のデータファイル",
+      "mismatchAsk": "このデータファイルはプロジェクトの作成元ではありません。このまま変換しますか?",
+      "stage": {
+        "read": "データファイルを読み込み中",
+        "import": "プロジェクトを適用中",
+        "write": "データファイルを書き込み中",
+        "export": "プロジェクトを書き込み中",
+        "git": "Gitを設定中"
+      },
+      "failed": "プロジェクトを変換できませんでした: {reason}",
+      "needFields": "先にデータファイルと新しいプロジェクトフォルダーを選択してください。",
+      "report": {
+        "title": "UTMTプロジェクトを変換しました",
+        "summary": "{count} 個のリソースを {folder} に書き込みました。プロジェクトを適用したデータファイルは {file} です。",
+        "gitInitialized": "Gitリポジトリを作成し、最初のコミットを行いました。",
+        "gitExisting": "既存のGitリポジトリをそのまま使用しました。コミットはしていません。",
+        "gitNone": "Gitリポジトリは作成していません。",
+        "warnings": "警告",
+        "none": "失われたものはありません。",
+        "details": "詳細",
+        "open": "プロジェクトを開く",
+        "close": "閉じる"
+      },
+      "warn": {
+        "options": "次のプロジェクトオプションはG3MStudioプロジェクトに保存されません。効果は一度だけ適用されました: {detail}",
+        "scripts": "プロジェクトのスクリプトは実行されましたが保持されません: {detail}",
+        "ignoredFolders": "UTMTが読み込まないフォルダーは除外されました: {detail}",
+        "history": "UTMTフォルダーは独自のGit履歴を保持します ({detail})。新しいプロジェクトは新しい履歴を開始します。",
+        "library": "{detail}",
+        "export": "{detail}",
+        "gitMissing": "Gitがインストールされていないため、リポジトリは作成されませんでした。",
+        "gitFailed": "Gitの設定が完了しませんでした: {detail}"
+      }
+    },
     "state": {
       "synced": "同期済み",
       "syncing": "同期中...",
@@ -750,7 +829,9 @@
       "clearReferences": "参照を解除",
       "code": "コードを編集",
       "codeEntry": "新しいコードエントリ",
+      "cloneResource": "リソースの複製",
       "copyProperties": "プロパティをコピー",
+      "unsharePictures": "コピーに専用の画像を割り当て",
       "copyResources": "リソースをコピー",
       "curvePoint": "カーブの点を編集",
       "deleteString": "文字列を削除",
@@ -900,6 +981,7 @@
     "menu": {
       "help": "名前のヘルプ",
       "peekDefinition": "定義をここに表示",
+      "colour": "色: {name}",
       "rename": "シンボルの名前を変更",
       "quickFix": "クイックフィックス...",
       "goToDefinition": "定義へ移動",
@@ -1609,6 +1691,8 @@
       "BoundingHeight": "境界の高さ",
       "BoundingWidth": "境界の幅",
       "Branch": "ブランチ",
+      "BranchSource": "ブランチの判定元",
+      "VersionSource": "バージョンの判定元",
       "BroadcastMessages": "ブロードキャストメッセージ",
       "Build": "ビルド",
       "BuiltinName": "組み込み名",
@@ -2504,6 +2588,7 @@
       "import": "別のデータファイルからリソースをコピーします。",
       "importPackage": "エクスポートしたパッケージのリソースを追加します。",
       "importFiles": "ディスク上のファイルから画像・サウンド・スクリプトを追加します。",
+      "importSheetNew": "画像のシートやストリップを切り分けて、新しいスプライトのフレームにします。",
       "importCodeFolder": "フォルダー内のファイルからコードを読み込みます。",
       "importCodeFiles": "選んだファイルからコードを読み込みます。",
       "copyToOtherFile": "選択したリソースを別のデータファイルにコピーします。",
@@ -2700,6 +2785,7 @@
     "sheetCount": "フレーム数 (0 = すべて)",
     "sheetReplace": "現在のフレームを置き換え、新しいサイズにする",
     "sheetSummary": "{width} × {height} ピクセルのフレームが {count} 個。",
+    "sheetPacked": "フレームは保存時にテクスチャページへ自動で配置されます。フレームのページアイテムを確認・変更するには、Texture Page Items から開いてください。",
     "sheetGif": "アニメーションGIF: {width} × {height} ピクセルのフレームが {count} 個。",
     "sheetMismatch": "スプライトは {width} × {height} です。新しいサイズにするには置き換えを選んでください。",
     "sheetImported": "スプライト {sprite} に {count} フレームを取り込みました。",
@@ -3011,7 +3097,8 @@
     "confirm": "{name} を実行しますか？\n\nスクリプトはデータファイルのあらゆる内容を変更でき、このコンピューター上の任意のファイルを読み書きできます。変更は元に戻せません。戻すには「保存済みに戻す」を使います。信頼できるスクリプトだけを実行してください。\n\nUndertaleModTool 形式の .csx スクリプトを実行しますが、そのツールの機能の一部しかありません: Data、FilePath、ScriptPath、ScriptMessage、ScriptWarning、ScriptError、ScriptQuestion（常に「はい」）。ダイアログ、デコンパイラ補助、UI が必要なスクリプトは、足りない関数名を示すコンパイルエラーで止まります。",
     "running": "{name} を実行中...",
     "done": "{name} が完了しました。",
-    "failed": "{name} が失敗しました: {reason}"
+    "failed": "{name} が失敗しました: {reason}",
+    "cancelled": "{name} を停止しました。ここまでの変更は残ります。元に戻すには「保存済みの状態に戻す」を使います。"
   },
   "sequences": {
     "moments": "モーメント",
@@ -4098,11 +4185,39 @@
     "restart": "再起動",
     "stop": "停止"
   },
+  "compat": {
+    "title": "互換性 (LinuxとmacOSでWindowsゲームを動かす)",
+    "modeLabel": "Windowsゲームの起動方法",
+    "mode": {
+      "Auto": "自動",
+      "Native": "ネイティブのみ",
+      "Wine": "Wine",
+      "Proton": "Proton",
+      "Umu": "umu",
+      "PortProton": "PortProton",
+      "Custom": "カスタムコマンド"
+    },
+    "program": "ツールのプログラムまたはフォルダー (空欄で自動検出)",
+    "browse": "参照...",
+    "prefix": "Wineプレフィックスのフォルダー (空欄の場合、SteamゲームはSteamのプレフィックス、それ以外はツールの標準)",
+    "command": "カスタムコマンド: {exe} {data} {dir} {prefix} {args}",
+    "detected": "現在の検出結果",
+    "detect": "検出",
+    "detectedTool": "自動で使うもの: {tool}",
+    "detectedPrefix": "自動で使うもの: {tool}、プレフィックス {prefix}",
+    "detectedNone": "見つかりません: Wine、Proton、umu、PortProton のいずれもありません",
+    "notNeeded": "Windowsでは不要です。",
+    "noTool": "これはWindows用のゲームですが、Wine、Proton、PortProtonが見つかりません。いずれかをインストールするか、設定 > 実行 でツールを選んでください。",
+    "info": "{exe} を {tool} で実行中 (プレフィックス {prefix})",
+    "infoNoPrefix": "{exe} を {tool} で実行中",
+    "steamHint": "Steamはこのゲームの Wine プレフィックスとセーブデータを {folder} に保存します。通常の Wine プレフィックスは別の場所です。",
+    "newPrefix": "プレフィックスのフォルダー {folder} はまだありません。今回の実行で Proton が作成します。"
+  },
   "live": {
     "restarting": "ゲームを再起動しています...",
     "missingExe": "プログラム {path} が見つかりません。設定 > 実行 で指定してください。",
     "trustTitle": "データファイルの隣に実行設定があります",
-    "trustBody": "このデータファイルの隣に実行設定が保存されています。PC 上の任意のプログラムを起動できます。プログラム: {runner}。引数: {arguments}。フォルダー: {folder}。環境変数: {environment}。使用しますか。断ると設定の値を使います。",
+    "trustBody": "このデータファイルの隣に実行設定が保存されています。PC 上の任意のプログラムを起動できます。プログラム: {runner}。引数: {arguments}。フォルダー: {folder}。環境変数: {environment}。互換性: {compat}。使用しますか。断ると設定の値を使います。",
     "unknownExe": "{path} は既知のゲームランナーではありません。そのまま実行し、出力と終了コードをここに表示します。",
     "inPlaceWarning": "実行前にデータファイルを保存し(バックアップは通常どおり残ります)、そのファイルでゲームを起動します。",
     "crashed": "{name} が終了コード {code} で終了しました。最後の出力: {lines}",

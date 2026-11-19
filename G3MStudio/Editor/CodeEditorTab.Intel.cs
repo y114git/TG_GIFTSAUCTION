@@ -99,6 +99,8 @@ public sealed partial class CodeEditorTab : IOverlayHost
         }
 
         view.PointerExited += (_, _) => HideCard();
+        // Scrolling moves the text under a resting pointer; the card waits for the pointer to move again.
+        view.ScrollOffsetChanged += (_, _) => HideCard();
         // Typing closes the card and keeps it away until the pointer moves again.
         Editor.TextArea.TextEntering += (_, _) => HideCard();
         Editor.TextArea.KeyDown += (_, e) =>
@@ -115,6 +117,9 @@ public sealed partial class CodeEditorTab : IOverlayHost
         Editor.ContextMenu = BuildMenu(workspace);
         BuildNavigation();
     }
+
+    /// <summary>True while the pointer rests on the text and the hover card is due to open, for tests.</summary>
+    public bool HoverPending => _hover.IsEnabled;
 
     private void RedrawOverlays() => Editor.TextArea.TextView.InvalidateLayer(KnownLayer.Text);
 
@@ -163,23 +168,26 @@ public sealed partial class CodeEditorTab : IOverlayHost
             var local = word is not null && DeclarationOffset(word) is not null; // the same test Go to Definition and Peek use, so a function block of this file enables them
             if (word is not null) Editor.CaretOffset = offset;
             menu.Items.Clear();
+            foreach (var info in NumberItems(workspace, offset)) menu.Items.Add(info);
+            // Groups: what the name is and where it is used, changes to the code, undo and redo, the clipboard.
             menu.Items.Add(Item("code.menu.goToDefinition", () => Run("code.goToDefinition"), target is not null || local));
             menu.Items.Add(Item("code.menu.peekDefinition", () => Run("code.peekDefinition"), target is not null || local));
             menu.Items.Add(Item("code.menu.findUsages", () => FindUsagesRequested?.Invoke(word ?? ""), word is not null));
-            menu.Items.Add(Item("code.menu.rename", RenameSymbol, word is not null));
-            menu.Items.Add(Item("code.menu.quickFix", () => Run("code.quickFix")));
             menu.Items.Add(Item("code.menu.help", () => Run("code.helpOnWord"), word is not null && GmlNames.Reference.Find(word) is not null));
             menu.Items.Add(new Separator());
+            menu.Items.Add(Item("code.menu.rename", RenameSymbol, word is not null));
+            menu.Items.Add(Item("code.menu.quickFix", () => Run("code.quickFix")));
             menu.Items.Add(Item("code.menu.toggleComment", () => Run("code.toggleComment"), !Editor.IsReadOnly));
             menu.Items.Add(Item("code.menu.tabIn", () => Run("code.indent"), !Editor.IsReadOnly));
             menu.Items.Add(Item("code.menu.tabOut", () => Run("code.outdent"), !Editor.IsReadOnly));
+            menu.Items.Add(new Separator());
+            menu.Items.Add(Item("code.menu.undo", () => Editor.Undo(), Editor.CanUndo && !Editor.IsReadOnly));
+            menu.Items.Add(Item("code.menu.redo", () => Editor.Redo(), Editor.CanRedo && !Editor.IsReadOnly));
             menu.Items.Add(new Separator());
             menu.Items.Add(Item("code.menu.cut", Editor.Cut, !Editor.IsReadOnly));
             menu.Items.Add(Item("code.menu.copy", Editor.Copy));
             menu.Items.Add(Item("code.menu.paste", Editor.Paste, !Editor.IsReadOnly));
             menu.Items.Add(Item("code.menu.selectAll", Editor.SelectAll));
-            menu.Items.Add(Item("code.menu.undo", () => Editor.Undo(), Editor.CanUndo && !Editor.IsReadOnly));
-            menu.Items.Add(Item("code.menu.redo", () => Editor.Redo(), Editor.CanRedo && !Editor.IsReadOnly));
             if (ResourceMenu?.Invoke() is { Count: > 0 } resource)
             {
                 menu.Items.Add(new Separator());

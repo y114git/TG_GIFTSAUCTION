@@ -11,6 +11,14 @@ public sealed partial class MainWindow
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         if (Settings.ShortcutsEditor.Capturing) return; // the Settings page is waiting for keys to assign
+        if (_blocked)
+        {
+            // A script holds the data: no shortcut may touch it, and Escape stops the script.
+            if (e.Key == Key.Escape) _exporting?.Cancel();
+            e.Handled = true;
+            return;
+        }
+
         // With the focus inside the image editor its own keys come first (undo, redo, apply, copy and the rest act on the picture, not on the data file).
         if (e.Source is Avalonia.Visual inside && inside.FindAncestorOfType<G3MStudio.Editor.ImageEditorView>(true) is { } image && image.HandleKey(e))
         {

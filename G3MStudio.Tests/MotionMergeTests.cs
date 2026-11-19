@@ -85,10 +85,10 @@ public sealed class MotionMergeTests
                 EditorOptions.SetHoverDelay(5000);
                 window.UpdateLayout();
                 Assert.Equal(3000, ToolTip.GetShowDelay(button));
-                Assert.Equal(1000, new AppSettings().CodeHoverDelayMs);
+                Assert.Equal(400, new AppSettings().CodeHoverDelayMs);
                 window.Close();
             }
-            finally { EditorOptions.SetHoverDelay(1000); }
+            finally { EditorOptions.SetHoverDelay(400); }
 
             return Task.CompletedTask;
         });

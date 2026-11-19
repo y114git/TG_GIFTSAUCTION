@@ -43,6 +43,23 @@ public static class UiSizing
         return visible * 2 >= (long)width * height;
     }
 
+    /// <summary>The window rectangle pulled into the work area it overlaps most (the first area when it overlaps none): no wider or taller than the area, and moved inside it. A saved size from a larger screen must not push the right dock off this one.</summary>
+    public static (int X, int Y, int Width, int Height) FitToArea(int x, int y, int width, int height, IReadOnlyList<(int X, int Y, int Width, int Height)> areas)
+    {
+        if (areas.Count == 0) return (x, y, width, height);
+        var best = areas[0];
+        long bestOverlap = -1;
+        foreach (var area in areas)
+        {
+            var overlap = Math.Max(0L, Math.Min(x + width, area.X + area.Width) - Math.Max(x, area.X)) * Math.Max(0L, Math.Min(y + height, area.Y + area.Height) - Math.Max(y, area.Y));
+            if (overlap > bestOverlap) (best, bestOverlap) = (area, overlap);
+        }
+
+        width = Math.Min(width, best.Width);
+        height = Math.Min(height, best.Height);
+        return (Math.Clamp(x, best.X, best.X + best.Width - width), Math.Clamp(y, best.Y, best.Y + best.Height - height), width, height);
+    }
+
     /// <summary>The main window's size as a share of the work area, and the dock shares (Explorer, Inspector, bottom panel).</summary>
     public const double WindowShare = 0.85;
     public const double ExplorerShare = 0.19;

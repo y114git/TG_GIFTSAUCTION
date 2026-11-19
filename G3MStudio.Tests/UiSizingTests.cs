@@ -30,6 +30,18 @@ public sealed class UiSizingTests
     public void AWindowMostlyOffScreenIsNotRestored(int x, int y, int width, int height, bool expected) =>
         Assert.Equal(expected, UiSizing.MostlyVisible(x, y, width, height, [(0, 0, 1920, 1040)]));
 
+    [Theory]
+    [InlineData(0, 0, 3000, 2000, 0, 0, 1920, 1040)] // wider and taller than the screen: shrunk to it
+    [InlineData(1500, 700, 1000, 700, 920, 340, 1000, 700)] // sticks out at the right and the bottom: moved in
+    [InlineData(-300, -50, 1000, 700, 0, 0, 1000, 700)]
+    [InlineData(100, 100, 1000, 700, 100, 100, 1000, 700)] // already inside: untouched
+    public void AWindowIsPulledInsideItsWorkArea(int x, int y, int width, int height, int ex, int ey, int ew, int eh) =>
+        Assert.Equal((ex, ey, ew, eh), UiSizing.FitToArea(x, y, width, height, [(0, 0, 1920, 1040)]));
+
+    [Fact]
+    public void AWindowIsFittedToTheAreaItOverlapsMost() =>
+        Assert.Equal((1920, 0, 1500, 800), UiSizing.FitToArea(1900, 0, 1500, 800, [(0, 0, 1920, 1040), (1920, 0, 2560, 1400)]));
+
     [Fact]
     public void AWindowAcrossTwoScreensCountsBothAreas() =>
         Assert.True(UiSizing.MostlyVisible(1500, 0, 1000, 700, [(0, 0, 1920, 1040), (1920, 0, 1920, 1040)]));

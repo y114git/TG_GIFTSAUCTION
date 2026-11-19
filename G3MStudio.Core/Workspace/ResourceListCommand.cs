@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+using G3MLib.DataFile.References;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Models;
 
@@ -14,7 +14,7 @@ public sealed class UnusualNameException(string message, bool taken = false) : I
 /// Creates an empty resource (object, script, path or timeline) or deletes one. Undo puts the lists back as they were. A delete leaves the code of
 /// the resource out too (the events of an object, the code of a script); the caller checks first that nothing uses it.
 /// </summary>
-public sealed partial class ResourceListCommand : EditCommand
+public sealed class ResourceListCommand : EditCommand
 {
     public const string Name = "resourceList";
     public const string New = "new";
@@ -28,6 +28,9 @@ public sealed partial class ResourceListCommand : EditCommand
 
     /// <summary>Types that can be deleted.</summary>
     public static readonly string[] Deletable = ["objects", "sprites", "sounds", "paths", "scripts", "shaders", "fonts", "timelines", "rooms", "animationCurves", "sequences", "particleSystems", "tileSets", "extensions"];
+
+    /// <summary>Entries of the function and variable tables: deleted one by one from their own flow (see <see cref="FunctionDeletion"/>), never by the bulk delete.</summary>
+    public static bool IsTableEntry(string type) => type is "functions" or "variables";
 
     private readonly string _type, _operation, _name;
     private List<GameMakerCode>? _code;
@@ -57,13 +60,6 @@ public sealed partial class ResourceListCommand : EditCommand
 
     public static ResourceListCommand FromArgs(IReadOnlyDictionary<string, string> a) => new(a["type"], a["operation"], a["name"], a.ContainsKey("force"));
 
-    /// <summary>True when the text can name a resource: letters, digits and underscores, not starting with a digit.</summary>
-    public static bool IsValidName(string name) => ResourceName().IsMatch(name);
-
-    /// <summary>True when an entry of any resource type already has the name (GameMaker wants one name per asset).</summary>
-    public static bool NameTaken(GameMakerData data, string name) =>
-        ResourceTypes.All.Where(t => !t.IsData && t.Key != "general").Any(t => t.Items(data)?.Any(i => ResourceTypes.NameOf(i) == name) == true);
-
     public override void Apply(GameMakerData data)
     {
         var (codeBefore, localsBefore, audioBefore) = (new List<GameMakerCode>(data.Code), data.CodeLocals is { } l ? new List<GameMakerCodeLocals>(l) : null, new List<GameMakerEmbeddedAudio>(data.EmbeddedAudio));
@@ -73,15 +69,22 @@ public sealed partial class ResourceListCommand : EditCommand
         (_code, _locals, _audio) = (codeBefore, localsBefore, audioBefore);
     }
 
+    /// <summary>
+    /// The one name rule of new and duplicated resources: a name that cannot be a file name is always refused; a name that is not a plain GML name (or is a keyword)
+    /// throws <see cref="UnusualNameException"/> unless <paramref name="force"/> (the risky-actions setting or the owner's second try).
+    /// </summary>
+    public static void CheckPlainName(string name, bool force)
+    {
+        var unusual = !RenameService.IsValidName(name);
+        if (unusual && !CopyPackage.IsSafeName(name)) throw new InvalidOperationException($"'{name}' cannot be a name: it is empty, too long, or has characters that a file name cannot hold (slash, colon and others), and resources are stored as files.");
+        if (unusual && !force) throw new UnusualNameException($"'{name}' is not a plain name: letters, digits and underscores, not starting with a digit. Code cannot use other names. Allow risky actions in Settings > Advanced to use it anyway.");
+    }
+
     private void CheckName(GameMakerData data)
     {
-        var unusual = !IsValidName(_name);
-        if (unusual && !CopyPackage.IsSafeName(_name)) throw new InvalidOperationException($"'{_name}' cannot be a name: it is empty, too long, or has characters that a file name cannot hold (slash, colon and others), and resources are stored as files.");
-        var taken = NameTaken(data, _name) || _type == "scripts" && data.Code.ByName("gml_Script_" + _name) is not null;
-        if (_force || !unusual && !taken) return;
-        throw new UnusualNameException(taken
-            ? $"A resource or code entry named '{_name}' exists already. Allow risky actions in Settings > Advanced to use the name twice anyway."
-            : $"'{_name}' is not a plain name: letters, digits and underscores, not starting with a digit. Code cannot use other names. Allow risky actions in Settings > Advanced to use it anyway.", taken);
+        CheckPlainName(_name, _force);
+        var taken = RenameService.IsNameInUse(data, _name) || _type == "scripts" && data.Code.ByName("gml_Script_" + _name) is not null;
+        if (taken && !_force) throw new UnusualNameException($"A resource or code entry named '{_name}' exists already. Allow risky actions in Settings > Advanced to use the name twice anyway.", true);
     }
 
     private void Create(GameMakerData data)
@@ -174,11 +177,13 @@ public sealed partial class ResourceListCommand : EditCommand
 
     private void Remove(GameMakerData data)
     {
-        if (!Deletable.Contains(_type)) throw new InvalidOperationException($"A {_type} entry cannot be deleted here.");
+        if (!Deletable.Contains(_type) && !IsTableEntry(_type)) throw new InvalidOperationException($"A {_type} entry cannot be deleted here.");
         var list = ListOf(data);
         _at = list.FindIndex(i => ResourceTypes.NameOf(i) == _name);
         if (_at < 0) throw new InvalidOperationException($"'{_name}' was not found in {_type}.");
         _item = list[_at];
+        if (_item is GameMakerVariable or GameMakerFunction && FreshUsages(data, _item) > 0)
+            throw new InvalidOperationException($"'{_name}' is still used by code, so its table entry stays.");
         if (_item is GameMakerGameObject owner)
         {
             // A collision event names its partner by position in the object list: the events after the removed entry move up by one, and an event that aims at it blocks the delete.
@@ -201,6 +206,12 @@ public sealed partial class ResourceListCommand : EditCommand
         list.RemoveAt(_at);
         Sync(data, list);
     }
+
+    // The group drops the cached index after each step that can change references, so it is current here and one build serves every entry of a delete group.
+    private static int FreshUsages(GameMakerData data, object item) => ReferenceCache.Of(data).Get(data).FindUsages(item).Count;
+
+    // A function or variable entry is only ever a target: taking it out leaves every other use in the index as it was.
+    public override bool KeepsReferences => _operation == Delete && _type is "functions" or "variables";
 
     // Events that aim at the removed object would point at the next object, or past the end of the list. Forced, they are removed with their code (undo puts the lists back).
     private void DropCollisionsAimedAt(GameMakerData data, uint index)
@@ -264,6 +275,8 @@ public sealed partial class ResourceListCommand : EditCommand
             case "particleSystems": Replace(data.ParticleSystems, list); break;
             case "tileSets": Replace(data.Backgrounds, list); break;
             case "extensions": Replace(data.Extensions, list); break;
+            case "functions": Replace(data.Functions, list); break;
+            case "variables": Replace(data.Variables, list); break;
             default: throw new InvalidOperationException($"Unknown type {_type}.");
         }
     }
@@ -280,7 +293,4 @@ public sealed partial class ResourceListCommand : EditCommand
         list.Clear();
         foreach (var item in items) list.Add(item);
     }
-
-    [GeneratedRegex("^[A-Za-z_][A-Za-z0-9_]*$")]
-    private static partial Regex ResourceName();
 }

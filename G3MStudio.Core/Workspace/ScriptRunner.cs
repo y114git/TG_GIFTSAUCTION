@@ -86,8 +86,11 @@ public sealed class StudioScripts(GameMakerData data, string filePath, string sc
 /// <summary>Runs a .csx script on the open data file as one bulk change: it cannot be undone and Revert to Saved is the way back.</summary>
 public static class ScriptRunner
 {
-    /// <summary>Runs the script. Returns null when it finished, or the error text (compile error, ScriptError or an exception in the script).</summary>
-    public static async Task<string?> RunAsync(Workspace workspace, string scriptPath, Action<string> message, Action<string> warning, ScriptHost? host = null, bool allowUnsaved = false)
+    /// <summary>
+    /// Runs the script. Returns null when it finished, or the error text (compile error, ScriptError, an exception in the script, or "Script was cancelled." after the token ended it:
+    /// the script stops at its next call into the library, and what it changed so far stays).
+    /// </summary>
+    public static async Task<string?> RunAsync(Workspace workspace, string scriptPath, Action<string> message, Action<string> warning, ScriptHost? host = null, bool allowUnsaved = false, CancellationToken cancellationToken = default)
     {
         var globals = new StudioScripts(workspace.Data, workspace.Path, scriptPath, host ?? new ScriptHost())
         {
@@ -99,7 +102,7 @@ public static class ScriptRunner
         await workspace.ApplyBulkAsync(() =>
         {
             // The change runs on a pool thread without a synchronization context, so waiting here cannot deadlock; the write lock must stay held until the script ends.
-            var result = G3MLib.DataFile.Scripting.ScriptRunner.RunAsync(scriptPath, globals).GetAwaiter().GetResult();
+            var result = G3MLib.DataFile.Scripting.ScriptRunner.RunAsync(scriptPath, globals, cancellationToken).GetAwaiter().GetResult();
             error = result.Success ? null : result.Error;
         }, allowUnsaved);
         return error;

@@ -39,7 +39,7 @@ public static class EditorOptions
     public static event Action? Changed;
 
     /// <summary>Milliseconds the pointer rests on something before its tooltip or the code info card shows (one setting for both).</summary>
-    public static int HoverDelayMs { get; private set; } = 1000;
+    public static int HoverDelayMs { get; private set; } = 400;
 
     public const int MinHoverDelayMs = 300, MaxHoverDelayMs = 3000;
 

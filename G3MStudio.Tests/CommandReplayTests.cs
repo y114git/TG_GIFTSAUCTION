@@ -15,6 +15,7 @@ public sealed class CommandReplayTests
     private static readonly (string Name, Func<GameMakerData, EditCommand?> Build)[] Cases =
     [
         ("rename object", d => d.GameObjects.Count > 0 ? new RenameResourceCommand("objects", d.GameObjects[0].Name.Content!, "obj_renamed") : null),
+        ("copy properties of an rc1 journal", d => d.GameObjects.Count > 1 ? new CopyPropertiesCommand("objects", d.GameObjects[0].Name.Content!, d.GameObjects[1].Name.Content!, ["Depth", "Visible"]) : null),
         ("new object", d => new ResourceListCommand("objects", ResourceListCommand.New, "obj_replay_new")),
         ("new sprite", d => new ResourceListCommand("sprites", ResourceListCommand.New, "spr_replay_new")),
         ("new sound", d => new ResourceListCommand("sounds", ResourceListCommand.New, "snd_replay_new")),

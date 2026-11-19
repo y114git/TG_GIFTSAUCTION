@@ -32,11 +32,17 @@ public sealed partial class Workspace
     /// <summary>
     /// Like <see cref="ApplyBulk"/>, but the change runs on a pool thread and every event (the history changing, the project refreshing) is raised on the
     /// thread that called this, which a window needs because its controls belong to its own thread.
+    /// It waits for a running save or export and holds the edits like a background edit does, so a save never writes a half changed model and a save asked meanwhile waits for it.
+    /// The lock order is the workspace freeze, then the model write lock, then the library data gate (taken by the script, patch or import itself, and by the data writer);
+    /// nothing takes them in another order, so a save and a bulk change cannot wait for each other.
     /// </summary>
     public async Task ApplyBulkAsync(Action change, bool allowUnsaved = false)
     {
         History.Locks?.CheckBulk();
         if (History.IsDirty && !allowUnsaved) throw new InvalidOperationException("Save or revert the unsaved changes first.");
+        while (History.Frozen) await Task.Delay(50);
+        Freeze();
+        await _applying.WaitAsync(CancellationToken.None);
         try
         {
             await Task.Run(() =>
@@ -57,9 +63,12 @@ public sealed partial class Workspace
         }
         finally
         {
+            _applying.Release();
             History.Barrier();
             JournalSuspended = true;
             BulkApplied?.Invoke();
+            // Edits and saves asked while it ran were held; they follow it.
+            if (Thaw()) ApplyQueued();
         }
     }
 

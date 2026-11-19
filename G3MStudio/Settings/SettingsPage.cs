@@ -161,7 +161,7 @@ public sealed partial class SettingsPage : UserControl
             x => x with { Decompiler = d.Decompiler },
             x => x with { BackupCount = d.BackupCount, AskOnClose = d.AskOnClose, RememberWindow = d.RememberWindow },
             x => x with { Project = d.Project },
-            x => x with { RuntimeFolders = d.RuntimeFolders, RunRunner = d.RunRunner, RunArguments = d.RunArguments, RunDebugOutput = d.RunDebugOutput, RunWorkingDir = d.RunWorkingDir, RunEnvironment = d.RunEnvironment, RunSaveInPlace = d.RunSaveInPlace, RunAutoRestart = d.RunAutoRestart, RunStopSeconds = d.RunStopSeconds, WarnTempRun = d.WarnTempRun, RunOptionsLocation = d.RunOptionsLocation, ActiveRunProfile = d.ActiveRunProfile },
+            x => x with { RuntimeFolders = d.RuntimeFolders, RunRunner = d.RunRunner, RunArguments = d.RunArguments, RunDebugOutput = d.RunDebugOutput, RunWorkingDir = d.RunWorkingDir, RunEnvironment = d.RunEnvironment, RunCompat = d.RunCompat, RunCompatProgram = d.RunCompatProgram, RunWinePrefix = d.RunWinePrefix, RunCompatCommand = d.RunCompatCommand, RunSaveInPlace = d.RunSaveInPlace, RunAutoRestart = d.RunAutoRestart, RunStopSeconds = d.RunStopSeconds, WarnTempRun = d.WarnTempRun, RunOptionsLocation = d.RunOptionsLocation, ActiveRunProfile = d.ActiveRunProfile },
             x => x with { Overrides = d.Overrides, MemoryLimitMb = d.MemoryLimitMb, UndoLimitMb = d.UndoLimitMb, AskRiskyActions = d.AskRiskyActions, AllowUnsafeSilently = d.AllowUnsafeSilently },
             x => x with { CrashReports = d.CrashReports, UsageStats = d.UsageStats },
             Prompts.ResetAll,

@@ -372,11 +372,27 @@ public sealed partial class MainWindow
         SizeChanged += (_, _) => { if (WindowState == WindowState.Normal) _normalSize = PixelSize.FromSize(ClientSize, DesktopScaling); };
         _normalPosition = Position;
         _normalSize = PixelSize.FromSize(ClientSize, DesktopScaling);
+        ScalingChanged += (_, _) => KeepOnScreen(); // moved to a smaller or denser screen
         if (Workspaces.Settings.Current is not { RememberWindow: true, Window: { } saved }) { UseDefaultSize(); return; }
-        if (!UiSizing.MostlyVisible(saved.X, saved.Y, saved.Width, saved.Height, Screens.All.Select(s => (s.WorkingArea.X, s.WorkingArea.Y, s.WorkingArea.Width, s.WorkingArea.Height)))) { UseDefaultSize(); return; }
+        if (!UiSizing.MostlyVisible(saved.X, saved.Y, saved.Width, saved.Height, WorkAreas())) { UseDefaultSize(); return; }
         Position = new PixelPoint(saved.X, saved.Y);
         if (saved.Width > 300 && saved.Height > 200) ClientSize = new Size(saved.Width / DesktopScaling, saved.Height / DesktopScaling);
+        KeepOnScreen();
         if (saved.Maximized) WindowState = WindowState.Maximized;
+    }
+
+    private List<(int X, int Y, int Width, int Height)> WorkAreas() => [.. Screens.All.Select(s => (s.WorkingArea.X, s.WorkingArea.Y, s.WorkingArea.Width, s.WorkingArea.Height))];
+
+    /// <summary>A normal window never reaches past the work area it is on: a size saved on a larger screen, or a move to a smaller one, would push the right dock out of view.</summary>
+    internal void KeepOnScreen()
+    {
+        if (WindowState != WindowState.Normal) return;
+        var scale = DesktopScaling;
+        var frame = FrameSize ?? ClientSize;
+        var (x, y, width, height) = UiSizing.FitToArea(Position.X, Position.Y, (int)Math.Ceiling(frame.Width * scale), (int)Math.Ceiling(frame.Height * scale), WorkAreas());
+        var client = new Size(Math.Max(0, width / scale - (frame.Width - ClientSize.Width)), Math.Max(0, height / scale - (frame.Height - ClientSize.Height)));
+        if (client.Width < ClientSize.Width - 0.5 || client.Height < ClientSize.Height - 0.5) ClientSize = new Size(Math.Min(client.Width, ClientSize.Width), Math.Min(client.Height, ClientSize.Height));
+        if (new PixelPoint(x, y) != Position) Position = new PixelPoint(x, y);
     }
 
     /// <summary>A first start (or a lost screen) opens at 85% of the work area, centered, so the same layout fits a laptop and a 4K screen.</summary>

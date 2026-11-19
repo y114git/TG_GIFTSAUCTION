@@ -6,16 +6,25 @@ namespace G3MStudio.Tests;
 public sealed class DuplicateTests
 {
     [Fact]
-    public void AnUnusualCopyNameNeedsPermissionAndAnUnsafeOneIsAlwaysRefused()
+    public void AnUnusualOrUnsafeCopyNameIsRefused()
     {
-        ResourceDuplicate.CheckCopyName("obj_copy", false);
-        Assert.Throws<UnusualNameException>(() => ResourceDuplicate.CheckCopyName("my copy", false));
-        ResourceDuplicate.CheckCopyName("my copy", true);
-        Assert.Throws<InvalidOperationException>(() => ResourceDuplicate.CheckCopyName("a/b", true));
+        ResourceDuplicate.CheckCopyName("obj_copy");
+        Assert.ThrowsAny<InvalidOperationException>(() => ResourceDuplicate.CheckCopyName("my copy"));
+        Assert.Throws<InvalidOperationException>(() => ResourceDuplicate.CheckCopyName("a/b"));
+        Assert.Throws<UnusualNameException>(() => ResourceDuplicate.CheckCopyName("with"));
+    }
+
+    [Theory]
+    [InlineData("my copy")]
+    [InlineData("with")]
+    public void AnUnusualCopyNameGoesThroughWhenRiskyActionsAreAllowed(string name)
+    {
+        ResourceDuplicate.CheckCopyName(name, true);
+        Assert.Throws<InvalidOperationException>(() => ResourceDuplicate.CheckCopyName("a/b", true)); // the file-name floor stays
     }
 
     [Fact]
-    public async Task ATakenCopyNameIsRefusedBeforeTheCopyBetweenFilesStarts()
+    public async Task ATakenCopyNameIsRefusedBeforeTheCopyStarts()
     {
         using var data = await GameMakerIO.ReadAsync(Corpus.Files(Corpus.Folder).First(), cancellationToken: TestContext.Current.CancellationToken);
         var taken = data.GameObjects[0].Name.Content!;
@@ -33,7 +42,7 @@ public sealed class DuplicateTests
         var name = source.Name.Content!;
         var objects = data.GameObjects.Count;
         var code = data.Code.Count;
-        var command = ResourceDuplicate.Build(data, "objects", name, "zz_copy");
+        var command = ResourceDuplicate.Build("objects", name, "zz_copy");
         command.Apply(data);
         var copy = data.GameObjects.Single(o => o.Name.Content == "zz_copy");
         Assert.Equal(objects + 1, data.GameObjects.Count);
@@ -68,7 +77,7 @@ public sealed class DuplicateTests
         foreach (var file in Corpus.Files(folder))
         {
             var candidate = await GameMakerIO.ReadAsync(file, cancellationToken: TestContext.Current.CancellationToken);
-            source = candidate.Scripts.FirstOrDefault(s => s.Code is { ParentEntry: null } && s.Code.Name.Content is { Length: > 0 } c && CodeText.Decompile(candidate, c) is { Length: > 10 and < 600 } text && !text.Contains("function", StringComparison.Ordinal));
+            source = candidate.Scripts.FirstOrDefault(s => s.Code is { ParentEntry: null } && s.Code.Name.Content is { Length: > 0 } c && c == "gml_Script_" + s.Name.Content && CodeText.Decompile(candidate, c) is { Length: > 10 and < 600 } text && !text.Contains("function", StringComparison.Ordinal));
             if (source is not null)
             {
                 found = candidate;
@@ -81,7 +90,7 @@ public sealed class DuplicateTests
         Assert.False(found is null || source is null, "no corpus file has a short plain script");
         using var data = found;
         var scripts = data!.Scripts.Count;
-        var command = ResourceDuplicate.Build(data, "scripts", source!.Name.Content!, "zz_script_copy");
+        var command = ResourceDuplicate.Build("scripts", source!.Name.Content!, "zz_script_copy");
         command.Apply(data);
         Assert.Equal(scripts + 1, data.Scripts.Count);
         Assert.Equal(CodeText.Decompile(data, source!.Code!.Name.Content!), CodeText.Decompile(data, "gml_Script_zz_script_copy"));

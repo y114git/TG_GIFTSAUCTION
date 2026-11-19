@@ -131,6 +131,7 @@
       "transfer": "傳輸資源...",
       "import": "從其他資料檔案匯入資源...",
       "importFiles": "從檔案匯入圖片、聲音和指令碼...",
+      "importSheetNew": "從精靈表或條帶新增精靈...",
       "importCodeFolder": "從資料夾匯入程式碼...",
       "importCodeFiles": "從檔案匯入程式碼...",
       "new": {
@@ -210,6 +211,10 @@
       "enable": "啟用專案",
       "sync": "同步到資料檔案",
       "options": "專案設定...",
+      "open": "開啟專案...",
+      "new": "新增專案...",
+      "close": "關閉專案",
+      "recent": "最近的專案",
       "moveDataFile": "變更資料檔案位置...",
       "disable": "停用專案...",
       "resolve": "解決外部變更..."
@@ -466,6 +471,17 @@
     "deleteBody": "刪除 {name}？儲存檔案之前可以復原。",
     "deleteUsed": "{name} 在 {count} 處被使用：\n{places}\n\n這些用法會設為無，或從清單中移除。程式碼中的用法無法清除，會使刪除中止。遊戲的行為可能改變或無法執行。儲存之前可以復原全部內容。",
     "deleteUsedTitle": "仍要刪除 {name} 嗎？",
+    "deleteFunctionTitle": "刪除函式 {name}？",
+    "deleteFunctionOwn": "將刪除腳本 {script} 及其程式碼項目 {entry},並把該函式從函式清單中移除。",
+    "deleteFunctionInside": "將從程式碼項目 {entry} 中取出 {name} 的宣告:先反編譯該項目,刪除函式區塊,再重新編譯。該函式會從函式清單中消失。",
+    "deleteFunctionUnused": "沒有其他程式碼呼叫它。儲存之前,復原可以還原全部內容。",
+    "deleteFunctionUsed": "呼叫它的位置: {count}\n{places}\n\n這些呼叫會保留,並指向一個不存在的函式,遊戲可能無法執行。因此該函式仍留在函式清單中。儲存之前,復原可以還原全部內容。",
+    "deleteFunctionNoCode": "{name} 在此檔案中沒有程式碼項目(內建函式或擴充函式),沒有可刪除的內容。",
+    "deleteFunctionNoScript": "{name} 有程式碼但沒有自己的腳本,因此無法在此刪除。",
+    "deleteFunctionNoSource": "在 {entry} 中找不到 {name} 的獨立宣告區塊(它位於另一個函式內、被宣告了兩次,或程式碼沒有大括號),因此未刪除。請直接編輯程式碼。",
+    "deleteVariableTitle": "刪除變數 {name}？",
+    "deleteVariableBody": "沒有程式碼使用這個變數項目。只會刪除該項目。儲存之前,復原可以還原。",
+    "deleteVariableUsed": "{name} 在程式碼中的 {count} 處被使用,因此項目保留:\n{places}\n\n請先移除這些使用。",
     "deleteCodeTitle": "刪除 {name} 並保留使用它的程式碼？",
     "deleteCode": "{reason}\n\n仍然刪除的話，這些程式碼會繼續指向已不存在的內容。程式碼執行時遊戲可能當機或出錯。儲存之前，復原可以還原一切。",
     "nameUnusual": "「{name}」不是簡單名稱（字母、數字和底線，且不以數字開頭）。GML 程式碼無法使用它，其他工具也可能出錯。要仍然使用，請再按一次按鈕。儲存之前可以復原。",
@@ -654,6 +670,69 @@
     "packagePick": "將 {name} 儲存為套件"
   },
   "project": {
+      "why": {
+        "noFile": "請先開啟資料檔案。",
+        "hasProject": "此檔案已有專案。",
+        "noProject": "此檔案還沒有專案。請先使用「新增專案」。"
+      },
+      "open": {
+        "pick": "選擇專案檔案 (.g3mproj 或 UTMT 的 project.json)",
+        "pickData": "選擇此專案的資料檔案",
+        "notProject": "「{path}」不是專案資料夾或專案檔案。",
+        "mismatch": "「{name}」不是此專案上次同步所用的資料檔案。",
+        "failed": "無法開啟專案: {reason}"
+      },
+      "found": "此檔案已有專案: {name}。",
+      "foundAction": "開啟專案",
+      "recent": {
+        "none": "沒有最近的專案。"
+      },
+    "utmt": {
+      "title": "開啟 UTMT 專案",
+      "intro": "將此 UndertaleModTool 專案轉換為 G3MStudio 專案。UTMT 資料夾不會被修改。",
+      "project": "專案: {name}，{count} 個資源",
+      "dataFile": "遊戲的原始資料檔案",
+      "browse": "瀏覽...",
+      "destination": "新專案資料夾",
+      "git": "在新資料夾中建立 Git 儲存庫",
+      "scripts": "執行專案指令碼 ({detail})。指令碼以你的使用者權限執行。",
+      "convert": "轉換",
+      "pickData": "選擇原始資料檔案",
+      "pickFolder": "選擇新專案資料夾",
+      "mismatchTitle": "資料檔案不同",
+      "mismatchAsk": "此資料檔案不是建立專案時所用的檔案。仍要轉換嗎？",
+      "stage": {
+        "read": "讀取資料檔案",
+        "import": "套用專案",
+        "write": "寫入資料檔案",
+        "export": "寫入專案",
+        "git": "設定 Git"
+      },
+      "failed": "無法轉換專案: {reason}",
+      "needFields": "請先選擇資料檔案和新專案資料夾。",
+      "report": {
+        "title": "UTMT 專案已轉換",
+        "summary": "已將 {count} 個資源寫入 {folder}。套用了專案的資料檔案是 {file}。",
+        "gitInitialized": "已建立 Git 儲存庫並完成首次提交。",
+        "gitExisting": "保留了現有的 Git 儲存庫，未提交任何內容。",
+        "gitNone": "未建立 Git 儲存庫。",
+        "warnings": "警告",
+        "none": "沒有遺失任何內容。",
+        "details": "詳細資訊",
+        "open": "開啟專案",
+        "close": "關閉"
+      },
+      "warn": {
+        "options": "以下專案選項不會儲存在 G3MStudio 專案中，其效果已套用一次: {detail}",
+        "scripts": "專案指令碼已執行，且不會保留: {detail}",
+        "ignoredFolders": "UTMT 不讀取的資料夾已被略過: {detail}",
+        "history": "UTMT 資料夾保留自己的 Git 歷史 ({detail})。新專案會開始新的歷史。",
+        "library": "{detail}",
+        "export": "{detail}",
+        "gitMissing": "未安裝 Git，因此沒有建立儲存庫。",
+        "gitFailed": "Git 設定未完成: {detail}"
+      }
+    },
     "state": {
       "synced": "已同步",
       "syncing": "正在同步...",
@@ -750,7 +829,9 @@
       "clearReferences": "清除參照",
       "code": "編輯程式碼",
       "codeEntry": "新增程式碼項目",
+      "cloneResource": "複製資源",
       "copyProperties": "複製屬性",
+      "unsharePictures": "為副本建立獨立圖片",
       "copyResources": "複製資源",
       "curvePoint": "編輯曲線點",
       "deleteString": "刪除字串",
@@ -900,6 +981,7 @@
     "menu": {
       "help": "名稱說明",
       "peekDefinition": "預覽定義",
+      "colour": "顏色：{name}",
       "rename": "重新命名符號",
       "quickFix": "快速修正...",
       "goToDefinition": "跳至定義",
@@ -1609,6 +1691,8 @@
       "BoundingHeight": "邊界高度",
       "BoundingWidth": "邊界寬度",
       "Branch": "分支",
+      "BranchSource": "分支判定依據",
+      "VersionSource": "版本判定依據",
       "BroadcastMessages": "廣播訊息",
       "Build": "組建",
       "BuiltinName": "內建名稱",
@@ -2504,6 +2588,7 @@
       "import": "從其他資料檔案複製資源。",
       "importPackage": "加入已匯出的套件中的資源。",
       "importFiles": "從磁碟上的檔案加入圖片、聲音和指令碼。",
+      "importSheetNew": "把圖片精靈表或條帶切成新精靈的影格。",
       "importCodeFolder": "從資料夾中的檔案讀取程式碼。",
       "importCodeFiles": "從所選檔案讀取程式碼。",
       "copyToOtherFile": "將所選資源複製到其他資料檔案。",
@@ -2700,6 +2785,7 @@
     "sheetCount": "影格數 (0 = 全部)",
     "sheetReplace": "取代目前的影格並採用新尺寸",
     "sheetSummary": "{count} 個影格，每個影格 {width} × {height} 像素。",
+    "sheetPacked": "儲存時，影格會自動排列到紋理頁上。要檢視或調整某個影格的頁項，請在 Texture Page Items 下開啟它。",
     "sheetGif": "動畫 GIF：{count} 個影格，每個影格 {width} × {height} 像素。",
     "sheetMismatch": "精靈為 {width} × {height}。勾選取代以採用新尺寸。",
     "sheetImported": "已將 {count} 個影格匯入精靈 {sprite}。",
@@ -3011,7 +3097,8 @@
     "confirm": "執行 {name}？\n\n指令碼可以變更資料檔中的任何內容，也可以讀寫這台電腦上的任何檔案。變更無法復原，可用「還原到已儲存」回復。只執行你信任的指令碼。\n\n這裡執行 UndertaleModTool 風格的 .csx 指令碼，但只提供該工具的一部分函式：Data、FilePath、ScriptPath、ScriptMessage、ScriptWarning、ScriptError 與 ScriptQuestion（一律回答「是」）。需要對話方塊、反編譯輔助或介面的指令碼會因編譯錯誤而停止，錯誤會指出缺少的函式。",
     "running": "正在執行 {name}...",
     "done": "{name} 已完成。",
-    "failed": "{name} 失敗：{reason}"
+    "failed": "{name} 失敗：{reason}",
+    "cancelled": "已停止 {name}。到目前為止的變更會保留；「還原到已儲存」可復原它們。"
   },
   "sequences": {
     "moments": "時刻",
@@ -4098,11 +4185,39 @@
     "restart": "重新啟動",
     "stop": "停止"
   },
+  "compat": {
+    "title": "相容性（在 Linux 和 macOS 上執行 Windows 遊戲）",
+    "modeLabel": "執行 Windows 遊戲的方式",
+    "mode": {
+      "Auto": "自動",
+      "Native": "僅原生",
+      "Wine": "Wine",
+      "Proton": "Proton",
+      "Umu": "umu",
+      "PortProton": "PortProton",
+      "Custom": "自訂命令"
+    },
+    "program": "工具程式或資料夾（留空則自動偵測）",
+    "browse": "瀏覽...",
+    "prefix": "Wine 前綴資料夾（留空：Steam 遊戲用其 Steam 前綴，否則用工具預設值）",
+    "command": "自訂命令：{exe} {data} {dir} {prefix} {args}",
+    "detected": "目前偵測結果",
+    "detect": "偵測",
+    "detectedTool": "自動模式將使用：{tool}",
+    "detectedPrefix": "自動模式將使用：{tool}，前綴 {prefix}",
+    "detectedNone": "找不到：沒有 Wine、Proton、umu 或 PortProton",
+    "notNeeded": "Windows 上不需要。",
+    "noTool": "這是 Windows 遊戲，但找不到 Wine、Proton 或 PortProton。請安裝其中一個，或在設定 > 執行中選擇工具。",
+    "info": "正在用 {tool} 執行 {exe}（前綴 {prefix}）",
+    "infoNoPrefix": "正在用 {tool} 執行 {exe}",
+    "steamHint": "Steam 把此遊戲的 Wine 前綴和存檔保存在 {folder}；一般的 Wine 前綴在另一個位置。",
+    "newPrefix": "前綴資料夾 {folder} 尚不存在。本次執行時 Proton 會建立它。"
+  },
   "live": {
     "restarting": "正在重新啟動遊戲...",
     "missingExe": "找不到程式 {path}。請在設定 > 執行中指定。",
     "trustTitle": "資料檔案旁有執行選項",
-    "trustBody": "此資料檔案旁儲存了執行選項，它們可以啟動你電腦上的任何程式。程式：{runner}。引數：{arguments}。資料夾：{folder}。環境變數：{environment}。要使用嗎？拒絕則使用你的設定。",
+    "trustBody": "此資料檔案旁儲存了執行選項，它們可以啟動你電腦上的任何程式。程式：{runner}。引數：{arguments}。資料夾：{folder}。環境變數：{environment}。相容性：{compat}。要使用嗎？拒絕則使用你的設定。",
     "unknownExe": "{path} 不是已知的遊戲執行器。仍會執行，其輸出與結束代碼顯示於此。",
     "inPlaceWarning": "執行前會先儲存資料檔案(照常保留備份)，並以它啟動遊戲。",
     "crashed": "{name} 以結束代碼 {code} 結束。最後輸出：{lines}",

@@ -6,7 +6,9 @@ Status: proposed. A project is an optional layer, enabled per data file (ADR-001
 
 A project is a folder that holds a game's resources as text and side files, so Git can track it and a mod can be rebuilt from it. It is optional: Direct mode edits the data file with no project, and "Enable project" (title bar, Project menu) exports the open data file into a project in the user data folder, or any chosen folder, in the background with progress; edits made meanwhile are queued (ADR-0011). It has two modes (ADR-0008): delta, which holds only the resources that differ from a base data file and is the default for mods, and full, which holds every resource.
 
-Entry points: File > New > New Project Folder..., File > Open Project Folder... (Ctrl+K Ctrl+O), File > Export > Export Project Folder..., File > Import > UTMT Project..., File > Export > Export as UTMT 0.9 Project..., the Project menu, the Start page card "Open Project Folder..." and drag and drop of a `.g3mproj` or a UTMT project JSON onto the window.
+The Project menu, top to bottom: Open Project... (always on; a `.g3mproj` file or folder, or a UTMT project), Recent Projects, Close Project (ends Project mode and keeps the folder; it is offered again when the data file opens), then New Project... (asks for the folder) and Enable Project (uses the remembered folder), then Sync to Data File and Resolve Outside Changes..., then Project Settings..., Change Data File Location... and Disable Project.... An item that is off has a tip that says why. UTMT's View Unexported Assets has no counterpart: edits are saved into the project as they are made, and the sync state in the status bar and the Git panel show what is not yet synced or committed.
+
+Entry points: File > New > New Project Folder..., File > Open Project Folder... (Ctrl+K Ctrl+O), File > Export > Export Project Folder..., File > Open UTMT Project..., File > Export > Export as UTMT 0.9 Project..., the Project menu, the Start page card "Open Project Folder..." and drag and drop of a `.g3mproj` or a UTMT project JSON onto the window.
 
 ## 2. Layout
 
@@ -254,14 +256,16 @@ Streamed sound copy (UTMT-PROJ-13) is part of the same import: external streamed
 
 ### 10.1 Import (F-WS-10)
 
-`file.import.utmtProject` and the Open dialog accept the project main JSON of a UTMT 0.9 project. UTMT's project files are never modified.
+Implemented as `UtmtProjectImporter` (G3MStudio.Core/Projects). Entry points: File > Open UTMT Project..., Project > Open Project... (it detects a UTMT project by itself), the command palette, and dropping the project folder or `project.json` on the window. The UTMT folder and the data file are only read.
 
-1. Choose the JSON and a new folder for the converted G3MStudio project (default `{name}-g3mstudio` beside it).
-2. G3MStudio reads the options, then the asset folders and the loose `.gml` files (every non-hidden subfolder, as UTMT does), converts each asset to its native folder (section 5 table) and writes the `.g3mproj` in delta mode. The base is the `AssetsDataFilePath` of the options.
-3. Option mapping: Name, Flags, VerifyStrings, AssetsDataFilePath, ErrorOnWarnings, ExcludeDirectories, SubProjects (kept as references, imported in order), Patches, ExternalFiles, FileCopies, FileDeletes, PreImportScripts, PreAssetImportScripts, PostImportScripts map to the options of section 7 one to one. `general-info-options.json` maps to `options/general.json`.
-4. The conversion report is a dialog and a Problems group: "Converted {n} resources. {w} warnings." with items such as unknown fields (kept under `extra` and written back on export) and collisions that were renamed.
-5. After the conversion the project opens (3.4). The result builds the same data file as UTMT 0.9 does (ADR-0008 acceptance).
-6. Scripts in the project that use UTMT names run through the name translator (scripting.md section 3.2).
+1. The project is checked: a `project.json` with a name and the UTMT options, at least one resource or `general-info-options.json`. A broken or empty project is refused with the reason; nothing is written.
+2. The dialog asks for the original data file (the project is a change set over it, UTMT never records which file) and a new folder (default `{folder}-g3m`). Projects written by G3MLib record the data file size and MD5; a different file asks "Convert anyway?". Scripts named by the project run only after the user ticks the box, with a warning that they run with the user's rights. "Create a Git repository" is on when Git is installed.
+3. The library applies the project to the data file in memory (the same import UTMT runs: scripts, sub-projects, file operations, patches, assets). The result is written as a full project in the new folder and as a data file in `build/` (ignored by Git), together with files the project wrote next to the data file (audio groups, external files). Code keeps the project's own `.gml` text with its comments.
+4. The project is registered for that data file, so opening the data file finds it. A new folder gets `git init`, the ignore and attribute files, and one commit; a folder that already is a repository is kept as it is (no commit).
+5. The report dialog lists what was converted and the warnings: options that a G3MStudio project cannot store (patches, external files, copies, deletes, sub-projects, excluded folders, flags), scripts that ran, folders UTMT does not read, a UTMT folder that has its own Git history, library warnings. "Open project" opens the data file with the project attached.
+6. A failed or cancelled conversion removes what it created.
+
+Not covered: the options recipe is applied once and not stored; fonts and backgrounds need a texture page in the data file and are converted by the library without a test of their own here.
 
 ### 10.2 Export (F-WS-10)
 
@@ -290,7 +294,7 @@ Streamed sound copy (UTMT-PROJ-13) is part of the same import: external streamed
 | Open Project Folder... | `file.openFolder` | Ctrl+K Ctrl+O | Cmd+K Cmd+O |
 | Close Workspace | `file.close` | Ctrl+K F | Cmd+K F |
 | Export Project Folder... | `file.export.projectFolder` | None | None |
-| Import UTMT Project... | `file.import.utmtProject` | None | None |
+| Open Project... (a .g3mproj or a UTMT project.json) | `project.open` | None | None |
 | Export as UTMT 0.9 Project... | `file.export.utmtProject` | None | None |
 | Build Data File From Project | `project.build` | None | None |
 | View Unexported Resources... | `project.viewUnexported` | None | None |

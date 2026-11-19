@@ -52,6 +52,7 @@ public sealed class LiveRun
 
         try
         {
+            foreach (var note in spec.Notes ?? []) Log.Add(note, false);
             _game = GameRun.Start(spec, (text, error) => Log.Add(text, error));
         }
         catch

@@ -294,7 +294,7 @@ public sealed partial class MainWindow
             EditCommand command;
             using (workspace.Lock.Read())
             {
-                ResourceDuplicate.CheckCopyName(name, false);
+                ResourceDuplicate.CheckCopyName(name);
                 ResourceDuplicate.CheckCopyFree(workspace.Data, "sprites", name);
                 command = ResourceTemplates.NewSprite(workspace.Data, name, pictures);
             }
@@ -313,22 +313,7 @@ public sealed partial class MainWindow
 
     private static string FreeName(Workspace workspace, string from)
     {
-        using (workspace.Lock.Read())
-        {
-            for (var i = 1; ; i++)
-            {
-                var name = i == 1 ? from + "_copy" : $"{from}_copy{i}";
-                try
-                {
-                    ResourceDuplicate.CheckCopyFree(workspace.Data, "sprites", name);
-                    return name;
-                }
-                catch (InvalidOperationException)
-                {
-                    // taken: the next number
-                }
-            }
-        }
+        using (workspace.Lock.Read()) return BulkResources.CopyName(workspace.Data, from, new HashSet<string>());
     }
 
     private void DisposeImage(string tabId)

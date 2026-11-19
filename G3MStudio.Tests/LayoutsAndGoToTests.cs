@@ -206,7 +206,8 @@ public sealed class LayoutsAndGoToTests
     {
         var registry = AppCommands.Create(new FakeShell());
         foreach (var id in AppCommands.Menus.SelectMany(m => m.Ids).Concat(AppCommands.ResourceMenu).Concat(AppCommands.TabMenu).Where(id => id != "-")) Assert.NotNull(registry.Find(id));
-        Assert.Contains(AppCommands.Menus, m => m.TitleKey == "menu.layout" && m.Ids.Contains("dock.toggleAll") && m.Ids.Contains("window.showAll") && m.Ids.Contains("window.closeAll"));
+        Assert.Contains(AppCommands.Menus, m => m.TitleKey == "menu.layout" && m.Ids.Contains("dock.toggleAll"));
+        Assert.Contains(AppCommands.Menus, m => m.TitleKey == "menu.window" && m.Ids.Contains("window.showAll") && m.Ids.Contains("window.closeAll"));
         Assert.NotEmpty(AppCommands.MenuContexts);
     }
 

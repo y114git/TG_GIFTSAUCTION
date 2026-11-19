@@ -86,6 +86,8 @@ public abstract class EditCommand
         ReplaceItemCommand.Name => ReplaceItemCommand.FromArgs(args),
         RoomOrderCommand.Name => RoomOrderCommand.FromArgs(args),
         CopyPropertiesCommand.Name => CopyPropertiesCommand.FromArgs(args),
+        CloneResourceCommand.Name => CloneResourceCommand.FromArgs(args),
+        UnsharePicturesCommand.Name => UnsharePicturesCommand.FromArgs(args),
         ClearReferencesCommand.Name => ClearReferencesCommand.FromArgs(args),
         CopyResourcesCommand.Name => CopyResourcesCommand.FromArgs(args),
         FrameOwnPictureCommand.Name => FrameOwnPictureCommand.FromArgs(args),
@@ -203,12 +205,16 @@ public sealed partial class RenameResourceCommand(string type, string oldName, s
     }
 }
 
-/// <summary>Replaces the GML of a code entry. Undo puts back the instructions and the code, script and function lists as they were.</summary>
+/// <summary>
+/// Replaces the GML of a code entry. The macros other entries declared (see <see cref="MacroRegistry"/>) are expanded in it, and the ones it declares are remembered for them.
+/// Undo puts back the instructions and the code, script and function lists as they were.
+/// </summary>
 public sealed class EditCodeCommand(string entry, string text) : EditCommand
 {
     public const string Name = "code";
 
     private Snapshot? _before;
+    private (IReadOnlyDictionary<string, string>? Macros, bool Set) _macros;
 
     public override string Kind => Name;
 
@@ -225,6 +231,13 @@ public sealed class EditCodeCommand(string entry, string text) : EditCommand
         var before = new Snapshot(data, code);
         var group = new CodeImportGroup(data);
         group.QueueReplace(code, text);
+        // The compile adds the macros this text declares itself; the ones of the other entries come from the registry, and the text's own declaration wins.
+        var scan = new CompileGroup(data, group.GlobalContext);
+        scan.AddMacros(text);
+        var own = scan.Macros;
+        var registry = MacroRegistry.Of(data);
+        foreach (var (name, value) in registry.Table(entry))
+            if (!own.ContainsKey(name)) group.Macros[name] = value;
         var result = group.Import(throwOnFailedCompile: false);
         if (!result.Successful)
         {
@@ -233,9 +246,15 @@ public sealed class EditCodeCommand(string entry, string text) : EditCommand
         }
 
         _before = before;
+        _macros = (registry.Set(entry, own), true);
     }
 
-    public override void Revert(GameMakerData data) => _before?.Restore();
+    public override void Revert(GameMakerData data)
+    {
+        _before?.Restore();
+        if (_macros.Set) MacroRegistry.Of(data).Set(entry, _macros.Macros);
+        _macros = default;
+    }
 
     internal sealed class Snapshot
     {

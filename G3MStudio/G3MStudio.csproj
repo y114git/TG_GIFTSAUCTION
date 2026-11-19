@@ -12,6 +12,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Measured on a 92 MB data file with 23 tabs open, three runs each: the commit at the end fell by about 12 percent (1119-1163 to 954-1013 MB) and opening the file did not slow down. -->
+    <RuntimeHostConfigurationOption Include="System.GC.ConserveMemory" Value="7" />
+  </ItemGroup>
+
+  <ItemGroup>
     <InternalsVisibleTo Include="G3MStudio.Tests" />
     <!-- The default budget of the youngest generation is about 12 MB; a tab or an edit allocates that much, and each collection then walked a heap of several hundred MB for 20 to 45 ms. -->
   </ItemGroup>

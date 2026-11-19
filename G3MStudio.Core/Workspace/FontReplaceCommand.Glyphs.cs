@@ -32,9 +32,9 @@ public sealed partial class FontReplaceCommand
         }
 
         var item = target.Texture;
-        // A glyph added or removed, or another edit of the same texture page, since Prepare makes the drawing stale: it is made again.
+        // A glyph added or removed since Prepare makes the drawing stale: it is made again.
         Drawing ready;
-        if (_prepared is { } prepared && prepared.Rects.Count == target.Glyphs.Count && ReferenceEquals(prepared.PageBefore, item.TexturePage.TextureData.Image))
+        if (_prepared is { } prepared && prepared.Rects.Count == target.Glyphs.Count)
         {
             ready = prepared;
         }
@@ -45,17 +45,18 @@ public sealed partial class FontReplaceCommand
         }
 
         _prepared = null;
-        var (atlas, rects, ascender, lineHeight, page, _) = ready;
+        var (atlas, rects, ascender, lineHeight, replace) = ready;
         using (atlas)
         {
-            if (page is null)
+            try
             {
-                item.ReplaceTexture(atlas);
+                if (replace is null) item.ReplaceTexture(atlas);
+                else replace.Commit();
             }
-            else
+            catch (InvalidOperationException) when (replace is not null)
             {
-                item.TexturePage.TextureData.Image = page;
-                (item.TargetWidth, item.TargetHeight) = ((ushort)atlas.Width, (ushort)atlas.Height);
+                // The page changed (another edit of the same texture page) since Prepare: the glyph cells are still right, so the page is composed again.
+                item.ReplaceTexture(atlas);
             }
         }
 

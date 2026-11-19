@@ -40,11 +40,14 @@ public sealed class GroupCommand : EditCommand
             {
                 item.Apply(data);
                 done++;
+                // A later step reads the index (is the entry still used?), so it must not describe the model from before this one.
+                if (!item.KeepsReferences) ReferenceCache.Of(data).Invalidate();
             }
         }
         catch
         {
             for (var i = done - 1; i >= 0; i--) Items[i].Revert(data);
+            ReferenceCache.Of(data).Invalidate();
             throw;
         }
     }

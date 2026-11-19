@@ -109,6 +109,8 @@ public static partial class CopyPackage
     {
         if (!selection.TryGetValue("CodeEntries", out var names)) return false;
         var group = new CodeImportGroup(data);
+        // The macros of the files being copied are found when they are queued (together, so one may use another's); the ones the target's own entries declared come with the registry.
+        foreach (var (macro, value) in MacroRegistry.Of(data).Table()) group.Macros[macro] = value;
         var queued = false;
         foreach (var name in names)
         {

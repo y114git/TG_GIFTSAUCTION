@@ -1,3 +1,4 @@
+using G3MLib.DataFile.References;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Models;
 
@@ -23,7 +24,7 @@ public sealed class CodeEntryCommand(string entry) : EditCommand
 
     public override void Apply(GameMakerData data)
     {
-        if (!ResourceListCommand.IsValidName(entry)) throw new InvalidOperationException($"'{entry}' cannot be a code entry name: letters, digits and underscores, not starting with a digit.");
+        if (!RenameService.IsValidName(entry)) throw new InvalidOperationException($"'{entry}' cannot be a code entry name: letters, digits and underscores, not starting with a digit.");
         if (data.Code.ByName(entry) is not null) throw new InvalidOperationException($"A code entry named '{entry}' exists already.");
         _created = GameMakerCode.CreateEmptyEntry(data, entry);
         _createdLocals = data.CodeLocals?.FirstOrDefault(l => l.Name == _created.Name);

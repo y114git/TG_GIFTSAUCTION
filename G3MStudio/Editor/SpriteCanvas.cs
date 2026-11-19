@@ -56,8 +56,14 @@ public sealed class SpriteCanvas : Control
 
     private Rect PictureRect => new(Pad, Pad, W * Zoom, H * Zoom);
 
+    /// <summary>The longest side of the control in screen pixels; beyond it a graphics card cannot draw the canvas, so the zoom gives way.</summary>
+    internal const int MaxExtent = 8192;
+
+    private int FitZoom => Math.Max(1, MaxExtent / Math.Max(1, Math.Max(W, H)));
+
     private void Resize()
     {
+        if (Zoom > FitZoom) Zoom = FitZoom; // a sprite that grew (a resize, an undo) must not keep a zoom that no longer fits
         Width = (_sprite.Width * Zoom) + 1 + (2 * Pad);
         Height = (_sprite.Height * Zoom) + 1 + (2 * Pad);
     }
@@ -138,11 +144,17 @@ public sealed class SpriteCanvas : Control
         get;
         set
         {
-            field = Math.Clamp(value, 1, 32);
+            var zoom = Math.Clamp(value, 1, Math.Min(32, FitZoom));
+            if (zoom == field) return;
+            field = zoom;
             Resize();
             InvalidateVisual();
+            ZoomChanged?.Invoke();
         }
     }
+
+    /// <summary>Raised when the zoom changes, also when the sprite grew and the zoom had to shrink with it.</summary>
+    public event Action? ZoomChanged;
 
     public int Frame { get; private set; }
 

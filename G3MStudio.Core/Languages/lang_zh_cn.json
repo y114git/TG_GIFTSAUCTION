@@ -131,6 +131,7 @@
       "transfer": "传输资源...",
       "import": "从其他数据文件导入资源...",
       "importFiles": "从文件导入图片、声音和脚本...",
+      "importSheetNew": "从精灵表或条带新建精灵...",
       "importCodeFolder": "从文件夹导入代码...",
       "importCodeFiles": "从文件导入代码...",
       "new": {
@@ -210,6 +211,10 @@
       "enable": "启用项目",
       "sync": "同步到数据文件",
       "options": "项目设置...",
+      "open": "打开项目...",
+      "new": "新建项目...",
+      "close": "关闭项目",
+      "recent": "最近的项目",
       "moveDataFile": "更改数据文件位置...",
       "disable": "停用项目...",
       "resolve": "解决外部更改..."
@@ -466,6 +471,17 @@
     "deleteBody": "删除 {name}？保存文件之前可以撤销恢复。",
     "deleteUsed": "{name} 在 {count} 处被使用：\n{places}\n\n这些用法会被设为无，或从列表中移除。代码中的用法无法清除，会使删除中止。游戏的行为可能改变或无法运行。保存之前可以撤销恢复全部内容。",
     "deleteUsedTitle": "仍要删除 {name} 吗？",
+    "deleteFunctionTitle": "删除函数 {name}？",
+    "deleteFunctionOwn": "将删除脚本 {script} 及其代码条目 {entry},并把该函数从函数列表中移除。",
+    "deleteFunctionInside": "将从代码条目 {entry} 中取出 {name} 的声明:先反编译该条目,删除函数块,再重新编译。该函数会从函数列表中消失。",
+    "deleteFunctionUnused": "没有其他代码调用它。保存之前,撤销可以恢复全部内容。",
+    "deleteFunctionUsed": "调用它的位置: {count}\n{places}\n\n这些调用会保留,并指向一个不存在的函数,游戏可能无法运行。因此该函数仍留在函数列表中。保存之前,撤销可以恢复全部内容。",
+    "deleteFunctionNoCode": "{name} 在此文件中没有代码条目(内置函数或扩展函数),没有可删除的内容。",
+    "deleteFunctionNoScript": "{name} 有代码但没有自己的脚本,因此无法在此删除。",
+    "deleteFunctionNoSource": "在 {entry} 中找不到 {name} 的独立声明块(它位于另一个函数内、被声明了两次,或代码没有花括号),因此未删除。请直接编辑代码。",
+    "deleteVariableTitle": "删除变量 {name}？",
+    "deleteVariableBody": "没有代码使用这个变量条目。只会删除该条目。保存之前,撤销可以恢复。",
+    "deleteVariableUsed": "{name} 在代码中的 {count} 处被使用,因此条目保留:\n{places}\n\n请先移除这些使用。",
     "deleteCodeTitle": "删除 {name} 并保留使用它的代码？",
     "deleteCode": "{reason}\n\n仍然删除的话，这些代码会继续指向已不存在的内容。代码运行时游戏可能崩溃或出错。保存之前，撤销可以恢复一切。",
     "nameUnusual": "“{name}”不是简单名称（字母、数字和下划线，且不以数字开头）。GML 代码无法使用它，其他工具也可能出错。要仍然使用，请再按一次按钮。保存之前可以撤销。",
@@ -654,6 +670,69 @@
     "packagePick": "将 {name} 保存为包"
   },
   "project": {
+      "why": {
+        "noFile": "请先打开数据文件。",
+        "hasProject": "此文件已有项目。",
+        "noProject": "此文件还没有项目。请先使用“新建项目”。"
+      },
+      "open": {
+        "pick": "选择项目文件 (.g3mproj 或 UTMT 的 project.json)",
+        "pickData": "选择此项目的数据文件",
+        "notProject": "“{path}”不是项目文件夹或项目文件。",
+        "mismatch": "“{name}”不是此项目上次同步所用的数据文件。",
+        "failed": "无法打开项目: {reason}"
+      },
+      "found": "此文件已有项目: {name}。",
+      "foundAction": "打开项目",
+      "recent": {
+        "none": "没有最近的项目。"
+      },
+    "utmt": {
+      "title": "打开 UTMT 项目",
+      "intro": "将此 UndertaleModTool 项目转换为 G3MStudio 项目。UTMT 文件夹不会被修改。",
+      "project": "项目: {name}，{count} 个资源",
+      "dataFile": "游戏的原始数据文件",
+      "browse": "浏览...",
+      "destination": "新项目文件夹",
+      "git": "在新文件夹中创建 Git 仓库",
+      "scripts": "运行项目脚本 ({detail})。脚本以你的用户权限运行。",
+      "convert": "转换",
+      "pickData": "选择原始数据文件",
+      "pickFolder": "选择新项目文件夹",
+      "mismatchTitle": "数据文件不同",
+      "mismatchAsk": "此数据文件不是创建项目时所用的文件。仍要转换吗？",
+      "stage": {
+        "read": "读取数据文件",
+        "import": "应用项目",
+        "write": "写入数据文件",
+        "export": "写入项目",
+        "git": "设置 Git"
+      },
+      "failed": "无法转换项目: {reason}",
+      "needFields": "请先选择数据文件和新项目文件夹。",
+      "report": {
+        "title": "UTMT 项目已转换",
+        "summary": "已将 {count} 个资源写入 {folder}。应用了项目的数据文件是 {file}。",
+        "gitInitialized": "已创建 Git 仓库并完成首次提交。",
+        "gitExisting": "保留了现有的 Git 仓库，未提交任何内容。",
+        "gitNone": "未创建 Git 仓库。",
+        "warnings": "警告",
+        "none": "没有丢失任何内容。",
+        "details": "详细信息",
+        "open": "打开项目",
+        "close": "关闭"
+      },
+      "warn": {
+        "options": "以下项目选项不会保存在 G3MStudio 项目中，其效果已应用一次: {detail}",
+        "scripts": "项目脚本已运行，且不会保留: {detail}",
+        "ignoredFolders": "UTMT 不读取的文件夹已被忽略: {detail}",
+        "history": "UTMT 文件夹保留自己的 Git 历史 ({detail})。新项目会开始新的历史。",
+        "library": "{detail}",
+        "export": "{detail}",
+        "gitMissing": "未安装 Git，因此没有创建仓库。",
+        "gitFailed": "Git 设置未完成: {detail}"
+      }
+    },
     "state": {
       "synced": "已同步",
       "syncing": "正在同步...",
@@ -750,7 +829,9 @@
       "clearReferences": "清除引用",
       "code": "编辑代码",
       "codeEntry": "新建代码条目",
+      "cloneResource": "复制资源",
       "copyProperties": "复制属性",
+      "unsharePictures": "为副本创建独立图片",
       "copyResources": "复制资源",
       "curvePoint": "编辑曲线点",
       "deleteString": "删除字符串",
@@ -900,6 +981,7 @@
     "menu": {
       "help": "名称帮助",
       "peekDefinition": "速览定义",
+      "colour": "颜色：{name}",
       "rename": "重命名符号",
       "quickFix": "快速修复...",
       "goToDefinition": "转到定义",
@@ -1609,6 +1691,8 @@
       "BoundingHeight": "边界高度",
       "BoundingWidth": "边界宽度",
       "Branch": "分支",
+      "BranchSource": "分支判定依据",
+      "VersionSource": "版本判定依据",
       "BroadcastMessages": "广播消息",
       "Build": "构建",
       "BuiltinName": "内置名称",
@@ -2504,6 +2588,7 @@
       "import": "从其他数据文件复制资源。",
       "importPackage": "添加已导出的包中的资源。",
       "importFiles": "从磁盘上的文件添加图片、声音和脚本。",
+      "importSheetNew": "把图片精灵表或条带切成新精灵的帧。",
       "importCodeFolder": "从文件夹中的文件读取代码。",
       "importCodeFiles": "从所选文件读取代码。",
       "copyToOtherFile": "将所选资源复制到其他数据文件。",
@@ -2700,6 +2785,7 @@
     "sheetCount": "帧数 (0 = 全部)",
     "sheetReplace": "替换当前帧并采用新尺寸",
     "sheetSummary": "{count} 帧，每帧 {width} × {height} 像素。",
+    "sheetPacked": "保存时，帧会自动排布到纹理页上。要查看或调整某一帧的页项，请在 Texture Page Items 下打开它。",
     "sheetGif": "动画 GIF：{count} 帧，每帧 {width} × {height} 像素。",
     "sheetMismatch": "精灵为 {width} × {height}。勾选替换以采用新尺寸。",
     "sheetImported": "已将 {count} 帧导入精灵 {sprite}。",
@@ -3011,7 +3097,8 @@
     "confirm": "运行 {name}？\n\n脚本可以更改数据文件中的任何内容，也可以读写这台电脑上的任何文件。更改无法撤销，可用“还原为已保存”恢复。只运行你信任的脚本。\n\n这里运行 UndertaleModTool 风格的 .csx 脚本，但只提供该工具的一部分函数：Data、FilePath、ScriptPath、ScriptMessage、ScriptWarning、ScriptError 和 ScriptQuestion（一律回答“是”）。需要对话框、反编译助手或界面的脚本会因编译错误而停止，错误会指出缺少的函数。",
     "running": "正在运行 {name}...",
     "done": "{name} 已完成。",
-    "failed": "{name} 失败：{reason}"
+    "failed": "{name} 失败：{reason}",
+    "cancelled": "已停止 {name}。到目前为止的更改会保留；“还原到已保存”可撤销它们。"
   },
   "sequences": {
     "moments": "时刻",
@@ -4098,11 +4185,39 @@
     "restart": "重启",
     "stop": "停止"
   },
+  "compat": {
+    "title": "兼容性（在 Linux 和 macOS 上运行 Windows 游戏）",
+    "modeLabel": "运行 Windows 游戏的方式",
+    "mode": {
+      "Auto": "自动",
+      "Native": "仅原生",
+      "Wine": "Wine",
+      "Proton": "Proton",
+      "Umu": "umu",
+      "PortProton": "PortProton",
+      "Custom": "自定义命令"
+    },
+    "program": "工具程序或文件夹（留空则自动检测）",
+    "browse": "浏览...",
+    "prefix": "Wine 前缀文件夹（留空：Steam 游戏用其 Steam 前缀，否则用工具默认值）",
+    "command": "自定义命令：{exe} {data} {dir} {prefix} {args}",
+    "detected": "当前检测结果",
+    "detect": "检测",
+    "detectedTool": "自动模式将使用：{tool}",
+    "detectedPrefix": "自动模式将使用：{tool}，前缀 {prefix}",
+    "detectedNone": "未找到：没有 Wine、Proton、umu 或 PortProton",
+    "notNeeded": "Windows 上不需要。",
+    "noTool": "这是 Windows 游戏，但未找到 Wine、Proton 或 PortProton。请安装其中一个，或在设置 > 运行中选择工具。",
+    "info": "正在用 {tool} 运行 {exe}（前缀 {prefix}）",
+    "infoNoPrefix": "正在用 {tool} 运行 {exe}",
+    "steamHint": "Steam 把此游戏的 Wine 前缀和存档保存在 {folder}；普通 Wine 前缀在另一个位置。",
+    "newPrefix": "前缀文件夹 {folder} 尚不存在。本次运行时 Proton 会创建它。"
+  },
   "live": {
     "restarting": "正在重启游戏...",
     "missingExe": "找不到程序 {path}。请在设置 > 运行中指定。",
     "trustTitle": "数据文件旁有运行选项",
-    "trustBody": "此数据文件旁保存了运行选项，它们可以启动你电脑上的任何程序。程序：{runner}。参数：{arguments}。文件夹：{folder}。环境变量：{environment}。要使用吗？拒绝则使用你的设置。",
+    "trustBody": "此数据文件旁保存了运行选项，它们可以启动你电脑上的任何程序。程序：{runner}。参数：{arguments}。文件夹：{folder}。环境变量：{environment}。兼容性：{compat}。要使用吗？拒绝则使用你的设置。",
     "unknownExe": "{path} 不是已知的游戏运行器。仍会运行，其输出和退出码显示在此处。",
     "inPlaceWarning": "运行前会先保存数据文件(照常保留备份)，并用它启动游戏。",
     "crashed": "{name} 以退出码 {code} 结束。最后输出：{lines}",

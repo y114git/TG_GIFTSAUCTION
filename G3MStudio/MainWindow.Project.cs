@@ -29,6 +29,9 @@ public partial class MainWindow
     }
 
     /// <summary>Called when a workspace is shown: the sync state follows the project, queued edits that fail are reported, and the one-time offer appears.</summary>
+    // The offer reads folders off the UI thread; Open waits for it so the data file counts as opened once its notifications are posted.
+    private Task _offer = Task.CompletedTask;
+
     private void ShowProject(Workspace workspace)
     {
         workspace.ConfirmOverwriteChanged = () => ConfirmOverwriteAsync(workspace);
@@ -40,9 +43,10 @@ public partial class MainWindow
             link.Changed += UpdateTexts;
             if (link.DataFileChanged) Dispatcher.UIThread.Post(() => _ = ResolveExternalChangeAsync());
         }
-        else if (Workspaces.Projects.ShouldOffer(workspace))
-            Notifications.Post(NotificationLevel.Info, Loc.Current["project.offer"], Loc.Current["project.enable.action"], () => Registry.Execute("project.enable"));
+        else _offer = OfferProjectAsync(workspace);
     }
+
+    private void RunEnableProject() => Registry.Execute("project.enable");
 
     private string ProjectText()
     {
@@ -74,7 +78,7 @@ public partial class MainWindow
 
     public void EnableProject() => _ = EnableProjectAsync();
 
-    private async Task EnableProjectAsync()
+    private async Task EnableProjectAsync(bool ask = false)
     {
         if (Workspaces.Current is not { } workspace) return;
         if (workspace.Project is not null)
@@ -86,7 +90,7 @@ public partial class MainWindow
         var projects = Workspaces.Projects;
         string? root = null;
         var remember = false;
-        if (projects.Registry.NeedsLocationQuestion)
+        if (ask || projects.Registry.NeedsLocationQuestion)
         {
             if (await ProjectDialogs.AskLocationAsync(this, projects.SuggestedRoot) is not var (answer, keep)) return;
             (root, remember) = (answer, keep);

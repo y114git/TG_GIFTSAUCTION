@@ -30,6 +30,7 @@ public sealed partial class MainWindow
             if (keys.Count > 0 && row.Key != "general") menu.Items.Add(Plain(Loc.Current["cmd.organize.selectContents"], () => Explorer.SelectKeys(model.KeysOf(row), row)));
             if (ResourceTransfer.Supports(row.Key)) menu.Items.Add(Plain(Loc.Current.Format("explorer.exportType", ("type", row.Text)), () => _ = ExportTypeAsync(row.Key)));
             if (TypeImports.Contains(row.Key)) menu.Items.Add(RegistryItem("file.importFiles"));
+            if (row.Key == "sprites") menu.Items.Add(RegistryItem("file.importSheetNew"));
             if (row.Key != "general" && keys.Count > 0) menu.Items.Add(Plain(Loc.Current["explorer.copyNames"], () => CopyNames(keys)));
             if (ExplorerModel.PrefixOf(row.Key) is { } prefix) menu.Items.Add(Plain(Loc.Current.Format("explorer.onlyType", ("type", row.Text)), () => Explorer.SetFilterText(prefix + ":")));
             menu.Items.Add(new Separator());

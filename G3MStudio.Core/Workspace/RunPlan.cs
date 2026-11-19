@@ -6,6 +6,12 @@ namespace G3MStudio.Core.Workspace;
 /// <summary>A run options file that was read: the options, the hash of the bytes they came from, where the file is, and whether it is in Studio's own folder.</summary>
 public sealed record RunOptionsFile(RunProfile Profile, string Hash, string Path, bool Own);
 
+/// <summary>The spec and how much Studio knows the program. Spec is null when there is nothing to start; NoTool says a Windows game was found but no compatibility tool for it.</summary>
+public sealed record RunResolution(RunSpec? Spec, RunnerCheck Check, string? Runner, bool NoTool = false)
+{
+    public void Deconstruct(out RunSpec? spec, out RunnerCheck check, out string? runner) => (spec, check, runner) = (Spec, Check, Runner);
+}
+
 /// <summary>
 /// Picks the program and options of a run from the settings, the saved run options of the data file, and an explicit runner.
 /// The options live in Studio's folder (keyed by the data file path) or, by setting, next to the data file as <c>.g3mrun.json</c>.
@@ -36,7 +42,7 @@ public static class RunPlan
             var bytes = File.ReadAllBytes(path);
             var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes));
             return JsonSerializer.Deserialize<RunProfile>(bytes) is { } p
-                ? new RunOptionsFile(p with { Name = p.Name ?? "", Runner = p.Runner ?? "", Arguments = p.Arguments ?? "", WorkingDir = p.WorkingDir ?? "", Environment = p.Environment ?? "" }, hash, path, own)
+                ? new RunOptionsFile(p with { Name = p.Name ?? "", Runner = p.Runner ?? "", Arguments = p.Arguments ?? "", WorkingDir = p.WorkingDir ?? "", Environment = p.Environment ?? "", CompatProgram = p.CompatProgram ?? "", WinePrefix = p.WinePrefix ?? "", CompatCommand = p.CompatCommand ?? "" }, hash, path, own)
                 : null;
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or JsonException)
@@ -82,8 +88,8 @@ public static class RunPlan
         return true;
     }
 
-    /// <summary>The spec and how much Studio knows the program. Spec is null when there is nothing to start.</summary>
-    public static (RunSpec? Spec, RunnerCheck Check, string? Runner) Resolve(AppSettings settings, string dataFile, string? gameFileName, string runDataFile, string? runnerOverride = null, UserData? home = null)
+    /// <summary>The spec and how much Studio knows the program. On Linux and macOS a Windows game is started with the compatibility tool of the options; <paramref name="probe"/> is the machine (tests give a fake one).</summary>
+    public static RunResolution Resolve(AppSettings settings, string dataFile, string? gameFileName, string runDataFile, string? runnerOverride = null, UserData? home = null, ICompatProbe? probe = null)
     {
         // A file next to the data file can name any program and environment, so it counts only once the owner approved this exact content.
         var project = Find(settings, dataFile, home) is { } read && Trusted(settings, read) ? read.Profile : null;
@@ -93,12 +99,35 @@ public static class RunPlan
         if (string.IsNullOrEmpty(runner) && project is { Runner.Length: > 0 }) (runner, fromProject) = (project.Runner, true);
         if (string.IsNullOrEmpty(runner) && settings.RunRunner.Length > 0) runner = settings.RunRunner;
         var configured = runner is not null;
-        runner ??= RunLocator.Find(dataFile, gameFileName);
-        if (runner is null) return (null, RunnerCheck.Missing, null);
+        var profile = project ?? settings.ToRunProfile();
+        RunnerCheck? scanned = null;
+        probe ??= SystemProbe.Instance;
+        if (!probe.IsWindows)
+        {
+            var options = new CompatOptions(profile.Compat, profile.CompatProgram, profile.WinePrefix, profile.CompatCommand, profile.Environment, profile.WorkingDir);
+            var decision = CompatRun.Decide(probe, options, dataFile, gameFileName, runner);
+            switch (decision.Kind)
+            {
+                case CompatKind.Compat when decision.Launch is { } launch:
+                    return new(new RunSpec(launch.Program, runDataFile, profile.Arguments, profile.WorkingDir, profile.Environment, profile.DebugOutput, launch), decision.Check, decision.Runner);
+                case CompatKind.NoTool:
+                    return new(null, RunnerCheck.Missing, decision.Runner, NoTool: true);
+                case CompatKind.None when !configured:
+                    return new(null, RunnerCheck.Missing, null);
+                case CompatKind.Native when !configured:
+                    (runner, scanned) = (decision.Runner, decision.Check);
+                    break;
+            }
+        }
+        else
+        {
+            runner ??= RunLocator.Find(dataFile, gameFileName);
+        }
+
+        if (runner is null) return new(null, RunnerCheck.Missing, null);
         // A scanned runner is Known only when it is the game file beside the data file; a named one gets the usual check.
-        var check = configured ? RunLocator.Check(runner, dataFile, gameFileName, fromProject) : RunLocator.CheckFound(runner, dataFile, gameFileName);
-        if (check == RunnerCheck.Missing) return (null, check, runner);
-        var profile = project ?? new RunProfile("", "", settings.RunArguments, settings.RunDebugOutput, settings.RunWorkingDir, settings.RunEnvironment);
-        return (new RunSpec(RunLocator.Resolve(runner, fromProject ? dataFile : null) ?? runner, runDataFile, profile.Arguments, profile.WorkingDir, profile.Environment, profile.DebugOutput), check, runner);
+        var check = scanned ?? (configured ? RunLocator.Check(runner, dataFile, gameFileName, fromProject) : RunLocator.CheckFound(runner, dataFile, gameFileName));
+        if (check == RunnerCheck.Missing) return new(null, check, runner);
+        return new(new RunSpec(RunLocator.Resolve(runner, fromProject ? dataFile : null) ?? runner, runDataFile, profile.Arguments, profile.WorkingDir, profile.Environment, profile.DebugOutput), check, runner);
     }
 }

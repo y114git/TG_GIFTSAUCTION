@@ -44,6 +44,67 @@ public sealed partial class ProjectService
     }
 
     /// <summary>
+    /// Registers a project folder that was written outside Enable project (a converted UTMT project) for the data file it was built with,
+    /// and keeps its project file as the base of the first three-way merge, as the first export does.
+    /// </summary>
+    internal ProjectRecord Adopt(string folder, string name, DataFileIdentity identity)
+    {
+        var record = new ProjectRecord(Guid.NewGuid().ToString("N")[..8], name, folder, identity, identity, Settings.Current.Project);
+        var baseFile = _userData.Combine("projects", record.Id, "base.g3mproj");
+        Directory.CreateDirectory(Path.GetDirectoryName(baseFile) ?? ".");
+        File.Copy(Path.Combine(folder, name + G3MProjectService.FileExtension), baseFile, true);
+        Registry.Put(record);
+        return record;
+    }
+
+    /// <summary>
+    /// Registers a project folder for a data file: an existing record of the folder is pointed at the file and made active again, otherwise a new record is made.
+    /// </summary>
+    public ProjectRecord Link(string folder, string name, DataFileIdentity identity)
+    {
+        folder = Path.GetFullPath(folder);
+        if (Registry.Projects.FirstOrDefault(p => Workspace.PathRules.Same(p.Folder, folder)) is not { } record) return Adopt(folder, name, identity);
+        record = record with { Synced = identity, Archived = false };
+        Registry.Put(record);
+        return record;
+    }
+
+    /// <summary>
+    /// The project file of a closed or unregistered project that belongs to an opened data file: one made for the same file, one in its own folder, or one in the folder
+    /// above (the build layout) that was made from a file of the same name or content. Null when there is none. The folders are read off the calling thread.
+    /// </summary>
+    public async Task<string?> FindClosedAsync(Workspace.Workspace workspace, CancellationToken cancellationToken = default)
+    {
+        var closed = Registry.Projects.FirstOrDefault(p => p.Archived && (Workspace.PathRules.Same(p.Synced.Path, workspace.Path) || (p.Synced.Md5 == workspace.Identity.Md5 && p.Synced.Size == workspace.Identity.Size)));
+        if (closed is not null) return Path.Combine(closed.Folder, closed.Name + G3MProjectService.FileExtension);
+        var folder = Path.GetDirectoryName(workspace.Path);
+        foreach (var dir in new[] { folder, folder is null ? null : Path.GetDirectoryName(folder) }.OfType<string>())
+        {
+            if (Registry.Projects.Any(p => !p.Archived && Workspace.PathRules.Same(p.Folder, dir))) continue;
+            var files = await Task.Run(() => Directory.Exists(dir) ? Directory.EnumerateFiles(dir, "*" + G3MProjectService.FileExtension).ToList() : [], cancellationToken);
+            foreach (var file in files)
+                if (dir == folder || await MadeForAsync(file, workspace, cancellationToken)) return file;
+        }
+
+        return null;
+    }
+
+    // A project file in a parent folder may belong to another game: it counts when its base file has the name or the content of the data file.
+    private static async Task<bool> MadeForAsync(string projectFile, Workspace.Workspace workspace, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var recorded = (await G3MProjectService.OpenAsync(projectFile, null, cancellationToken)).BaseFile;
+            return string.Equals(recorded.Name, Path.GetFileName(workspace.Path), Workspace.PathRules.Comparison)
+                || recorded.Size == workspace.Identity.Size && string.Equals(recorded.Md5, workspace.Identity.Md5, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception e) when (e is ProjectException or IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Writes a lost or unreadable data file again from its project (G3MLib Build). The build needs a data file to start from: the one
     /// given, else the newest rotating backup. A file that is in the way is kept as <c>.corrupt</c>. The project record then points at
     /// the new file, so opening it finds the project.
@@ -70,7 +131,7 @@ public sealed partial class ProjectService
         return target;
     }
 
-    private static string SafeName(string name)
+    internal static string SafeName(string name)
     {
         var text = new StringBuilder();
         foreach (var c in name) text.Append(Path.GetInvalidFileNameChars().Contains(c) || c == ' ' ? '_' : c);

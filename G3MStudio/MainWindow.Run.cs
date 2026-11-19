@@ -145,7 +145,7 @@ public sealed partial class MainWindow
     private async Task<bool> AskRunFileTrustAsync(string dataFile)
     {
         if (RunPlan.Unapproved(Workspaces.Settings.Current, dataFile, Workspaces.UserData) is not var (project, hash)) return false;
-        var details = Loc.Current.Format("live.trustBody", ("runner", project.Runner), ("arguments", project.Arguments), ("folder", project.WorkingDir), ("environment", project.Environment));
+        var details = Loc.Current.Format("live.trustBody", ("runner", project.Runner), ("arguments", project.Arguments), ("folder", project.WorkingDir), ("environment", project.Environment), ("compat", CompatSummary(project)));
         if (!await Confirm(Loc.Current["live.trustTitle"], details)) return false;
         Workspaces.Settings.Update(x => x with { TrustedRunFiles = [.. x.TrustedRunFiles, hash] });
         return true;
@@ -170,14 +170,17 @@ public sealed partial class MainWindow
         if (await AskRunFileTrustAsync(workspace.Path) && settings.RunOptionsLocation == RunOptionsLocation.StudioFolder) await OfferRunOptionsMigrationAsync(workspace.Path);
         settings = Workspaces.Settings.Current;
 
-        var (spec, check, found) = RunPlan.Resolve(settings, workspace.Path, workspace.Data.GeneralInfo?.FileName?.Content, inPlace ? workspace.Path : temp, runner, home);
+        var resolution = RunPlan.Resolve(settings, workspace.Path, workspace.Data.GeneralInfo?.FileName?.Content, inPlace ? workspace.Path : temp, runner, home);
+        var (spec, check, found) = resolution;
         if (spec is null)
         {
-            Notify(NotificationLevel.Error, found is null
+            Notify(NotificationLevel.Error, resolution.NoTool ? Loc.Current["compat.noTool"] : found is null
                 ? Loc.Current.Format("run.noRunner", ("file", Path.GetFileName(workspace.Path)))
                 : Loc.Current.Format("live.missingExe", ("path", found)));
             return;
         }
+
+        if (spec.Compat is { } compat) spec = spec with { Notes = CompatNotes(compat) };
 
         if (!ApplyCodeEditors()) return;
         _lastCrash = null;
@@ -205,6 +208,26 @@ public sealed partial class MainWindow
             Notify(NotificationLevel.Error, Loc.Current.Format("run.failed", ("reason", e.Message)));
             DeleteWorkingCopy(temp);
         }
+    }
+
+    /// <summary>The compatibility part of a run options file for the approval question: the mode, the tool program and the custom command, since all of them name programs.</summary>
+    private static string CompatSummary(RunProfile p) =>
+        string.Join(" ", new[] { Loc.Current["compat.mode." + p.Compat], p.CompatProgram, p.CompatCommand }.Where(x => x.Length > 0));
+
+    /// <summary>The lines for the run log when a compatibility tool starts a Windows game: which tool and prefix, where Steam keeps its prefix and saves, and a prefix Proton has to create.</summary>
+    private static List<string> CompatNotes(CompatLaunch compat)
+    {
+        var tool = compat.Detail ?? Loc.Current["compat.mode." + compat.Tool];
+        var exe = Path.GetFileName(compat.Exe);
+        var notes = new List<string>
+        {
+            compat.Prefix is { } prefix
+                ? Loc.Current.Format("compat.info", ("exe", exe), ("tool", tool), ("prefix", prefix))
+                : Loc.Current.Format("compat.infoNoPrefix", ("exe", exe), ("tool", tool)),
+        };
+        if (compat.SteamSaves is { } saves) notes.Add(Loc.Current.Format("compat.steamHint", ("folder", saves)));
+        if (compat.NewPrefix is { } created) notes.Add(Loc.Current.Format("compat.newPrefix", ("folder", created)));
+        return notes;
     }
 
     /// <summary>Writes the working copy, or skips the write when nothing changed since the copy on disk was made (the fast path of a quick restart).</summary>

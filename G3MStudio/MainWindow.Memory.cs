@@ -30,6 +30,7 @@ public sealed partial class MainWindow
         timer.Tick += (_, _) =>
         {
             ShowMemory();
+            TrimWhenSettled(Memory.Last.WorkingSetBytes);
             if (++_pageTicks % 15 != 0) return;
             PagePixels.ForgetDecoded(); // every 30 seconds
             _ = EncodeIdlePagesAsync(PagePixels.IdleAfter, PagePixels.RawCap);
@@ -42,7 +43,9 @@ public sealed partial class MainWindow
         idle.Tick += (_, _) =>
         {
             idle.Stop();
-            if (Docking.Tabs.Tabs.Count == 0) Memory.Relieve();
+            if (Docking.Tabs.Tabs.Count != 0) return;
+            Memory.Relieve();
+            _ = Task.Run(() => ProcessMemory.Reclaim());
         };
         Docking.Changed += () =>
         {
@@ -61,6 +64,45 @@ public sealed partial class MainWindow
         };
         Memory.Poll();
         Memory.Start();
+        // The start page and the first paint touch pages that are not needed again: give them back once the window has settled.
+        DispatcherTimer.RunOnce(() => _ = Task.Run(ProcessMemory.TrimWorkingSet), TimeSpan.FromSeconds(4));
+    }
+
+    private long _lastWorkingSet, _floorWorkingSet, _lastTrimTick;
+    private bool _justTrimmed;
+
+    /// <summary>
+    /// Decoding pages and building tabs leaves hundreds of MB in the working set that nothing touches any more (the native heap keeps its pages). When the working
+    /// set has grown by 192 MB over what the program needed after the last trim and has stopped moving, the pages are given back; they come back on demand.
+    /// </summary>
+    private void TrimWhenSettled(long workingSet)
+    {
+        if (_justTrimmed)
+        {
+            (_floorWorkingSet, _justTrimmed) = (workingSet, false);
+        }
+        // A big file keeps more than 192 MB hot, so without a pause the trim would repeat and every page would fault back in while the user works.
+        else if (workingSet > _floorWorkingSet + (192L << 20) && Math.Abs(workingSet - _lastWorkingSet) < (16L << 20) && Environment.TickCount64 - _lastTrimTick > 120_000)
+        {
+            (_justTrimmed, _lastTrimTick) = (true, Environment.TickCount64);
+            _ = Task.Run(ProcessMemory.TrimWorkingSet);
+        }
+
+        _lastWorkingSet = workingSet;
+    }
+
+    /// <summary>
+    /// After a file closed or another one took its place, the old data is garbage and its bitmaps wait for their finalizers. A second later (the views have let go by
+    /// then) one collection gives it back; a closed file also trims the working set. Nothing runs while a file is loading, so the load is never slowed.
+    /// </summary>
+    private void ReclaimAfterFile()
+    {
+        DispatcherTimer.RunOnce(() =>
+        {
+            if (_opening is not null) return;
+            var closed = Workspaces.Current is null;
+            _ = Task.Run(() => ProcessMemory.Reclaim(closed));
+        }, TimeSpan.FromSeconds(1));
     }
 
     private void ReleaseCaches()

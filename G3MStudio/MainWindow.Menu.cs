@@ -24,6 +24,7 @@ public sealed partial class MainWindow
             AutomationProperties.SetAutomationId(menu, titleKey);
             menu.Bind(MenuItem.HeaderProperty, Tr(titleKey));
             var submenus = new Dictionary<string, MenuItem>();
+            if (titleKey == "menu.project") _projectMenu = menu;
             foreach (var id in ids)
             {
                 if (id == "-")
@@ -60,9 +61,21 @@ public sealed partial class MainWindow
 
         Registry.ContextChanged += ShowContextMenus;
         Registry.ContextChanged += RefreshNewTips;
+        Registry.ContextChanged += RefreshProjectTips;
         Registry.ShortcutChanged += RefreshMenuTip;
         ShowContextMenus();
         RefreshMenuTips();
+        RefreshProjectTips();
+
+        // Recent projects follow Open Project in the Project menu; the list is read when the menu opens.
+        _recentProjectsMenu.Bind(MenuItem.HeaderProperty, Tr("cmd.project.recent"));
+        if (_projectMenu is { } projectMenu)
+        {
+            projectMenu.Items.Insert(1, _recentProjectsMenu);
+            projectMenu.SubmenuOpened += (_, _) => RefreshRecentProjects();
+        }
+
+        RefreshRecentProjects();
 
         // Open Recent is a submenu, not a command; it follows Open in the File menu.
         _recentMenu.Bind(MenuItem.HeaderProperty, Tr("cmd.file.openRecent"));
@@ -70,6 +83,7 @@ public sealed partial class MainWindow
     }
 
     private readonly Dictionary<string, MenuItem> _menuItems = [];
+    private MenuItem? _projectMenu;
     private readonly Dictionary<MenuItem, string> _contextMenus = [];
 
     /// <summary>The Room, Image, Code and Sprite menus show only while a tab of their kind is in front.</summary>

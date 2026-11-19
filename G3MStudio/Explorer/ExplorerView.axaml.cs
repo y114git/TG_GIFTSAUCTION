@@ -172,7 +172,13 @@ public partial class ExplorerView : UserControl
     public void Select(string? key, bool flash = false)
     {
         if (key is null || ResourceTypes.SplitKey(key) is not var (type, name)) return;
-        if (Model.Rows.Any(r => r is { IsHeader: true, Expanded: false } && r.Key == type)) Model.Toggle(type);
+        if (Model.Rows.Any(r => r is { IsHeader: true, Expanded: false } && r.Key == type))
+        {
+            Model.Toggle(type);
+            // Rows opened above the selected one must be laid out before the selection moves: selecting while that insertion is still pending makes the list
+            // realize every inserted row on the way (6,000 rows took 8 seconds, the freeze when a code tab is opened after a texture tab).
+            List.UpdateLayout();
+        }
         var index = Model.Rows.ToList().FindIndex(r => r.IsItem && r.Key == type && r.Text == name);
         if (index < 0) return;
         List.SelectedIndex = index;
@@ -303,7 +309,7 @@ public partial class ExplorerView : UserControl
         thumb.Source = picture;
     }
 
-    public void FocusFilter() => FilterBox.Focus();
+    public void FocusFilter() => FilterBox.FocusSelected();
 
     public void Load(string name, GameMakerData? data)
     {

@@ -40,7 +40,10 @@ public static class GmlColors
         return digits is { Length: 6 } && int.TryParse(digits, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out var bgr) ? FromBgr(bgr) : null;
     }
 
-    private static (byte, byte, byte) FromBgr(int bgr) => ((byte)bgr, (byte)(bgr >> 8), (byte)(bgr >> 16));
+    /// <summary>The c_ constant with this BGR value (c_ltgray for the value c_silver shares), or null.</summary>
+    public static string? NameOf(long bgr) => Named.FirstOrDefault(p => p.Value == bgr && p.Key != "c_silver").Key;
+
+    public static (byte R, byte G, byte B) FromBgr(int bgr) => ((byte)bgr, (byte)(bgr >> 8), (byte)(bgr >> 16));
 
     /// <summary>The GML number of a colour, as it shows in a hover.</summary>
     public static string Describe((byte R, byte G, byte B) color) => $"#{color.R:X2}{color.G:X2}{color.B:X2}  ${color.B:X2}{color.G:X2}{color.R:X2}";

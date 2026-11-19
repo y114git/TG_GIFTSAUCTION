@@ -19,6 +19,7 @@ public sealed class HangMonitor : IDisposable
     private readonly Action<string, IReadOnlyDictionary<string, string>> _send;
     private readonly int _uiThread = Environment.CurrentManagedThreadId;
     private readonly ManualResetEventSlim _stop = new();
+    private static readonly Queue<string> Recent = new();
     private long _pendingSince; // stopwatch ticks of the beat the UI thread has not answered yet; 0 when none is waiting
     private TimeSpan _cpuAtBeat;
 
@@ -42,6 +43,21 @@ public sealed class HangMonitor : IDisposable
     public TimeSpan Limit { get; }
 
     public TimeSpan Tick { get; }
+
+    /// <summary>Remembers what the user just did (a tab opened, a file opened) so a hang report says what led to it. Kinds only, never names from a game.</summary>
+    public static void Note(string action)
+    {
+        lock (Recent)
+        {
+            if (Recent.Count >= 12) Recent.Dequeue();
+            Recent.Enqueue($"{DateTime.UtcNow:HH:mm:ss.fff} {action}");
+        }
+    }
+
+    private static string RecentActions()
+    {
+        lock (Recent) return Recent.Count == 0 ? "(none)" : string.Join(Environment.NewLine, Recent.Select(a => "  " + a));
+    }
 
     /// <summary>The newest hang file written, or null while the UI thread never stopped answering.</summary>
     public string? LastFile { get; private set; }
@@ -113,7 +129,7 @@ public sealed class HangMonitor : IDisposable
         var (stack, osThread) = Stack(_uiThread);
         var state = osThread == 0 ? "unknown (the thread could not be identified)" : Spinning(process, osThread) ? "spinning (the thread is busy)" : "waiting (a lock, a task or I/O that does not finish)";
         var text = string.Create(CultureInfo.InvariantCulture,
-            $"The UI thread did not answer for {stuck.TotalSeconds:0.#} s: {state}.\nProcessor time in that window: {cpu.TotalSeconds:0.#} s. Memory: {process.WorkingSet64 / 1048576} MB. Threads: {process.Threads.Count}. GCs: {GC.CollectionCount(0)}/{GC.CollectionCount(1)}/{GC.CollectionCount(2)}.\n\nUI thread:\n{stack}\n");
+            $"The UI thread did not answer for {stuck.TotalSeconds:0.#} s: {state}.\nProcessor time in that window: {cpu.TotalSeconds:0.#} s. Memory: {process.WorkingSet64 / 1048576} MB. Threads: {process.Threads.Count}. GCs: {GC.CollectionCount(0)}/{GC.CollectionCount(1)}/{GC.CollectionCount(2)}.\n\nRecent actions:\n{RecentActions()}\n\nUI thread:\n{stack}\n");
         LastFile = WriteFile(text);
         _send(text.Length > 3500 ? text[..3500] : text, new Dictionary<string, string> { ["hang"] = state.Split(' ')[0] });
         Telemetry.Log(SentryLogLevel.Warning, "ui hang", ("state", state.Split(' ')[0]), ("seconds", ((int)stuck.TotalSeconds).ToString(CultureInfo.InvariantCulture)));
@@ -177,7 +193,11 @@ public sealed class HangMonitor : IDisposable
             using var target = Microsoft.Diagnostics.Runtime.DataTarget.CreateSnapshotAndAttach(Environment.ProcessId);
             var runtime = target.ClrVersions.FirstOrDefault()?.CreateRuntime();
             var thread = runtime?.Threads.FirstOrDefault(t => t.ManagedThreadId == managedThreadId);
-            return thread is null ? ("(the UI thread was not found in the snapshot)", 0) : (string.Join('\n', thread.EnumerateStackTrace().Take(60).Select(f => "  at " + f)), thread.OSThreadId);
+            if (thread is null) return ("(the UI thread was not found in the snapshot)", 0);
+            var frames = thread.EnumerateStackTrace().Take(200).Select(f => f.ToString() ?? "").ToList();
+            // A layout or template stack of the UI framework is dozens of frames deep, so the application's own frames, which name the cause, are listed first.
+            var own = frames.Where(f => f.Contains("G3MStudio", StringComparison.Ordinal) || f.Contains("G3MLib", StringComparison.Ordinal)).Take(12);
+            return ("Application frames, innermost first:\n" + string.Join('\n', own.Select(f => "  at " + f)) + "\nAll frames:\n" + string.Join('\n', frames.Take(60).Select(f => "  at " + f)), thread.OSThreadId);
         }
         catch (Exception e) when (e is not OutOfMemoryException)
         {

@@ -27,7 +27,7 @@ public sealed class BulkResourcesTests
         Assert.Equal("obj_0_copy", BulkResources.CopyName(data, "obj_0", taken));
         Assert.Equal("obj_0_copy2", BulkResources.CopyName(data, "obj_0", taken));
 
-        var copy = BulkResources.Duplicate(data, [("objects", "obj_0"), ("objects", "obj_1"), ("rooms", "r")], out var keys);
+        var copy = BulkResources.Duplicate(data, [("objects", "obj_0"), ("objects", "obj_1"), ("code", "gml_Script_x")], out var keys);
         Assert.Equal(["objects:obj_0_copy", "objects:obj_1_copy"], keys);
         copy.Apply(data);
         Assert.Equal(4, data.GameObjects.Count);

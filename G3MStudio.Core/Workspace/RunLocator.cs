@@ -9,7 +9,7 @@ public static class RunLocator
     public static string? Find(string dataFile, string? gameFileName)
     {
         var folder = Path.GetDirectoryName(Path.GetFullPath(dataFile)) ?? ".";
-        var names = Names(dataFile, gameFileName);
+        var names = Names(dataFile, gameFileName, !OperatingSystem.IsWindows());
         var parent = Directory.GetParent(folder)?.FullName;
         string?[] folders = [folder, parent, parent is null ? null : Path.Combine(parent, "MacOS")];
         foreach (var where in folders.OfType<string>())
@@ -32,7 +32,7 @@ public static class RunLocator
         // A relative path from a global setting that lands inside the data folder could be a planted program: a matching name proves nothing.
         if (!fromProject && !Path.IsPathRooted(runner) && runner.IndexOfAny(['/', '\\']) >= 0 && IsInside(Path.GetDirectoryName(Path.GetFullPath(dataFile)), resolved)) return RunnerCheck.Unknown;
         var name = Path.GetFileName(resolved);
-        return Names(dataFile, gameFileName).Contains(name, StringComparer.OrdinalIgnoreCase) || name.Contains("runner", StringComparison.OrdinalIgnoreCase)
+        return Names(dataFile, gameFileName, !OperatingSystem.IsWindows()).Contains(name, StringComparer.OrdinalIgnoreCase) || name.Contains("runner", StringComparison.OrdinalIgnoreCase)
             ? RunnerCheck.Known
             : RunnerCheck.Unknown;
     }
@@ -46,7 +46,7 @@ public static class RunLocator
         if (!File.Exists(runner)) return RunnerCheck.Missing;
         var folder = Path.GetDirectoryName(Path.GetFullPath(dataFile));
         var sameFolder = string.Equals(Path.GetDirectoryName(Path.GetFullPath(runner)), folder, OperatingSystem.IsLinux() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
-        return sameFolder && GameNames(dataFile, gameFileName).Contains(Path.GetFileName(runner), StringComparer.OrdinalIgnoreCase) ? RunnerCheck.Known : RunnerCheck.Unknown;
+        return sameFolder && GameNames(dataFile, gameFileName, !OperatingSystem.IsWindows()).Contains(Path.GetFileName(runner), StringComparer.OrdinalIgnoreCase) ? RunnerCheck.Known : RunnerCheck.Unknown;
     }
 
     /// <summary>The full path of a program given by path or by a bare name looked up on PATH; null when it is nowhere. A relative path with a separator is taken from the folder of <paramref name="dataFile"/>; without a data file, from the current directory.</summary>
@@ -79,13 +79,15 @@ public static class RunLocator
         return null;
     }
 
-    private static List<string> GameNames(string dataFile, string? gameFileName)
+    internal static List<string> GameNames(string dataFile, string? gameFileName, bool unix = false)
     {
         var game = string.IsNullOrWhiteSpace(gameFileName) ? Path.GetFileNameWithoutExtension(dataFile) : Path.GetFileNameWithoutExtension(gameFileName);
-        return [game + ".exe", game, game + ".x86_64", game + ".AppImage"];
+        List<string> names = [game + ".exe", game, game + ".x86_64", game + ".AppImage"];
+        if (unix) names.Add(game + ".sh"); // a launcher script named after the game; any other script stays unknown
+        return names;
     }
 
     // Windows: Game.exe. Linux: the runner file or Game.x86_64. macOS: Mac_Runner inside the bundle.
-    private static List<string> Names(string dataFile, string? gameFileName) =>
-        [.. GameNames(dataFile, gameFileName), "runner", "Runner", "runner.exe", "Runner.exe", "Mac_Runner", "game.x86_64"];
+    internal static List<string> Names(string dataFile, string? gameFileName, bool unix = false) =>
+        [.. GameNames(dataFile, gameFileName, unix), "runner", "Runner", "runner.exe", "Runner.exe", "Mac_Runner", "game.x86_64"];
 }

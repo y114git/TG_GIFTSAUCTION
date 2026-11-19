@@ -74,6 +74,8 @@ public sealed partial class StudioDock
         Layout = Create();
         Factory.DockableClosed += (_, e) =>
         {
+            // The last tab of a group leaves its host in the dock's tree until another tab replaces it; without this the editor and what it holds (the open file) stay reachable.
+            if (e.Dockable is Document closed) Release(closed);
             if (e.Dockable?.Id is { } id)
             {
                 Tabs.Remove(id);
@@ -212,6 +214,7 @@ public sealed partial class StudioDock
     public TabInfo? OpenTab(string kind, string key, bool preview)
     {
         if (Group() is not { } group) return null;
+        HangMonitor.Note("open tab " + kind);
         var (tab, replaced, created) = Tabs.Open(kind, key, preview, t => DocumentOf(t.Id)?.Owner == group);
         if (created) AddDocument(tab, group);
         else if (DocumentOf(tab.Id) is { } doc)
@@ -357,6 +360,13 @@ public sealed partial class StudioDock
 
     private static IEnumerable<IDockable> Docked(IDockable d) => d is IDock dock ? (dock.VisibleDockables ?? []).SelectMany(Docked).Prepend(d) : [d];
 
+    /// <summary>The editor leaves its host and the document its host, so a tab that is gone keeps neither the editor nor what it holds (the open file) reachable through the dock's tree.</summary>
+    private static void Release(Document document)
+    {
+        if (document.Content is ContentControl host) host.Content = null;
+        document.Content = null;
+    }
+
     private void Use(IRootDock layout)
     {
         // A control can have one parent only: release the content from the layout that goes away.
@@ -367,12 +377,14 @@ public sealed partial class StudioDock
                 (tool.Content as MinSizeScroller)?.Release();
                 tool.Content = null;
             }
-            else if (old is Document document) document.Content = null;
+            else if (old is Document document) Release(document);
+            else if (old is DocumentDock group) group.EmptyContent = null; // its parents are the old tree, which the compositor of a hidden panel still points at
         }
 
         // The windows of floated panels belong to the old layout: close them, or an empty one stays on screen.
         foreach (var floating in (Layout.Windows ?? []).ToList()) floating.Host?.Exit();
         Layout = layout;
+        _group = null; // a group of the old layout would keep it, and the tabs it showed, reachable
         Factory.InitLayout(layout);
         Fill(layout);
         _control?.Layout = layout;

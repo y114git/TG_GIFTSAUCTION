@@ -15,6 +15,13 @@ public static class TokenExtensions
         return control;
     }
 
+    /// <summary>Puts the cursor in a search or filter box with its text selected, so typing replaces the old query. Posted so a panel that was just shown has its parts by then.</summary>
+    public static void FocusSelected(this TextBox box) => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+    {
+        box.Focus();
+        box.SelectAll();
+    }, Avalonia.Threading.DispatcherPriority.Loaded);
+
     /// <summary>Keeps a property (MinHeight, Width) at a size token such as Control.Height or Row.Height.</summary>
     public static T BindSize<T>(this T control, AvaloniaProperty property, string token) where T : Control
     {

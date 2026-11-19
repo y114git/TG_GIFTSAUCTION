@@ -17,6 +17,9 @@ public interface IShell : IOrganizeShell
     void Exit();
 
     void OpenDataFile();
+    void OpenProject();
+    void NewProject();
+    void CloseProject();
 
     void NewDataFile();
 
@@ -188,6 +191,9 @@ public interface IShell : IOrganizeShell
 
     /// <summary>Cuts a picture or GIF into frames of the sprite in front.</summary>
     void ImportSheet();
+
+    /// <summary>Cuts a picture file into the frames of a new sprite.</summary>
+    void NewSpriteFromSheet();
 
     void RemoveFrame();
 

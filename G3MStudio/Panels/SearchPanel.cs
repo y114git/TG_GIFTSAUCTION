@@ -67,10 +67,13 @@ public sealed class SearchPanel : UserControl
         _cancel.Click += (_, _) => _cancelRunning?.Invoke();
         // Wrap panels: in a narrow dock the rows break into lines instead of being cut off.
         var options = new WrapPanel { ItemSpacing = 8, LineSpacing = 4, Children = { _case, _word, _regex } };
-        var actions = new WrapPanel { ItemSpacing = 8, LineSpacing = 4, Children = { _run, _cancel, _preview, _replaceSelected, _all, _none } };
+        var actions = new WrapPanel { ItemSpacing = 8, LineSpacing = 4, Children = { _run, _cancel, _preview } };
+        // Choosing which previewed lines to replace is a step of its own, after the result.
+        var picks = new WrapPanel { ItemSpacing = 8, LineSpacing = 4, Children = { _all, _none, _replaceSelected } };
+        picks.Bind(IsVisibleProperty, _all.GetObservable(IsVisibleProperty)); // no empty row, and no gap, before a preview
         var layout = new DockPanel { Margin = new Thickness(8) };
         // The stack gives every row the default gap; the list fills what is left.
-        var head = new StackPanel { Children = { _query, options, _replace, actions, _status, _selection } };
+        var head = new StackPanel { Children = { _query, options, _replace, actions, _status, picks, _selection } };
         DockPanel.SetDock(head, Avalonia.Controls.Dock.Top);
         layout.Children.Add(head);
         _results.Margin = new Thickness(0, 4, 0, 0);
@@ -99,7 +102,10 @@ public sealed class SearchPanel : UserControl
     }
 
     /// <summary>Puts the cursor in the replace box (Ctrl+Shift+H).</summary>
-    public void FocusReplace() => _replace.Focus();
+    public void FocusReplace() => _replace.FocusSelected();
+
+    /// <summary>Puts the cursor in the query box (Ctrl+Shift+F).</summary>
+    public void FocusQuery() => _query.FocusSelected();
 
     /// <summary>The lines a replace will change: previewed hits that have a replacement and whose check box the user left on.</summary>
     public IReadOnlyList<CodeHit> Chosen => [.. Hits.Where(h => h.Replaced is not null && !_unchecked.Contains(h))];

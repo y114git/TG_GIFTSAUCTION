@@ -43,7 +43,7 @@ public sealed partial class WorkspaceService(UserData userData, RecentFiles rece
         var settings = Settings.Current;
         if (!settings.FileRunProfiles.TryGetValue(workspace.Path, out var name) || settings.RunProfiles.FirstOrDefault(p => p.Name == name) is not { } profile) return;
         _lastActive = name;
-        Settings.Update(x => x with { ActiveRunProfile = name, RunRunner = profile.Runner, RunArguments = profile.Arguments, RunDebugOutput = profile.DebugOutput, RunWorkingDir = profile.WorkingDir, RunEnvironment = profile.Environment });
+        Settings.Update(x => x.WithRunProfile(profile) with { ActiveRunProfile = name });
     }
 
     /// <summary>Reads the file with progress. The previous workspace is closed only after the new one has loaded.</summary>

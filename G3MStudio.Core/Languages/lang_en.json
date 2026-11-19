@@ -131,6 +131,7 @@
       "transfer": "Transfer Resources...",
       "import": "Import Resources from Another Data File...",
       "importFiles": "Import Pictures, Sounds and Scripts from Files...",
+      "importSheetNew": "New Sprite from Sheet or Strip...",
       "importCodeFolder": "Import Code from a Folder...",
       "importCodeFiles": "Import Code from Files...",
       "new": {
@@ -210,6 +211,10 @@
       "enable": "Enable Project",
       "sync": "Sync to Data File",
       "options": "Project Settings...",
+      "open": "Open Project...",
+      "new": "New Project...",
+      "close": "Close Project",
+      "recent": "Recent Projects",
       "moveDataFile": "Change Data File Location...",
       "disable": "Disable Project...",
       "resolve": "Resolve Outside Changes..."
@@ -466,6 +471,17 @@
     "deleteBody": "Delete {name}? Undo brings it back until the file is saved.",
     "deleteUsed": "Places that use {name}: {count}\n{places}\n\nThese uses are set to none or taken out of their lists. A use in code cannot be cleared and stops the delete. The game can behave differently or stop working. Undo brings everything back until you save.",
     "deleteUsedTitle": "Delete {name} anyway?",
+    "deleteFunctionTitle": "Delete function {name}?",
+    "deleteFunctionOwn": "This removes the script {script} with its code entry {entry}, and the function from the Functions list.",
+    "deleteFunctionInside": "This takes the declaration of {name} out of the code entry {entry}: the entry is decompiled, the function block is removed and the entry is compiled again. The function leaves the Functions list.",
+    "deleteFunctionUnused": "No other code calls it. Undo brings everything back until you save.",
+    "deleteFunctionUsed": "Places that call it: {count}\n{places}\n\nThose calls stay and then name a function that no longer exists, so the game can stop working. The function keeps its place in the Functions list because of them. Undo brings everything back until you save.",
+    "deleteFunctionNoCode": "{name} has no code entry in this file (a built-in or extension function), so there is nothing to delete.",
+    "deleteFunctionNoScript": "{name} has code but no script of its own, so it cannot be deleted from here.",
+    "deleteFunctionNoSource": "The declaration of {name} cannot be found as a separate block in {entry} (it sits inside another function, is declared twice, or the code has no braces), so it is not deleted. Edit the code instead.",
+    "deleteVariableTitle": "Delete variable {name}?",
+    "deleteVariableBody": "No code uses this variable entry. Only the entry is removed. Undo brings it back until you save.",
+    "deleteVariableUsed": "{name} is used by code in {count} places, so its entry stays:\n{places}\n\nRemove those uses first.",
     "deleteCodeTitle": "Delete {name} and leave the code that uses it?",
     "deleteCode": "{reason}\n\nIf you delete it anyway, that code keeps pointing at something that no longer exists. The game can crash or act wrongly when the code runs. Undo brings everything back until you save.",
     "nameUnusual": "'{name}' is not a plain name (letters, digits and underscores, not starting with a digit). GML code cannot use it, and other tools may fail on it. Press the button again to use it anyway. Undo removes it until you save.",
@@ -654,6 +670,69 @@
     "packagePick": "Save {name} as a package"
   },
   "project": {
+      "why": {
+        "noFile": "Open a data file first.",
+        "hasProject": "This file already has a project.",
+        "noProject": "This file has no project yet. Use New Project first."
+      },
+      "open": {
+        "pick": "Choose a project file (.g3mproj or a UTMT project.json)",
+        "pickData": "Choose the data file of this project",
+        "notProject": "'{path}' is not a project folder or project file.",
+        "mismatch": "'{name}' is not the data file this project was last synced with.",
+        "failed": "Could not open the project: {reason}"
+      },
+      "found": "A project for this file exists: {name}.",
+      "foundAction": "Open project",
+      "recent": {
+        "none": "No recent projects."
+      },
+    "utmt": {
+      "title": "Open UTMT project",
+      "intro": "Convert this UndertaleModTool project into a G3MStudio project. The UTMT folder is not changed.",
+      "project": "Project: {name}, {count} resources",
+      "dataFile": "Original data file of the game",
+      "browse": "Browse...",
+      "destination": "New project folder",
+      "git": "Create a Git repository in the new folder",
+      "scripts": "Run the project scripts ({detail}). They run with your user rights.",
+      "convert": "Convert",
+      "pickData": "Choose the original data file",
+      "pickFolder": "Choose the new project folder",
+      "mismatchTitle": "Different data file",
+      "mismatchAsk": "This data file is not the one the project was made from. Convert anyway?",
+      "stage": {
+        "read": "reading the data file",
+        "import": "applying the project",
+        "write": "writing the data file",
+        "export": "writing the project",
+        "git": "setting up Git"
+      },
+      "failed": "Could not convert the project: {reason}",
+      "needFields": "Choose the data file and the new project folder first.",
+      "report": {
+        "title": "UTMT project converted",
+        "summary": "{count} resources were written to {folder}. The data file with the project applied is {file}.",
+        "gitInitialized": "A Git repository was created with a first commit.",
+        "gitExisting": "The existing Git repository was kept; nothing was committed.",
+        "gitNone": "No Git repository was created.",
+        "warnings": "Warnings",
+        "none": "Nothing was lost.",
+        "details": "Details",
+        "open": "Open project",
+        "close": "Close"
+      },
+      "warn": {
+        "options": "These project options are not stored in a G3MStudio project. Their effect was applied once: {detail}",
+        "scripts": "Scripts of the project ran and are not kept: {detail}",
+        "ignoredFolders": "Folders that UTMT does not read were left out: {detail}",
+        "history": "The UTMT folder keeps its own Git history ({detail}). The new project starts a new one.",
+        "library": "{detail}",
+        "export": "{detail}",
+        "gitMissing": "Git is not installed, so no repository was created.",
+        "gitFailed": "Git setup did not finish: {detail}"
+      }
+    },
     "state": {
       "synced": "Synced",
       "syncing": "Syncing...",
@@ -750,7 +829,9 @@
       "clearReferences": "Clear references",
       "code": "Edit code",
       "codeEntry": "New code entry",
+      "cloneResource": "Duplicate resource",
       "copyProperties": "Copy properties",
+      "unsharePictures": "Give the copy its own pictures",
       "copyResources": "Copy resources",
       "curvePoint": "Edit curve point",
       "deleteString": "Delete string",
@@ -900,6 +981,7 @@
     "menu": {
       "help": "Help on Name",
       "peekDefinition": "Peek Definition",
+      "colour": "Colour: {name}",
       "rename": "Rename Symbol",
       "quickFix": "Quick Fix...",
       "goToDefinition": "Go to Definition",
@@ -1609,6 +1691,8 @@
       "BoundingHeight": "Bounding Height",
       "BoundingWidth": "Bounding Width",
       "Branch": "Branch",
+      "BranchSource": "Branch Detected From",
+      "VersionSource": "Version Detected From",
       "BroadcastMessages": "Broadcast Messages",
       "Build": "Build",
       "BuiltinName": "Builtin Name",
@@ -2504,6 +2588,7 @@
       "import": "Copy resources in from another data file.",
       "importPackage": "Add the resources of an exported package.",
       "importFiles": "Add pictures, sounds and scripts from files on disk.",
+      "importSheetNew": "Cut a picture sheet or strip into the frames of a new sprite.",
       "importCodeFolder": "Read code from a folder of files.",
       "importCodeFiles": "Read code from the files you choose.",
       "copyToOtherFile": "Copy the selected resources into another data file.",
@@ -2700,6 +2785,7 @@
     "sheetCount": "Frames (0 = all)",
     "sheetReplace": "Replace the current frames and take the new size",
     "sheetSummary": "{count} {count:frame|frames} of {width} by {height} pixels.",
+    "sheetPacked": "Frames are placed on the texture pages for you when you save. To see or move a frame's page item, open it under Texture Page Items.",
     "sheetGif": "Animated GIF: {count} {count:frame|frames} of {width} by {height} pixels.",
     "sheetMismatch": "The sprite is {width} by {height}. Tick Replace to take the new size.",
     "sheetImported": "Imported {count} {count:frame|frames} into sprite {sprite}.",
@@ -3011,7 +3097,8 @@
     "confirm": "Run {name}?\n\nA script can change anything in the data file and can read and write any file on this computer. The change cannot be undone; Revert to Saved is the way back. Only run scripts you trust.\n\nThis runs UndertaleModTool-style .csx scripts, but only part of that tool's functions exist here: Data, FilePath, ScriptPath, ScriptMessage, ScriptWarning, ScriptError and ScriptQuestion (answered yes). Scripts that need dialogs, the decompiler helpers or the UI stop with a compile error that names the missing function.",
     "running": "Running {name}...",
     "done": "{name} finished.",
-    "failed": "{name} failed: {reason}"
+    "failed": "{name} failed: {reason}",
+    "cancelled": "{name} was stopped. Its changes so far stay; Revert to Saved undoes them."
   },
   "sequences": {
     "moments": "Moments",
@@ -4098,11 +4185,39 @@
     "restart": "Restart",
     "stop": "Stop"
   },
+  "compat": {
+    "title": "Compatibility (Windows games on Linux and macOS)",
+    "modeLabel": "Run Windows games with",
+    "mode": {
+      "Auto": "Automatic",
+      "Native": "Native only",
+      "Wine": "Wine",
+      "Proton": "Proton",
+      "Umu": "umu",
+      "PortProton": "PortProton",
+      "Custom": "Custom command"
+    },
+    "program": "Tool program or folder (empty detects it)",
+    "browse": "Browse...",
+    "prefix": "Wine prefix folder (empty uses the Steam prefix of a Steam game, else the tool's default)",
+    "command": "Custom command: {exe} {data} {dir} {prefix} {args}",
+    "detected": "Detected now",
+    "detect": "Detect",
+    "detectedTool": "Auto would use: {tool}",
+    "detectedPrefix": "Auto would use: {tool}, prefix {prefix}",
+    "detectedNone": "Nothing found: no Wine, Proton, umu or PortProton",
+    "notNeeded": "Not needed on Windows.",
+    "noTool": "This is a Windows game and no Wine, Proton or PortProton was found. Install one, or choose a tool in Settings > Run.",
+    "info": "Running {exe} with {tool} (prefix {prefix})",
+    "infoNoPrefix": "Running {exe} with {tool}",
+    "steamHint": "Steam keeps this game's Wine prefix and its saves in {folder}; a plain Wine prefix is a different place.",
+    "newPrefix": "The prefix folder {folder} does not exist yet. Proton creates it on this run."
+  },
   "live": {
     "restarting": "Restarting the game...",
     "missingExe": "The program {path} was not found. Set it in Settings > Run.",
     "trustTitle": "Run options found next to this data file",
-    "trustBody": "This data file has run options stored next to it. They can start any program on your PC. Program: {runner}. Arguments: {arguments}. Folder: {folder}. Environment: {environment}. Use them? If you decline, your Settings are used.",
+    "trustBody": "This data file has run options stored next to it. They can start any program on your PC. Program: {runner}. Arguments: {arguments}. Folder: {folder}. Environment: {environment}. Compatibility: {compat}. Use them? If you decline, your Settings are used.",
     "unknownExe": "{path} is not a known game runner. It runs anyway; its output and exit code are shown here.",
     "inPlaceWarning": "The run saves your data file first (a backup is kept as usual) and starts the game on it.",
     "crashed": "{name} ended with exit code {code}. Last output: {lines}",

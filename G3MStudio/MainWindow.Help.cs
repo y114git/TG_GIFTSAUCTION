@@ -226,7 +226,11 @@ public sealed partial class MainWindow
         return UsageSearch.Describe(await cached.Text, name, skip);
     }
 
-    public void ShowSearch() => Docking.ShowPanel("Search");
+    public void ShowSearch()
+    {
+        Docking.ShowPanel("Search");
+        _search.FocusQuery();
+    }
 
     public void ShowReplace()
     {

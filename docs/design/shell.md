@@ -76,6 +76,45 @@ Region rules:
 
 Every top-level menu, every item, its command id and its default shortcuts. Generated from the command registry, so the same ids appear in the palette and in the shortcut editor. Items with no shortcut say None. "Open Recent" lists the last 10 workspaces, then "Reopen Closed Workspace" and "Clear Recently Opened"; Scripts lists the scripts folder (subfolders become submenus, "(No scripts found)" when empty, with a link to the folder); Window ends with the list of open windows.
 
+### Menu bar as built
+
+The menu bar is built from `AppCommands.Menus`; the tables after this section are the longer design target. Groups are divided by a separator. A group has at least two items (About closes Help on its own, as in other programs), an action lives in one menu only (the command palette and the shortcuts reach all of them), and the context menus show the same commands in the same order.
+
+| Menu | Groups |
+| --- | --- |
+| File | New Data File, New (submenu), Open, Transfer Resources / Save, Save As, Save a Copy, Revert to Saved / Settings, Close, Exit |
+| Edit | Undo, Redo / Rename, Duplicate, Move Up, Move Down, Copy Name, Favourites, Add Tag, Delete, Select All / Find, Find in Code, Replace in Code / Find Usages, Find What It Uses, Find Unreferenced Assets, Find Child Objects |
+| Organize | New Folder, Move to Folder, Add to Another Folder, Cut, Paste into Folder, Add to Collection, Remove from Folder, Set Colour / Rename with Pattern, Find Dead Resources, Move to Texture Group, Move to Audio Group / Select All of This Type, Select Everything in the Group / Switch Folder View, Open Folder, Up One Folder |
+| View | Command Palette, Go to Resource, Go to, Reveal in Explorer / Panels (submenu) / Zoom In, Zoom Out, Reset Zoom, Full Screen / Focus Next Region, Focus Previous Region |
+| Project | Open Project (a .g3mproj or a UTMT project.json), Close Project / New Project, Enable Project / Sync to Data File, Resolve Outside Changes / Project Settings, Change Data File Location, Disable Project |
+| Run | Run Game, Restart Game, Run with Runtime, Stop Game |
+| Mods | Create Patch, Apply Patch, Apply Mod, Merge Patches, Validate Patch / Compare Data Files, Apply Mod Pack, Remember This File as the Mod Base, Clear the Mod Base Cache |
+| Tools | Strings, Room Order, Texture Groups, Audio Groups / Hex View, Chunk Offset Map, Export Raw Chunk, Replace Chunk, Write Debug Data, Disassembly / Repack, Export, Replace and Resize Texture Page / Run Script, Run C# Command, Plugins |
+| Window | Next Tab, Previous Tab, Previous Tab (History), Next Tab (History), Back, Forward / Show All Windows, Close All Windows |
+| Layout | the five layouts / Save Layout, Saved Layouts, Reset Layout / Hide or Show All Docks, Fold or Open Left, Right and Bottom Dock |
+| Help | Getting Started, Interface Tour, Documentation, Check for Updates / Send Feedback, Report a Problem, Copy Diagnostics / Open Data Folder, Open Logs Folder / About |
+
+The Sprite, Sound, Font, Tile Set, Room, Image and Code menus show only while a tab or an Explorer selection of that kind is in front.
+
+The Code menu has six groups: Go to Definition, Peek Definition / Parameter Hints, Quick Fix, Insert Snippet / comments and line moves / bookmarks and problems / Outline, Diff, Help on Word, Open in Manual / Go to Line, Go to Bracket, selection / line edits and case.
+
+Placement rules the audit settled:
+
+- The tab commands (Close, Close Others, Close All, Reopen, Pin, Keep Open, Split Right) are in the tab menu, the command palette and on their shortcuts; the Window menu holds the ways to move between tabs and windows.
+- Reveal in Explorer shows the open entry in the Explorer panel, so it is in View next to Go to. The tab and code editor menus keep it with the other resource commands.
+- Ask Again for All Prompts is the button of Settings > Prompts, and Move Run Options to G3MStudio's Folder is a button of Settings > Run next to the run file it moves. Both stay commands, so the palette finds them.
+- Opening a UTMT project is Project > Open Project (choose its project.json) and dropping its folder on the window; the File menu has no second entry for it.
+
+Context menus:
+
+| Menu | Groups |
+| --- | --- |
+| Explorer item row | the resource commands of its type (Rename, Edit Image, Duplicate, Copy Name, Find Usages, Copy to Another Data File, Reveal, Favourite, Add Tag) and Export Selection / Move to Folder, Add to Another Folder, Cut, Add to Collection, Rename with Pattern, Select by Type, Remove from Group / Move Up and Move Down, then Delete. A row that cannot move (a function, a variable) ends the group above with Delete. |
+| Explorer, several rows | Export Selection, Duplicate, Copy to Another Data File / the organize commands, Remove from Group and Delete |
+| Explorer type heading | Select Contents, export and import of the type, Copy Names, Only This Type / Expand All, Collapse All |
+| Editor tab | the tab commands / the resource commands of what the tab shows |
+| Code editor | Go to Definition, Peek, Find Usages, Rename Symbol, Quick Fix, Help / Toggle Line Comment, Tab In, Tab Out / Cut, Copy, Paste, Select All, Undo, Redo / the resource commands |
+
 ### File menu
 
 | Item | Id | Windows and Linux | macOS |

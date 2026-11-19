@@ -42,8 +42,13 @@ public sealed partial class ThumbnailService(Func<Workspace?> workspace, Func<Te
         _rooms.Dispose();
     }
 
-    /// <summary>Forgets every picture, for low memory.</summary>
-    public void Clear() => _cache.Clear();
+    /// <summary>Forgets every picture and lets go of the workspace, for low memory and for a file that closes.</summary>
+    public void Clear()
+    {
+        _cache.Clear();
+        _jobs.Clear();
+        _owner = null;
+    }
 
     // A cache belongs to one workspace; opening another starts empty.
     private void Own(Workspace ws)
