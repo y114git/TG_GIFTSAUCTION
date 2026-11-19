@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Compiler;
-using G3MLib.DataFile.Models;
 using G3MLib.Modding.Resources;
-using Xunit;
 
 namespace G3MLib.Tests;
 
@@ -19,7 +13,7 @@ public sealed class CodeImportResultTests
 
     private static GameMakerData WithScript(string name, string source)
     {
-        GameMakerData data = GameMakerData.CreateNew2026LTS();
+        var data = GameMakerData.CreateNew2026LTS();
         CodeImportGroup group = new(data);
         group.QueueReplace(name, source);
         group.Import();
@@ -29,13 +23,13 @@ public sealed class CodeImportResultTests
     [Fact]
     public void ResultListsEveryOperationInOrder()
     {
-        using GameMakerData data = WithScript("gml_Script_a", "var first_value = 1;");
+        using var data = WithScript("gml_Script_a", "var first_value = 1;");
         CodeImportGroup group = new(data);
         group.QueueReplace("gml_Script_a", "var second_value = 2;");
         group.QueueFindReplace("gml_Script_a", "no_such_text", "zz");
         group.QueueAppend("gml_Script_b", "var third_value = 3;");
 
-        CodeImportResult result = group.Import(CodeImportMode.Apply);
+        var result = group.Import(CodeImportMode.Apply, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(["Replace", "FindReplace", "Append"], result.Operations.Select(o => o.Operation));
         Assert.Equal([CodeOperationStatus.Applied, CodeOperationStatus.NoMatch, CodeOperationStatus.Applied], result.Operations.Select(o => o.Status));
@@ -45,14 +39,14 @@ public sealed class CodeImportResultTests
     [Fact]
     public void CompileErrorGivesFailedWithLineAndColumn()
     {
-        using GameMakerData data = GameMakerData.CreateNew2026LTS();
+        using var data = GameMakerData.CreateNew2026LTS();
         CodeImportGroup group = new(data);
         group.QueueReplace("gml_Script_ok", "var a = 1;");
         group.QueueReplace("gml_Script_bad", "var a = 1;\nvar b = (;");
 
-        CodeImportResult result = group.Import(CodeImportMode.Apply);
+        var result = group.Import(CodeImportMode.Apply, cancellationToken: TestContext.Current.CancellationToken);
 
-        CodeOperationResult bad = result.Operations.Single(o => o.CodeEntry == "gml_Script_bad");
+        var bad = result.Operations.Single(o => o.CodeEntry == "gml_Script_bad");
         Assert.Equal(CodeOperationStatus.Failed, bad.Status);
         Assert.Equal(2, bad.Line);
         Assert.True(bad.Column > 0);
@@ -64,16 +58,16 @@ public sealed class CodeImportResultTests
     [Fact]
     public void DryRunChangesNothing()
     {
-        using GameMakerData data = WithScript("gml_Script_a", "var first_value = 1;");
-        GameMakerCode code = data.Code.ByName("gml_Script_a");
-        uint length = code.Length;
-        int functions = data.Functions.Count;
-        int variables = data.Variables.Count;
-        int strings = data.Strings.Count;
+        using var data = WithScript("gml_Script_a", "var first_value = 1;");
+        var code = data.Code.ByName("gml_Script_a");
+        var length = code.Length;
+        var functions = data.Functions.Count;
+        var variables = data.Variables.Count;
+        var strings = data.Strings.Count;
         CodeImportGroup group = new(data) { AutoCreateAssets = false };
         group.QueueReplace(code, "function g() { return some_new_name + 12345; }\nvar local_one = \"fresh text\";");
 
-        CodeImportResult result = group.Import(CodeImportMode.DryRun);
+        var result = group.Import(CodeImportMode.DryRun, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.True(result.Compile.Successful);
         Assert.False(result.Committed);
@@ -84,14 +78,14 @@ public sealed class CodeImportResultTests
     [Fact]
     public void StageAppliesNothingWhenOneOperationFails()
     {
-        using GameMakerData data = WithScript("gml_Script_a", "var first_value = 1;");
-        GameMakerCode code = data.Code.ByName("gml_Script_a");
-        uint length = code.Length;
+        using var data = WithScript("gml_Script_a", "var first_value = 1;");
+        var code = data.Code.ByName("gml_Script_a");
+        var length = code.Length;
         CodeImportGroup group = new(data);
         group.QueueReplace(code, "var long_replacement = 1;\nvar another = 2;\nvar third = 3;");
         group.QueueReplace("gml_Script_bad", "var b = (;");
 
-        CodeImportResult result = group.Import(CodeImportMode.Stage);
+        var result = group.Import(CodeImportMode.Stage, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.False(result.Committed);
         Assert.Equal(length, code.Length);
@@ -101,13 +95,13 @@ public sealed class CodeImportResultTests
     [Fact]
     public void StageCommitsWhenEverythingCompiles()
     {
-        using GameMakerData data = WithScript("gml_Script_a", "var first_value = 1;");
-        GameMakerCode code = data.Code.ByName("gml_Script_a");
-        uint length = code.Length;
+        using var data = WithScript("gml_Script_a", "var first_value = 1;");
+        var code = data.Code.ByName("gml_Script_a");
+        var length = code.Length;
         CodeImportGroup group = new(data);
         group.QueueReplace(code, "var long_replacement = 1;\nvar another = 2;\nvar third = 3;");
 
-        CodeImportResult result = group.Import(CodeImportMode.Stage);
+        var result = group.Import(CodeImportMode.Stage, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.True(result.Committed);
         Assert.NotEqual(length, code.Length);
@@ -116,12 +110,12 @@ public sealed class CodeImportResultTests
     [Fact]
     public void ImportReportsProgressAndHonoursCancellation()
     {
-        using GameMakerData data = GameMakerData.CreateNew2026LTS();
+        using var data = GameMakerData.CreateNew2026LTS();
         List<BatchProgress> reports = [];
         CodeImportGroup group = new(data);
         group.QueueReplace("gml_Script_a", "var a = 1;");
         group.QueueReplace("gml_Script_b", "var b = 1;");
-        group.Import(CodeImportMode.Apply, new SyncProgress(reports.Add));
+        group.Import(CodeImportMode.Apply, new SyncProgress(reports.Add), TestContext.Current.CancellationToken);
         Assert.Equal(2, reports.Max(r => r.Done));
         Assert.Equal(2, reports.Max(r => r.Total));
 
@@ -134,7 +128,7 @@ public sealed class CodeImportResultTests
     [Fact]
     public void OldImportStillThrowsOnCompileErrors()
     {
-        using GameMakerData data = GameMakerData.CreateNew2026LTS();
+        using var data = GameMakerData.CreateNew2026LTS();
         CodeImportGroup group = new(data);
         group.QueueReplace("gml_Script_bad", "var b = (;");
 

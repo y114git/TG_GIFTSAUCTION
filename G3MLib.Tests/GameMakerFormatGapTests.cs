@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Models;
-using Xunit;
 
 namespace G3MLib.Tests;
 
@@ -19,11 +15,11 @@ public sealed class GameMakerFormatGapTests
     // A fixture with its GEN8 version replaced and the chunks that imply a version renamed, so only GEN8 decides.
     private static byte[] FixtureWithStoredVersion(uint major, uint minor, uint release, uint build)
     {
-        byte[] file = FixtureBytes("data-2022.win");
+        var file = FixtureBytes("data-2022.win");
         uint[] version = [major, minor, release, build];
-        for (int i = 0; i < 4; i++)
+        for (var i = 0; i < 4; i++)
             BitConverter.GetBytes(version[i]).CopyTo(file, Gen8VersionOffset + i * 4);
-        int pos = 8;
+        var pos = 8;
         while (pos < file.Length)
         {
             if (Array.IndexOf(VersionMarkerChunks, System.Text.Encoding.ASCII.GetString(file, pos, 4)) >= 0)
@@ -37,7 +33,7 @@ public sealed class GameMakerFormatGapTests
     public void Gen8KeepsStoredGameMaker1Version()
     {
         using MemoryStream input = new(FixtureWithStoredVersion(1, 0, 0, 1539));
-        using GameMakerData data = GameMakerIO.Read(input, onlyGeneralInfo: true);
+        using var data = GameMakerIO.Read(input, onlyGeneralInfo: true);
         Assert.Equal(1u, data.GeneralInfo.Major);
         Assert.Equal(1539u, data.GeneralInfo.Build);
     }
@@ -48,7 +44,7 @@ public sealed class GameMakerFormatGapTests
     public void ExtensionProductDataFollowsStoredBuild(uint build, bool eligible)
     {
         using MemoryStream input = new(FixtureWithStoredVersion(1, 0, 0, build));
-        using GameMakerData data = GameMakerIO.Read(input, onlyGeneralInfo: true);
+        using var data = GameMakerIO.Read(input, onlyGeneralInfo: true);
         Assert.Equal(eligible, GameMakerExtension.ProductDataEligible(data));
     }
 
@@ -56,19 +52,19 @@ public sealed class GameMakerFormatGapTests
     public void Gen8KeepsStoredGameMaker2Version()
     {
         using MemoryStream input = new(FixtureWithStoredVersion(2, 0, 0, 0));
-        using GameMakerData data = GameMakerIO.Read(input, onlyGeneralInfo: true);
+        using var data = GameMakerIO.Read(input, onlyGeneralInfo: true);
         Assert.Equal((2u, 0u, 0u), (data.GeneralInfo.Major, data.GeneralInfo.Minor, data.GeneralInfo.Release));
     }
 
     [Fact]
     public void BytesAfterFormEndSurviveRoundTrip()
     {
-        byte[] tail = new byte[32];
-        for (int i = 0; i < tail.Length; i++)
+        var tail = new byte[32];
+        for (var i = 0; i < tail.Length; i++)
             tail[i] = (byte)(i + 1);
         byte[] original = [.. FixtureBytes("data-2022.win"), .. tail];
         using MemoryStream input = new(original);
-        using GameMakerData data = GameMakerIO.Read(input);
+        using var data = GameMakerIO.Read(input);
         Assert.Equal(tail, data.FORM.TrailingBytes);
         using MemoryStream output = new();
         GameMakerIO.Write(output, data);
@@ -77,7 +73,7 @@ public sealed class GameMakerFormatGapTests
 
     private static byte[] Written2024_14(bool lts)
     {
-        using GameMakerData data = GameMakerData.CreateNew2026LTS();
+        using var data = GameMakerData.CreateNew2026LTS();
         data.SetGMS2Version(2024, 14, 0, 0, isLTS: lts);
         data.GeneralInfo.Timestamp = 1;
         data.GeneralInfo.GameID = 1;
@@ -109,15 +105,15 @@ public sealed class GameMakerFormatGapTests
     [Fact]
     public void UnknownChunkPassesThroughInPlace()
     {
-        byte[] payload = new byte[16];
-        for (int i = 0; i < payload.Length; i++)
+        var payload = new byte[16];
+        for (var i = 0; i < payload.Length; i++)
             payload[i] = (byte)(0xA0 + i);
         byte[] injected;
         using (MemoryStream input = new(FixtureBytes("data-2022.win")))
-        using (GameMakerData data = GameMakerIO.Read(input))
+        using (var data = GameMakerIO.Read(input))
         {
-            Dictionary<string, GameMakerChunk> ordered = new();
-            foreach ((string name, GameMakerChunk chunk) in data.FORM.Chunks)
+            Dictionary<string, GameMakerChunk> ordered = [];
+            foreach ((var name, var chunk) in data.FORM.Chunks)
             {
                 ordered[name] = chunk;
                 if (name == "GEN8")
@@ -130,7 +126,7 @@ public sealed class GameMakerFormatGapTests
         }
 
         using MemoryStream reread = new(injected);
-        using GameMakerData readBack = GameMakerIO.Read(reread);
+        using var readBack = GameMakerIO.Read(reread);
         List<string> names = [.. readBack.FORM.Chunks.Keys];
         Assert.Equal(["GEN8", "ZZZZ", "OPTN"], names.GetRange(0, 3));
         Assert.Equal(payload, ((GameMakerRawChunk)readBack.FORM.Chunks["ZZZZ"]).RawData[..payload.Length]);
@@ -141,10 +137,10 @@ public sealed class GameMakerFormatGapTests
 
     private static int ChunkLength(byte[] file, string name)
     {
-        int pos = 8;
+        var pos = 8;
         while (pos < file.Length)
         {
-            int length = BitConverter.ToInt32(file, pos + 4);
+            var length = BitConverter.ToInt32(file, pos + 4);
             if (System.Text.Encoding.ASCII.GetString(file, pos, 4) == name)
                 return length;
             pos += 8 + length;
@@ -156,9 +152,9 @@ public sealed class GameMakerFormatGapTests
     public void ParticleEmittersKeepTheirChunkFormatWhenTheFileVersionIsRaised()
     {
         byte[] legacy;
-        using (GameMakerData data = GameMakerData.CreateNew2026LTS())
+        using (var data = GameMakerData.CreateNew2026LTS())
         {
-            foreach (string marker in new[] { "UILR", "FEAT", "FEDS", "SEQN", "TGIN", "PSYS", "EMBI", "ROOM" })
+            foreach (var marker in new[] { "UILR", "FEAT", "FEDS", "SEQN", "TGIN", "PSYS", "EMBI", "ROOM" })
                 data.FORM.Chunks.Remove(marker);
             data.SetGMS2Version(2023, 4);
             data.ParticleSystemEmitters.Add(new GameMakerParticleSystemEmitter { Name = data.Strings.MakeString("em_probe") });
@@ -168,7 +164,7 @@ public sealed class GameMakerFormatGapTests
         }
 
         using MemoryStream input = new(legacy);
-        using GameMakerData read = GameMakerIO.Read(input);
+        using var read = GameMakerIO.Read(input);
         Assert.Equal("em_probe", Assert.Single(read.ParticleSystemEmitters).Name.Content);
         read.SetGMS2Version(2024, 14);
         using MemoryStream rewritten = new();
@@ -181,18 +177,18 @@ public sealed class GameMakerFormatGapTests
     [InlineData(2023, 8)]
     public void AudioGroupAssetTypeSharesTheSoundId(uint major, uint minor)
     {
-        using GameMakerData data = GameMakerData.CreateNew2026LTS();
+        using var data = GameMakerData.CreateNew2026LTS();
         data.SetGMS2Version(major, minor);
-        System.Reflection.MethodInfo adapt = typeof(GameMakerInstruction).GetMethod(
+        var adapt = typeof(GameMakerInstruction).GetMethod(
             "AdaptAssetTypeId", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
         Assert.Equal(
-            adapt.Invoke(null, [data, G3MLib.Analyzer.AssetType.Sound]),
-            adapt.Invoke(null, [data, G3MLib.Analyzer.AssetType.AudioGroup]));
+            adapt.Invoke(null, [data, Analyzer.AssetType.Sound]),
+            adapt.Invoke(null, [data, Analyzer.AssetType.AudioGroup]));
     }
 
     private static GameMakerData WriteAndReadFresh2026Lts()
     {
-        using GameMakerData fresh = GameMakerData.CreateNew2026LTS();
+        using var fresh = GameMakerData.CreateNew2026LTS();
         using MemoryStream output = new();
         GameMakerIO.Write(output, fresh);
         output.Position = 0;
@@ -202,7 +198,7 @@ public sealed class GameMakerFormatGapTests
     [Fact]
     public void EmptyObjectChunkDoesNotImplyVersion2026_1()
     {
-        using GameMakerData data = WriteAndReadFresh2026Lts();
+        using var data = WriteAndReadFresh2026Lts();
         Assert.False(data.IsVersionAtLeast(2026, 1));
     }
 
@@ -217,27 +213,27 @@ public sealed class GameMakerFormatGapTests
         {
             Version = new GameMakerGeneralInfo.RuntimeVersion(major, minor, release, 0, GameMakerGeneralInfo.BranchType.LTS2022_0)
         };
-        Assert.Equal(expected, G3MLib.Modding.Internal.GeneralInfoUtil.GetVersionDisplay(info));
+        Assert.Equal(expected, Modding.Internal.GeneralInfoUtil.GetVersionDisplay(info));
     }
 
     [Fact]
     public void VersionBasisNamesTheChunkThatSetTheVersion()
     {
-        using GameMakerData detected = WriteAndReadFresh2026Lts();
+        using var detected = WriteAndReadFresh2026Lts();
         // The last chunk to raise the version wins, here the font chunk after UILR.
         Assert.Equal("FONT", detected.GeneralInfo.VersionSource);
-        Assert.Equal("detected from FONT", G3MLib.Modding.Internal.GeneralInfoUtil.GetVersionBasis(detected.GeneralInfo));
+        Assert.Equal("detected from FONT", Modding.Internal.GeneralInfoUtil.GetVersionBasis(detected.GeneralInfo));
 
         using MemoryStream input = new(FixtureWithStoredVersion(1, 0, 0, 1539));
-        using GameMakerData stored = GameMakerIO.Read(input, onlyGeneralInfo: true);
+        using var stored = GameMakerIO.Read(input, onlyGeneralInfo: true);
         Assert.Null(stored.GeneralInfo.VersionSource);
-        Assert.Equal("stored in GEN8", G3MLib.Modding.Internal.GeneralInfoUtil.GetVersionBasis(stored.GeneralInfo));
+        Assert.Equal("stored in GEN8", Modding.Internal.GeneralInfoUtil.GetVersionBasis(stored.GeneralInfo));
     }
 
     [Fact]
     public void SequenceAudioTrackKeepsAnOutOfRangeSoundId()
     {
-        using GameMakerData data = GameMakerData.CreateNew2026LTS();
+        using var data = GameMakerData.CreateNew2026LTS();
         data.GeneralInfo.Timestamp = 1;
         data.GeneralInfo.GameID = 1;
         data.GeneralInfo.GMS2GameGUID = new byte[16];
@@ -269,7 +265,7 @@ public sealed class GameMakerFormatGapTests
         using MemoryStream first = new();
         GameMakerIO.Write(first, data);
         using MemoryStream input = new(first.ToArray());
-        using GameMakerData read = GameMakerIO.Read(input);
+        using var read = GameMakerIO.Read(input);
         var audio = (GameMakerSequence.AudioKeyframes)read.Sequences[0].Tracks[0].Keyframes;
         Assert.Equal(0, audio.List[0].Channels[0].Value.Resource.CachedId);
         using MemoryStream second = new();
@@ -282,7 +278,7 @@ public sealed class GameMakerFormatGapTests
     [InlineData("GMInstanceTrack")]
     public void SequenceTracksKeepOutOfRangeResourceIds(string modelName)
     {
-        using GameMakerData data = GameMakerData.CreateNew2026LTS();
+        using var data = GameMakerData.CreateNew2026LTS();
         data.GeneralInfo.Timestamp = 1;
         data.GeneralInfo.GameID = 1;
         data.GeneralInfo.GMS2GameGUID = new byte[16];
@@ -329,7 +325,7 @@ public sealed class GameMakerFormatGapTests
         using MemoryStream first = new();
         GameMakerIO.Write(first, data);
         using MemoryStream input = new(first.ToArray());
-        using GameMakerData read = GameMakerIO.Read(input);
+        using var read = GameMakerIO.Read(input);
         using MemoryStream second = new();
         GameMakerIO.Write(second, read);
         Assert.Equal(first.ToArray(), second.ToArray());
@@ -347,17 +343,84 @@ public sealed class GameMakerFormatGapTests
         Assert.Equal($" ({label})", info.ToString());
     }
 
+    private static GameMakerData FreshDataFor(uint major, uint minor, bool lts)
+    {
+        var data = GameMakerData.CreateNew2026LTS();
+        if (major < 2024 || major == 2024 && minor < 13)
+            data.FORM.Chunks.Remove("UILR");
+        if (major < 2023 || major == 2023 && minor < 2)
+            foreach (var marker in new[] { "PSEM", "PSYS", "EMBI" })
+                data.FORM.Chunks.Remove(marker);
+        data.SetGMS2Version(major, minor, 0, 0, isLTS: lts);
+        data.GeneralInfo.Timestamp = 1;
+        data.GeneralInfo.GameID = 1;
+        data.GeneralInfo.GMS2GameGUID = new byte[16];
+        return data;
+    }
+
+    public static TheoryData<uint, uint, bool> CreatableVersions() => new()
+    {
+        { 2022, 8, false }, { 2022, 8, true },
+        { 2023, 2, false }, { 2023, 6, true },
+        { 2024, 13, false }, { 2024, 13, true },
+        { 2024, 14, false }, { 2024, 14, true },
+        { 2025, 1, false }, { 2025, 1, true },
+        { 2026, 1, false }, { 2026, 1, true },
+    };
+
+    private static void AssertRoundTripsStable(GameMakerData data, Action<GameMakerData> check)
+    {
+        using MemoryStream first = new();
+        GameMakerIO.Write(first, data);
+        using MemoryStream input = new(first.ToArray());
+        using var read = GameMakerIO.Read(input);
+        check(read);
+        using MemoryStream second = new();
+        GameMakerIO.Write(second, read);
+        Assert.Equal(first.ToArray(), second.ToArray());
+    }
+
+    [Theory]
+    [MemberData(nameof(CreatableVersions))]
+    public void TextureGroupRoundTripsForEveryVersionAndBranch(uint major, uint minor, bool lts)
+    {
+        using var data = FreshDataFor(major, minor, lts);
+        data.TextureGroupInfo.Add(new GameMakerTextureGroupInfo { Name = data.Strings.MakeString("group_probe") });
+        AssertRoundTripsStable(data, read => Assert.Equal("group_probe", Assert.Single(read.TextureGroupInfo).Name.Content));
+    }
+
+    [Theory]
+    [MemberData(nameof(CreatableVersions))]
+    public void FontGlyphsRoundTripForEveryVersionAndBranch(uint major, uint minor, bool lts)
+    {
+        using var data = FreshDataFor(major, minor, lts);
+        GameMakerFont font = new() { Name = data.Strings.MakeString("fnt_probe"), DisplayName = data.Strings.MakeString("Arial") };
+        for (ushort c = 65; c < 67; c++)
+        {
+            GameMakerFont.Glyph glyph = new() { Character = c, SourceWidth = 5, SourceHeight = 7, Shift = 6 };
+            glyph.Kerning.Add(new GameMakerFont.Glyph.GlyphKerning { Character = 66, ShiftModifier = -1 });
+            font.Glyphs.Add(glyph);
+        }
+        data.Fonts.Add(font);
+        AssertRoundTripsStable(data, read =>
+        {
+            var readFont = Assert.Single(read.Fonts);
+            Assert.Equal([(ushort)65, (ushort)66], readFont.Glyphs.Select(g => g.Character));
+            Assert.All(readFont.Glyphs, g => Assert.Single(g.Kerning));
+        });
+    }
+
     [Fact]
     public void FreshLtsDataWithItsDefaultRoomIsStableAcrossWriteAndRead()
     {
-        using GameMakerData data = GameMakerData.CreateNew2026LTS();
+        using var data = GameMakerData.CreateNew2026LTS();
         data.GeneralInfo.Timestamp = 1;
         data.GeneralInfo.GameID = 1;
         data.GeneralInfo.GMS2GameGUID = new byte[16];
         using MemoryStream first = new();
         GameMakerIO.Write(first, data);
         using MemoryStream input = new(first.ToArray());
-        using GameMakerData read = GameMakerIO.Read(input);
+        using var read = GameMakerIO.Read(input);
         using MemoryStream second = new();
         GameMakerIO.Write(second, read);
         Assert.Equal(first.ToArray(), second.ToArray());
@@ -368,9 +431,9 @@ public sealed class GameMakerFormatGapTests
     public void ParticleEmittersWithTwoEntriesReadByTheirSpacingAndRoundTrip()
     {
         byte[] legacy;
-        using (GameMakerData data = GameMakerData.CreateNew2026LTS())
+        using (var data = GameMakerData.CreateNew2026LTS())
         {
-            foreach (string marker in new[] { "UILR", "FEAT", "FEDS", "SEQN", "TGIN", "PSYS", "EMBI", "ROOM" })
+            foreach (var marker in new[] { "UILR", "FEAT", "FEDS", "SEQN", "TGIN", "PSYS", "EMBI", "ROOM" })
                 data.FORM.Chunks.Remove(marker);
             data.GeneralInfo.Timestamp = 1;
             data.GeneralInfo.GameID = 1;
@@ -384,7 +447,7 @@ public sealed class GameMakerFormatGapTests
         }
 
         using MemoryStream input = new(legacy);
-        using GameMakerData read = GameMakerIO.Read(input);
+        using var read = GameMakerIO.Read(input);
         Assert.Equal(["em_a", "em_b"], read.ParticleSystemEmitters.Select(e => e.Name.Content));
         using MemoryStream rewritten = new();
         GameMakerIO.Write(rewritten, read);
@@ -394,12 +457,12 @@ public sealed class GameMakerFormatGapTests
     [Fact]
     public void Gen8KeepsStoredGameMaker2VersionNumbersOnWrite()
     {
-        byte[] original = FixtureBytes("data-2022.win");
+        var original = FixtureBytes("data-2022.win");
         uint[] stored = [2, 3, 1, 5];
-        for (int i = 0; i < 4; i++)
+        for (var i = 0; i < 4; i++)
             BitConverter.GetBytes(stored[i]).CopyTo(original, Gen8VersionOffset + i * 4);
         using MemoryStream input = new(original);
-        using GameMakerData data = GameMakerIO.Read(input);
+        using var data = GameMakerIO.Read(input);
         using MemoryStream output = new();
         GameMakerIO.Write(output, data);
         Assert.Equal(original, output.ToArray());
@@ -412,7 +475,7 @@ public sealed class GameMakerFormatGapTests
     public void Version2024_14IsLabelledOrLaterBecauseNoMarkerFollowsIt(uint major, uint minor, GameMakerGeneralInfo.BranchType branch, string expected)
     {
         GameMakerGeneralInfo info = new() { Version = new GameMakerGeneralInfo.RuntimeVersion(major, minor, 0, 0, branch) };
-        Assert.Equal(expected, G3MLib.Modding.Internal.GeneralInfoUtil.GetVersionDisplay(info));
+        Assert.Equal(expected, Modding.Internal.GeneralInfoUtil.GetVersionDisplay(info));
     }
 
     [Theory]
@@ -420,7 +483,7 @@ public sealed class GameMakerFormatGapTests
     [InlineData(2027u)]
     public void SetVersionAcceptsMajorVersionsAfter2024(uint major)
     {
-        using GameMakerData data = GameMakerData.CreateNew2026LTS();
+        using var data = GameMakerData.CreateNew2026LTS();
         data.SetGMS2Version(major, 1);
         Assert.Equal(major, data.GeneralInfo.Major);
     }
@@ -428,7 +491,7 @@ public sealed class GameMakerFormatGapTests
     [Fact]
     public void SetVersionStillRejectsUnknownMajorVersions()
     {
-        using GameMakerData data = GameMakerData.CreateNew2026LTS();
+        using var data = GameMakerData.CreateNew2026LTS();
         Assert.Throws<NotSupportedException>(() => data.SetGMS2Version(3, 0));
         Assert.Throws<NotSupportedException>(() => data.SetGMS2Version(2021, 0));
     }

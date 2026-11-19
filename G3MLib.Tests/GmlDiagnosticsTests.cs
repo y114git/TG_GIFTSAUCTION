@@ -15,13 +15,13 @@ public class GmlDiagnosticsTests
     [Fact]
     public void ParserErrorHasSpanSeverityAndCode()
     {
-        CompileContext context = Parse("a = 1;\nif (b {\n}");
+        var context = Parse("a = 1;\nif (b {\n}");
 
-        GmlDiagnostic diagnostic = context.Diagnostics[0];
+        var diagnostic = context.Diagnostics[0];
         Assert.Equal(DiagnosticSeverity.Error, diagnostic.Severity);
         Assert.Equal(GmlDiagnostic.SyntaxErrorCode, diagnostic.Code);
-        Assert.StartsWith("Expected ')'", diagnostic.Message);
-        Assert.DoesNotContain("line", diagnostic.Message);
+        Assert.StartsWith("Expected ')'", diagnostic.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("line", diagnostic.Message, StringComparison.Ordinal);
         Assert.Equal(2, diagnostic.Span.StartLine);
         Assert.Equal(7, diagnostic.Span.StartColumn);
         Assert.Equal(7 + 1, diagnostic.Span.EndColumn);
@@ -31,9 +31,9 @@ public class GmlDiagnosticsTests
     [Fact]
     public void LexerErrorHasSpan()
     {
-        CompileContext context = Parse("a = 1;\nb = `;");
+        var context = Parse("a = 1;\nb = `;");
 
-        GmlDiagnostic diagnostic = Assert.Single(context.Diagnostics);
+        var diagnostic = Assert.Single(context.Diagnostics);
         Assert.Equal(GmlDiagnostic.LexerErrorCode, diagnostic.Code);
         Assert.Equal(2, diagnostic.Span.StartLine);
     }
@@ -41,9 +41,9 @@ public class GmlDiagnosticsTests
     [Fact]
     public void ErrorAtEndOfCodeSpansTheEnd()
     {
-        CompileContext context = Parse("if (a) {");
+        var context = Parse("if (a) {");
 
-        GmlDiagnostic diagnostic = Assert.Single(context.Diagnostics);
+        var diagnostic = Assert.Single(context.Diagnostics);
         Assert.Equal(8, diagnostic.Span.StartOffset);
         Assert.Equal(0, diagnostic.Span.Length);
     }

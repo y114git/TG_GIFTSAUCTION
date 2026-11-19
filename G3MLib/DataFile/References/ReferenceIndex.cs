@@ -1,14 +1,8 @@
-using System;
 using System.Collections;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using G3MLib.Analyzer;
 using G3MLib.DataFile.Models;
-using G3MLib.Modding.Resources;
 
 namespace G3MLib.DataFile.References;
 
@@ -27,7 +21,7 @@ public readonly record struct Reference(object Target, object Owner, object Hold
 
     public override string ToString()
     {
-        string where = InstructionOffset >= 0 ? $"{Member} at {InstructionOffset}" : Member;
+        var where = InstructionOffset >= 0 ? $"{Member} at {InstructionOffset}" : Member;
         return $"{Owner.GetType().Name} {OwnerName}: {where}";
     }
 }
@@ -54,10 +48,9 @@ public sealed class ReferenceIndex
     private readonly Dictionary<IList, (int Version, IReadOnlyList<object> Owners)> _lists = new(ReferenceEqualityComparer.Instance);
 
     // The properties of the data file that hold a list of model objects or a single section; found once per process.
-    private static readonly Lazy<PropertyInfo[]> DataProperties = new(() => typeof(GameMakerData).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-        .Where(p => p.GetIndexParameters().Length == 0).ToArray());
+    private static readonly Lazy<PropertyInfo[]> DataProperties = new(() => [.. typeof(GameMakerData).GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(p => p.GetIndexParameters().Length == 0)]);
 
-    /// <summary>The data file this index describes.</summary>
+    /// <summary>Game file the index was built from.</summary>
     public GameMakerData Data { get; }
 
     /// <summary>Total number of recorded uses.</summary>
@@ -80,7 +73,7 @@ public sealed class ReferenceIndex
     {
         ArgumentNullException.ThrowIfNull(data);
         ReferenceIndex index = new(data);
-        List<object> owners = index.CollectOwners();
+        var owners = index.CollectOwners();
         index.ScanAndCommit(owners, progress, cancellationToken);
         return index;
     }
@@ -94,7 +87,7 @@ public sealed class ReferenceIndex
         ArgumentNullException.ThrowIfNull(changedOwners);
         SyncRegistry();
         List<object> toScan = [];
-        foreach (object owner in changedOwners.Distinct(ReferenceEqualityComparer.Instance))
+        foreach (var owner in changedOwners.Distinct(ReferenceEqualityComparer.Instance))
         {
             RemoveOwner(owner);
             if (_registry.Contains(owner))
@@ -112,7 +105,7 @@ public sealed class ReferenceIndex
     public IEnumerable<Reference> FindUsages(object target, Type? ownerType, string? member = null)
     {
         ArgumentNullException.ThrowIfNull(target);
-        foreach (Reference use in EnumerateUsages(target))
+        foreach (var use in EnumerateUsages(target))
         {
             if ((ownerType is null || ownerType.IsInstanceOfType(use.Owner)) && (member is null || use.Member == member))
             {
@@ -128,7 +121,7 @@ public sealed class ReferenceIndex
     public IReadOnlyList<Reference> FindUsages(object target)
     {
         ArgumentNullException.ThrowIfNull(target);
-        List<Reference>? direct = _usages.GetValueOrDefault(target);
+        var direct = _usages.GetValueOrDefault(target);
         if (target is not GameMakerScript)
         {
             return direct is null ? NoReferences : direct;
@@ -136,11 +129,22 @@ public sealed class ReferenceIndex
         return [.. EnumerateUsages(target)];
     }
 
+    /// <summary>
+    /// Takes every use of the target that is not in code out of the data model: a property that points at it is set to none, and a list that holds it (a texture group, the room order) loses the entry.
+    /// That makes the target safe to remove from its own list. Uses in code are left alone and returned in <see cref="ClearedReferences.Skipped"/>.
+    /// If a use cannot be cleared, the ones already cleared are put back and <see cref="InvalidOperationException"/> is thrown. The index is updated for the changed owners.
+    /// </summary>
+    public ClearedReferences ClearUsages(object target)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        return ClearedReferences.Clear(this, target);
+    }
+
     private IEnumerable<Reference> EnumerateUsages(object target)
     {
-        if (_usages.TryGetValue(target, out List<Reference>? direct))
+        if (_usages.TryGetValue(target, out var direct))
         {
-            foreach (Reference use in direct)
+            foreach (var use in direct)
             {
                 yield return use;
             }
@@ -150,21 +154,21 @@ public sealed class ReferenceIndex
             yield break;
         }
 
-        string prefixedName = "gml_Script_" + name;
+        var prefixedName = "gml_Script_" + name;
         HashSet<object> own = new(ReferenceEqualityComparer.Instance);
         if (script.Code is { } code)
         {
             own.Add(code);
-            foreach (GameMakerCode child in code.ChildEntries)
+            foreach (var child in code.ChildEntries)
             {
                 own.Add(child);
             }
         }
-        foreach (GameMakerFunction function in Data.Functions ?? [])
+        foreach (var function in Data.Functions ?? [])
         {
-            if ((function?.Name?.Content == name || function?.Name?.Content == prefixedName) && _usages.TryGetValue(function, out List<Reference>? calls))
+            if ((function?.Name?.Content == name || function?.Name?.Content == prefixedName) && _usages.TryGetValue(function, out var calls))
             {
-                foreach (Reference call in calls)
+                foreach (var call in calls)
                 {
                     if (!own.Contains(call.Owner))
                     {
@@ -178,13 +182,61 @@ public sealed class ReferenceIndex
     /// <summary>Returns the uses of every variable entry with this name, whatever its instance type.</summary>
     public IReadOnlyList<Reference> FindVariableUsages(string name)
     {
-        return (Data.Variables ?? []).Where(v => v?.Name?.Content == name).SelectMany(v => FindUsages(v)).ToList();
+        return [.. (Data.Variables ?? []).Where(v => v?.Name?.Content == name).SelectMany(FindUsages)];
     }
 
     /// <summary>Returns the uses of every function entry with this name.</summary>
     public IReadOnlyList<Reference> FindFunctionUsages(string name)
     {
-        return (Data.Functions ?? []).Where(f => f?.Name?.Content == name).SelectMany(f => FindUsages(f)).ToList();
+        return [.. (Data.Functions ?? []).Where(f => f?.Name?.Content == name).SelectMany(FindUsages)];
+    }
+
+    private const uint TileIndexMask = 0x7FFFFu;
+
+    /// <summary>
+    /// Returns every tile-layer cell in <paramref name="data"/> that uses <paramref name="tileIndex"/> from <paramref name="tileSet"/>.
+    /// </summary>
+    public static IReadOnlyList<TileUse> FindTileUses(GameMakerData data, GameMakerBackground tileSet, int tileIndex)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        ArgumentNullException.ThrowIfNull(tileSet);
+        if (tileIndex is < 0 or > (int)TileIndexMask)
+        {
+            return [];
+        }
+
+        var target = (uint)tileIndex;
+        List<TileUse> uses = [];
+        foreach (var room in data.Rooms ?? [])
+        {
+            if (room?.Layers is null)
+            {
+                continue;
+            }
+            foreach (var layer in room.Layers)
+            {
+                if (layer?.TilesData is not { } tiles || !ReferenceEquals(tiles.Background, tileSet) || tiles.TileData is not { } grid)
+                {
+                    continue;
+                }
+                for (var y = 0; y < grid.Length; y++)
+                {
+                    var row = grid[y];
+                    if (row is null)
+                    {
+                        continue;
+                    }
+                    for (var x = 0; x < row.Length; x++)
+                    {
+                        if ((row[x] & TileIndexMask) == target)
+                        {
+                            uses.Add(new TileUse(room, layer, x, y));
+                        }
+                    }
+                }
+            }
+        }
+        return uses;
     }
 
     /// <summary>
@@ -195,12 +247,13 @@ public sealed class ReferenceIndex
     /// </summary>
     public IReadOnlyList<GameMakerNamedResource> FindUnreferenced(params Type[] assetTypes)
     {
-        IEnumerable<GameMakerNamedResource> candidates = AssetLists().SelectMany(l => l.OfType<GameMakerNamedResource>());
+        ArgumentNullException.ThrowIfNull(assetTypes);
+        var candidates = AssetLists().SelectMany(l => l.OfType<GameMakerNamedResource>());
         if (assetTypes.Length > 0)
         {
             candidates = candidates.Where(c => assetTypes.Any(t => t.IsInstanceOfType(c)));
         }
-        return candidates.Where(c => !FindUsages(c).Any(r => !ReferenceEquals(r.Owner, c))).ToList();
+        return [.. candidates.Where(c => !FindUsages(c).Any(r => !ReferenceEquals(r.Owner, c)))];
     }
 
     /// <summary>
@@ -210,7 +263,7 @@ public sealed class ReferenceIndex
     /// <remarks>
     /// Texture pages count as empty when no texture page item sits on them (the texture group still lists them).
     /// Embedded audio is checked by its reference from a sound; audio addressed by group and id is checked by <see cref="AudioIndex"/>.
-    /// Transitive search recounts the remaining uses of a target once per removed owner (shortcut: quadratic for a target with very many uses).
+    /// Transitive search recounts the remaining uses of a target once per removed owner (quadratic for a target with very many uses).
     /// </remarks>
     public IReadOnlyList<object> FindUnreferenced(UnreferencedKind kinds, bool transitive = false)
     {
@@ -228,14 +281,14 @@ public sealed class ReferenceIndex
 
         if (!transitive)
         {
-            return candidates.Where(c => !EnumerateLive(c, null).Any()).ToList();
+            return [.. candidates.Where(c => !EnumerateLive(c, null).Any())];
         }
 
         HashSet<object> removed = new(ReferenceEqualityComparer.Instance);
         bool IsUnused(object candidate) => !EnumerateLive(candidate, removed).Any();
         List<object> result = [];
         Queue<object> work = new();
-        foreach (object candidate in candidates)
+        foreach (var candidate in candidates)
         {
             if (IsUnused(candidate) && removed.Add(candidate))
             {
@@ -247,12 +300,12 @@ public sealed class ReferenceIndex
         HashSet<object> candidateSet = new(candidates, ReferenceEqualityComparer.Instance);
         while (work.Count > 0)
         {
-            object owner = work.Dequeue();
-            if (!_ownerTargets.TryGetValue(owner, out object[]? targets))
+            var owner = work.Dequeue();
+            if (!_ownerTargets.TryGetValue(owner, out var targets))
             {
                 continue;
             }
-            foreach (object target in targets)
+            foreach (var target in targets)
             {
                 if (candidateSet.Contains(target) && !removed.Contains(target) && IsUnused(target))
                 {
@@ -276,9 +329,9 @@ public sealed class ReferenceIndex
     // Uses of the candidate that count: not by itself, not by removed owners, and for an empty page only from texture page items.
     private IEnumerable<Reference> EnumerateLive(object candidate, HashSet<object>? removed)
     {
-        foreach (Reference use in EnumerateUsages(candidate))
+        foreach (var use in EnumerateUsages(candidate))
         {
-            if (ReferenceEquals(use.Owner, candidate) || (removed is not null && removed.Contains(use.Owner)))
+            if (ReferenceEquals(use.Owner, candidate) || removed is not null && removed.Contains(use.Owner))
             {
                 continue;
             }
@@ -288,6 +341,69 @@ public sealed class ReferenceIndex
             }
             yield return use;
         }
+    }
+
+    /// <summary>
+    /// Classifies how <paramref name="s"/> is used in the indexed data file from its recorded reverse references.
+    /// </summary>
+    /// <remarks>
+    /// Each kind is decided from <see cref="FindUsages(object)"/> for <paramref name="s"/> in the following priority order:
+    /// <list type="bullet">
+    /// <item><description><see cref="StringUse.Unused"/> when the index holds no references to <paramref name="s"/>.</description></item>
+    /// <item><description><see cref="StringUse.ResourceName"/> when any reference is the <c>Name</c> property of a <see cref="GameMakerNamedResource"/> other than <see cref="GameMakerVariable"/> or <see cref="GameMakerFunction"/>.</description></item>
+    /// <item><description><see cref="StringUse.CodeLiteral"/> when any reference is a string operand of a <see cref="GameMakerInstruction"/> (<see cref="Reference.Member"/> is <c>String</c>).</description></item>
+    /// <item><description><see cref="StringUse.VariableName"/> when any reference is the <c>Name</c> property of a <see cref="GameMakerVariable"/> or <see cref="GameMakerCodeLocals.LocalVar"/>.</description></item>
+    /// <item><description><see cref="StringUse.FunctionName"/> when any reference is the <c>Name</c> or <c>ExtName</c> property of a <see cref="GameMakerFunction"/> or <see cref="GameMakerExtensionFunction"/>.</description></item>
+    /// <item><description><see cref="StringUse.Other"/> when <paramref name="s"/> has at least one reference that does not match the kinds above (such as room captions, general info strings, shader sources or option constants).</description></item>
+    /// </list>
+    /// </remarks>
+    public StringUse ClassifyString(GameMakerString s)
+    {
+        ArgumentNullException.ThrowIfNull(s);
+        if (!_usages.TryGetValue(s, out var uses) || uses.Count == 0)
+        {
+            return StringUse.Unused;
+        }
+
+        var hasCodeLiteral = false;
+        var hasVariableName = false;
+        var hasFunctionName = false;
+        foreach (var use in uses)
+        {
+            if (use.Holder is GameMakerNamedResource and not (GameMakerVariable or GameMakerFunction) &&
+                use.Member == nameof(GameMakerNamedResource.Name))
+            {
+                return StringUse.ResourceName;
+            }
+            if (use.Holder is GameMakerInstruction && use.Member == "String")
+            {
+                hasCodeLiteral = true;
+            }
+            else if (use.Holder is GameMakerVariable or GameMakerCodeLocals.LocalVar &&
+                     use.Member == nameof(GameMakerVariable.Name))
+            {
+                hasVariableName = true;
+            }
+            else if ((use.Holder is GameMakerFunction && use.Member == nameof(GameMakerFunction.Name)) ||
+                     (use.Holder is GameMakerExtensionFunction && use.Member is nameof(GameMakerExtensionFunction.Name) or nameof(GameMakerExtensionFunction.ExtName)))
+            {
+                hasFunctionName = true;
+            }
+        }
+
+        if (hasCodeLiteral)
+        {
+            return StringUse.CodeLiteral;
+        }
+        if (hasVariableName)
+        {
+            return StringUse.VariableName;
+        }
+        if (hasFunctionName)
+        {
+            return StringUse.FunctionName;
+        }
+        return StringUse.Other;
     }
 
     /// <summary>Name of a named resource or string, otherwise <see langword="null"/>.</summary>
@@ -321,13 +437,13 @@ public sealed class ReferenceIndex
         List<object> owners = [];
         HashSet<object> registry = new(ReferenceEqualityComparer.Instance);
         _lists.Clear();
-        foreach (PropertyInfo property in DataProperties.Value)
+        foreach (var property in DataProperties.Value)
         {
-            object? value = ReadProperty(property);
+            var value = ReadProperty(property);
             if (value is IList list && IsModelList(property.PropertyType))
             {
-                int start = owners.Count;
-                foreach (object? item in list)
+                var start = owners.Count;
+                foreach (var item in list)
                 {
                     if (item is not null && registry.Add(item))
                     {
@@ -336,25 +452,52 @@ public sealed class ReferenceIndex
                 }
                 _lists[list] = (list is IVersionedList versioned ? versioned.Version : -1, owners.GetRange(start, owners.Count - start));
             }
-            else if (IsSection(property, value) && registry.Add(value!))
+            else if (IsSection(property, value) && registry.Add(value))
             {
-                owners.Add(value!);
+                owners.Add(value);
             }
         }
         _registry = registry;
         return owners;
     }
 
-    private object? ReadProperty(PropertyInfo property)
+    private object? ReadProperty(PropertyInfo property) => ReadProperty(Data, property);
+
+    private static object? ReadProperty(GameMakerData data, PropertyInfo property)
     {
         try
         {
-            return property.GetValue(Data);
+            return property.GetValue(data);
         }
         catch (Exception)
         {
             return null;
         }
+    }
+
+    // Every item of the data file lists and every single section: the objects a copy of one resource must share, not duplicate.
+    internal static HashSet<object> CollectRegistry(GameMakerData data)
+    {
+        HashSet<object> registry = new(ReferenceEqualityComparer.Instance);
+        foreach (var property in DataProperties.Value)
+        {
+            var value = ReadProperty(data, property);
+            if (value is IList list && IsModelList(property.PropertyType))
+            {
+                foreach (var item in list)
+                {
+                    if (item is not null)
+                    {
+                        registry.Add(item);
+                    }
+                }
+            }
+            else if (IsSection(property, value))
+            {
+                registry.Add(value!);
+            }
+        }
+        return registry;
     }
 
     private static bool IsSection(PropertyInfo property, object? value) =>
@@ -363,18 +506,18 @@ public sealed class ReferenceIndex
     // Brings the registry up to date after edits: only lists whose version changed are read again.
     private void SyncRegistry()
     {
-        foreach (PropertyInfo property in DataProperties.Value)
+        foreach (var property in DataProperties.Value)
         {
-            object? value = ReadProperty(property);
+            var value = ReadProperty(property);
             if (value is IList list && IsModelList(property.PropertyType))
             {
-                int version = list is IVersionedList versioned ? versioned.Version : -1;
-                if (_lists.TryGetValue(list, out (int Version, IReadOnlyList<object> Owners) known) && version != -1 && known.Version == version)
+                var version = list is IVersionedList versioned ? versioned.Version : -1;
+                if (_lists.TryGetValue(list, out var known) && version != -1 && known.Version == version)
                 {
                     continue;
                 }
                 HashSet<object> now = new(ReferenceEqualityComparer.Instance);
-                foreach (object? item in list)
+                foreach (var item in list)
                 {
                     if (item is not null)
                     {
@@ -383,7 +526,7 @@ public sealed class ReferenceIndex
                 }
                 if (known.Owners is not null)
                 {
-                    foreach (object old in known.Owners)
+                    foreach (var old in known.Owners)
                     {
                         if (!now.Contains(old))
                         {
@@ -392,7 +535,7 @@ public sealed class ReferenceIndex
                     }
                 }
                 List<object> owners = new(now.Count);
-                foreach (object item in now)
+                foreach (var item in now)
                 {
                     _registry.Add(item);
                     owners.Add(item);
@@ -401,14 +544,14 @@ public sealed class ReferenceIndex
             }
             else if (IsSection(property, value))
             {
-                _registry.Add(value!);
+                _registry.Add(value);
             }
         }
     }
 
     private static bool IsModelList(Type type)
     {
-        Type? element = ModelWalker.ElementTypeOf(type);
+        var element = ModelWalker.ElementTypeOf(type);
         return element is not null && typeof(GameMakerObject).IsAssignableFrom(element);
     }
 
@@ -418,7 +561,7 @@ public sealed class ReferenceIndex
         {
             return;
         }
-        int scanned = 0;
+        var scanned = 0;
         // Workers scan into private buffers; the buffers are merged afterwards on this thread
         ConcurrentBag<(List<(object Target, Reference Reference)> Edges, List<(object Owner, object[] Targets)> Targets)> buffers = [];
         Parallel.ForEach(
@@ -429,13 +572,13 @@ public sealed class ReferenceIndex
             {
                 List<(object, Reference)> edges = new(1024);
                 List<(object, object[])> targets = new(256);
-                for (int i = range.Item1; i < range.Item2; i++)
+                for (var i = range.Item1; i < range.Item2; i++)
                 {
-                    int start = edges.Count;
+                    var start = edges.Count;
                     walker.Scan(owners[i], edges);
                     if (edges.Count > start)
                     {
-                        targets.Add((owners[i], edges.Skip(start).Select(e => e.Item1).Distinct(ReferenceEqualityComparer.Instance).ToArray()));
+                        targets.Add((owners[i], [.. edges.Skip(start).Select(e => e.Item1).Distinct(ReferenceEqualityComparer.Instance)]));
                     }
                 }
                 buffers.Add((edges, targets));
@@ -444,11 +587,11 @@ public sealed class ReferenceIndex
             },
             _ => { });
 
-        foreach ((List<(object Target, Reference Reference)> edges, List<(object Owner, object[] Targets)> targets) in buffers)
+        foreach ((var edges, var targets) in buffers)
         {
-            foreach ((object target, Reference reference) in edges)
+            foreach ((var target, var reference) in edges)
             {
-                if (!_usages.TryGetValue(target, out List<Reference>? list))
+                if (!_usages.TryGetValue(target, out var list))
                 {
                     _usages[target] = list = new List<Reference>(2);
                 }
@@ -457,7 +600,7 @@ public sealed class ReferenceIndex
             ReferenceCount += edges.Count;
 
             // Remember each owner's targets so an owner can be removed without scanning every list
-            foreach ((object owner, object[] ownerTargets) in targets)
+            foreach ((var owner, var ownerTargets) in targets)
             {
                 _ownerTargets[owner] = ownerTargets;
             }
@@ -466,13 +609,13 @@ public sealed class ReferenceIndex
 
     private void RemoveOwner(object owner)
     {
-        if (!_ownerTargets.Remove(owner, out object[]? targets))
+        if (!_ownerTargets.Remove(owner, out var targets))
         {
             return;
         }
-        foreach (object target in targets)
+        foreach (var target in targets)
         {
-            if (_usages.TryGetValue(target, out List<Reference>? list))
+            if (_usages.TryGetValue(target, out var list))
             {
                 ReferenceCount -= list.RemoveAll(r => ReferenceEquals(r.Owner, owner));
                 if (list.Count == 0)
@@ -501,7 +644,7 @@ internal sealed class ModelWalker(GameMakerData data, HashSet<object> registry)
         {
             return type.GetElementType();
         }
-        foreach (Type i in type.IsInterface ? type.GetInterfaces().Prepend(type) : type.GetInterfaces())
+        foreach (var i in type.IsInterface ? type.GetInterfaces().Prepend(type) : type.GetInterfaces())
         {
             if (i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IList<>))
             {
@@ -523,12 +666,12 @@ internal sealed class ModelWalker(GameMakerData data, HashSet<object> registry)
         _pending.Push(owner);
         while (_pending.Count > 0)
         {
-            object holder = _pending.Pop();
+            var holder = _pending.Pop();
             if (holder is GameMakerCode code)
             {
                 ScanCode(owner, code, output);
             }
-            foreach (Member member in MembersOf(holder.GetType()))
+            foreach (var member in MembersOf(holder.GetType()))
             {
                 object? value;
                 try
@@ -545,7 +688,7 @@ internal sealed class ModelWalker(GameMakerData data, HashSet<object> registry)
                 }
                 if (value is IEnumerable and not string and not GameMakerResourceRef)
                 {
-                    foreach (object? element in (IEnumerable)value)
+                    foreach (var element in (IEnumerable)value)
                     {
                         Visit(owner, holder, member.Name, element, output);
                     }
@@ -586,9 +729,9 @@ internal sealed class ModelWalker(GameMakerData data, HashSet<object> registry)
     internal void ScanCode(object owner, GameMakerCode code, List<(object Target, Reference Reference)> output)
     {
         uint address = 0;
-        foreach (GameMakerInstruction instr in code.Instructions)
+        foreach (var instr in code.Instructions)
         {
-            int offset = (int)address * 4;
+            var offset = (int)address * 4;
             address += instr.CalculateInstructionSize();
             if (instr.ValueVariable is { } variable)
             {
@@ -604,7 +747,7 @@ internal sealed class ModelWalker(GameMakerData data, HashSet<object> registry)
             }
             if (instr.Kind == GameMakerInstruction.Opcode.Break && instr.ExtendedKind == (short)IGMInstruction.ExtendedOpcode.PushReference)
             {
-                object? asset = ResolveAsset(instr.IntArgument);
+                var asset = ResolveAsset(instr.IntArgument);
                 if (asset is not null)
                 {
                     output.Add((asset, new Reference(asset, owner, instr, "AssetReference", offset)));
@@ -616,7 +759,7 @@ internal sealed class ModelWalker(GameMakerData data, HashSet<object> registry)
     // A typed asset reference holds the asset type in its top byte and the index in the rest
     private object? ResolveAsset(int encoded)
     {
-        int index = encoded & 0xFFFFFF;
+        var index = encoded & 0xFFFFFF;
         IList? list;
         try
         {
@@ -651,14 +794,14 @@ internal sealed class ModelWalker(GameMakerData data, HashSet<object> registry)
     private static Member[] Discover(Type type)
     {
         List<Member> members = [];
-        foreach (PropertyInfo property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+        foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
             if (type.IsValueType || property.GetIndexParameters().Length > 0 || property.GetMethod is null || type == typeof(GameMakerCode) && property.Name == "Instructions")
             {
                 continue;
             }
-            Type declared = property.PropertyType;
-            bool isCollection = ElementTypeOf(declared) is not null;
+            var declared = property.PropertyType;
+            var isCollection = ElementTypeOf(declared) is not null;
             if (!isCollection && property.SetMethod is null)
             {
                 continue;
@@ -667,16 +810,16 @@ internal sealed class ModelWalker(GameMakerData data, HashSet<object> registry)
             {
                 continue;
             }
-            MethodInfo create = typeof(ModelWalker).GetMethod(nameof(CreateGetter), BindingFlags.NonPublic | BindingFlags.Static)!
-                .MakeGenericMethod(property.DeclaringType!, property.PropertyType);
-            members.Add(new Member(property.Name, (Func<object, object?>)create.Invoke(null, [property.GetMethod])!));
+            var create = typeof(ModelWalker).GetMethod(nameof(CreateGetter), BindingFlags.NonPublic | BindingFlags.Static)
+                .MakeGenericMethod(property.DeclaringType, property.PropertyType);
+            members.Add(new Member(property.Name, (Func<object, object?>)create.Invoke(null, [property.GetMethod])));
         }
         return [.. members];
     }
 
     private static bool CanHoldModelObjects(Type declared)
     {
-        Type candidate = ElementTypeOf(declared) ?? declared;
+        var candidate = ElementTypeOf(declared) ?? declared;
         if (candidate == typeof(string) || candidate.IsPrimitive || candidate.IsEnum || candidate.IsValueType)
         {
             return false;
@@ -686,9 +829,33 @@ internal sealed class ModelWalker(GameMakerData data, HashSet<object> registry)
 
     private static Func<object, object?> CreateGetter<TOwner, TValue>(MethodInfo getter) where TOwner : class
     {
-        Func<TOwner, TValue> typed = (Func<TOwner, TValue>)Delegate.CreateDelegate(typeof(Func<TOwner, TValue>), getter);
+        var typed = (Func<TOwner, TValue>)Delegate.CreateDelegate(typeof(Func<TOwner, TValue>), getter);
         return owner => typed((TOwner)owner);
     }
+}
+
+/// <summary>
+/// Primary kind of use a <see cref="GameMakerString"/> has in a <see cref="ReferenceIndex"/>.
+/// </summary>
+public enum StringUse
+{
+    /// <summary>The string is the <c>Name</c> of a <see cref="GameMakerNamedResource"/> other than a variable or function entry.</summary>
+    ResourceName,
+
+    /// <summary>The string is referenced as a string literal operand by a bytecode instruction (<c>String</c> member on <see cref="GameMakerInstruction"/>).</summary>
+    CodeLiteral,
+
+    /// <summary>The string is the <c>Name</c> of a <see cref="GameMakerVariable"/> or <see cref="GameMakerCodeLocals.LocalVar"/>.</summary>
+    VariableName,
+
+    /// <summary>The string is the <c>Name</c> or <c>ExtName</c> of a <see cref="GameMakerFunction"/> or <see cref="GameMakerExtensionFunction"/>.</summary>
+    FunctionName,
+
+    /// <summary>The string is referenced only by other model properties (such as general info strings, room captions, layer names or shader sources).</summary>
+    Other,
+
+    /// <summary>Nothing in the indexed data file references the string.</summary>
+    Unused
 }
 
 /// <summary>Kinds of objects <see cref="ReferenceIndex.FindUnreferenced(UnreferencedKind, bool)"/> can look for.</summary>
@@ -703,6 +870,13 @@ public enum UnreferencedKind
     TexturePageItems = 32,
     EmptyPages = 64
 }
+
+/// <summary>One cell in a room tile layer that uses a tile from a tileset.</summary>
+/// <param name="Room">The room that contains the tile use.</param>
+/// <param name="Layer">The room layer that contains the tile cell, when the use is on a layer.</param>
+/// <param name="X">Column coordinate in the tile layer grid.</param>
+/// <param name="Y">Row coordinate in the tile layer grid.</param>
+public sealed record TileUse(GameMakerRoom Room, GameMakerRoom.Layer? Layer, int X, int Y);
 
 /// <summary>What one code entry uses.</summary>
 public sealed record CodeScanResult(IReadOnlyList<GameMakerVariable> Variables, IReadOnlyList<GameMakerFunction> Functions, IReadOnlyList<GameMakerString> Strings, IReadOnlyList<object> Assets);
@@ -731,8 +905,9 @@ public static class AudioIndex
     /// <summary>Ids in 0 to <paramref name="entryCount"/> - 1 of the group's audio table that no sound uses.</summary>
     public static IReadOnlyList<int> Unreferenced(GameMakerData data, int groupId, int entryCount)
     {
-        bool[] used = new bool[entryCount];
-        foreach (GameMakerSound sound in data.Sounds ?? [])
+        ArgumentNullException.ThrowIfNull(data);
+        var used = new bool[entryCount];
+        foreach (var sound in data.Sounds ?? [])
         {
             if (sound != null && sound.GroupID == groupId && sound.AudioID >= 0 && sound.AudioID < entryCount)
             {

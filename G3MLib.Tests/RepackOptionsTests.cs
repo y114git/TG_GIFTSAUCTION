@@ -1,11 +1,7 @@
-using System;
-using System.IO;
-using System.Linq;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Models;
 using G3MLib.DataFile.Util;
 using ImageMagick;
-using Xunit;
 
 namespace G3MLib.Tests;
 
@@ -13,7 +9,7 @@ public sealed class RepackOptionsTests
 {
     private static GameMakerData Load()
     {
-        using FileStream input = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures", "data-2026.win"));
+        using var input = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures", "data-2026.win"));
         return GameMakerIO.Read(input);
     }
 
@@ -26,14 +22,14 @@ public sealed class RepackOptionsTests
     [Fact]
     public void ItemLargerThanMaxItemSizeGetsAPageOfItsOwn()
     {
-        using GameMakerData data = Load();
-        using MagickImage small = Solid(20, 20, 10);
-        using MagickImage big = Solid(300, 200, 20);
+        using var data = Load();
+        using var small = Solid(20, 20, 10);
+        using var big = Solid(300, 200, 20);
         TexturePageRepacker repacker = new(data);
-        GameMakerTexturePageItem smallItem = repacker.Add(small);
-        GameMakerTexturePageItem bigItem = repacker.Add(big);
+        var smallItem = repacker.Add(small);
+        var bigItem = repacker.Add(big);
 
-        repacker.Apply(repacker.Plan(new RepackOptions(MaxItemSize: 100)));
+        repacker.Apply(repacker.Plan(new RepackOptions(MaxItemSize: 100), cancellationToken: TestContext.Current.CancellationToken));
 
         Assert.Equal(1, Sharing(data, bigItem));
         Assert.True(Sharing(data, smallItem) > 1);
@@ -42,14 +38,14 @@ public sealed class RepackOptionsTests
     [Fact]
     public void KeepAlonePredicateGivesMatchingItemsTheirOwnPage()
     {
-        using GameMakerData data = Load();
-        using MagickImage first = Solid(20, 20, 10);
-        using MagickImage second = Solid(24, 24, 20);
+        using var data = Load();
+        using var first = Solid(20, 20, 10);
+        using var second = Solid(24, 24, 20);
         TexturePageRepacker repacker = new(data);
-        GameMakerTexturePageItem alone = repacker.Add(first);
-        GameMakerTexturePageItem together = repacker.Add(second);
+        var alone = repacker.Add(first);
+        var together = repacker.Add(second);
 
-        repacker.Apply(repacker.Plan(new RepackOptions(KeepAlone: item => ReferenceEquals(item, alone))));
+        repacker.Apply(repacker.Plan(new RepackOptions(KeepAlone: item => ReferenceEquals(item, alone)), cancellationToken: TestContext.Current.CancellationToken));
 
         Assert.Equal(1, Sharing(data, alone));
         Assert.True(Sharing(data, together) > 1);
@@ -58,14 +54,14 @@ public sealed class RepackOptionsTests
     [Fact]
     public void ItemsWithDifferentGroupKeysNeverShareAPage()
     {
-        using GameMakerData data = Load();
-        using MagickImage first = Solid(20, 20, 10);
-        using MagickImage second = Solid(24, 24, 20);
+        using var data = Load();
+        using var first = Solid(20, 20, 10);
+        using var second = Solid(24, 24, 20);
         TexturePageRepacker repacker = new(data);
-        GameMakerTexturePageItem a = repacker.Add(first);
-        GameMakerTexturePageItem b = repacker.Add(second);
+        var a = repacker.Add(first);
+        var b = repacker.Add(second);
 
-        repacker.Apply(repacker.Plan(new RepackOptions(GroupKey: item => ReferenceEquals(item, a) ? "a" : ReferenceEquals(item, b) ? "b" : "rest")));
+        repacker.Apply(repacker.Plan(new RepackOptions(GroupKey: item => ReferenceEquals(item, a) ? "a" : ReferenceEquals(item, b) ? "b" : "rest"), cancellationToken: TestContext.Current.CancellationToken));
 
         Assert.NotSame(a.TexturePage, b.TexturePage);
         Assert.Equal(1, Sharing(data, a));
@@ -75,12 +71,12 @@ public sealed class RepackOptionsTests
     [Fact]
     public void PowerOfTwoOffTrimsPagesToTheUsedSizeAndKeepsEveryFrame()
     {
-        using GameMakerData data = Load();
-        using MagickImage extra = Solid(37, 21, 30);
+        using var data = Load();
+        using var extra = Solid(37, 21, 30);
         TexturePageRepacker repacker = new(data);
         repacker.Add(extra);
-        RepackPlan strict = repacker.Plan(new RepackOptions());
-        RepackPlan trimmed = repacker.Plan(new RepackOptions(PowerOfTwo: false));
+        var strict = repacker.Plan(new RepackOptions(), cancellationToken: TestContext.Current.CancellationToken);
+        var trimmed = repacker.Plan(new RepackOptions(PowerOfTwo: false), cancellationToken: TestContext.Current.CancellationToken);
         Assert.True(strict.PageCount.After > 0);
 
         repacker.Apply(trimmed);
@@ -96,7 +92,7 @@ public sealed class RepackOptionsTests
     [Fact]
     public void DefaultOptionsKeepEveryPagePowerOfTwo()
     {
-        using GameMakerData data = Load();
+        using var data = Load();
         new TexturePageRepacker(data).Repack();
 
         Assert.All(data.EmbeddedTextures.Where(page => !page.TextureExternal), page =>

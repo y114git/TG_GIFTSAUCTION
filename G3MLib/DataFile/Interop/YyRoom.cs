@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using G3MLib.Analyzer.Decompiler;
@@ -29,12 +26,15 @@ public static class YyRoom
     /// The caller runs <see cref="CodeImportGroup.Import(bool)"/> once afterwards.
     /// </summary>
     /// <param name="skippedLayers">Receives the names of layers of unsupported types.</param>
-    public static GameMakerRoom Read(string yyPath, CodeImportGroup group, ICollection<string> skippedLayers = null)
+    /// <param name="yyPath">Path of the .yy file.</param>
+    /// <param name="group">The folder group the resource belongs to.</param>
+    public static GameMakerRoom Read(string yyPath, CodeImportGroup group, ICollection<string>? skippedLayers = null)
     {
-        GameMakerData data = group.Data;
-        JsonElement root = YyFile.Parse(yyPath);
-        string name = root.Str("name") ?? throw new InvalidDataException($"{yyPath}: room has no name.");
-        GameMakerRoom room = data.Rooms.ByName(name);
+        ArgumentNullException.ThrowIfNull(group);
+        var data = group.Data;
+        var root = YyFile.Parse(yyPath);
+        var name = root.Str("name") ?? throw new InvalidDataException($"{yyPath}: room has no name.");
+        var room = data.Rooms.ByName(name);
         if (room is null)
         {
             room = new() { Name = data.Strings.MakeString(name) };
@@ -50,14 +50,14 @@ public static class YyRoom
         room.GravityX = physics.Float("PhysicsWorldGravityX");
         room.GravityY = physics.Float("PhysicsWorldGravityY", 10);
         room.MetersPerPixel = physics.Float("PhysicsWorldPixToMetres", 0.1f);
-        GameMakerRoom.RoomEntryFlags inherited = data.Rooms.Where(r => r != room).Select(r => r.Flags & VersionFlags).FirstOrDefault();
+        var inherited = data.Rooms.Where(r => r != room).Select(r => r.Flags & VersionFlags).FirstOrDefault();
         room.Flags = (inherited != 0 ? inherited : data.IsVersionAtLeast(2, 3) ? GameMakerRoom.RoomEntryFlags.IsGMS2 | GameMakerRoom.RoomEntryFlags.IsGMS2_3 : GameMakerRoom.RoomEntryFlags.IsGMS2)
             | (viewSettings.Bool("enableViews") ? GameMakerRoom.RoomEntryFlags.EnableViews : 0)
             | (viewSettings.Bool("clearViewBackground") ? GameMakerRoom.RoomEntryFlags.ClearViewBackground : 0)
             | (viewSettings.Bool("clearDisplayBuffer", true) ? 0 : GameMakerRoom.RoomEntryFlags.DoNotClearDisplayBuffer);
 
         room.Views.Clear();
-        foreach (JsonElement v in root.Items("views"))
+        foreach (var v in root.Items("views"))
         {
             room.Views.Add(new GameMakerRoom.View
             {
@@ -78,18 +78,18 @@ public static class YyRoom
             });
         }
 
-        string projectRoot = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(yyPath), "..", ".."));
-        room.CreationCodeId = root.Str("creationCodeFile") is { Length: > 0 } codeFile && File.Exists(Path.Combine(projectRoot, codeFile)) ?QueueCode(group, $"gml_Room_{name}_Create", Path.Combine(projectRoot, codeFile)) : null;
+        var projectRoot = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(yyPath), "..", ".."));
+        room.CreationCodeId = root.Str("creationCodeFile") is { Length: > 0 } codeFile && File.Exists(Path.Combine(projectRoot, codeFile)) ? QueueCode(group, $"gml_Room_{name}_Create", Path.Combine(projectRoot, codeFile)) : null;
 
         room.GameObjects.Clear();
         room.Layers ??= [];
         room.Layers.Clear();
         uint nextLayerId = 0;
         Dictionary<string, uint> instanceIds = [];
-        foreach (JsonElement layer in root.Items("layers"))
+        foreach (var layer in root.Items("layers"))
         {
-            string layerName = layer.Str("name");
-            string type = layer.Str("resourceType");
+            var layerName = layer.Str("name");
+            var type = layer.Str("resourceType");
             GameMakerRoom.LayerType? layerType = type switch
             {
                 "GMRInstanceLayer" => GameMakerRoom.LayerType.Instances,
@@ -115,7 +115,7 @@ public static class YyRoom
                 GameMakerRoom.LayerType.Effect => new GameMakerRoom.Layer.LayerEffectData { EffectType = data.Strings.MakeString(layer.Str("effectType") ?? ""), Properties = EffectProperties(layer, data) },
                 _ => null,
             };
-            bool offsets = layerType is GameMakerRoom.LayerType.Tiles or GameMakerRoom.LayerType.Background;
+            var offsets = layerType is GameMakerRoom.LayerType.Tiles or GameMakerRoom.LayerType.Background;
             room.Layers.Add(new GameMakerRoom.Layer
             {
                 LayerName = data.Strings.MakeString(layerName),
@@ -142,9 +142,9 @@ public static class YyRoom
         room.DrawBackgroundColor = false;
 
         room.InstanceCreationOrderIDs = new GameMakerRoom.InstanceIDList();
-        foreach (JsonElement order in root.Items("instanceCreationOrder"))
+        foreach (var order in root.Items("instanceCreationOrder"))
         {
-            if (instanceIds.TryGetValue(order.Str("name"), out uint id))
+            if (instanceIds.TryGetValue(order.Str("name"), out var id))
                 room.InstanceCreationOrderIDs.InstanceIDs.Add(id);
         }
         return room;
@@ -152,25 +152,25 @@ public static class YyRoom
 
     private static GameMakerGameObject Object(GameMakerData data, JsonElement reference)
     {
-        string name = reference.Str("name");
+        var name = reference.Str("name");
         return name is null ? null : data.GameObjects.ByName(name) ?? throw new InvalidDataException($"Object \"{name}\" is not in the data file.");
     }
 
     private static GameMakerCode QueueCode(CodeImportGroup group, string entryName, string file)
     {
-        GameMakerCode code = group.Data.Code.ByName(entryName) ?? GameMakerCode.CreateEmptyEntry(group.Data, group.Data.Strings.MakeString(entryName));
+        var code = group.Data.Code.ByName(entryName) ?? GameMakerCode.CreateEmptyEntry(group.Data, group.Data.Strings.MakeString(entryName));
         group.QueueReplace(code, File.ReadAllText(file));
         return code;
     }
 
     private static GameMakerRoom.Layer.LayerInstancesData InstanceData(JsonElement layer, string room, CodeImportGroup group, GameMakerRoom target, Dictionary<string, uint> ids)
     {
-        GameMakerData data = group.Data;
+        var data = group.Data;
         GameMakerRoom.Layer.LayerInstancesData result = new();
-        foreach (JsonElement i in layer.Items("instances"))
+        foreach (var i in layer.Items("instances"))
         {
-            string name = i.Str("name");
-            uint id = ++data.GeneralInfo.LastObj;
+            var name = i.Str("name");
+            var id = ++data.GeneralInfo.LastObj;
             ids[name] = id;
             GameMakerRoom.GameObject instance = new()
             {
@@ -195,8 +195,8 @@ public static class YyRoom
 
     private static GameMakerSimpleList<GameMakerRoom.EffectProperty> EffectProperties(JsonElement layer, GameMakerData data)
     {
-        GameMakerSimpleList<GameMakerRoom.EffectProperty> result = new();
-        foreach (JsonElement p in layer.Items("properties"))
+        GameMakerSimpleList<GameMakerRoom.EffectProperty> result = [];
+        foreach (var p in layer.Items("properties"))
         {
             result.Add(new GameMakerRoom.EffectProperty
             {
@@ -213,22 +213,22 @@ public static class YyRoom
     {
         GameMakerRoom.Layer.LayerAssetsData result = new()
         {
-            LegacyTiles = new(),
-            Sprites = new(),
+            LegacyTiles = [],
+            Sprites = [],
             Sequences = data.IsVersionAtLeast(2, 3) ? new() : null,
             NineSlices = data.IsVersionAtLeast(2, 3) && !data.IsVersionAtLeast(2, 3, 2) ? new() : null,
             ParticleSystems = data.IsVersionAtLeast(2, 3) && data.IsNonLTSVersionAtLeast(2023, 2) ? new() : null,
             TextItems = data.IsVersionAtLeast(2, 3) && data.IsVersionAtLeast(2024, 6) ? new() : null,
         };
-        foreach (JsonElement asset in layer.Items("assets"))
+        foreach (var asset in layer.Items("assets"))
         {
-            string type = asset.Str("resourceType");
+            var type = asset.Str("resourceType");
             if (type != "GMRSpriteGraphic")
             {
                 skipped?.Add($"{layerName}: {type} {asset.Str("name")}");
                 continue;
             }
-            string sprite = asset.Child("spriteId").Str("name");
+            var sprite = asset.Child("spriteId").Str("name");
             result.Sprites.Add(new GameMakerRoom.SpriteInstance
             {
                 Name = data.Strings.MakeString(asset.Str("name") ?? ""),
@@ -248,7 +248,7 @@ public static class YyRoom
 
     private static GameMakerRoom.Layer.LayerBackgroundData BackgroundData(JsonElement layer, GameMakerData data)
     {
-        string sprite = layer.Child("spriteId").Str("name");
+        var sprite = layer.Child("spriteId").Str("name");
         return new GameMakerRoom.Layer.LayerBackgroundData
         {
             Visible = layer.Bool("visible", true),
@@ -265,18 +265,18 @@ public static class YyRoom
 
     private static GameMakerRoom.Layer.LayerTilesData TileData(JsonElement layer, GameMakerData data)
     {
-        JsonElement tiles = layer.Child("tiles");
+        var tiles = layer.Child("tiles");
         if (tiles.ValueKind == JsonValueKind.Object && tiles.Child("TileCompressedData").ValueKind != JsonValueKind.Undefined)
             throw new NotSupportedException("Compressed tile data is not supported.");
         uint width = tiles.Uint("SerialiseWidth"), height = tiles.Uint("SerialiseHeight");
-        uint[] flat = tiles.Items("TileSerialiseData").Select(t => (uint)t.GetDouble()).ToArray();
-        uint[][] rows = new uint[height][];
-        for (int y = 0; y < height; y++)
+        uint[] flat = [.. tiles.Items("TileSerialiseData").Select(t => (uint)t.GetDouble())];
+        var rows = new uint[height][];
+        for (var y = 0; y < height; y++)
         {
             rows[y] = new uint[width];
-            Array.Copy(flat, y * (int)width, rows[y], 0, Math.Min((int)width, Math.Max(0, flat.Length - (y * (int)width))));
+            Array.Copy(flat, y * (int)width, rows[y], 0, Math.Min((int)width, Math.Max(0, flat.Length - y * (int)width)));
         }
-        string tileset = layer.Child("tilesetId").Str("name");
+        var tileset = layer.Child("tilesetId").Str("name");
         return new GameMakerRoom.Layer.LayerTilesData
         {
             Background = tileset is null ? null : data.Backgrounds.ByName(tileset) ?? throw new InvalidDataException($"Tile set \"{tileset}\" is not in the data file."),
@@ -290,20 +290,26 @@ public static class YyRoom
     /// Writes <paramref name="room"/> as <c>{folder}/{name}.yy</c>. Creation code is decompiled to <c>RoomCreationCode.gml</c> in the same folder.
     /// </summary>
     /// <param name="parent">Folder name shown in the asset browser (LTS 2022), or the project name (LTS 2026).</param>
+    /// <param name="room">The room to write.</param>
+    /// <param name="globalContext">The decompile context shared by all code.</param>
+    /// <param name="format">The project file format.</param>
+    /// <param name="folder">The folder to write into.</param>
+    /// <param name="data">The game data it belongs to.</param>
     public static void Write(GameMakerRoom room, GameMakerData data, GlobalDecompileContext globalContext, string folder, YyFormat format, string parent = "Rooms")
     {
+        ArgumentNullException.ThrowIfNull(room);
         if (room.Layers is null)
             throw new NotSupportedException($"Room \"{room.Name.Content}\" has no layers (data file before GameMaker Studio 2).");
-        string name = room.Name.Content;
+        var name = room.Name.Content;
         Directory.CreateDirectory(folder);
-        Dictionary<uint, string> instanceNames = room.GameObjects.ToDictionary(o => o.InstanceID, o => $"inst_{o.InstanceID:X8}");
+        var instanceNames = room.GameObjects.ToDictionary(o => o.InstanceID, o => $"inst_{o.InstanceID:X8}");
 
         JsonArray layers = [];
-        foreach (GameMakerRoom.Layer layer in room.Layers)
+        foreach (var layer in room.Layers)
         {
-            JsonObject l = layer.LayerType switch
+            var l = layer.LayerType switch
             {
-                GameMakerRoom.LayerType.Instances => InstanceLayer(layer, name, format, instanceNames),
+                GameMakerRoom.LayerType.Instances => InstanceLayer(layer, format, instanceNames),
                 GameMakerRoom.LayerType.Background => BackgroundLayer(layer, format),
                 GameMakerRoom.LayerType.Tiles => TileLayer(layer, format),
                 GameMakerRoom.LayerType.Assets => AssetLayer(layer, format),
@@ -316,7 +322,7 @@ public static class YyRoom
         }
 
         JsonArray views = [];
-        foreach (GameMakerRoom.View v in room.Views)
+        foreach (var v in room.Views)
         {
             views.Add(new JsonObject
             {
@@ -338,14 +344,14 @@ public static class YyRoom
             });
         }
 
-        string codeFile = "";
+        var codeFile = "";
         if (room.CreationCodeId is { } code)
         {
             codeFile = $"rooms/{name}/RoomCreationCode.gml";
             File.WriteAllText(Path.Combine(folder, "RoomCreationCode.gml"), new DecompileContext(globalContext, code, new DecompileSettings()).DecompileToString());
         }
 
-        JsonObject root = YyFile.Resource(format, "GMRoom", name, "1.0", "v1");
+        var root = YyFile.Resource(format, "GMRoom", name, "1.0", "v1");
         root["isDnd"] = false;
         root["volume"] = 1.0;
         root["parentRoom"] = null;
@@ -384,7 +390,7 @@ public static class YyRoom
 
     private static JsonObject LayerBase(GameMakerRoom.Layer layer, string type, YyFormat format)
     {
-        JsonObject l = YyFile.Resource(format, type, layer.LayerName.Content, "1.0", "");
+        var l = YyFile.Resource(format, type, layer.LayerName.Content, "1.0", "");
         l["visible"] = layer.IsVisible;
         l["depth"] = layer.LayerDepth;
         l["userdefinedDepth"] = false;
@@ -397,7 +403,7 @@ public static class YyRoom
         l["effectEnabled"] = layer.EffectEnabled;
         l["effectType"] = layer.EffectType?.Content;
         JsonArray properties = [];
-        foreach (GameMakerRoom.EffectProperty p in layer.EffectProperties ?? new())
+        foreach (var p in layer.EffectProperties ?? [])
             properties.Add(new JsonObject { ["name"] = p.Name.Content, ["type"] = (int)p.Kind, ["value"] = p.Value.Content });
         l["properties"] = properties;
         return l;
@@ -405,7 +411,7 @@ public static class YyRoom
 
     private static JsonObject PathLayer(GameMakerRoom.Layer layer, YyFormat format)
     {
-        JsonObject l = LayerBase(layer, "GMRPathLayer", format);
+        var l = LayerBase(layer, "GMRPathLayer", format);
         l["pathId"] = null;
         l["colour"] = 4278190335.0;
         return l;
@@ -414,11 +420,11 @@ public static class YyRoom
     // Sequence, particle system and text items of an asset layer are not written.
     private static JsonObject AssetLayer(GameMakerRoom.Layer layer, YyFormat format)
     {
-        JsonObject l = LayerBase(layer, "GMRAssetLayer", format);
+        var l = LayerBase(layer, "GMRAssetLayer", format);
         JsonArray assets = [];
-        foreach (GameMakerRoom.SpriteInstance s in layer.AssetsData.Sprites ?? new())
+        foreach (var s in layer.AssetsData.Sprites ?? [])
         {
-            JsonObject a = YyFile.Resource(format, "GMRSpriteGraphic", s.Name.Content, "1.0", "v1");
+            var a = YyFile.Resource(format, "GMRSpriteGraphic", s.Name.Content, "1.0", "v1");
             a["spriteId"] = s.Sprite is null ? null : YyFile.Ref("sprites", s.Sprite.Name.Content);
             a["headPosition"] = (double)s.FrameIndex;
             a["rotation"] = (double)s.Rotation;
@@ -438,13 +444,13 @@ public static class YyRoom
         return l;
     }
 
-    private static JsonObject InstanceLayer(GameMakerRoom.Layer layer, string room, YyFormat format, Dictionary<uint, string> names)
+    private static JsonObject InstanceLayer(GameMakerRoom.Layer layer, YyFormat format, Dictionary<uint, string> names)
     {
-        JsonObject l = LayerBase(layer, "GMRInstanceLayer", format);
+        var l = LayerBase(layer, "GMRInstanceLayer", format);
         JsonArray instances = [];
-        foreach (GameMakerRoom.GameObject o in layer.InstancesData.Instances.Where(i => !i.Nonexistent))
+        foreach (var o in layer.InstancesData.Instances.Where(i => !i.Nonexistent))
         {
-            JsonObject i = YyFile.Resource(format, "GMRInstance", names[o.InstanceID], "1.0", "v4");
+            var i = YyFile.Resource(format, "GMRInstance", names[o.InstanceID], "1.0", "v4");
             i["properties"] = new JsonArray();
             i["isDnd"] = false;
             i["objectId"] = o.ObjectDefinition is null ? null : YyFile.Ref("objects", o.ObjectDefinition.Name.Content);
@@ -470,8 +476,8 @@ public static class YyRoom
 
     private static JsonObject BackgroundLayer(GameMakerRoom.Layer layer, YyFormat format)
     {
-        GameMakerRoom.Layer.LayerBackgroundData d = layer.BackgroundData;
-        JsonObject l = LayerBase(layer, "GMRBackgroundLayer", format);
+        var d = layer.BackgroundData;
+        var l = LayerBase(layer, "GMRBackgroundLayer", format);
         l["spriteId"] = d.Sprite is null ? null : YyFile.Ref("sprites", d.Sprite.Name.Content);
         l["colour"] = (double)d.Color;
         l["x"] = (int)layer.XOffset;
@@ -489,8 +495,8 @@ public static class YyRoom
 
     private static JsonObject TileLayer(GameMakerRoom.Layer layer, YyFormat format)
     {
-        GameMakerRoom.Layer.LayerTilesData d = layer.TilesData;
-        JsonObject l = LayerBase(layer, "GMRTileLayer", format);
+        var d = layer.TilesData;
+        var l = LayerBase(layer, "GMRTileLayer", format);
         l["tilesetId"] = d.Background is null ? null : new JsonObject { ["name"] = d.Background.Name.Content, ["path"] = $"tilesets/{d.Background.Name.Content}/{d.Background.Name.Content}.yy" };
         l["x"] = (int)layer.XOffset;
         l["y"] = (int)layer.YOffset;

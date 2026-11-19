@@ -1,11 +1,8 @@
-using System;
 using System.IO;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using G3MLib.Analyzer.Decompiler;
 using G3MLib.DataFile.Compiler;
 using G3MLib.DataFile.Decompiler;
-using G3MLib.DataFile.Models;
 
 namespace G3MLib.DataFile.Interop;
 
@@ -24,10 +21,11 @@ public static class YyScript
     /// <returns>Script name.</returns>
     public static string Read(string yyPath, CodeImportGroup group)
     {
-        JsonElement root = YyFile.Parse(yyPath);
-        string name = root.Str("name") ?? throw new InvalidDataException($"{yyPath}: script has no name.");
-        string gml = File.ReadAllText(Path.Combine(Path.GetDirectoryName(yyPath), name + ".gml"));
-        string entry = EntryName(group.Data, name);
+        ArgumentNullException.ThrowIfNull(group);
+        var root = YyFile.Parse(yyPath);
+        var name = root.Str("name") ?? throw new InvalidDataException($"{yyPath}: script has no name.");
+        var gml = File.ReadAllText(Path.Combine(Path.GetDirectoryName(yyPath), name + ".gml"));
+        var entry = EntryName(group.Data, name);
         group.QueueReplace(entry, gml);
         // GameMaker lists the script asset itself next to its functions; the group only creates the function entries.
         if (entry.StartsWith("gml_GlobalScript_", StringComparison.Ordinal) && group.Data.Code.ByName(entry) is { } code)
@@ -47,14 +45,20 @@ public static class YyScript
     /// Writes the script's decompiled source as <c>{folder}/{name}.gml</c> and its <c>{name}.yy</c>.
     /// </summary>
     /// <param name="parent">Folder name shown in the asset browser (LTS 2022), or the project name (LTS 2026).</param>
+    /// <param name="name">The name of the resource.</param>
+    /// <param name="globalContext">The decompile context shared by all code.</param>
+    /// <param name="format">The project file format.</param>
+    /// <param name="folder">The folder to write into.</param>
+    /// <param name="data">The game data it belongs to.</param>
     public static void Write(string name, GameMakerData data, GlobalDecompileContext globalContext, string folder, YyFormat format, string parent = "Scripts")
     {
-        GameMakerCode code = data.Code.ByName(EntryName(data, name)) ?? data.Scripts.ByName(name)?.Code
+        ArgumentNullException.ThrowIfNull(data);
+        var code = data.Code.ByName(EntryName(data, name)) ?? data.Scripts.ByName(name)?.Code
             ?? throw new InvalidOperationException($"No code entry for script \"{name}\".");
         Directory.CreateDirectory(folder);
         File.WriteAllText(Path.Combine(folder, name + ".gml"), new DecompileContext(globalContext, code, new DecompileSettings()).DecompileToString());
 
-        JsonObject root = YyFile.Resource(format, "GMScript", name, "1.0", "v1");
+        var root = YyFile.Resource(format, "GMScript", name, "1.0", "v1");
         root["isDnD"] = false;
         root["isCompatibility"] = false;
         root["parent"] = format == YyFormat.Lts2026

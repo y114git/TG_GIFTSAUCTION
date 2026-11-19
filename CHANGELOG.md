@@ -1,10 +1,112 @@
 # Changelog
 
-## [1.1.0] - Unreleased
+## [1.1.4] - 2026-11-18
+
+### Security
+
+- Patch archives extracted for a diff are checked for entry names and total size like the ones loaded for an apply, and unsafe manifest paths are skipped. Extraction can be cancelled between entries and chunks.
+- `PatchFileSystem` refuses a corrupt `g3mpatch.json`, a JSON `null` manifest included, with the patch path in the message. Export, import and patch paths stay inside their folder.
+
+### Added
+
+- Macros declared in other code entries, or given in `CompileGroup.Macros` (also filled by `CompileGroup.AddMacros`), are expanded when an entry is compiled. `CompileContext.ExternalMacros` takes the same table. A macro that names itself or grows without end is reported as an error.
+- Data files, patch archives and project files are written to a temporary file and then swapped in (`AtomicFile`), so a failed write keeps the old file. Each write uses its own temp file name, a symlinked target keeps its link, and temp files older than a day left by a crash are removed at the next write of the same target.
+- `ScriptRunner.RunAsync` takes a `CancellationToken` and a `timeout`. Scripts read the token as `ScriptGlobals.CancellationToken`; `ScriptGlobals` members and the library's bulk operations stop at the next call once it is cancelled. `ScriptRunResult.Cancelled` tells a cancelled run from a failed one.
+- `GameMakerData.Gate` (`DataAccessGate`) is a reader/writer gate with `BeginRead` and `BeginWrite` scopes, a timeout and a token. Hosts take it to keep a save from racing with a script or an import. Scripts and resource import take it as a writer; data file writes, `ExportTypes`, `ExportSelectiveExceptCode` and `G3MProjectService.Export` and `Update` take it as a reader.
+- `GameMakerGeneralInfo.BranchSource` names the chunk that decided the LTS branch while reading. `SetLTS` takes an optional `source`.
+- `ReferenceIndex.ClearUsages(target)` sets every model reference to the target to none and removes it from lists that hold it, so it can be deleted. It returns `ClearedReferences` with `Undo()`; uses in code are listed in `Skipped`.
+- `RenameService.IsValidName` and `RenameService.IsNameInUse` expose the name rules that renames already apply.
+- `ResourceImportService.Import("CodeEntries", ...)` compiles the `.gml` file of each exported code entry folder, with one result per entry and an optional name filter. Entries with only an `.asm` file are skipped. Project import uses it too.
+- `DataIntegrityResult.Issues` lists every error and repair as an `IntegrityIssue` with `Severity`, `Code` (such as `ROOM.MissingSprite`), `Chunk`, `Resource` and `Message`. `Errors` and `Repairs` keep the same text.
+- `ExportSounds` and `AudioGroupReader` take a null data file path: the audio held in the data file itself (group 0) is then written into the sound folder, and `ImportSounds` reads it back.
+- `ResourceCloneService.Clone(data, source, newName)` copies a resource in memory: objects, scripts, sprites, paths, animation curves, sounds, fonts, shaders, timelines, backgrounds, rooms, sequences, particle systems and extensions. The copy owns its events, layers, frames and tracks, and shares other resources, texture page items, variables and functions. Code entries and locals named after the resource are copied and renamed with the `RenameService` rules, a room gets new instance ids and joins the room order. `ResourceClone.Undo()` removes everything the copy added. Instance ids and strings that later edits depend on are kept. The function entries of a copied script or object are copied with it, child code entries get unique names, and `ResourceClone.SharedCode` lists the code entries the copy shares with the source. `Clone` runs its checks inside the data gate and takes an optional `timeout` and `cancellationToken` for the wait. Code entries, functions, variables, locals, audio groups, texture groups, filter effects and embedded audio and textures throw `NotSupportedException`.
+- `ExportExtensions` takes an optional name filter, like the other resource types, so one extension can be exported. The import already accepted a filter.
+- `ClearedReferences.ChangedOwners` lists the owners whose references were cleared, for `ReferenceIndex.Update` after `Undo` and for refreshing a UI.
+- `GameMakerTexturePageItem.PrepareReplace` does the image work of `ReplaceTexture` and returns a `PreparedTextureReplace`; its `Commit()` only swaps the page image, so hosts can prepare outside a write lock.
+- `G3MLib.Benchmarks` prints comparison rows with `--markdown`, and the README holds new benchmark numbers.
+
+### Fixed
+
+- Font glyph data of 2024.14 and the texture group list of LTS files are read back correctly.
+- Nested ternaries and chained `??` compile. An empty `#macro` no longer swallows the next line.
+- Saving a YYC file with an empty code chunk works. The last chunk is no longer padded when chunks are written in a different order.
+- A BPS patch whose copy starts at or past the write position stops with an error instead of hanging.
+- A room with a tile layer that has one empty dimension is refused, and 2024.4 tile padding is detected from the layer data pointer. A sprite with collision masks but no mask bytes no longer reads past the data.
+- Importing a project requests the audio group from the JSON group id. Project export keeps the folders of types that failed or were not exported.
+- Export folders keep names that differ only in an invalid character apart, and import reads the resource name from the JSON `name`, so a resource named `a:b` imports as `a:b`, not as its folder name. Old exports without a `name` still import by their folder name.
+- Merging two patches that make the same edit is a clean merge. Log suppression is reset when a merge fails, so later work keeps logging.
+- Diff reports use an LCS with context hunks and a size guard. Event names of keyboard, trigger and gesture events are parsed.
+- Merge and import filters find resources in patch archives and exports made before the hash suffix, in both folder name forms. Patched and merged data files, project files and audio group files are written through a temporary file, so a failed write keeps the old file.
+- Swallowed exceptions in temp cleanup and JSON fallbacks are logged or narrowed, and debug output goes through `LogService`.
+
+### Changed
+
+- Breaking: an export folder name gets a 12 character hash suffix when a character had to be replaced, such as `a:b` (now `a_b__<hash>`), so two names cannot share a folder. Exports made by 1.1.3 keep their folder names and still import; a new export of such a resource writes a different folder.
+- A malformed `g3mpatch.json` makes loading a patch fail with `InvalidDataException`, where 1.1.3 ignored it. Apply, diff and merge return an error result that names the patch path.
+- Macro scanning in `CompileGroup` uses the compiler's lexer, so line continuations and CRLF work, and `#macro` inside comments and strings is ignored.
+
+## [1.1.3] - 2026-11-15
+
+### Fixed
+
+- Merging patches that each add entries to the same list no longer loses the entries of all but the last patch. With property merge on, global init scripts, game end scripts, feature flags, tags and the room order are merged by name against the original list: additions and removals from every patch are kept, and the earlier patch's additions come first at a shared spot. A list with repeated names is merged as before.
+- A texture page item without a texture page now fails with `InvalidDataException` (`TextureWorker.GetTextureFor` and `ExportAsPNG` name the image, `CutBgra`) or `InvalidOperationException` (`ReplaceTexture`), where a null key escaped from the page cache. `GetEmbeddedTexture(null)` throws `ArgumentNullException`.
+
+### Changed
+
+- Data files are built in memory and copied to a seekable file stream in one write, about four times faster than writing to the file while the writer seeks back for lengths and pointers. A file too large for one buffer is still written directly.
+- A data file that was just saved and validated is not parsed again to copy its audio groups, commit it or validate it a second time. Applying a patch to a 12 MB file takes 1.7 s instead of 4.3 s, applying eight merged patches 2.7 s instead of 5.4 s.
+- Updated `Microsoft.CodeAnalysis` packages to 5.12.0.
+
+## [1.1.2] - 2026-11-04
+
+### Removed
+
+- `ModConfig` and `ModPatchOperation`, added in 1.1.1. They read the manifest of one mod manager, which does not belong in a general library; an application that needs it reads the manifest itself.
+
+### Security
+
+- Patch archives are refused when an entry name is rooted, holds a drive or stream colon, or has a `..` segment, or when the entries declare more than 4 GiB in total (`PatchFileSystem.MaxTotalPayloadBytes`, settable, `long.MaxValue` removes the limit). Embedded texture paths are joined with a containment check. `g3mpatch.json` larger than 64 MiB is refused.
+- Resource names `.`, `..`, trailing dots or spaces and Windows device names are made safe when files are written, with a hash suffix so they cannot collide with another resource. A colon is replaced on every platform.
+- Recursion guards in the GML parser (including chained prefix operators), and in the UI node and sequence readers (including their child count pass), so deeply nested input raises an error instead of a stack overflow.
+- Allocation caps: image decompression size hint, tile layer size; `MurmurHash` no longer stack-allocates by input length.
+- Patch JSON is validated with a streaming reader instead of a DOM. Merge reference scans stop after 2 seconds per pattern and log a warning when one does. `g3mpatch.json` is capped in every load path. Archive entries over 64 MiB are read in chunks. Absolute paths are passed to xdelta.
+
+### Fixed
+
+- `return` is terminated with a semicolon again when `DecompileSettings.UseSemicolon` is off, as the setting documents, so a following statement that starts with `(` or `[` is not read as part of the returned value.
+
+### Changed
+
+- `PatchFileSystem.MaxPayloadBytes` now holds the payload size cap that `ModConfig` carried, lowered from 4 GiB to the 2 GiB an array can hold, so a larger payload is refused with a clear error.
+- `ProjectContext.AllowScripts` can be set to false by a host that opens untrusted projects; it stays true by default.
+- An in-memory patch apply writes no files: audio groups stored outside the data file are skipped, where 1.1.1 rewrote the group files next to the data file.
+- `ResourceImportService.Import` with a dictionary of names checks every type before importing, so an unsupported type no longer leaves a half-applied import.
+
+## [1.1.1] - 2026-11-03
+
+### Added
+
+- `PatchService.ApplyPatchAsync` overloads that patch a `GameMakerData` in memory, from a file or a stream, with an optional validation pass before any change; `ModConfig` reads a mod `mod_config.json` and lists its patch operations.
+- `GameMakerData.LoadWarnings` and `MayLoseDataOnSave`: the warnings raised while a data file was read, and whether saving could lose data.
+- `ChunkDigests` to hash every chunk of a data file without parsing it and to compare two files; `GameMakerChunk.Offset`.
+- `ReferenceIndex.FindTileUses` and `ReferenceIndex.ClassifyString`.
+- `RepackPlan.Pages` with the size, fill and item count of every planned page.
+- `ResourceImportService.Import` overloads that import only named entries.
+- `DebugDataGenerator` builds GameMaker 1.4 debugger data (`.yydebug`) from a data file as decompiled text, assembler text or full assembler text; `GameMakerDebugIO.Write` saves it.
+
+### Fixed
+
+- Texture page repack no longer stops with an out of range error for frames at a page edge, and builds each page in one pass.
+- Code compiled from a function script now decompiles: the child code entry is placed after its root entry.
+- `DecompileSettings.UseSemicolon` now applies to `return`.
+
+## [1.1.0] - 2026-11-01
 
 ### Added
 
 - Project format: export a data file to a GameMaker-style folder with a `.g3mproj` file, full or delta, and rebuild it byte-identical; `OpenAsync` returns a resource index without exporting.
+- Project export reports progress per resource and can be cancelled, which leaves the project folder unchanged; `G3MProjectService.Update` writes only the named resources into an existing project folder, so a rename does not need a full export.
 - `ReadAsync` and `WriteAsync` with progress and cancellation.
 - Cancellation tokens for patch create, validate and apply, merge, diff, and resource export, import and hashing.
 - Structured compiler diagnostics with severity, code and span, and a public GML tokenizer.
@@ -34,6 +136,8 @@
 - Sprite import uses the shared texture group packer: new sprites are created in file name order with a 2 pixel border and generated border pixels, so page layouts differ from 1.0.1. Importing a large sprite set is about 39 percent faster.
 - Sound import writes each audio group file once per batch instead of once per sound.
 - Merge and patch timings match 1.0.1 within measurement noise.
+- Numbers are formatted and strings compared with invariant culture and ordinal rules, so results no longer depend on the machine's language.
+- Public methods throw `ArgumentNullException` for a null argument they would otherwise dereference.
 
 ## [1.0.1] - 2026-09-12
 

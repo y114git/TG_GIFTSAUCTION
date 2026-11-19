@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Project;
 using G3MLib.DataFile.Scripting;
-using Xunit;
 
 namespace G3MLib.Tests;
 
@@ -19,20 +14,89 @@ public sealed class ScriptGlobalsTests : IDisposable
 
     private string WriteScript(string name, string source)
     {
-        string path = Path.Combine(_dir, name);
+        var path = Path.Combine(_dir, name);
         File.WriteAllText(path, source);
         return path;
     }
 
     [Fact]
+    public async Task CancelledTokenStopsAScriptThatNeverChecksItAtTheNextLibraryCall()
+    {
+        using var source = new CancellationTokenSource();
+        List<string> messages = [];
+        ScriptGlobals globals = new() { MessageHandler = text => { messages.Add(text); source.Cancel(); } };
+        var script = WriteScript("loop.csx", "while (true) ScriptMessage(\"tick\");");
+
+        var result = await ScriptRunner.RunAsync(script, globals, source.Token);
+
+        Assert.False(result.Success);
+        Assert.True(result.Cancelled);
+        Assert.Single(messages);
+        Assert.False(globals.CancellationToken.IsCancellationRequested);
+    }
+
+    [Fact]
+    public async Task CancelledNestedScriptMakesTheOuterRunCancelled()
+    {
+        using var source = new CancellationTokenSource();
+        ScriptGlobals globals = new() { MessageHandler = _ => source.Cancel() };
+        WriteScript("child.csx", "while (true) ScriptMessage(\"tick\");");
+        var parent = WriteScript("parent.csx", "RunUMTScript(\"child.csx\");");
+
+        var result = await ScriptRunner.RunAsync(parent, globals, source.Token);
+
+        Assert.True(result.Cancelled);
+    }
+
+    [Fact]
+    public async Task BusyGateIsWaitedForBeforeTheMainThreadActionStarts()
+    {
+        using var data = GameMakerData.CreateNew2026LTS();
+        var entered = false;
+        ScriptGlobals globals = new(data) { MainThreadAction = action => { entered = true; action(); } };
+        var script = WriteScript("noop.csx", "");
+        using var holder = data.Gate.BeginWrite();
+
+        Task<ScriptRunResult> run;
+        using (ExecutionContext.SuppressFlow())
+            run = Task.Run(() => ScriptRunner.RunAsync(script, globals, timeout: TimeSpan.FromMilliseconds(200)), TestContext.Current.CancellationToken);
+        var result = await run;
+
+        Assert.True(result.Cancelled);
+        Assert.False(entered);
+    }
+
+    [Fact]
+    public async Task TimeoutEndsARunAndTheScriptCanObserveTheToken()
+    {
+        ScriptGlobals globals = new();
+        var script = WriteScript("wait.csx", "CancellationToken.WaitHandle.WaitOne(10000); CancellationToken.ThrowIfCancellationRequested();");
+
+        var result = await ScriptRunner.RunAsync(script, globals, timeout: TimeSpan.FromMilliseconds(100));
+
+        Assert.True(result.Cancelled);
+        Assert.Contains("timed out", result.Error);
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => ScriptRunner.RunAsync(script, globals, timeout: TimeSpan.Zero));
+    }
+
+    [Fact]
+    public async Task ScriptFailureIsNotReportedAsCancelled()
+    {
+        var result = await ScriptRunner.RunAsync(WriteScript("fail.csx", "throw new System.InvalidOperationException(\"x\");"), new ScriptGlobals());
+
+        Assert.False(result.Success);
+        Assert.False(result.Cancelled);
+    }
+
+    [Fact]
     public async Task ScriptSeesTheInterfaceMembersAndHostHandlers()
     {
-        using GameMakerData data = GameMakerData.CreateNew2026LTS();
+        using var data = GameMakerData.CreateNew2026LTS();
         List<string> messages = [];
         ScriptGlobals globals = new(data, "data.win") { MessageHandler = messages.Add };
-        string script = WriteScript("a.csx", "EnsureDataLoaded(); ScriptMessage(Data.Rooms.Count.ToString() + FilePath); SetProgressBar(\"x\", \"y\", 5, 10); IncrementProgress();");
+        var script = WriteScript("a.csx", "EnsureDataLoaded(); ScriptMessage(Data.Rooms.Count.ToString() + FilePath); SetProgressBar(\"x\", \"y\", 5, 10); IncrementProgress();");
 
-        ScriptRunResult result = await ScriptRunner.RunAsync(script, globals);
+        var result = await ScriptRunner.RunAsync(script, globals);
 
         Assert.True(result.Success, result.Error);
         Assert.Equal([data.Rooms.Count + "data.win"], messages);
@@ -43,13 +107,13 @@ public sealed class ScriptGlobalsTests : IDisposable
     [Fact]
     public async Task ScriptsWrittenForUndertaleModToolAreTranslated()
     {
-        using GameMakerData data = GameMakerData.CreateNew2026LTS();
+        using var data = GameMakerData.CreateNew2026LTS();
         ScriptGlobals globals = new(data);
-        string script = WriteScript("utmt.csx", "using UndertaleModLib.Models;\nUndertaleData d = Data;\nif (d.Rooms.Count < 0) ScriptError(\"no\");\nScriptMessage(typeof(UndertaleRoom).Name);");
+        var script = WriteScript("utmt.csx", "using UndertaleModLib.Models;\nUndertaleData d = Data;\nif (d.Rooms.Count < 0) ScriptError(\"no\");\nScriptMessage(typeof(UndertaleRoom).Name);");
         List<string> messages = [];
         globals.MessageHandler = messages.Add;
 
-        ScriptRunResult result = await ScriptRunner.RunAsync(script, globals);
+        var result = await ScriptRunner.RunAsync(script, globals);
 
         Assert.True(result.Success, result.Error);
         Assert.Equal(["GameMakerRoom"], messages);
@@ -60,14 +124,14 @@ public sealed class ScriptGlobalsTests : IDisposable
     {
         ScriptGlobals globals = new();
 
-        ScriptRunResult noData = await ScriptRunner.RunAsync(WriteScript("nodata.csx", "EnsureDataLoaded();"), globals);
-        ScriptRunResult error = await ScriptRunner.RunAsync(WriteScript("error.csx", "ScriptError(\"stop\", \"Title\");"), globals);
+        var noData = await ScriptRunner.RunAsync(WriteScript("nodata.csx", "EnsureDataLoaded();"), globals);
+        var error = await ScriptRunner.RunAsync(WriteScript("error.csx", "ScriptError(\"stop\", \"Title\");"), globals);
         Assert.Equal("No data file is currently loaded!", noData.Error);
         Assert.Equal("stop", error.Error);
         Assert.False(globals.ScriptExecutionSuccess);
         Assert.Equal("Title", globals.ScriptErrorType);
-        ScriptRunResult broken = await ScriptRunner.RunAsync(WriteScript("broken.csx", "int x = ;"), globals);
-        Assert.StartsWith("Compilation error:", broken.Error);
+        var broken = await ScriptRunner.RunAsync(WriteScript("broken.csx", "int x = ;"), globals);
+        Assert.StartsWith("Compilation error:", broken.Error, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -75,10 +139,10 @@ public sealed class ScriptGlobalsTests : IDisposable
     {
         ScriptGlobals globals = new();
 
-        ScriptRunResult result = await ScriptRunner.RunAsync(WriteScript("dialog.csx", "PromptChooseDirectory();"), globals);
+        var result = await ScriptRunner.RunAsync(WriteScript("dialog.csx", "PromptChooseDirectory();"), globals);
 
         Assert.False(result.Success);
-        Assert.Contains("UI host", result.Error);
+        Assert.Contains("UI host", result.Error, StringComparison.Ordinal);
         Assert.False(globals.ScriptQuestion("ok?"));
     }
 
@@ -91,8 +155,8 @@ public sealed class ScriptGlobalsTests : IDisposable
         List<string> messages = [];
         ScriptGlobals globals = new() { MessageHandler = messages.Add };
 
-        ScriptRunResult ok = await ScriptRunner.RunAsync(WriteScript(Path.Combine("mod", "parent.csx"), "RunUMTScript(\"child.csx\");"), globals);
-        ScriptRunResult escape = await ScriptRunner.RunAsync(WriteScript(Path.Combine("mod", "escape.csx"), "RunUMTScript(\"../outside.csx\");"), globals);
+        var ok = await ScriptRunner.RunAsync(WriteScript(Path.Combine("mod", "parent.csx"), "RunUMTScript(\"child.csx\");"), globals);
+        var escape = await ScriptRunner.RunAsync(WriteScript(Path.Combine("mod", "escape.csx"), "RunUMTScript(\"../outside.csx\");"), globals);
 
         Assert.True(ok.Success, ok.Error);
         Assert.Equal(["child"], messages);
@@ -102,9 +166,9 @@ public sealed class ScriptGlobalsTests : IDisposable
     [Fact]
     public void FilesAreComparedByContent()
     {
-        string a = WriteScript("a.bin", "same");
-        string b = WriteScript("b.bin", "same");
-        string c = WriteScript("c.bin", "diff");
+        var a = WriteScript("a.bin", "same");
+        var b = WriteScript("b.bin", "same");
+        var c = WriteScript("c.bin", "diff");
 
         ScriptGlobals globals = new();
 
@@ -115,8 +179,8 @@ public sealed class ScriptGlobalsTests : IDisposable
     [Fact]
     public void ProjectContextRunsTranslatedScriptsThroughTheSameHost()
     {
-        string script = WriteScript("project.csx", "UndertaleData d = null;\nScriptMessage(\"ran\" + (d is null));");
-        ProjectContext context = ProjectContext.CreateWithDataFilePaths("input.win", "output.win", Path.Combine(_dir, "project.json"));
+        var script = WriteScript("project.csx", "UndertaleData d = null;\nScriptMessage(\"ran\" + (d is null));");
+        var context = ProjectContext.CreateWithDataFilePaths("input.win", "output.win", Path.Combine(_dir, "project.json"));
         List<string> messages = [];
         context.ScriptMessageHandler = messages.Add;
 

@@ -1,6 +1,4 @@
-using System;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using G3MLib.DataFile.Models;
@@ -24,14 +22,16 @@ public static class YySprite
     /// Reads a sprite and queues its frames on <paramref name="repacker"/>. The caller runs <see cref="TexturePageRepacker.Repack"/>
     /// once after all sprites are read. A sprite with the same name is overwritten in place.
     /// </summary>
-    public static GameMakerSprite Read(string yyPath, GameMakerData data, TexturePageRepacker repacker, GameMakerTextureGroupInfo group = null)
+    public static GameMakerSprite Read(string yyPath, GameMakerData data, TexturePageRepacker repacker, GameMakerTextureGroupInfo? group = null)
     {
-        JsonElement root = YyFile.Parse(yyPath);
-        string name = root.Str("name") ?? throw new InvalidDataException($"{yyPath}: sprite has no name.");
-        string directory = Path.GetDirectoryName(yyPath);
-        JsonElement sequence = root.Child("sequence");
+        ArgumentNullException.ThrowIfNull(data);
+        ArgumentNullException.ThrowIfNull(repacker);
+        var root = YyFile.Parse(yyPath);
+        var name = root.Str("name") ?? throw new InvalidDataException($"{yyPath}: sprite has no name.");
+        var directory = Path.GetDirectoryName(yyPath);
+        var sequence = root.Child("sequence");
 
-        GameMakerSprite sprite = data.Sprites.ByName(name);
+        var sprite = data.Sprites.ByName(name);
         if (sprite is null)
         {
             sprite = new() { Name = data.Strings.MakeString(name) };
@@ -48,7 +48,7 @@ public static class YySprite
         sprite.Smooth = root.Bool("edgeFiltering");
         sprite.Transparent = false;
         sprite.Preload = false;
-        int kind = root.Int("collisionKind", 1);
+        var kind = root.Int("collisionKind", 1);
         sprite.SepMasks = kind switch
         {
             0 or 2 or 3 or 4 => GameMakerSprite.SepMaskType.Precise,
@@ -59,11 +59,11 @@ public static class YySprite
 
         sprite.Textures.Clear();
         sprite.CollisionMasks.Clear();
-        string[] frames = root.Items("frames").Select(f => f.Str("name")).ToArray();
-        for (int i = 0; i < frames.Length; i++)
+        string[] frames = [.. root.Items("frames").Select(f => f.Str("name"))];
+        for (var i = 0; i < frames.Length; i++)
         {
-            string png = Path.Combine(directory, frames[i] + ".png");
-            using MagickImage image = TextureWorker.ReadBGRAImageFromFile(png);
+            var png = Path.Combine(directory, frames[i] + ".png");
+            using var image = TextureWorker.ReadBGRAImageFromFile(png);
             // GameMaker stores no mask for rectangle kinds; the runtime derives it from the bounding box.
             if (sprite.SepMasks == GameMakerSprite.SepMaskType.Precise && (i == 0 || kind == 4))
                 sprite.CollisionMasks.Add(Mask(sprite, data, image, root.Int("collisionTolerance")));
@@ -98,8 +98,8 @@ public static class YySprite
             Right = e.Int("right"),
             Bottom = e.Int("bottom"),
         };
-        int i = 0;
-        foreach (JsonElement mode in e.Items("tileMode"))
+        var i = 0;
+        foreach (var mode in e.Items("tileMode"))
         {
             if (i < slice.TileModes.Length)
                 slice.TileModes[i++] = (GameMakerSprite.NineSlice.TileMode)(int)mode.GetDouble();
@@ -116,10 +116,10 @@ public static class YySprite
             Tags = [],
             Tracks = [],
             OwnedResources = [],
-            Keyframes = new GameMakerSequence.SpriteFramesKeyframes { List = new() },
+            Keyframes = new GameMakerSequence.SpriteFramesKeyframes { List = [] },
         };
-        GameMakerSequence.SpriteFramesKeyframes keyframes = (GameMakerSequence.SpriteFramesKeyframes)track.Keyframes;
-        for (int i = 0; i < frameCount; i++)
+        var keyframes = (GameMakerSequence.SpriteFramesKeyframes)track.Keyframes;
+        for (var i = 0; i < frameCount; i++)
         {
             GameMakerSequence.Keyframe<GameMakerSequence.SpriteFramesKeyframes.Data> key = new() { Key = i, Length = 1 };
             key.Channels.Add(new() { Channel = 0, Value = new() { Value = i } });
@@ -138,10 +138,10 @@ public static class YySprite
             Volume = seq.Float("volume", 1),
             Width = sprite.Width,
             Height = sprite.Height,
-            BroadcastMessages = new(),
-            Moments = new(),
-            Tracks = new(),
-            FunctionIDs = new(),
+            BroadcastMessages = [],
+            Moments = [],
+            Tracks = [],
+            FunctionIDs = [],
         };
         sequence.Tracks.Add(track);
         return sequence;
@@ -150,20 +150,20 @@ public static class YySprite
     // Bit set where the frame is more opaque than the tolerance, MSB first, over the collision rectangle.
     private static GameMakerSprite.MaskEntry Mask(GameMakerSprite sprite, GameMakerData data, MagickImage image, int tolerance)
     {
-        GameMakerSprite.MaskEntry mask = sprite.NewMaskEntry(data);
-        bool bbox = data.IsVersionAtLeast(2024, 6);
+        var mask = sprite.NewMaskEntry(data);
+        var bbox = data.IsVersionAtLeast(2024, 6);
         int left = bbox ? sprite.MarginLeft : 0, top = bbox ? sprite.MarginTop : 0;
-        byte[] rgba = image.ToByteArray(MagickFormat.Rgba);
-        int stride = (mask.Width + 7) / 8;
-        for (int y = 0; y < mask.Height; y++)
+        var rgba = image.ToByteArray(MagickFormat.Rgba);
+        var stride = (mask.Width + 7) / 8;
+        for (var y = 0; y < mask.Height; y++)
         {
-            for (int x = 0; x < mask.Width; x++)
+            for (var x = 0; x < mask.Width; x++)
             {
                 int sx = left + x, sy = top + y;
                 if (sx < 0 || sy < 0 || sx >= image.Width || sy >= image.Height)
                     continue;
-                if (rgba[((sy * (int)image.Width) + sx) * 4 + 3] > Math.Max(tolerance, MaskAlphaThreshold))
-                    mask.Data[(y * stride) + (x / 8)] |= (byte)(0x80 >> (x % 8));
+                if (rgba[(sy * (int)image.Width + sx) * 4 + 3] > Math.Max(tolerance, MaskAlphaThreshold))
+                    mask.Data[y * stride + x / 8] |= (byte)(0x80 >> (x % 8));
             }
         }
         return mask;
@@ -173,24 +173,28 @@ public static class YySprite
     /// Writes <paramref name="sprite"/> as <c>{folder}/{name}.yy</c> with its frame PNGs.
     /// </summary>
     /// <param name="parent">Folder name shown in the asset browser (LTS 2022), or the project name (LTS 2026).</param>
+    /// <param name="sprite">The sprite to write.</param>
+    /// <param name="format">The project file format.</param>
+    /// <param name="folder">The folder to write into.</param>
     public static void Write(GameMakerSprite sprite, string folder, YyFormat format, string parent = "Sprites")
     {
-        string name = sprite.Name.Content;
+        ArgumentNullException.ThrowIfNull(sprite);
+        var name = sprite.Name.Content;
         Directory.CreateDirectory(folder);
-        JsonObject self = YyFile.Ref("sprites", name);
+        var self = YyFile.Ref("sprites", name);
         JsonArray frames = [];
-        string layerId = YyFile.StableGuid($"{name}/layer");
-        string[] frameIds = Enumerable.Range(0, sprite.Textures.Count).Select(i => YyFile.StableGuid($"{name}/frame/{i}")).ToArray();
+        var layerId = YyFile.StableGuid($"{name}/layer");
+        string[] frameIds = [.. Enumerable.Range(0, sprite.Textures.Count).Select(i => YyFile.StableGuid($"{name}/frame/{i}"))];
 
         using TextureWorker worker = new();
-        for (int i = 0; i < frameIds.Length; i++)
+        for (var i = 0; i < frameIds.Length; i++)
         {
-            string png = Path.Combine(folder, frameIds[i] + ".png");
+            var png = Path.Combine(folder, frameIds[i] + ".png");
             worker.ExportAsPNG(sprite.Textures[i].Texture, png, name, true);
-            string layerPng = Path.Combine(folder, "layers", frameIds[i], layerId + ".png");
+            var layerPng = Path.Combine(folder, "layers", frameIds[i], layerId + ".png");
             Directory.CreateDirectory(Path.GetDirectoryName(layerPng));
             File.Copy(png, layerPng, true);
-            JsonObject frame = YyFile.Resource(format, "GMSpriteFrame", frameIds[i], "1.0", "v1");
+            var frame = YyFile.Resource(format, "GMSpriteFrame", frameIds[i], "1.0", "v1");
             if (format == YyFormat.Lts2022)
             {
                 JsonObject FrameRef(string layer) => new() { ["FrameId"] = new JsonObject { ["name"] = frameIds[i], ["path"] = self["path"].ToString() }, ["LayerId"] = layer is null ? null : new JsonObject { ["name"] = layer, ["path"] = self["path"].ToString() } };
@@ -201,8 +205,8 @@ public static class YySprite
             frames.Add(frame);
         }
 
-        bool perFrame = sprite.CollisionMasks.Count > 1;
-        JsonObject root = YyFile.Resource(format, "GMSprite", name, "1.0", "v2");
+        var perFrame = sprite.CollisionMasks.Count > 1;
+        var root = YyFile.Resource(format, "GMSprite", name, "1.0", "v2");
         root["bboxMode"] = (int)sprite.BBoxMode;
         root["collisionKind"] = sprite.SepMasks switch
         {
@@ -243,7 +247,7 @@ public static class YySprite
 
     private static JsonObject Layer(YyFormat format, string id)
     {
-        JsonObject layer = YyFile.Resource(format, "GMImageLayer", id, "1.0", "");
+        var layer = YyFile.Resource(format, "GMImageLayer", id, "1.0", "");
         layer["visible"] = true;
         layer["isLocked"] = false;
         layer["blendMode"] = 0;
@@ -254,8 +258,8 @@ public static class YySprite
 
     private static JsonObject NineSliceJson(GameMakerSprite sprite, YyFormat format)
     {
-        GameMakerSprite.NineSlice slice = sprite.V3NineSlice;
-        JsonObject o = YyFile.Resource(format, "GMNineSliceData", "", "1.0", "");
+        var slice = sprite.V3NineSlice;
+        var o = YyFile.Resource(format, "GMNineSliceData", "", "1.0", "");
         o.Remove("name");
         o.Remove("%Name");
         o["enabled"] = slice?.Enabled ?? false;
@@ -272,10 +276,10 @@ public static class YySprite
 
     private static JsonObject Sequence(GameMakerSprite sprite, YyFormat format, JsonObject self, string[] frameIds)
     {
-        string name = sprite.Name.Content;
+        var name = sprite.Name.Content;
         JsonObject Store(string type, JsonArray keys)
         {
-            JsonObject store = new();
+            JsonObject store = [];
             if (format == YyFormat.Lts2026)
                 store[$"$KeyframeStore<{type}>"] = "";
             store["Keyframes"] = keys;
@@ -285,7 +289,7 @@ public static class YySprite
         }
         JsonObject FrameRef(string id) => new() { ["name"] = id, ["path"] = self["path"].ToString() };
         JsonArray keys = [];
-        for (int i = 0; i < frameIds.Length; i++)
+        for (var i = 0; i < frameIds.Length; i++)
         {
             JsonObject key = new()
             {
@@ -304,7 +308,7 @@ public static class YySprite
             };
             keys.Add(key);
         }
-        JsonObject track = YyFile.Resource(format, "GMSpriteFramesTrack", "frames", "1.0", "");
+        var track = YyFile.Resource(format, "GMSpriteFramesTrack", "frames", "1.0", "");
         track["spriteId"] = null;
         track["keyframes"] = Store("SpriteFrameKeyframe", keys);
         track["trackColour"] = 0;
@@ -317,7 +321,7 @@ public static class YySprite
         track["isCreationTrack"] = false;
         track["modifiers"] = new JsonArray();
 
-        JsonObject seq = YyFile.Resource(format, "GMSequence", name, "1.4", "v1");
+        var seq = YyFile.Resource(format, "GMSequence", name, "1.4", "v1");
         seq["spriteId"] = self.DeepClone();
         seq["timeUnits"] = 1;
         seq["playback"] = (int)(sprite.V2Sequence?.Playback ?? GameMakerSequence.PlaybackType.Loop);

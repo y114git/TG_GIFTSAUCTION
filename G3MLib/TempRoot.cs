@@ -1,5 +1,3 @@
-using System.Threading;
-
 namespace G3MLib;
 
 /// <summary>Folder for the library's temporary files; a test can redirect it for the current async flow only.</summary>

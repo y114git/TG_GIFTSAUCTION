@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -33,8 +32,8 @@ public static class YyFile
     /// </summary>
     public static JsonElement Parse(string path)
     {
-        using FileStream stream = File.OpenRead(path);
-        using JsonDocument document = JsonDocument.Parse(stream, ReadOptions);
+        using var stream = File.OpenRead(path);
+        using var document = JsonDocument.Parse(stream, ReadOptions);
         return document.RootElement.Clone();
     }
 
@@ -43,30 +42,31 @@ public static class YyFile
     /// </summary>
     public static void Write(string path, JsonObject root)
     {
+        ArgumentNullException.ThrowIfNull(root);
         Directory.CreateDirectory(Path.GetDirectoryName(path));
         File.WriteAllText(path, root.ToJsonString(WriteOptions));
     }
 
     internal static int Int(this JsonElement e, string name, int fallback = 0) =>
-        e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out JsonElement v) && v.ValueKind == JsonValueKind.Number ? (int)v.GetDouble() : fallback;
+        e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number ? (int)v.GetDouble() : fallback;
 
     internal static uint Uint(this JsonElement e, string name, uint fallback = 0) =>
-        e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out JsonElement v) && v.ValueKind == JsonValueKind.Number ? (uint)v.GetDouble() : fallback;
+        e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number ? (uint)v.GetDouble() : fallback;
 
     internal static float Float(this JsonElement e, string name, float fallback = 0) =>
-        e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out JsonElement v) && v.ValueKind == JsonValueKind.Number ? v.GetSingle() : fallback;
+        e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number ? v.GetSingle() : fallback;
 
     internal static bool Bool(this JsonElement e, string name, bool fallback = false) =>
-        e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out JsonElement v) && v.ValueKind is JsonValueKind.True or JsonValueKind.False ? v.GetBoolean() : fallback;
+        e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out var v) && v.ValueKind is JsonValueKind.True or JsonValueKind.False ? v.GetBoolean() : fallback;
 
-    internal static string Str(this JsonElement e, string name, string fallback = null) =>
-        e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out JsonElement v) && v.ValueKind == JsonValueKind.String ? v.GetString() : fallback;
+    internal static string Str(this JsonElement e, string name, string? fallback = null) =>
+        e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : fallback;
 
     /// <summary>
     /// Returns the child object or array, or an undefined element when absent or null.
     /// </summary>
     internal static JsonElement Child(this JsonElement e, string name) =>
-        e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out JsonElement v) && v.ValueKind is JsonValueKind.Object or JsonValueKind.Array ? v : default;
+        e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out var v) && v.ValueKind is JsonValueKind.Object or JsonValueKind.Array ? v : default;
 
     /// <summary>
     /// Items of an array child; nothing when absent.
@@ -84,7 +84,7 @@ public static class YyFile
     /// </summary>
     internal static JsonObject Resource(YyFormat format, string type, string name, string version2022, string discriminator)
     {
-        JsonObject o = new();
+        JsonObject o = [];
         if (format == YyFormat.Lts2026)
         {
             o[$"${type}"] = discriminator;

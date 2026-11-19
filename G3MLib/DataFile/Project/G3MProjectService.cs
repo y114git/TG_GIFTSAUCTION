@@ -1,21 +1,13 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 using G3MLib.DataFile.Compiler;
-using G3MLib.DataFile.Models;
-using G3MLib.Modding.Integrity;
-using G3MLib.Modding.Patching;
-using G3MLib.Modding.Resources;
+using G3MLib.Modding.Internal;
 
 namespace G3MLib.DataFile.Project;
 
@@ -117,11 +109,22 @@ public static class G3MProjectService
     /// <summary>
     /// Writes <paramref name="data"/> as a project into <paramref name="projectDirectory"/>.
     /// </summary>
+    /// <remarks>
+    /// Resources are written into a staging folder and moved into place once all of them are done, so cancelling
+    /// leaves the project folder exactly as it was (a folder this call created is removed again).
+    /// Cancellation is honoured until the resources are written; moving them into place and writing the
+    /// project file are not interrupted. A resource that cannot be exported is left out and reported in
+    /// <see cref="G3MProjectResult.Warnings"/>.
+    /// </remarks>
     /// <param name="data">Game data to write.</param>
     /// <param name="projectDirectory">Project folder; managed resource folders in it are replaced.</param>
     /// <param name="baseDataFilePath">Data file the data was read from, recorded as the project's base file (may be null).</param>
     /// <param name="options">Project name and mode.</param>
-    public static G3MProjectResult Export(GameMakerData data, string projectDirectory, string baseDataFilePath, G3MProjectOptions options)
+    /// <param name="progress">Receives the number of resources done, the total (complete once every type has started) and the name of the resource just written; may be null.</param>
+    /// <param name="cancellationToken">Cancels the export.</param>
+    /// <exception cref="OperationCanceledException">The token was cancelled.</exception>
+    public static G3MProjectResult Export(GameMakerData data, string projectDirectory, string? baseDataFilePath, G3MProjectOptions options,
+        IProgress<BatchProgress>? progress = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(options);
@@ -129,67 +132,131 @@ public static class G3MProjectService
         {
             throw new ArgumentException("Delta mode needs the resources to write in Only", nameof(options));
         }
-        projectDirectory = Path.GetFullPath(projectDirectory);
-        Directory.CreateDirectory(projectDirectory);
-        string projectPath = Path.Join(projectDirectory, options.Name + FileExtension);
-        List<string> warnings = [];
+        return Write(data, projectDirectory, baseDataFilePath, options, false, progress, cancellationToken);
+    }
 
-        CultureInfo previousCulture = CultureInfo.CurrentCulture;
+    /// <summary>
+    /// Writes only the resources named in <see cref="G3MProjectOptions.Only"/> into an existing project folder.
+    /// </summary>
+    /// <remarks>
+    /// The files written for a resource are the ones <see cref="Export"/> writes for it, and the project file
+    /// ends up identical to a full export of the same data, so a rename needs only the renamed resource and the
+    /// resources that refer to it. Folders of other resources are not touched and their recorded hashes are kept,
+    /// so a file edited by hand since the export still counts as changed on build. An existing resource whose
+    /// folder name is in <c>Only</c> (the old name of a renamed resource, or a deleted one) is removed when the data
+    /// no longer has it. Types whose files hold the whole list (strings, variables, functions) are rewritten
+    /// when named in <c>Only</c>, whatever names are listed. A name that has several resources
+    /// (<c>name__idxNNNN</c>) matches all of them. The project keeps its mode; <see cref="G3MProjectOptions.Mode"/> is ignored.
+    /// Progress and cancellation work as in <see cref="Export"/>; a cancelled update leaves the folder as it was.
+    /// </remarks>
+    /// <returns>The result with <see cref="G3MProjectResult.Resources"/> set to the number of resources written.</returns>
+    /// <exception cref="ProjectException">There is no project file named <see cref="G3MProjectOptions.Name"/> in the folder.</exception>
+    /// <exception cref="OperationCanceledException">The token was cancelled.</exception>
+    public static G3MProjectResult Update(GameMakerData data, string projectDirectory, string? baseDataFilePath, G3MProjectOptions options,
+        IProgress<BatchProgress>? progress = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        ArgumentNullException.ThrowIfNull(options);
+        if (options.Only is null)
+        {
+            throw new ArgumentException("Update needs the resources to write in Only", nameof(options));
+        }
+        return Write(data, projectDirectory, baseDataFilePath, options, true, progress, cancellationToken);
+    }
+
+    private static G3MProjectResult Write(GameMakerData data, string projectDirectory, string? baseDataFilePath, G3MProjectOptions options,
+        bool update, IProgress<BatchProgress> progress, CancellationToken cancellationToken)
+    {
+        using var gate = data.Gate.BeginRead(cancellationToken: cancellationToken);
+        projectDirectory = Path.GetFullPath(projectDirectory);
+        var projectPath = Path.Join(projectDirectory, options.Name + FileExtension);
+        var existing = ReadExisting(projectPath);
+        if (update && existing is null)
+        {
+            throw new ProjectException($"There is no project file \"{projectPath}\" to update");
+        }
+        var filtered = update || options.Mode == ProjectExportMode.Delta;
+        var createdDirectory = !Directory.Exists(projectDirectory);
+        Directory.CreateDirectory(projectDirectory);
+        List<string> warnings = [];
+        HashSet<string> touched = [];
+        var written = 0;
+        var committed = false;
+
+        var previousCulture = CultureInfo.CurrentCulture;
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-        string staging = Path.Join(projectDirectory, ".staging-" + Guid.NewGuid().ToString("N"));
-        int previousMinWorkers = 0;
+        var staging = Path.Join(projectDirectory, ".staging-" + Guid.NewGuid().ToString("N"));
+        var previousMinWorkers = 0;
         try
         {
             Directory.CreateDirectory(staging);
             // Types only read the model and write to their own staging folder, so they run side by side;
             // warnings are collected per type and added in type order to keep the output deterministic.
-            string[] typeWarnings = new string[ResourceFolders.Length];
+            var typeWarnings = new string[ResourceFolders.Length];
             // Most of the time goes into file writes that block on the file system, so the pool is allowed more threads than cores.
             ExportText.NormalizeForProject = true;
-            ThreadPool.GetMinThreads(out previousMinWorkers, out int minIo);
+            ThreadPool.GetMinThreads(out previousMinWorkers, out var minIo);
             ThreadPool.SetMinThreads(Math.Max(previousMinWorkers, Environment.ProcessorCount * 6), minIo);
-            Parallel.For(0, ResourceFolders.Length, i =>
-            {
-                string type = ResourceFolders[i].Type;
-                HashSet<string> filter = null;
-                if (options.Mode == ProjectExportMode.Delta)
+            // Inside a batch run an item that fails is reported as a Failed result and the rest of its type goes on.
+            var items = BatchRun.Run(staging, progress, cancellationToken, () =>
+                Parallel.For(0, ResourceFolders.Length, new ParallelOptions { CancellationToken = cancellationToken }, i =>
                 {
-                    if (!options.Only.TryGetValue(type, out IReadOnlySet<string> names))
+                    var type = ResourceFolders[i].Type;
+                    HashSet<string>? filter = null;
+                    if (filtered)
                     {
-                        return;
+                        if (!options.Only.TryGetValue(type, out var names))
+                        {
+                            return;
+                        }
+                        filter = [.. names];
                     }
-                    filter = [.. names];
-                }
-                CultureInfo threadCulture = CultureInfo.CurrentCulture;
-                CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-                try
-                {
-                    ExportType(data, staging, baseDataFilePath ?? "", type, filter);
-                }
-                catch (Exception e)
-                {
-                    string partial = Path.Join(staging, TypeDirectoryName(type));
-                    if (Directory.Exists(partial))
+                    var threadCulture = CultureInfo.CurrentCulture;
+                    CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+                    try
                     {
-                        Directory.Delete(partial, true);
+                        ExportType(data, staging, baseDataFilePath ?? "", type, filter);
                     }
-                    typeWarnings[i] = $"{type} was not exported: {e.Message}";
-                }
-                finally
-                {
-                    CultureInfo.CurrentCulture = threadCulture;
-                }
-            });
+                    catch (Exception e) when (!ModdingCancellation.IsCancellation(e))
+                    {
+                        var partial = Path.Join(staging, TypeDirectoryName(type));
+                        if (Directory.Exists(partial))
+                        {
+                            Directory.Delete(partial, true);
+                        }
+                        typeWarnings[i] = $"{type} was not exported: {e.Message}";
+                    }
+                    finally
+                    {
+                        CultureInfo.CurrentCulture = threadCulture;
+                    }
+                }));
             warnings.AddRange(typeWarnings.Where(w => w is not null));
+            warnings.AddRange(items.Where(r => r.Kind == ResultKind.Failed).Select(r => $"{r.Name} was not exported: {r.Message}"));
 
-            foreach ((string type, string folder) in ResourceFolders)
+            committed = true;
+            for (var i = 0; i < ResourceFolders.Length; i++)
             {
-                string target = Path.Join(projectDirectory, folder);
+                (var type, var folder) = ResourceFolders[i];
+                var target = Path.Join(projectDirectory, folder);
+                var exported = Path.Join(staging, TypeDirectoryName(type));
+                if (update)
+                {
+                    if (typeWarnings[i] is null && options.Only.TryGetValue(type, out var names))
+                    {
+                        written += MergeUnits(exported, target, folder, names, touched);
+                    }
+                    continue;
+                }
+                // A failed type keeps its old folder, and a delta export leaves types it did not export alone.
+                if (typeWarnings[i] is not null || (filtered && !options.Only.ContainsKey(type)))
+                {
+                    continue;
+                }
                 if (Directory.Exists(target))
                 {
                     Directory.Delete(target, true);
                 }
-                string exported = Path.Join(staging, TypeDirectoryName(type));
                 if (Directory.Exists(exported))
                 {
                     Directory.CreateDirectory(Path.GetDirectoryName(target));
@@ -202,7 +269,7 @@ public static class G3MProjectService
             ExportText.NormalizeForProject = false;
             if (previousMinWorkers > 0)
             {
-                ThreadPool.GetMinThreads(out _, out int restoreIo);
+                ThreadPool.GetMinThreads(out _, out var restoreIo);
                 ThreadPool.SetMinThreads(previousMinWorkers, restoreIo);
             }
             CultureInfo.CurrentCulture = previousCulture;
@@ -210,16 +277,22 @@ public static class G3MProjectService
             {
                 Directory.Delete(staging, true);
             }
+            if (createdDirectory && !committed && !Directory.EnumerateFileSystemEntries(projectDirectory).Any())
+            {
+                Directory.Delete(projectDirectory);
+            }
         }
 
-        ProjectFile existing = ReadExisting(projectPath);
+        var known = update
+            ? existing.Resources.Where(r => !touched.Contains(r.Id.Path)).ToDictionary(r => r.Id.Path, r => r.Hash, StringComparer.Ordinal)
+            : null;
         ProjectFile project = new()
         {
             Name = options.Name,
             FormatVersion = FormatVersion,
-            Mode = options.Mode == ProjectExportMode.Full ? "full" : "delta",
-            BaseFile = DescribeBaseFile(baseDataFilePath),
-            Resources = ListResources(projectDirectory),
+            Mode = update ? existing.Mode : options.Mode == ProjectExportMode.Full ? "full" : "delta",
+            BaseFile = update && baseDataFilePath is null ? existing.BaseFile : DescribeBaseFile(baseDataFilePath),
+            Resources = ListResources(projectDirectory, known),
             Folders = existing?.Folders ?? [],
             Deleted = options.Deleted is null
                 ? existing?.Deleted ?? []
@@ -230,7 +303,53 @@ public static class G3MProjectService
             TextureGroups = [.. (data.TextureGroupInfo ?? []).Select(g => new NamedEntry(g?.Name?.Content))]
         };
         WriteProjectFile(projectPath, project);
-        return new() { Path = projectPath, Resources = project.Resources.Count, Warnings = warnings };
+        return new() { Path = projectPath, Resources = update ? written : project.Resources.Count, Warnings = warnings };
+    }
+
+    // Replaces the units of one type in place: units of the listed names and units exported again are removed,
+    // then the exported ones are moved in. Returns how many were moved.
+    private static int MergeUnits(string exported, string target, string folder, IReadOnlySet<string> names, HashSet<string> touched)
+    {
+        foreach (var unit in ListUnits(target))
+        {
+            var name = Path.GetFileName(unit);
+            var index = name.LastIndexOf("__idx", StringComparison.Ordinal);
+            if (!names.Contains(name) && !(index > 0 && names.Contains(name[..index])) && !Path.Exists(Path.Join(exported, name)))
+            {
+                continue;
+            }
+            if (Directory.Exists(unit))
+            {
+                Directory.Delete(unit, true);
+            }
+            else
+            {
+                File.Delete(unit);
+            }
+            touched.Add($"{folder}/{name}");
+        }
+        var moved = 0;
+        foreach (var unit in ListUnits(exported))
+        {
+            var name = Path.GetFileName(unit);
+            Directory.CreateDirectory(target);
+            if (Directory.Exists(unit))
+            {
+                Directory.Move(unit, Path.Join(target, name));
+            }
+            else
+            {
+                File.Move(unit, Path.Join(target, name));
+            }
+            touched.Add($"{folder}/{name}");
+            moved++;
+        }
+        // A full export has no folder for a type without resources.
+        if (Directory.Exists(target) && !Directory.EnumerateFileSystemEntries(target).Any())
+        {
+            Directory.Delete(target);
+        }
+        return moved;
     }
 
     /// <summary>
@@ -248,10 +367,10 @@ public static class G3MProjectService
     public static G3MProjectResult Build(string projectFile, string baseDataFilePath, string outputDataFilePath)
     {
         projectFile = Path.GetFullPath(projectFile);
-        string root = Path.GetDirectoryName(projectFile);
-        ProjectFile project = ReadExisting(projectFile) ?? throw new ProjectException($"Could not read project file \"{projectFile}\"");
+        var root = Path.GetDirectoryName(projectFile);
+        var project = ReadExisting(projectFile) ?? throw new ProjectException($"Could not read project file \"{projectFile}\"");
         List<string> warnings = [];
-        bool baseVerified = false;
+        var baseVerified = false;
         if (project.BaseFile is { Md5: not null } recorded)
         {
             FileInfo info = new(baseDataFilePath);
@@ -263,26 +382,26 @@ public static class G3MProjectService
             }
         }
 
-        CultureInfo previousCulture = CultureInfo.CurrentCulture;
+        var previousCulture = CultureInfo.CurrentCulture;
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-        string staging = Path.Join(TempRoot.Path,"g3mproj-" + Guid.NewGuid().ToString("N"));
+        var staging = Path.Join(TempRoot.Path, "g3mproj-" + Guid.NewGuid().ToString("N"));
         try
         {
-            Dictionary<string, string> recordedHashes = project.Resources.ToDictionary(r => r.Id.Path, r => r.Hash, StringComparer.Ordinal);
-            bool skipUnchanged = baseVerified && project.Mode == "full";
-            int unchanged = 0;
+            var recordedHashes = project.Resources.ToDictionary(r => r.Id.Path, r => r.Hash, StringComparer.Ordinal);
+            var skipUnchanged = baseVerified && project.Mode == "full";
+            var unchanged = 0;
             Dictionary<string, List<string>> changed = new(StringComparer.Ordinal);
-            foreach ((string type, string folder) in ResourceFolders)
+            foreach ((var type, var folder) in ResourceFolders)
             {
-                foreach (string unit in ListUnits(Path.Join(root, folder)))
+                foreach (var unit in ListUnits(Path.Join(root, folder)))
                 {
-                    string relative = $"{folder}/{Path.GetFileName(unit)}";
-                    if (skipUnchanged && recordedHashes.TryGetValue(relative, out string hash) && hash == HashUnit(unit))
+                    var relative = $"{folder}/{Path.GetFileName(unit)}";
+                    if (skipUnchanged && recordedHashes.TryGetValue(relative, out var hash) && hash == HashUnit(unit))
                     {
                         unchanged++;
                         continue;
                     }
-                    if (!changed.TryGetValue(type, out List<string> units))
+                    if (!changed.TryGetValue(type, out var units))
                     {
                         changed[type] = units = [];
                     }
@@ -290,14 +409,14 @@ public static class G3MProjectService
                 }
             }
             HashSet<string> present = [.. ResourceFolders.SelectMany(f => ListUnits(Path.Join(root, f.Folder)).Select(u => $"{f.Folder}/{Path.GetFileName(u)}"))];
-            foreach (string missing in recordedHashes.Keys.Where(k => !present.Contains(k)))
+            foreach (var missing in recordedHashes.Keys.Where(k => !present.Contains(k)))
             {
                 warnings.Add($"\"{missing}\" is in the project file but missing on disk; it stays in the data file.");
             }
 
-            using GameMakerData data = ReadData(baseDataFilePath);
-            int imported = 0;
-            foreach (DeletedEntry deleted in project.Deleted)
+            using var data = ReadData(baseDataFilePath);
+            var imported = 0;
+            foreach (var deleted in project.Deleted)
             {
                 if (PatchService.DeleteResource(data, deleted.Type, deleted.Name))
                 {
@@ -311,7 +430,7 @@ public static class G3MProjectService
             // The room order still points at a deleted room, which the writer cannot resolve.
             if (data.GeneralInfo?.RoomOrder is { } roomOrder)
             {
-                for (int i = roomOrder.Count - 1; i >= 0; i--)
+                for (var i = roomOrder.Count - 1; i >= 0; i--)
                 {
                     if (!data.Rooms.Contains(roomOrder[i].Resource))
                     {
@@ -322,20 +441,15 @@ public static class G3MProjectService
             ResourceImportService.SetPatchFileSystem(null);
             ResourceImportService.SetDataPaths(baseDataFilePath, outputDataFilePath);
             // Strings first so strings added by other imports land after the project's own.
-            foreach (string type in (string[])["Strings", .. ResourceTypeRegistry.ImportOrder, "UILayers", "Variables", "Functions"])
+            foreach (var type in (string[])["Strings", .. ResourceTypeRegistry.ImportOrder, "UILayers", "Variables", "Functions"])
             {
-                if (!changed.TryGetValue(type, out List<string> units))
+                if (!changed.TryGetValue(type, out var units))
                 {
                     continue;
                 }
-                if (type == "CodeEntries")
-                {
-                    imported += ImportCode(data, units, warnings);
-                    continue;
-                }
-                string typeDirectory = Path.Join(staging, type);
+                var typeDirectory = Path.Join(staging, type);
                 Directory.CreateDirectory(typeDirectory);
-                foreach (string unit in units)
+                foreach (var unit in units)
                 {
                     CopyUnit(unit, Path.Join(typeDirectory, Path.GetFileName(unit)));
                 }
@@ -343,6 +457,11 @@ public static class G3MProjectService
                 {
                     ProjectDataTypes.Import(type, data, typeDirectory);
                     imported += units.Count;
+                    continue;
+                }
+                if (type == "CodeEntries")
+                {
+                    imported += ImportCode(data, typeDirectory, warnings);
                     continue;
                 }
                 if (!ResourceImportService.Import(type, data, typeDirectory))
@@ -357,13 +476,11 @@ public static class G3MProjectService
             ApplyResourceOrder(data, project.ResourceOrder);
             if (imported > 0)
             {
-                DataIntegrityResult integrity = DataIntegrityService.RepairAndValidate(data);
+                var integrity = DataIntegrityService.RepairAndValidate(data);
                 warnings.AddRange(integrity.Errors);
             }
 
-            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outputDataFilePath)));
-            using FileStream output = new(outputDataFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
-            GameMakerIO.Write(output, data);
+            AtomicFile.Write(outputDataFilePath, output => GameMakerIO.Write(output, data));
             return new() { Path = outputDataFilePath, Resources = imported, Unchanged = unchanged, Warnings = warnings };
         }
         finally
@@ -385,15 +502,15 @@ public static class G3MProjectService
     /// <param name="cancellationToken">Cancels the open.</param>
     /// <exception cref="ProjectException">When the project cannot be read or is newer than this library.</exception>
     /// <exception cref="OperationCanceledException">The token was cancelled.</exception>
-    public static Task<G3MProject> OpenAsync(string projectFile, IProgress<GameMakerProgress> progress = null, CancellationToken cancellationToken = default)
+    public static Task<G3MProject> OpenAsync(string projectFile, IProgress<GameMakerProgress>? progress = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(projectFile);
         return Task.Run(() =>
         {
             cancellationToken.ThrowIfCancellationRequested();
-            string path = Path.GetFullPath(projectFile);
+            var path = Path.GetFullPath(projectFile);
             progress?.Report(new GameMakerProgress(0.0, "Project file"));
-            ProjectFile file = ReadExisting(path) ?? throw new ProjectException($"Could not read project file \"{path}\"");
+            var file = ReadExisting(path) ?? throw new ProjectException($"Could not read project file \"{path}\"");
             if (file.FormatVersion > FormatVersion)
             {
                 throw new ProjectException($"Project format version {file.FormatVersion} is newer than the supported version {FormatVersion}");
@@ -457,41 +574,22 @@ public static class G3MProjectService
         }
     }
 
-    // Code is compiled from the .gml file of each changed entry; the .asm files are read-only companions.
-    private static int ImportCode(GameMakerData data, List<string> units, List<string> warnings)
+    // Any failure, a compile error included, stops the build as a ProjectException, also inside a batch run that would only collect it
+    private static int ImportCode(GameMakerData data, string typeDirectory, List<string> warnings)
     {
-        Dictionary<string, CodeArchiveEntryDescriptor> byKey = CodeEntryArchiveIdentity.DescribeEntriesByKey(data);
-        CodeImportGroup group = new(data) { AutoCreateAssets = false };
-        int queued = 0;
-        foreach (string unit in units.OrderBy(Path.GetFileName, StringComparer.Ordinal))
+        try
         {
-            string key = Path.GetFileName(unit);
-            string gml = Path.Join(unit, key + ".gml");
-            if (!File.Exists(gml))
+            var failures = ResourceImportService.ImportCodeEntriesForProject(data, typeDirectory, warnings, out var imported);
+            if (failures.Count > 0)
             {
-                continue;
+                throw new ProjectException("Code entries failed to import:\n" + string.Join('\n', failures));
             }
-            string name = byKey.TryGetValue(key, out CodeArchiveEntryDescriptor descriptor) ? descriptor.LogicalName : key;
-            if (descriptor is { Occurrence: > 1 })
-            {
-                warnings.Add($"Code entry \"{name}\" occurs more than once and was not imported.");
-                continue;
-            }
-            group.QueueReplace(name, File.ReadAllText(gml));
-            queued++;
+            return imported;
         }
-        if (queued > 0)
+        catch (Exception e) when (e is not ProjectException && !ModdingCancellation.IsCancellation(e))
         {
-            try
-            {
-                group.Import(true);
-            }
-            catch (Exception e)
-            {
-                throw new ProjectException(e.Message, e);
-            }
+            throw new ProjectException(e.Message, e);
         }
-        return queued;
     }
 
     // A unit is one entry of a resource folder: a resource directory, or a single file for project-wide settings.
@@ -505,31 +603,33 @@ public static class G3MProjectService
     }
 
     // Normalizes the text files of every unit and hashes the result; units are processed in parallel, the list keeps its order.
-    private static List<ResourceEntry> ListResources(string projectDirectory)
+    // A unit that has a hash in known keeps it.
+    private static List<ResourceEntry> ListResources(string projectDirectory, Dictionary<string, string>? known = null)
     {
         List<(string Type, string Folder, string Unit)> units = [];
-        foreach ((string type, string folder) in ResourceFolders)
+        foreach ((var type, var folder) in ResourceFolders)
         {
             units.AddRange(ListUnits(Path.Join(projectDirectory, folder)).Select(unit => (type, folder, unit)));
         }
-        string[] hashes = new string[units.Count];
-        Parallel.For(0, units.Count, i => hashes[i] = HashUnit(units[i].Unit, true));
+        var hashes = new string[units.Count];
+        Parallel.For(0, units.Count, i =>
+            hashes[i] = known is not null && known.TryGetValue($"{units[i].Folder}/{Path.GetFileName(units[i].Unit)}", out var hash) ? hash : HashUnit(units[i].Unit, true));
         return [.. units.Select((u, i) =>
         {
-            string name = Path.GetFileName(u.Unit);
+            var name = Path.GetFileName(u.Unit);
             return new ResourceEntry { Id = new(name, $"{u.Folder}/{name}"), Type = u.Type, Hash = hashes[i] };
         })];
     }
 
     private static string HashUnit(string unit, bool normalize = false)
     {
-        string root = Directory.Exists(unit) ? unit : Path.GetDirectoryName(unit);
-        IEnumerable<string> files = Directory.Exists(unit) ? Directory.EnumerateFiles(unit, "*", SearchOption.AllDirectories) : [unit];
-        using IncrementalHash hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
-        foreach (string file in files.OrderBy(f => Path.GetRelativePath(root, f).Replace(Path.DirectorySeparatorChar, '/'), StringComparer.Ordinal))
+        var root = Directory.Exists(unit) ? unit : Path.GetDirectoryName(unit);
+        var files = Directory.Exists(unit) ? Directory.EnumerateFiles(unit, "*", SearchOption.AllDirectories) : [unit];
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        foreach (var file in files.OrderBy(f => Path.GetRelativePath(root, f).Replace(Path.DirectorySeparatorChar, '/'), StringComparer.Ordinal))
         {
-            byte[] name = Encoding.UTF8.GetBytes(Path.GetRelativePath(root, file).Replace(Path.DirectorySeparatorChar, '/'));
-            byte[] content = normalize && TextExtensions.Contains(Path.GetExtension(file), StringComparer.OrdinalIgnoreCase)
+            var name = Encoding.UTF8.GetBytes(Path.GetRelativePath(root, file).Replace(Path.DirectorySeparatorChar, '/'));
+            var content = normalize && TextExtensions.Contains(Path.GetExtension(file), StringComparer.OrdinalIgnoreCase)
                 ? ProjectContext.NormalizeTextFile(file)
                 : File.ReadAllBytes(file);
             hash.AppendData(BitConverter.GetBytes(name.Length));
@@ -548,9 +648,9 @@ public static class G3MProjectService
             return;
         }
         Directory.CreateDirectory(destination);
-        foreach (string file in Directory.EnumerateFiles(unit, "*", SearchOption.AllDirectories))
+        foreach (var file in Directory.EnumerateFiles(unit, "*", SearchOption.AllDirectories))
         {
-            string target = Path.Join(destination, Path.GetRelativePath(unit, file));
+            var target = Path.Join(destination, Path.GetRelativePath(unit, file));
             Directory.CreateDirectory(Path.GetDirectoryName(target));
             File.Copy(file, target, true);
         }
@@ -558,7 +658,7 @@ public static class G3MProjectService
 
     private static string HashFile(string path)
     {
-        using FileStream stream = File.OpenRead(path);
+        using var stream = File.OpenRead(path);
         return Convert.ToHexStringLower(MD5.HashData(stream));
     }
 
@@ -579,7 +679,7 @@ public static class G3MProjectService
         }
         try
         {
-            JsonObject node = JsonNode.Parse(File.ReadAllText(path), null, new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip }) as JsonObject
+            var node = JsonNode.Parse(File.ReadAllText(path), null, new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip }) as JsonObject
                 ?? throw new ProjectException($"Project file \"{path}\" is not valid: the root is not an object");
             return Migrate(node, path).Deserialize<ProjectFile>(JsonOptions);
         }
@@ -595,14 +695,14 @@ public static class G3MProjectService
 
     private static JsonObject Migrate(JsonObject project, string path)
     {
-        int version = project["formatVersion"]?.GetValue<int>() ?? 0;
+        var version = project["formatVersion"]?.GetValue<int>() ?? 0;
         if (version > FormatVersion)
         {
             throw new ProjectException($"Project \"{path}\" uses format version {version}, which is newer than the version {FormatVersion} this library supports. Update G3MLib to open it.");
         }
         while (version < FormatVersion)
         {
-            if (!Migrations.TryGetValue(version, out Func<JsonObject, JsonObject> migrate))
+            if (!Migrations.TryGetValue(version, out var migrate))
             {
                 throw new ProjectException($"Project \"{path}\" has an unknown format version {version}; versions before {FormatVersion} cannot be migrated.");
             }
@@ -615,7 +715,7 @@ public static class G3MProjectService
 
     private static void WriteProjectFile(string path, ProjectFile project)
     {
-        File.WriteAllText(path, JsonSerializer.Serialize(project, JsonOptions) + "\n", Utf8NoBom);
+        AtomicFile.Write(path, stream => stream.Write(Utf8NoBom.GetBytes(JsonSerializer.Serialize(project, JsonOptions) + "\n")));
     }
 
     private sealed record ResourceList(string Type, Func<List<string>> Names, Action<IReadOnlyList<string>> Apply);
@@ -648,9 +748,9 @@ public static class G3MProjectService
     private static Dictionary<string, List<string>> CaptureResourceOrder(GameMakerData data)
     {
         Dictionary<string, List<string>> order = new(StringComparer.Ordinal);
-        foreach (ResourceList list in ResourceLists(data))
+        foreach (var list in ResourceLists(data))
         {
-            List<string> names = list.Names();
+            var names = list.Names();
             if (names.Count > 0)
             {
                 order[list.Type] = names;
@@ -661,9 +761,9 @@ public static class G3MProjectService
 
     private static void ApplyResourceOrder(GameMakerData data, Dictionary<string, List<string>> order)
     {
-        foreach (ResourceList list in ResourceLists(data))
+        foreach (var list in ResourceLists(data))
         {
-            if (order.TryGetValue(list.Type, out List<string> names))
+            if (order.TryGetValue(list.Type, out var names))
             {
                 list.Apply(names);
             }
@@ -675,9 +775,9 @@ public static class G3MProjectService
     private static void ApplyOrder<T>(IList<T> list, IReadOnlyList<string> order) where T : GameMakerNamedResource
     {
         Dictionary<string, T> byName = new(StringComparer.Ordinal);
-        foreach (T item in list)
+        foreach (var item in list)
         {
-            string name = item?.Name?.Content;
+            var name = item?.Name?.Content;
             if (name is null || !byName.TryAdd(name, item))
             {
                 return;
@@ -685,9 +785,9 @@ public static class G3MProjectService
         }
         HashSet<string> placed = new(StringComparer.Ordinal);
         List<T> sorted = [];
-        foreach (string name in order)
+        foreach (var name in order)
         {
-            if (name is not null && byName.TryGetValue(name, out T item) && placed.Add(name))
+            if (name is not null && byName.TryGetValue(name, out var item) && placed.Add(name))
             {
                 sorted.Add(item);
             }
@@ -698,7 +798,7 @@ public static class G3MProjectService
             return;
         }
         list.Clear();
-        foreach (T item in sorted)
+        foreach (var item in sorted)
         {
             list.Add(item);
         }

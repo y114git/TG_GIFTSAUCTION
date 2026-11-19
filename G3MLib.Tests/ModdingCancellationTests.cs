@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Models;
 using G3MLib.Modding.Diffing;
@@ -11,7 +5,6 @@ using G3MLib.Modding.Logging;
 using G3MLib.Modding.Merging;
 using G3MLib.Modding.Patching;
 using G3MLib.Modding.Resources;
-using Xunit;
 
 namespace G3MLib.Tests;
 
@@ -43,9 +36,9 @@ public sealed class ModdingCancellationTests : IDisposable
     }
 
     // The seq folders are shared parents the library keeps between runs; only what is inside them counts.
-    private string[] TempEntries() => Directory.GetFileSystemEntries(_tempDir, "*", SearchOption.AllDirectories)
+    private string[] TempEntries() => [.. Directory.GetFileSystemEntries(_tempDir, "*", SearchOption.AllDirectories)
         .Where(path => Path.GetFileName(path) is not ("g3mlib_seq_hash" or "g3mlib_seq_import"))
-        .Select(path => Path.GetRelativePath(_tempDir, path)).Order().ToArray();
+        .Select(path => Path.GetRelativePath(_tempDir, path)).Order()];
 
     private static CancellationToken Cancelled()
     {
@@ -58,7 +51,7 @@ public sealed class ModdingCancellationTests : IDisposable
     private static async Task CancelFromProgress(int percent, Func<CancellationToken, Task> operation)
     {
         using CancellationTokenSource source = new();
-        using IDisposable scope = LogService.BeginScope(null, progress =>
+        using var scope = LogService.BeginScope(null, progress =>
         {
             if (progress.Total > 0 && progress.Current * 100 >= percent * progress.Total) source.Cancel();
         });
@@ -68,31 +61,44 @@ public sealed class ModdingCancellationTests : IDisposable
 
     private void CreateInputs()
     {
-        using (GameMakerData data = GameMakerData.CreateNew2026LTS())
-        {
-            Write(Original, data);
-            data.Rooms[0].Width++;
-            Write(Modified, data);
-        }
+        using var data = GameMakerData.CreateNew2026LTS();
+        Write(Original, data);
+        data.Rooms[0].Width++;
+        Write(Modified, data);
     }
 
     private async Task CreatePatchFile() => Assert.True((await PatchService.CreatePatchAsync(Original, Modified, Patch, cancellationToken: TestContext.Current.CancellationToken)).Success);
 
     private static void Write(string path, GameMakerData data)
     {
-        using FileStream stream = File.Create(path);
+        using var stream = File.Create(path);
         GameMakerIO.Write(stream, data);
     }
 
-    private string[] Snapshot() => Directory.GetFileSystemEntries(_dir, "*", SearchOption.AllDirectories).Where(path => !path.StartsWith(_tempDir, StringComparison.Ordinal)).Order().ToArray();
+    private string[] Snapshot() => [.. Directory.GetFileSystemEntries(_dir, "*", SearchOption.AllDirectories).Where(path => !path.StartsWith(_tempDir, StringComparison.Ordinal)).Order()];
 
     private async Task AssertCleanAfter(Func<Task> operation)
     {
-        string[] files = Snapshot();
-        string[] temp = TempEntries();
+        var files = Snapshot();
+        var temp = TempEntries();
         await operation();
         Assert.Equal(files, Snapshot());
         Assert.Equal(temp, TempEntries());
+    }
+
+    [Fact]
+    public async Task FailedMergeDoesNotLeaveLoggingSuppressed()
+    {
+        CreateInputs();
+        var bad1 = Path.Combine(_dir, "bad1.xdelta");
+        var bad2 = Path.Combine(_dir, "bad2.xdelta");
+        await File.WriteAllTextAsync(bad1, "not a patch", TestContext.Current.CancellationToken);
+        await File.WriteAllTextAsync(bad2, "not a patch", TestContext.Current.CancellationToken);
+
+        var result = await MergeService.MergePatchesAsync(Original, [bad1, bad2], new MergeOptions { OutputPath = Path.Combine(_dir, "out.g3mpatch") }, TestContext.Current.CancellationToken);
+
+        Assert.False(result.Success);
+        Assert.False(LogService.Suppress);
     }
 
     [Fact]
@@ -124,7 +130,7 @@ public sealed class ModdingCancellationTests : IDisposable
     {
         CreateInputs();
         await CreatePatchFile();
-        string output = Path.Combine(_dir, "output.win");
+        var output = Path.Combine(_dir, "output.win");
         await File.WriteAllTextAsync(output, "previous", TestContext.Current.CancellationToken);
         await AssertCleanAfter(() => Assert.ThrowsAnyAsync<OperationCanceledException>(() => PatchService.ApplyPatchAsync(Original, Patch, output, cancellationToken: Cancelled())));
         Assert.Equal("previous", await File.ReadAllTextAsync(output, TestContext.Current.CancellationToken));
@@ -138,7 +144,7 @@ public sealed class ModdingCancellationTests : IDisposable
     {
         CreateInputs();
         await CreatePatchFile();
-        string output = Path.Combine(_dir, "output.win");
+        var output = Path.Combine(_dir, "output.win");
         await File.WriteAllTextAsync(output, "previous", TestContext.Current.CancellationToken);
         await AssertCleanAfter(() => CancelFromProgress(percent, token => PatchService.ApplyPatchAsync(Original, Patch, output, cancellationToken: token)));
         Assert.Equal("previous", await File.ReadAllTextAsync(output, TestContext.Current.CancellationToken));
@@ -157,14 +163,14 @@ public sealed class ModdingCancellationTests : IDisposable
     {
         CreateInputs();
         await CreatePatchFile();
-        string other = Path.Combine(_dir, "other.win");
-        using (GameMakerData data = GameMakerData.CreateNew2026LTS())
+        var other = Path.Combine(_dir, "other.win");
+        using (var data = GameMakerData.CreateNew2026LTS())
         {
             data.Rooms[0].Width += 5;
             Write(other, data);
         }
         using CancellationTokenSource source = new();
-        using IDisposable scope = LogService.BeginScope(message => source.Cancel(), null);
+        using var scope = LogService.BeginScope(message => source.Cancel(), null);
         await AssertCleanAfter(() => Assert.ThrowsAnyAsync<OperationCanceledException>(() => PatchService.ValidatePatchAsync(Patch, other, cancellationToken: source.Token)));
         Assert.True(source.IsCancellationRequested);
     }
@@ -173,14 +179,14 @@ public sealed class ModdingCancellationTests : IDisposable
     {
         CreateInputs();
         await CreatePatchFile();
-        string merged = Path.Combine(_dir, "merged.g3mpatch");
-        string applied = Path.Combine(_dir, "merged.win");
+        var merged = Path.Combine(_dir, "merged.g3mpatch");
+        var applied = Path.Combine(_dir, "merged.win");
         await File.WriteAllTextAsync(merged, "previous", TestContext.Current.CancellationToken);
         await File.WriteAllTextAsync(applied, "previous", TestContext.Current.CancellationToken);
         return (merged, applied);
     }
 
-    private async Task AssertMergeOutputsKept((string Patch, string Applied) outputs)
+    private static async Task AssertMergeOutputsKept((string Patch, string Applied) outputs)
     {
         Assert.Equal("previous", await File.ReadAllTextAsync(outputs.Patch, TestContext.Current.CancellationToken));
         Assert.Equal("previous", await File.ReadAllTextAsync(outputs.Applied, TestContext.Current.CancellationToken));
@@ -218,7 +224,7 @@ public sealed class ModdingCancellationTests : IDisposable
     {
         CreateInputs();
         await CreatePatchFile();
-        string report = Path.Combine(_dir, "report.md");
+        var report = Path.Combine(_dir, "report.md");
         await File.WriteAllTextAsync(report, "previous", TestContext.Current.CancellationToken);
         return kind switch
         {
@@ -258,8 +264,8 @@ public sealed class ModdingCancellationTests : IDisposable
 
     private static GameMakerData DataWithResources()
     {
-        GameMakerData data = GameMakerData.CreateNew2026LTS();
-        for (int i = 0; i < 3; i++)
+        var data = GameMakerData.CreateNew2026LTS();
+        for (var i = 0; i < 3; i++)
         {
             data.GameObjects.Add(new GameMakerGameObject { Name = data.Strings.MakeString($"obj_{i}") });
             data.Rooms.Add(new GameMakerRoom { Name = data.Strings.MakeString($"room_{i}") });
@@ -272,14 +278,14 @@ public sealed class ModdingCancellationTests : IDisposable
     [InlineData(true)]
     public void ExportTypesCancelledEarlyLeavesOutputUntouched(bool outputExists)
     {
-        using GameMakerData data = DataWithResources();
-        string output = Path.Combine(_dir, "export");
+        using var data = DataWithResources();
+        var output = Path.Combine(_dir, "export");
         if (outputExists)
         {
             Directory.CreateDirectory(output);
             File.WriteAllText(Path.Combine(output, "keep.txt"), "keep");
         }
-        string[] before = Snapshot();
+        var before = Snapshot();
         Assert.ThrowsAny<OperationCanceledException>(() => ResourceExportService.ExportTypes(data, output, Original, ["GameObjects", "Rooms"], Cancelled()));
         Assert.Equal(before, Snapshot());
     }
@@ -289,14 +295,14 @@ public sealed class ModdingCancellationTests : IDisposable
     [InlineData(true)]
     public void ExportTypesCancelledMidWayRemovesPartialOutput(bool outputExists)
     {
-        using GameMakerData data = DataWithResources();
-        string output = Path.Combine(_dir, "export");
+        using var data = DataWithResources();
+        var output = Path.Combine(_dir, "export");
         if (outputExists)
         {
             Directory.CreateDirectory(output);
             File.WriteAllText(Path.Combine(output, "keep.txt"), "keep");
         }
-        string[] before = Snapshot();
+        var before = Snapshot();
         using CancellationTokenSource source = new();
         IEnumerable<string> Types()
         {
@@ -312,11 +318,11 @@ public sealed class ModdingCancellationTests : IDisposable
     [Fact]
     public void ExportSelectiveCancelledFromLogRemovesPartialOutput()
     {
-        using GameMakerData data = DataWithResources();
-        string output = Path.Combine(_dir, "export");
-        string[] before = Snapshot();
+        using var data = DataWithResources();
+        var output = Path.Combine(_dir, "export");
+        var before = Snapshot();
         using CancellationTokenSource source = new();
-        using IDisposable scope = LogService.BeginScope(message => source.Cancel(), null, verbose: true);
+        using var scope = LogService.BeginScope(message => source.Cancel(), null, verbose: true);
         Dictionary<string, HashSet<string>> changed = new() { ["GameObjects"] = ["obj_0"], ["Rooms"] = ["room_0"] };
         Assert.ThrowsAny<OperationCanceledException>(() => ResourceExportService.ExportSelectiveExceptCode(data, output, Original, changed, source.Token));
         Assert.True(source.IsCancellationRequested);
@@ -326,8 +332,8 @@ public sealed class ModdingCancellationTests : IDisposable
     [Fact]
     public void ExportCodeEntriesCancelledEarlyThrows()
     {
-        using GameMakerData data = DataWithResources();
-        string output = Path.Combine(_dir, "export");
+        using var data = DataWithResources();
+        var output = Path.Combine(_dir, "export");
         Assert.ThrowsAny<OperationCanceledException>(() => ResourceExportService.ExportCodeEntries(data, output, Cancelled()));
         Assert.ThrowsAny<OperationCanceledException>(() => ResourceExportService.ExportCodeEntriesSelective(data, output, ["a"], Cancelled()));
         Assert.False(Directory.Exists(output));
@@ -335,11 +341,11 @@ public sealed class ModdingCancellationTests : IDisposable
 
     private string WriteTimelines()
     {
-        string input = Path.Combine(_dir, "import");
-        for (int i = 0; i < 3; i++)
+        var input = Path.Combine(_dir, "import");
+        for (var i = 0; i < 3; i++)
         {
             Directory.CreateDirectory(Path.Combine(input, $"timeline_{i}"));
-            File.WriteAllText(Path.Combine(input, $"timeline_{i}", $"timeline_{i}.json"), "{\"moments\":[]}");
+            File.WriteAllText(Path.Combine(input, $"timeline_{i}", $"timeline_{i}.json"), /*lang=json*/ "{\"moments\":[]}");
         }
         return input;
     }
@@ -347,9 +353,9 @@ public sealed class ModdingCancellationTests : IDisposable
     [Fact]
     public void ImportCancelledEarlyLeavesInputUntouched()
     {
-        string input = WriteTimelines();
-        string[] before = Snapshot();
-        using GameMakerData data = GameMakerData.CreateNew2026LTS();
+        var input = WriteTimelines();
+        var before = Snapshot();
+        using var data = GameMakerData.CreateNew2026LTS();
         Assert.ThrowsAny<OperationCanceledException>(() => ResourceImportService.Import("Timelines", data, input, Cancelled()));
         Assert.ThrowsAny<OperationCanceledException>(() => ResourceImportService.ImportAssetOrder(data, input, Cancelled()));
         Assert.Equal(before, Snapshot());
@@ -359,12 +365,12 @@ public sealed class ModdingCancellationTests : IDisposable
     [Fact]
     public void ImportCancelledMidWayLeavesInputUntouched()
     {
-        string input = WriteTimelines();
+        var input = WriteTimelines();
         File.WriteAllText(Path.Combine(input, "timeline_1", "timeline_1.json"), "not json");
-        string[] before = Snapshot();
-        using GameMakerData data = GameMakerData.CreateNew2026LTS();
+        var before = Snapshot();
+        using var data = GameMakerData.CreateNew2026LTS();
         using CancellationTokenSource source = new();
-        using IDisposable scope = LogService.BeginScope(message => source.Cancel(), null, verbose: true);
+        using var scope = LogService.BeginScope(message => source.Cancel(), null, verbose: true);
         Assert.ThrowsAny<OperationCanceledException>(() => ResourceImportService.Import("Timelines", data, input, source.Token));
         Assert.True(source.IsCancellationRequested);
         Assert.Single(data.Timelines);

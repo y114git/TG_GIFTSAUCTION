@@ -4,8 +4,6 @@
   file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 
-using System.Collections.Generic;
-
 namespace G3MLib.Analyzer.Decompiler.AST;
 
 /// <summary>
@@ -35,6 +33,7 @@ public class DoUntilLoopNode(BlockNode body, IExpressionNode condition) : IState
     /// <inheritdoc/>
     public IStatementNode Clean(ASTCleaner cleaner)
     {
+        ArgumentNullException.ThrowIfNull(cleaner);
         ElseToContinueCleanup.Clean(cleaner, Body);
         Body.Clean(cleaner);
         Condition = Condition.Clean(cleaner);
@@ -48,9 +47,10 @@ public class DoUntilLoopNode(BlockNode body, IExpressionNode condition) : IState
     /// <inheritdoc/>
     public IStatementNode PostClean(ASTCleaner cleaner)
     {
-        cleaner.TopFragmentContext!.PushLocalScope(cleaner.Context, cleaner.TopFragmentContext!.CurrentPostCleanupBlock!, this);
+        ArgumentNullException.ThrowIfNull(cleaner);
+        cleaner.TopFragmentContext.PushLocalScope(cleaner.Context, cleaner.TopFragmentContext.CurrentPostCleanupBlock, this);
         Body.PostClean(cleaner);
-        cleaner.TopFragmentContext!.PopLocalScope(cleaner.Context);
+        cleaner.TopFragmentContext.PopLocalScope(cleaner.Context);
 
         Condition = Condition.PostClean(cleaner);
         return this;
@@ -59,6 +59,7 @@ public class DoUntilLoopNode(BlockNode body, IExpressionNode condition) : IState
     /// <inheritdoc/>
     public void Print(ASTPrinter printer)
     {
+        ArgumentNullException.ThrowIfNull(printer);
         printer.Write("do");
         if (printer.Context.Settings.RemoveSingleLineBlockBraces && !Body.RequiresMultipleLines(printer, false))
         {

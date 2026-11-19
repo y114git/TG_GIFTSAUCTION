@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using G3MLib.DataFile.Models;
-using G3MLib.Modding.Resources;
 
 namespace G3MLib.DataFile;
 
-/// <summary>The three counters of the VARI chunk header.</summary>
+/// <summary>Variable counts 1 and 2 plus the highest local count, as stored in the VARI chunk header.</summary>
 public readonly record struct VariableCounters(uint VarCount1, uint VarCount2, uint MaxLocalVarCount);
 
 /// <summary>
@@ -23,13 +18,13 @@ public static class DataRepair
     {
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(entry);
-        bool modern = data.IsVersionAtLeast(2, 3);
+        var modern = data.IsVersionAtLeast(2, 3);
         GameMakerCodeLocals locals = new() { Name = entry.Name };
-        GameMakerString arguments = data.Strings.MakeString("arguments", out int argumentsId);
+        var arguments = data.Strings.MakeString("arguments", out var argumentsId);
         locals.Locals.Add(new GameMakerCodeLocals.LocalVar { Name = arguments, Index = modern ? (uint)argumentsId : 0 });
         HashSet<GameMakerVariable> seen = new(ReferenceEqualityComparer.Instance);
         uint position = 1;
-        foreach (GameMakerInstruction instruction in entry.Instructions)
+        foreach (var instruction in entry.Instructions)
         {
             if (instruction.ValueVariable is { InstanceType: GameMakerInstruction.InstanceType.Local } variable && seen.Add(variable))
             {
@@ -51,12 +46,12 @@ public static class DataRepair
         {
             return 0;
         }
-        HashSet<string> present = new(data.CodeLocals.Select(l => l?.Name?.Content).Where(n => n is not null)!, StringComparer.Ordinal);
-        int restored = 0;
-        for (int i = 0; i < data.Code.Count; i++)
+        HashSet<string> present = new(data.CodeLocals.Select(l => l?.Name?.Content).Where(n => n is not null), StringComparer.Ordinal);
+        var restored = 0;
+        for (var i = 0; i < data.Code.Count; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            GameMakerCode code = data.Code[i];
+            var code = data.Code[i];
             if (code?.Name?.Content is string name && code.ParentEntry is null && !code.WeirdLocalFlag && present.Add(name))
             {
                 data.CodeLocals.Add(BuildCodeLocals(data, code));
@@ -72,14 +67,14 @@ public static class DataRepair
     /// and the largest local count. Bytecode 15 files that keep two different counts get the highest global id and the highest self id.
     /// </summary>
     /// <remarks>
-    /// Checked against the counters of Undertale, Deltarune chapter 1, Pizza Tower and the 2022 and 2026 fixtures (all equal); the bytecode 15 case is not checked against a real file.
+    /// Checked against the counters of the 2022 to 2026 test fixtures and of several shipped games (all equal); the bytecode 15 case is not checked against a real file.
     /// </remarks>
     public static VariableCounters RecomputeVariableCounters(GameMakerData data)
     {
         ArgumentNullException.ThrowIfNull(data);
         const int builtin = (int)GameMakerInstruction.InstanceType.Builtin;
         static uint Next(IEnumerable<GameMakerVariable> variables) => variables.Aggregate(0u, (highest, v) => Math.Max(highest, (uint)Math.Max(v.VarID + 1, 0)));
-        IEnumerable<GameMakerVariable> shared = (data.Variables ?? []).Where(v => v is not null && v.InstanceType != GameMakerInstruction.InstanceType.Local && v.VarID != builtin);
+        var shared = (data.Variables ?? []).Where(v => v is not null && v.InstanceType != GameMakerInstruction.InstanceType.Local && v.VarID != builtin);
         uint count1, count2;
         if (data.DifferentVarCounts && !data.IsVersionAtLeast(2, 3))
         {
@@ -90,14 +85,14 @@ public static class DataRepair
         {
             count1 = count2 = Next(shared);
         }
-        uint maxLocals = (uint)Math.Max(1, (data.CodeLocals ?? []).Select(l => l?.Locals.Count ?? 0).DefaultIfEmpty(0).Max());
+        var maxLocals = (uint)Math.Max(1, (data.CodeLocals ?? []).Select(l => l?.Locals.Count ?? 0).DefaultIfEmpty(0).Max());
         return new VariableCounters(count1, count2, maxLocals);
     }
 
     /// <summary>Writes <see cref="RecomputeVariableCounters"/> into the VARI header.</summary>
     public static void ApplyVariableCounters(GameMakerData data)
     {
-        VariableCounters counters = RecomputeVariableCounters(data);
+        var counters = RecomputeVariableCounters(data);
         data.VarCount1 = counters.VarCount1;
         data.VarCount2 = counters.VarCount2;
         data.MaxLocalVarCount = counters.MaxLocalVarCount;

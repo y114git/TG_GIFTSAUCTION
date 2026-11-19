@@ -4,9 +4,6 @@
   file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
 using G3MLib.Analyzer.Decompiler.ControlFlow;
 
 namespace G3MLib.Analyzer.Decompiler;
@@ -42,8 +39,8 @@ public sealed class DecompileContext
     public List<IDecompileWarning> Warnings { get; } = [];
 
     // Helpers to refer to data on game context
-    internal bool OlderThanBytecode15 { get => GameContext.Bytecode14OrLower; }
-    internal bool GMLv2 { get => GameContext.UsingGMLv2; }
+    internal bool OlderThanBytecode15 => GameContext.Bytecode14OrLower;
+    internal bool GMLv2 => GameContext.UsingGMLv2;
 
     // Data structures used (and re-used) for decompilation, as well as tests
     internal List<Block>? Blocks { get; set; }
@@ -65,8 +62,8 @@ public sealed class DecompileContext
     internal Dictionary<Block, int>? BlockAfterLimits { get; set; }
     internal List<GMEnum> EnumDeclarations { get; set; } = [];
     internal Dictionary<string, GMEnum> NameToEnumDeclaration { get; set; } = [];
-    internal GMEnum? UnknownEnumDeclaration { get; set; } = null;
-    internal int UnknownEnumReferenceCount { get; set; } = 0;
+    internal GMEnum? UnknownEnumDeclaration { get; set; }
+    internal int UnknownEnumReferenceCount { get; set; }
 
     // Instruction offset that produced each node; only filled when a source map is requested
     internal Dictionary<AST.IBaseASTNode, int>? NodeOffsets { get; set; }
@@ -127,11 +124,7 @@ public sealed class DecompileContext
         {
             throw new DecompilerException($"Decompiler error during control flow analysis: {ex.Message}", ex);
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             throw new DecompilerException($"Unexpected exception thrown in decompiler during control flow analysis: {ex.Message}", ex);
         }
@@ -149,11 +142,7 @@ public sealed class DecompileContext
         {
             throw new DecompilerException($"Decompiler error during AST building: {ex.Message}", ex);
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             throw new DecompilerException($"Unexpected exception thrown in decompiler during AST building: {ex.Message}", ex);
         }
@@ -166,23 +155,19 @@ public sealed class DecompileContext
         {
             ThrowIfCancellationRequested();
             AST.ASTCleaner cleaner = new(this);
-            AST.IStatementNode cleaned = ast.Clean(cleaner);
+            var cleaned = ast.Clean(cleaner);
             if (Settings.CreateEnumDeclarations)
             {
                 AST.EnumDeclNode.GenerateDeclarations(cleaner, cleaned);
             }
-            AST.IStatementNode postCleaned = cleaned.PostClean(cleaner);
+            var postCleaned = cleaned.PostClean(cleaner);
             return postCleaned;
         }
         catch (DecompilerException ex)
         {
             throw new DecompilerException($"Decompiler error during AST cleanup: {ex.Message}", ex);
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             throw new DecompilerException($"Unexpected exception thrown in decompiler during AST cleanup: {ex.Message}", ex);
         }
@@ -195,7 +180,7 @@ public sealed class DecompileContext
     {
         ThrowIfCancellationRequested();
         DecompileControlFlow();
-        AST.IStatementNode ast = DecompileAST();
+        var ast = DecompileAST();
         return CleanupAST(ast);
     }
 
@@ -208,7 +193,7 @@ public sealed class DecompileContext
         ThrowIfCancellationRequested();
         NodeOffsets = new(ReferenceEqualityComparer.Instance);
         SourceMapRecorder recorder = new();
-        AST.IStatementNode ast = DecompileToAST();
+        var ast = DecompileToAST();
         AST.ASTPrinter printer = new(this) { Recorder = recorder };
         if (Settings.PrintWarnings)
         {
@@ -219,7 +204,7 @@ public sealed class DecompileContext
         {
             printer.PrintRemainingWarnings(false);
         }
-        string text = printer.OutputString;
+        var text = printer.OutputString;
         return new DecompiledSource(text, recorder.Build(text, NodeOffsets));
     }
 
@@ -229,7 +214,7 @@ public sealed class DecompileContext
     public string DecompileToString()
     {
         ThrowIfCancellationRequested();
-        AST.IStatementNode ast = DecompileToAST();
+        var ast = DecompileToAST();
         try
         {
             AST.ASTPrinter printer = new(this);
@@ -248,11 +233,7 @@ public sealed class DecompileContext
         {
             throw new DecompilerException($"Decompiler error during AST printing: {ex.Message}", ex);
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             throw new DecompilerException($"Unexpected exception thrown in decompiler during AST printing: {ex.Message}", ex);
         }

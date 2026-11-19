@@ -1,6 +1,4 @@
-using System;
 using System.IO;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using G3MLib.DataFile.Models;
 
@@ -23,23 +21,24 @@ public static class YySound
     /// </summary>
     public static GameMakerSound Read(string yyPath, GameMakerData data)
     {
-        JsonElement root = YyFile.Parse(yyPath);
-        string name = root.Str("name") ?? throw new InvalidDataException($"{yyPath}: sound has no name.");
-        string file = root.Str("soundFile") ?? "";
-        string audioPath = file.Length == 0 ? null : Path.Combine(Path.GetDirectoryName(yyPath), file);
-        int compression = root.Int("compression");
-        bool lossless = file.EndsWith(".wav", StringComparison.OrdinalIgnoreCase);
+        ArgumentNullException.ThrowIfNull(data);
+        var root = YyFile.Parse(yyPath);
+        var name = root.Str("name") ?? throw new InvalidDataException($"{yyPath}: sound has no name.");
+        var file = root.Str("soundFile") ?? "";
+        var audioPath = file.Length == 0 ? null : Path.Combine(Path.GetDirectoryName(yyPath), file);
+        var compression = root.Int("compression");
+        var lossless = file.EndsWith(".wav", StringComparison.OrdinalIgnoreCase);
         if (audioPath is not null && compression != Uncompressed && compression != Streamed && lossless)
             throw new NotSupportedException($"Sound \"{name}\" is compressed in the project but its source is a wav file, and transcoding is not supported.");
 
-        string groupName = root.Child("audioGroupId").Str("name") ?? "audiogroup_default";
-        int groupId = data.AudioGroups?.IndexOfName(groupName) ?? data.GetBuiltinSoundGroupID();
+        var groupName = root.Child("audioGroupId").Str("name") ?? "audiogroup_default";
+        var groupId = data.AudioGroups?.IndexOfName(groupName) ?? data.GetBuiltinSoundGroupID();
         if (groupId < 0)
             throw new InvalidDataException($"{yyPath}: audio group \"{groupName}\" is not in the data file.");
         if (groupId != data.GetBuiltinSoundGroupID())
             throw new NotSupportedException($"Sound \"{name}\" is in audio group \"{groupName}\", which is stored in a separate file.");
 
-        GameMakerSound sound = data.Sounds.ByName(name);
+        var sound = data.Sounds.ByName(name);
         if (sound is null)
         {
             sound = new() { Name = data.Strings.MakeString(name) };
@@ -62,7 +61,7 @@ public static class YySound
 
         if (compression == Streamed || audioPath is null)
             return sound;
-        GameMakerEmbeddedAudio audio = sound.AudioFile;
+        var audio = sound.AudioFile;
         if (audio is null)
         {
             audio = new();
@@ -79,16 +78,22 @@ public static class YySound
     /// A streamed sound has no embedded audio: <c>soundFile</c> names the external file, which the caller copies.
     /// </summary>
     /// <param name="parent">Folder name shown in the asset browser (LTS 2022), or the project name (LTS 2026).</param>
+    /// <param name="sound">The sound to write.</param>
+    /// <param name="format">The project file format.</param>
+    /// <param name="folder">The folder to write into.</param>
+    /// <param name="data">The game data it belongs to.</param>
     public static void Write(GameMakerSound sound, GameMakerData data, string folder, YyFormat format, string parent = "Sounds")
     {
-        string name = sound.Name.Content;
-        GameMakerSound.AudioEntryFlags flags = sound.Flags;
-        int compression = flags == GameMakerSound.AudioEntryFlags.Regular ? Streamed
+        ArgumentNullException.ThrowIfNull(data);
+        ArgumentNullException.ThrowIfNull(sound);
+        var name = sound.Name.Content;
+        var flags = sound.Flags;
+        var compression = flags == GameMakerSound.AudioEntryFlags.Regular ? Streamed
             : flags.HasFlag(GameMakerSound.AudioEntryFlags.IsDecompressedOnLoad) ? UncompressedOnLoad
             : flags.HasFlag(GameMakerSound.AudioEntryFlags.IsCompressed) ? Compressed
             : Uncompressed;
 
-        string file = Path.GetFileName(sound.File?.Content ?? "");
+        var file = Path.GetFileName(sound.File?.Content ?? "");
         Directory.CreateDirectory(folder);
         if (sound.AudioFile is { Data: { } bytes })
         {
@@ -97,8 +102,8 @@ public static class YySound
             File.WriteAllBytes(Path.Combine(folder, file), bytes);
         }
 
-        string group = data.AudioGroups is { } groups && (uint)sound.GroupID < groups.Count ? groups[sound.GroupID].Name.Content : "audiogroup_default";
-        JsonObject root = YyFile.Resource(format, "GMSound", name, "1.0", "v2");
+        var group = data.AudioGroups is { } groups && (uint)sound.GroupID < groups.Count ? groups[sound.GroupID].Name.Content : "audiogroup_default";
+        var root = YyFile.Resource(format, "GMSound", name, "1.0", "v2");
         root["conversionMode"] = 0;
         root["compression"] = compression;
         root["volume"] = (double)sound.Volume;

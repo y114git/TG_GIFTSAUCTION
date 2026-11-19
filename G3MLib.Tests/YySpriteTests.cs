@@ -1,12 +1,8 @@
-using System;
-using System.IO;
-using System.Linq;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Interop;
 using G3MLib.DataFile.Models;
 using G3MLib.DataFile.Util;
 using ImageMagick;
-using Xunit;
 
 namespace G3MLib.Tests;
 
@@ -22,7 +18,7 @@ public sealed class YySpriteTests : IDisposable
 
     private static GameMakerData Load(string fixture)
     {
-        using FileStream input = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures", fixture));
+        using var input = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures", fixture));
         return GameMakerIO.Read(input);
     }
 
@@ -37,16 +33,16 @@ public sealed class YySpriteTests : IDisposable
     // Two frames of 8x6: frame 0 is opaque on the left half, frame 1 on the right half.
     private string WriteSource(bool trailingCommas)
     {
-        string folder = Path.Combine(_root, "sprites", "spr_test");
+        var folder = Path.Combine(_root, "sprites", "spr_test");
         Directory.CreateDirectory(folder);
-        for (int i = 0; i < 2; i++)
+        for (var i = 0; i < 2; i++)
         {
             using MagickImage image = new(MagickColors.Transparent, 8, 6);
-            using MagickImage half = new(new MagickColor((byte)(100 + (i * 100)), 20, 30, 255), 4, 6);
+            using MagickImage half = new(new MagickColor((byte)(100 + i * 100), 20, 30, 255), 4, 6);
             image.Composite(half, i * 4, 0, CompositeOperator.Over);
             image.Write(Path.Combine(folder, $"frame{i}.png"), MagickFormat.Png32);
         }
-        string comma = trailingCommas ? "," : "";
+        var comma = trailingCommas ? "," : "";
         File.WriteAllText(Path.Combine(folder, "spr_test.yy"), $$"""
             {
               "$GMSprite":"v2","%Name":"spr_test","bboxMode":2,"bbox_bottom":5,"bbox_left":1,"bbox_right":6,"bbox_top":0,
@@ -63,15 +59,13 @@ public sealed class YySpriteTests : IDisposable
     private static byte[][] Frames(GameMakerData data, string name)
     {
         using TextureWorker worker = new();
-        return data.Sprites.ByName(name).Textures
-            .Select(t => { using IMagickImage<byte> image = worker.GetTextureFor(t.Texture, name, true); return image.ToByteArray(MagickFormat.Rgba); })
-            .ToArray();
+        return [.. data.Sprites.ByName(name).Textures.Select(t => { using var image = worker.GetTextureFor(t.Texture, name, true); return image.ToByteArray(MagickFormat.Rgba); })];
     }
 
     private static GameMakerSprite Import(GameMakerData data, string yy)
     {
         TexturePageRepacker repacker = new(data);
-        GameMakerSprite sprite = YySprite.Read(yy, data, repacker);
+        var sprite = YySprite.Read(yy, data, repacker);
         repacker.Repack();
         return sprite;
     }
@@ -81,8 +75,8 @@ public sealed class YySpriteTests : IDisposable
     [InlineData("data-2026.win", false)]
     public void ReadsFieldsFramesAndMasks(string fixture, bool trailingCommas)
     {
-        using GameMakerData data = Load(fixture);
-        GameMakerSprite sprite = Import(data, WriteSource(trailingCommas));
+        using var data = Load(fixture);
+        var sprite = Import(data, WriteSource(trailingCommas));
 
         Assert.Equal((8u, 6u), (sprite.Width, sprite.Height));
         Assert.Equal((1, 6, 0, 5), (sprite.MarginLeft, sprite.MarginRight, sprite.MarginTop, sprite.MarginBottom));
@@ -97,7 +91,7 @@ public sealed class YySpriteTests : IDisposable
         using MagickImage expected = new(Path.Combine(_root, "sprites", "spr_test", "frame0.png"));
         Assert.Equal(expected.ToByteArray(MagickFormat.Rgba), Frames(data, "spr_test")[0]);
 
-        using GameMakerData reloaded = RoundTrip(data);
+        using var reloaded = RoundTrip(data);
         Assert.Equal(Frames(data, "spr_test"), Frames(reloaded, "spr_test"));
     }
 
@@ -106,15 +100,15 @@ public sealed class YySpriteTests : IDisposable
     [InlineData(YyFormat.Lts2026)]
     public void WriteThenReadIsStable(YyFormat format)
     {
-        using GameMakerData first = Load("data-2026.win");
+        using var first = Load("data-2026.win");
         Import(first, WriteSource(false));
-        using GameMakerData reloaded = RoundTrip(first);
-        string folder = Path.Combine(_root, "out", format.ToString());
+        using var reloaded = RoundTrip(first);
+        var folder = Path.Combine(_root, "out", format.ToString());
         YySprite.Write(reloaded.Sprites.ByName("spr_test"), folder, format);
-        string yy = File.ReadAllText(Path.Combine(folder, "spr_test.yy"));
+        var yy = File.ReadAllText(Path.Combine(folder, "spr_test.yy"));
 
-        using GameMakerData second = Load("data-2026.win");
-        GameMakerSprite again = Import(second, Path.Combine(folder, "spr_test.yy"));
+        using var second = Load("data-2026.win");
+        var again = Import(second, Path.Combine(folder, "spr_test.yy"));
 
         Assert.Equal(Frames(first, "spr_test"), Frames(second, "spr_test"));
         Assert.Equal((8u, 6u, 2u), (again.Width, again.Height, again.BBoxMode));

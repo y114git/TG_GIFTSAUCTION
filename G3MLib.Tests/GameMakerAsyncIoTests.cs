@@ -1,11 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using G3MLib.DataFile;
-using Xunit;
 
 namespace G3MLib.Tests;
 
@@ -35,7 +28,7 @@ public sealed class GameMakerAsyncIoTests : IDisposable
     {
         Assert.NotEmpty(recorder.Items);
         double previous = 0;
-        foreach (GameMakerProgress item in recorder.Items)
+        foreach (var item in recorder.Items)
         {
             Assert.InRange(item.Fraction, previous, 1.0);
             Assert.False(string.IsNullOrEmpty(item.Chunk));
@@ -48,7 +41,7 @@ public sealed class GameMakerAsyncIoTests : IDisposable
     public async Task ReadAsyncReportsMonotonicProgressUpToOne()
     {
         Recorder recorder = new();
-        using GameMakerData data = await GameMakerIO.ReadAsync(FixturePath, recorder);
+        using var data = await GameMakerIO.ReadAsync(FixturePath, recorder, TestContext.Current.CancellationToken);
         AssertMonotonicToOne(recorder);
         Assert.NotNull(data.GeneralInfo);
     }
@@ -56,28 +49,28 @@ public sealed class GameMakerAsyncIoTests : IDisposable
     [Fact]
     public async Task WriteAsyncReportsMonotonicProgressUpToOne()
     {
-        using GameMakerData data = await GameMakerIO.ReadAsync(FixturePath);
+        using var data = await GameMakerIO.ReadAsync(FixturePath, cancellationToken: TestContext.Current.CancellationToken);
         Recorder recorder = new();
-        await GameMakerIO.WriteAsync(Path.Combine(_dir, "out.win"), data, recorder);
+        await GameMakerIO.WriteAsync(Path.Combine(_dir, "out.win"), data, recorder, TestContext.Current.CancellationToken);
         AssertMonotonicToOne(recorder);
     }
 
     [Fact]
     public async Task AsyncAndSyncOutputsAreByteIdentical()
     {
-        byte[] original = File.ReadAllBytes(FixturePath);
+        var original = File.ReadAllBytes(FixturePath);
         using MemoryStream syncInput = new(original);
-        using GameMakerData syncData = GameMakerIO.Read(syncInput);
+        using var syncData = GameMakerIO.Read(syncInput);
         using MemoryStream syncOutput = new();
         GameMakerIO.Write(syncOutput, syncData);
 
-        using GameMakerData asyncData = await GameMakerIO.ReadAsync(FixturePath);
-        string target = Path.Combine(_dir, "out.win");
-        await GameMakerIO.WriteAsync(target, asyncData);
+        using var asyncData = await GameMakerIO.ReadAsync(FixturePath, cancellationToken: TestContext.Current.CancellationToken);
+        var target = Path.Combine(_dir, "out.win");
+        await GameMakerIO.WriteAsync(target, asyncData, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(syncOutput.ToArray(), File.ReadAllBytes(target));
         using MemoryStream streamOutput = new();
-        await GameMakerIO.WriteAsync(streamOutput, asyncData);
+        await GameMakerIO.WriteAsync(streamOutput, asyncData, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(syncOutput.ToArray(), streamOutput.ToArray());
     }
 
@@ -101,8 +94,8 @@ public sealed class GameMakerAsyncIoTests : IDisposable
     [Fact]
     public async Task CancelledWriteLeavesTargetUntouchedAndNoTempFile()
     {
-        using GameMakerData data = await GameMakerIO.ReadAsync(FixturePath);
-        string target = Path.Combine(_dir, "out.win");
+        using var data = await GameMakerIO.ReadAsync(FixturePath, cancellationToken: TestContext.Current.CancellationToken);
+        var target = Path.Combine(_dir, "out.win");
         byte[] sentinel = [1, 2, 3, 4];
         File.WriteAllBytes(target, sentinel);
 
@@ -117,8 +110,8 @@ public sealed class GameMakerAsyncIoTests : IDisposable
     [Fact]
     public async Task CancelledWriteCreatesNoTargetWhenNoneExisted()
     {
-        using GameMakerData data = await GameMakerIO.ReadAsync(FixturePath);
-        string target = Path.Combine(_dir, "new.win");
+        using var data = await GameMakerIO.ReadAsync(FixturePath, cancellationToken: TestContext.Current.CancellationToken);
+        var target = Path.Combine(_dir, "new.win");
         using CancellationTokenSource cts = new();
         cts.Cancel();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => GameMakerIO.WriteAsync(target, data, null, cts.Token));

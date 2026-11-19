@@ -1,7 +1,5 @@
 using System.IO;
-using System.Threading;
 using G3MLib.DataFile;
-using G3MLib.DataFile.Models;
 
 namespace G3MLib.Modding.Resources;
 
@@ -16,7 +14,7 @@ public static partial class ResourceExportService
 		{
 			BatchRun.Expect(1);
 			export();
-			bool written = Directory.Exists(Path.Combine(outputDir, type));
+			var written = Directory.Exists(Path.Combine(outputDir, type));
 			BatchRun.Item(type, written ? ResultKind.Written : ResultKind.Skipped, written ? null : "Nothing to export");
 		});
 
@@ -47,6 +45,9 @@ public static partial class ResourceExportService
 	public static IReadOnlyList<ItemResult> ExportExtensions(GameMakerData data, string outputDir, IProgress<BatchProgress>? progress, CancellationToken cancellationToken) =>
 		BatchRun.Run(outputDir, progress, cancellationToken, () => ExportExtensions(data, outputDir));
 
+	public static IReadOnlyList<ItemResult> ExportExtensions(GameMakerData data, string outputDir, ISet<string>? filter, IProgress<BatchProgress>? progress, CancellationToken cancellationToken) =>
+		BatchRun.Run(outputDir, progress, cancellationToken, () => ExportExtensions(data, outputDir, AsSet(filter)));
+
 	public static IReadOnlyList<ItemResult> ExportScripts(GameMakerData data, string outputDir, ISet<string>? filter, IProgress<BatchProgress>? progress, CancellationToken cancellationToken) =>
 		BatchRun.Run(outputDir, progress, cancellationToken, () => ExportScripts(data, outputDir, AsSet(filter)));
 
@@ -71,7 +72,7 @@ public static partial class ResourceExportService
 	public static IReadOnlyList<ItemResult> ExportFonts(GameMakerData data, string outputDir, ISet<string>? filter, IProgress<BatchProgress>? progress, CancellationToken cancellationToken) =>
 		BatchRun.Run(outputDir, progress, cancellationToken, () => ExportFonts(data, outputDir, AsSet(filter)));
 
-	public static IReadOnlyList<ItemResult> ExportSounds(GameMakerData data, string outputDir, string dataFilePath, ISet<string>? filter, IProgress<BatchProgress>? progress, CancellationToken cancellationToken) =>
+	public static IReadOnlyList<ItemResult> ExportSounds(GameMakerData data, string outputDir, string? dataFilePath, ISet<string>? filter, IProgress<BatchProgress>? progress, CancellationToken cancellationToken) =>
 		BatchRun.Run(outputDir, progress, cancellationToken, () => ExportSounds(data, outputDir, dataFilePath, AsSet(filter)));
 
 	public static IReadOnlyList<ItemResult> ExportEmbeddedAudio(GameMakerData data, string outputDir, ISet<string>? filter, IProgress<BatchProgress>? progress, CancellationToken cancellationToken) =>

@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using G3MLib.Analyzer.Decompiler;
 using G3MLib.DataFile.Decompiler;
 using G3MLib.DataFile.Models;
@@ -21,10 +16,8 @@ public class ScriptGlobals : IScriptInterface
     private int _progress;
     private double _progressMaximum = 100;
     private string _progressStatus = string.Empty;
-    private object _highlighted;
-    private object _selected;
 
-    public ScriptGlobals(GameMakerData data = null, string filePath = "", string scriptPath = null)
+    public ScriptGlobals(GameMakerData? data = null, string filePath = "", string? scriptPath = null)
     {
         Data = data;
         FilePath = filePath ?? string.Empty;
@@ -36,14 +29,19 @@ public class ScriptGlobals : IScriptInterface
     public ProjectContext Project { get; set; }
     public string FilePath { get; set; }
     public string ScriptPath { get; set; }
-    public object Highlighted => _highlighted;
-    public object Selected => _selected;
+    public object Highlighted { get; private set; }
+    public object Selected { get; private set; }
     public bool CanSave { get; set; }
     public bool ScriptExecutionSuccess => ScriptErrorMessage.Length == 0;
     public string ScriptErrorMessage { get; private set; } = string.Empty;
     public string ExePath { get; set; } = AppContext.BaseDirectory;
     public string ScriptErrorType { get; private set; } = string.Empty;
     public bool IsAppClosed { get; set; }
+    /// <summary>
+    /// Ends when the host cancels the run or its timeout passes (see <see cref="ScriptRunner.RunAsync"/>). A long script checks it in its loops; the members of this class check it too.
+    /// </summary>
+    public CancellationToken CancellationToken { get; internal set; }
+
     public Action<Action> MainThreadAction { get; set; } = static action => action();
 
     /// <summary>Receives <see cref="ScriptMessage"/>, <see cref="SetUMTConsoleText"/> and <see cref="SimpleTextOutput"/> text.</summary>
@@ -69,6 +67,7 @@ public class ScriptGlobals : IScriptInterface
 
     public void EnsureDataLoaded()
     {
+        CancellationToken.ThrowIfCancellationRequested();
         if (Data is null)
         {
             throw new ScriptException("No data file is currently loaded!");
@@ -86,7 +85,11 @@ public class ScriptGlobals : IScriptInterface
         return true;
     }
 
-    public virtual void ScriptMessage(string message) => MessageHandler?.Invoke(message);
+    public virtual void ScriptMessage(string message)
+    {
+        CancellationToken.ThrowIfCancellationRequested();
+        MessageHandler?.Invoke(message);
+    }
     public virtual void ScriptWarning(string message) => WarningHandler?.Invoke(message);
     public virtual void SetUMTConsoleText(string message) => ScriptMessage(message);
     public virtual bool ScriptQuestion(string message) => false;
@@ -120,13 +123,13 @@ public class ScriptGlobals : IScriptInterface
     {
     }
 
-    public string GetDecompiledText(string codeName, GlobalDecompileContext context = null, IDecompileSettings settings = null)
+    public string GetDecompiledText(string codeName, GlobalDecompileContext? context = null, IDecompileSettings? settings = null)
     {
         EnsureDataLoaded();
         return GetDecompiledText(Data.Code.ByName(codeName) ?? throw new ScriptException($"Code entry \"{codeName}\" was not found."), context, settings);
     }
 
-    public string GetDecompiledText(GameMakerCode code, GlobalDecompileContext context = null, IDecompileSettings settings = null)
+    public string GetDecompiledText(GameMakerCode code, GlobalDecompileContext? context = null, IDecompileSettings? settings = null)
     {
         EnsureDataLoaded();
         try
@@ -147,6 +150,7 @@ public class ScriptGlobals : IScriptInterface
 
     public string GetDisassemblyText(GameMakerCode code)
     {
+        ArgumentNullException.ThrowIfNull(code);
         EnsureDataLoaded();
         if (code.ParentEntry is not null)
         {
@@ -172,8 +176,8 @@ public class ScriptGlobals : IScriptInterface
             return false;
         }
 
-        byte[] firstBuffer = new byte[81920];
-        byte[] secondBuffer = new byte[81920];
+        var firstBuffer = new byte[81920];
+        var secondBuffer = new byte[81920];
         int read;
         while ((read = first.Read(firstBuffer)) > 0)
         {
@@ -191,8 +195,8 @@ public class ScriptGlobals : IScriptInterface
     public virtual string SimpleTextInput(string title, string label, string defaultValue, bool allowMultiline, bool showDialog = true) => throw UiUnavailable();
     public virtual void SimpleTextOutput(string title, string label, string message, bool allowMultiline) => ScriptMessage(message);
 
-    public virtual Task ClickableSearchOutput(string title, string query, int resultsCount, IOrderedEnumerable<KeyValuePair<string, List<(int lineNum, string codeLine)>>> resultsDict, bool showInDecompiledView, IOrderedEnumerable<string> failedList = null) => Task.CompletedTask;
-    public virtual Task ClickableSearchOutput(string title, string query, int resultsCount, IDictionary<string, List<(int lineNum, string codeLine)>> resultsDict, bool showInDecompiledView, IEnumerable<string> failedList = null) => Task.CompletedTask;
+    public virtual Task ClickableSearchOutput(string title, string query, int resultsCount, IOrderedEnumerable<KeyValuePair<string, List<(int lineNum, string codeLine)>>> resultsDict, bool showInDecompiledView, IOrderedEnumerable<string>? failedList = null) => Task.CompletedTask;
+    public virtual Task ClickableSearchOutput(string title, string query, int resultsCount, IDictionary<string, List<(int lineNum, string codeLine)>> resultsDict, bool showInDecompiledView, IEnumerable<string>? failedList = null) => Task.CompletedTask;
 
     public virtual void SetFinishedMessage(bool isFinishedMessageEnabled)
     {
@@ -208,8 +212,8 @@ public class ScriptGlobals : IScriptInterface
 
     public virtual void ChangeSelection(object newSelection, bool inNewTab = false)
     {
-        _selected = newSelection;
-        _highlighted = newSelection;
+        Selected = newSelection;
+        Highlighted = newSelection;
     }
 
     /// <summary>Called whenever a script changes the progress bar. Hosts override it to show progress.</summary>
@@ -221,6 +225,7 @@ public class ScriptGlobals : IScriptInterface
 
     public void SetProgressBar(string message, string status, double progressValue, double maxValue)
     {
+        CancellationToken.ThrowIfCancellationRequested();
         _progressStatus = status ?? string.Empty;
         Volatile.Write(ref _progressMaximum, maxValue);
         Interlocked.Exchange(ref _progress, ToProgress(progressValue));
@@ -239,7 +244,8 @@ public class ScriptGlobals : IScriptInterface
 
     public void AddProgress(int amount)
     {
-        int value = Interlocked.Add(ref _progress, amount);
+        CancellationToken.ThrowIfCancellationRequested();
+        var value = Interlocked.Add(ref _progress, amount);
         ReportProgress(null, _progressStatus, value, Volatile.Read(ref _progressMaximum));
     }
 
@@ -250,6 +256,7 @@ public class ScriptGlobals : IScriptInterface
 
     public void SetProgress(int value)
     {
+        CancellationToken.ThrowIfCancellationRequested();
         Interlocked.Exchange(ref _progress, value);
         ReportProgress(null, _progressStatus, value, Volatile.Read(ref _progressMaximum));
     }
@@ -263,15 +270,15 @@ public class ScriptGlobals : IScriptInterface
     public virtual Task StopProgressBarUpdater() => Task.CompletedTask;
 
     // GUI-only UndertaleModTool script calls: accepted and ignored so those scripts run unchanged.
-    public void SyncBinding(string resourceType, bool enable)
+    public static void SyncBinding(string resourceType, bool enable)
     {
     }
 
-    public void SyncBinding(bool condition, bool enable)
+    public static void SyncBinding(bool condition, bool enable)
     {
     }
 
-    public void DisableAllSyncBindings()
+    public static void DisableAllSyncBindings()
     {
     }
 

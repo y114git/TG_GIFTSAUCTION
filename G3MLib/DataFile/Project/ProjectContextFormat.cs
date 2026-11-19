@@ -1,7 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using G3MLib.Modding.Internal;
 using System.Text;
 using System.Text.Json;
 
@@ -19,7 +17,7 @@ public enum ProjectExportMode
     Full
 }
 
-partial class ProjectContext
+public partial class ProjectContext
 {
     /// <summary>
     /// Export mode recorded in the project manifest. Projects without a record are <see cref="ProjectExportMode.Delta"/>.
@@ -37,7 +35,7 @@ partial class ProjectContext
         {
             throw new InvalidOperationException("Project has not yet been imported");
         }
-        foreach (IProjectAsset asset in EnumerateAllExportableAssets())
+        foreach (var asset in EnumerateAllExportableAssets())
         {
             MarkAssetForExport(asset);
         }
@@ -73,7 +71,7 @@ partial class ProjectContext
 
     private static string HashBaseFile(string path)
     {
-        using FileStream stream = File.OpenRead(path);
+        using var stream = File.OpenRead(path);
         return Convert.ToHexStringLower(System.Security.Cryptography.MD5.HashData(stream));
     }
 
@@ -83,7 +81,7 @@ partial class ProjectContext
     /// </summary>
     private bool BaseFileMatchesRecord()
     {
-        ProjectMainOptions.G3MOptions record = _mainOptions?.G3M;
+        var record = _mainOptions?.G3M;
         if (record?.BaseFileMd5 is null || LoadDataPath is null || !File.Exists(LoadDataPath))
         {
             return false;
@@ -109,14 +107,14 @@ partial class ProjectContext
 
     private void SaveMainOptions()
     {
-        File.WriteAllText(MainFilePath, JsonSerializer.Serialize(_mainOptions, JsonOptions));
+        AtomicFile.Write(MainFilePath, stream => stream.Write(new UTF8Encoding(false).GetBytes(JsonSerializer.Serialize(_mainOptions, JsonOptions))));
         NormalizeTextFile(MainFilePath);
     }
 
     // Folders (relative to the project root) whose text files are normalized after an export.
     private IEnumerable<string> TextFileRoots()
     {
-        foreach (SerializableAssetType type in Enum.GetValues<SerializableAssetType>())
+        foreach (var type in Enum.GetValues<SerializableAssetType>())
         {
             yield return Path.Join(MainDirectory, type.ToFilesystemNamePlural());
         }
@@ -139,12 +137,12 @@ partial class ProjectContext
     private void NormalizeProjectTextFiles()
     {
         List<string> files = [MainFilePath, Path.Join(MainDirectory, "general-info-options.json")];
-        foreach (string root in TextFileRoots().Where(Directory.Exists))
+        foreach (var root in TextFileRoots().Where(Directory.Exists))
         {
             files.AddRange(Directory.EnumerateFiles(root, "*.json", SearchOption.AllDirectories));
             files.AddRange(Directory.EnumerateFiles(root, "*.gml", SearchOption.AllDirectories));
         }
-        foreach (string file in files.Where(File.Exists))
+        foreach (var file in files.Where(File.Exists))
         {
             NormalizeTextFile(file);
         }
@@ -155,8 +153,8 @@ partial class ProjectContext
     /// </summary>
     internal static byte[] NormalizeTextFile(string path)
     {
-        byte[] original = File.ReadAllBytes(path);
-        byte[] normalized = NormalizeTextBytes(original);
+        var original = File.ReadAllBytes(path);
+        var normalized = NormalizeTextBytes(original);
         if (!ReferenceEquals(normalized, original))
         {
             File.WriteAllBytes(path, normalized);
@@ -175,9 +173,9 @@ partial class ProjectContext
         {
             span = span[Encoding.UTF8.Preamble.Length..];
         }
-        byte[] buffer = new byte[span.Length + 1];
-        int length = 0;
-        for (int i = 0; i < span.Length; i++)
+        var buffer = new byte[span.Length + 1];
+        var length = 0;
+        for (var i = 0; i < span.Length; i++)
         {
             if (span[i] == (byte)'\r' && i + 1 < span.Length && span[i + 1] == (byte)'\n')
             {

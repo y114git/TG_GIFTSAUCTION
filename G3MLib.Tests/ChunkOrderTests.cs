@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using G3MLib.DataFile;
-using Xunit;
 
 namespace G3MLib.Tests;
 
@@ -11,7 +6,7 @@ public sealed class ChunkOrderTests
 {
     private static GameMakerData Load()
     {
-        using FileStream input = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures", "data-2026.win"));
+        using var input = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures", "data-2026.win"));
         return GameMakerIO.Read(input);
     }
 
@@ -20,16 +15,16 @@ public sealed class ChunkOrderTests
         using MemoryStream output = new();
         GameMakerIO.Write(output, data);
         output.Position = 0;
-        using GameMakerData reread = GameMakerIO.Read(output);
+        using var reread = GameMakerIO.Read(output);
         return [.. reread.FORM.ChunkOrder];
     }
 
     [Fact]
     public void RemoveThenAddPutsTheChunkBackInCanonicalPlace()
     {
-        using GameMakerData data = Load();
+        using var data = Load();
         List<string> before = [.. data.FORM.ChunkOrder];
-        GameMakerChunk tags = data.FORM.Chunks["TAGS"];
+        var tags = data.FORM.Chunks["TAGS"];
 
         Assert.True(data.FORM.RemoveChunk("TAGS"));
         Assert.DoesNotContain("TAGS", data.FORM.ChunkOrder);
@@ -44,16 +39,16 @@ public sealed class ChunkOrderTests
     [Fact]
     public void AddingSeveralChunksAfterRemovalsKeepsTheCanonicalOrder()
     {
-        using GameMakerData data = Load();
+        using var data = Load();
         List<string> before = [.. data.FORM.ChunkOrder];
-        Dictionary<string, GameMakerChunk> removed = new();
-        foreach (string name in new[] { "ACRV", "SEQN", "STRG", "GEN8" })
+        Dictionary<string, GameMakerChunk> removed = [];
+        foreach (var name in new[] { "ACRV", "SEQN", "STRG", "GEN8" })
         {
             removed[name] = data.FORM.Chunks[name];
             data.FORM.RemoveChunk(name);
         }
 
-        foreach (string name in new[] { "STRG", "GEN8", "SEQN", "ACRV" })
+        foreach (var name in new[] { "STRG", "GEN8", "SEQN", "ACRV" })
             data.FORM.AddChunk(removed[name]);
 
         Assert.Equal(before, data.FORM.ChunkOrder);
@@ -62,10 +57,10 @@ public sealed class ChunkOrderTests
     [Fact]
     public void UnknownChunkKeepsItsPlaceWhileKnownOnesMove()
     {
-        using GameMakerData data = Load();
+        using var data = Load();
         data.FORM.AddChunk(new GameMakerRawChunk("ZZZZ") { RawData = new byte[16] });
         data.FORM.SetChunkOrder(["GEN8", "ZZZZ", .. data.FORM.ChunkOrder.Where(n => n is not ("GEN8" or "ZZZZ"))]);
-        GameMakerChunk room = data.FORM.Chunks["ROOM"];
+        var room = data.FORM.Chunks["ROOM"];
         data.FORM.RemoveChunk("ROOM");
         data.FORM.AddChunk(room);
 
@@ -77,7 +72,7 @@ public sealed class ChunkOrderTests
     [Fact]
     public void SetChunkOrderRefusesNamesThatAreNotLoaded()
     {
-        using GameMakerData data = Load();
+        using var data = Load();
 
         Assert.Throws<ArgumentException>(() => data.FORM.SetChunkOrder(["GEN8", "NOPE"]));
         Assert.Equal("GEN8", data.FORM.ChunkOrder[0]);
@@ -86,9 +81,38 @@ public sealed class ChunkOrderTests
     [Fact]
     public void CanonicalOrderMatchesTheOrderOfTheFile()
     {
-        using FileStream input = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures", "data-2026.win"));
-        using GameMakerData data = GameMakerIO.Read(input);
+        using var input = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures", "data-2026.win"));
+        using var data = GameMakerIO.Read(input);
 
         Assert.Equal(data.FORM.ChunkOrder, GameMakerChunkFORM.CanonicalOrder.Where(n => data.FORM.Chunks.ContainsKey(n)));
+    }
+
+    [Fact]
+    public void PaddingSkipsOnlyTheLastWrittenChunk()
+    {
+        using var data = Load();
+        data.FORM.AddChunk(new GameMakerRawChunk("ZZZZ") { RawData = new byte[5] });
+        data.FORM.SetChunkOrder(["GEN8", "ZZZZ"]);
+
+        using MemoryStream output = new();
+        GameMakerIO.Write(output, data);
+        var bytes = output.ToArray();
+        var pos = 8;
+        while (pos < bytes.Length - 8)
+        {
+            pos += 8 + BitConverter.ToInt32(bytes, pos + 4);
+            if (pos < bytes.Length)
+                Assert.Equal(0, pos % 16);
+        }
+    }
+
+    [Fact]
+    public void GenerateIndexDictAcceptsAnEmptyYycCodeChunk()
+    {
+        GameMakerChunkCODE chunk = new() { List = null };
+
+        chunk.GenerateIndexDict();
+
+        Assert.Null(chunk.IndexDict);
     }
 }

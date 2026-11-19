@@ -1,4 +1,3 @@
-using Xunit;
 using G3MLib.DataFile.Util;
 
 namespace G3MLib.Tests;
@@ -20,5 +19,15 @@ public class MurmurHashTest
     {
         Assert.Equal(expectedHash, MurmurHash.Hash(str, seed));
     }
-}
 
+    [Theory]
+    [InlineData("a", 3)]
+    [InlineData("é", 600)]
+    [InlineData("€", 300_000)]
+    public void LongTextHashesTheSameAsItsUtf8Bytes(string unit, int repeat)
+    {
+        var text = string.Concat(Enumerable.Repeat(unit, repeat));
+
+        Assert.Equal(MurmurHash.Hash(System.Text.Encoding.UTF8.GetBytes(text)), MurmurHash.Hash(text.AsSpan()));
+    }
+}

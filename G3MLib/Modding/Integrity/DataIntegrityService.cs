@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Models;
 
@@ -10,7 +7,8 @@ public static class DataIntegrityService
 {
 	public static DataIntegrityResult RepairAndValidate(GameMakerData data)
 	{
-		DataIntegrityResult result = new DataIntegrityResult();
+		ArgumentNullException.ThrowIfNull(data);
+		var result = new DataIntegrityResult();
 		RepairScripts(data, result);
 		RepairCodeParentLinks(data, result);
 		RepairCodeSerializationOrder(data, result);
@@ -22,8 +20,7 @@ public static class DataIntegrityService
 		Validate(data, result);
 		if (result.Repairs.Count > 0)
 		{
-			bool shouldAppend;
-			LogInterpolatedStringHandler handler = new LogInterpolatedStringHandler(21, 2, out shouldAppend);
+			var handler = new LogInterpolatedStringHandler(21, 2, out var shouldAppend);
 			if (shouldAppend)
 			{
 				handler.AppendLiteral("[Integrity] Repairs: ");
@@ -41,7 +38,8 @@ public static class DataIntegrityService
 
 	public static DataIntegrityResult ValidateOnly(GameMakerData data)
 	{
-		DataIntegrityResult result = new DataIntegrityResult();
+		ArgumentNullException.ThrowIfNull(data);
+		var result = new DataIntegrityResult();
 		Validate(data, result);
 		if (result.Errors.Count > 0)
 		{
@@ -52,11 +50,11 @@ public static class DataIntegrityService
 
 	private static void RepairGeneralInfoBranch(GameMakerData data, DataIntegrityResult result)
 	{
-		GameMakerGeneralInfo gi = data.GeneralInfo;
+		var gi = data.GeneralInfo;
 		if (gi != null && gi.BytecodeVersion == 17 && gi.Major == 2023 && gi.Minor == 6 && gi.Release == 0 && gi.Build == 0 && gi.Branch != GameMakerGeneralInfo.BranchType.LTS2022_0)
 		{
 			gi.Branch = GameMakerGeneralInfo.BranchType.LTS2022_0;
-			result.Repairs.Add("restored GeneralInfo branch to LTS2022_0 for 2023.6.0.0 bytecode-17 data");
+			result.Repair("GEN8.Branch", "GEN8", "restored GeneralInfo branch to LTS2022_0 for 2023.6.0.0 bytecode-17 data");
 		}
 	}
 
@@ -66,11 +64,11 @@ public static class DataIntegrityService
 		{
 			return;
 		}
-		int builtinGroupId = data.GetBuiltinSoundGroupID();
-		int relinkedBuiltin = 0;
-		int clearedExternal = 0;
-		int clearedEmptyTypes = 0;
-		foreach (GameMakerSound sound in data.Sounds)
+		var builtinGroupId = data.GetBuiltinSoundGroupID();
+		var relinkedBuiltin = 0;
+		var clearedExternal = 0;
+		var clearedEmptyTypes = 0;
+		foreach (var sound in data.Sounds)
 		{
 			if (sound == null)
 			{
@@ -97,15 +95,15 @@ public static class DataIntegrityService
 		}
 		if (relinkedBuiltin > 0)
 		{
-			result.Repairs.Add($"relinked {relinkedBuiltin} builtin Sound audio reference(s)");
+			result.Repair("SOND.RelinkedBuiltinAudio", "SOND", $"relinked {relinkedBuiltin} builtin Sound audio reference(s)");
 		}
 		if (clearedExternal > 0)
 		{
-			result.Repairs.Add($"cleared {clearedExternal} external Sound audio pointer(s)");
+			result.Repair("SOND.ClearedExternalAudio", "SOND", $"cleared {clearedExternal} external Sound audio pointer(s)");
 		}
 		if (clearedEmptyTypes > 0)
 		{
-			result.Repairs.Add($"cleared {clearedEmptyTypes} empty Sound type reference(s)");
+			result.Repair("SOND.ClearedEmptyType", "SOND", $"cleared {clearedEmptyTypes} empty Sound type reference(s)");
 		}
 	}
 
@@ -115,26 +113,26 @@ public static class DataIntegrityService
 		{
 			return;
 		}
-		HashSet<GameMakerFunction> functionSet = new HashSet<GameMakerFunction>(data.Functions);
-		int relinked = 0;
-		int restored = 0;
-		HashSet<GameMakerFunction> referencedFunctions = new HashSet<GameMakerFunction>();
-		foreach (GameMakerCode item in data.Code ?? new List<GameMakerCode>())
+		HashSet<GameMakerFunction> functionSet = [.. data.Functions];
+		var relinked = 0;
+		var restored = 0;
+		HashSet<GameMakerFunction> referencedFunctions = [];
+		foreach (var item in data.Code ?? [])
 		{
-			foreach (GameMakerInstruction instruction in item?.Instructions ?? new List<GameMakerInstruction>())
+			foreach (var instruction in item?.Instructions ?? [])
 			{
-				GameMakerFunction function = instruction.ValueFunction;
+				var function = instruction.ValueFunction;
 				if (function == null)
 				{
 					continue;
 				}
-				string name = function.Name?.Content;
+				var name = function.Name?.Content;
 				if (string.IsNullOrEmpty(name))
 				{
 					continue;
 				}
-				string canonicalName = FunctionNameUtil.CanonicalizeFunctionName(name);
-				GameMakerFunction replacement = null;
+				var canonicalName = FunctionNameUtil.CanonicalizeFunctionName(name);
+				GameMakerFunction? replacement = null;
 				if (functionSet.Contains(function) && string.Equals(name, canonicalName, StringComparison.Ordinal))
 				{
 					replacement = function;
@@ -154,24 +152,24 @@ public static class DataIntegrityService
 				referencedFunctions.Add(replacement);
 			}
 		}
-		HashSet<string> codeNames = new HashSet<string>(StringComparer.Ordinal);
-		foreach (GameMakerCode item2 in data.Code ?? new List<GameMakerCode>())
+		var codeNames = new HashSet<string>(StringComparer.Ordinal);
+		foreach (var item2 in data.Code ?? [])
 		{
-			string codeName = item2?.Name?.Content;
+			var codeName = item2?.Name?.Content;
 			if (!string.IsNullOrEmpty(codeName))
 			{
 				codeNames.Add(codeName);
 			}
 		}
-		int removedInvalidFunctions = 0;
-		for (int i = data.Functions.Count - 1; i >= 0; i--)
+		var removedInvalidFunctions = 0;
+		for (var i = data.Functions.Count - 1; i >= 0; i--)
 		{
-			GameMakerFunction function2 = data.Functions[i];
-			string name2 = function2?.Name?.Content;
+			var function2 = data.Functions[i];
+			var name2 = function2?.Name?.Content;
 			if (function2 != null && !referencedFunctions.Contains(function2) && !string.IsNullOrEmpty(name2))
 			{
-				bool num = !string.Equals(name2, FunctionNameUtil.CanonicalizeFunctionName(name2), StringComparison.Ordinal);
-				bool isOrphanScriptFunction = name2.StartsWith("gml_Script_", StringComparison.Ordinal) && !codeNames.Contains(name2);
+				var num = !string.Equals(name2, FunctionNameUtil.CanonicalizeFunctionName(name2), StringComparison.Ordinal);
+				var isOrphanScriptFunction = name2.StartsWith("gml_Script_", StringComparison.Ordinal) && !codeNames.Contains(name2);
 				if (num || isOrphanScriptFunction)
 				{
 					data.Functions.RemoveAt(i);
@@ -181,28 +179,28 @@ public static class DataIntegrityService
 		}
 		if (restored > 0)
 		{
-			result.Repairs.Add($"restored {restored} missing Function entries referenced by CodeEntries");
+			result.Repair("FUNC.RestoredMissing", "FUNC", $"restored {restored} missing Function entries referenced by CodeEntries");
 		}
 		if (relinked > 0)
 		{
-			result.Repairs.Add($"relinked {relinked} CodeEntry instruction Function references");
+			result.Repair("CODE.RelinkedFunctionRefs", "CODE", $"relinked {relinked} CodeEntry instruction Function references");
 		}
 		if (removedInvalidFunctions > 0)
 		{
-			result.Repairs.Add($"removed {removedInvalidFunctions} invalid or orphan Script Function entries");
+			result.Repair("FUNC.RemovedInvalid", "FUNC", $"removed {removedInvalidFunctions} invalid or orphan Script Function entries");
 		}
 	}
 
 	internal static Dictionary<string, GameMakerFunction?> BuildLocalChildFunctionMap(GameMakerCode owner, IReadOnlyDictionary<string, GameMakerFunction> functions)
 	{
-		Dictionary<string, GameMakerFunction> result = new Dictionary<string, GameMakerFunction>(StringComparer.Ordinal);
-		foreach (GameMakerCode item in owner.ChildEntries ?? new List<GameMakerCode>())
+		var result = new Dictionary<string, GameMakerFunction>(StringComparer.Ordinal);
+		foreach (var item in owner.ChildEntries ?? [])
 		{
-			string childName = item?.Name?.Content;
-			if (!string.IsNullOrEmpty(childName) && FunctionNameUtil.IsLocalChildFunctionName(childName) && functions.TryGetValue(childName, out GameMakerFunction childFunction))
+			var childName = item?.Name?.Content;
+			if (!string.IsNullOrEmpty(childName) && FunctionNameUtil.IsLocalChildFunctionName(childName) && functions.TryGetValue(childName, out var childFunction))
 			{
-				string signature = FunctionNameUtil.NormalizeLocalChildFunctionName(childName);
-				result[signature] = (result.ContainsKey(signature) ? null : childFunction);
+				var signature = FunctionNameUtil.NormalizeLocalChildFunctionName(childName);
+				result[signature] = result.ContainsKey(signature) ? null : childFunction;
 			}
 		}
 		return result;
@@ -210,53 +208,53 @@ public static class DataIntegrityService
 
 	internal static Dictionary<string, GameMakerFunction> BuildLocalChildOrdinalMap(GameMakerData data, GameMakerCode owner, IReadOnlyDictionary<string, GameMakerFunction> functions)
 	{
-		Dictionary<string, List<(int Ordinal, GameMakerFunction Function)>> liveByFamily = new Dictionary<string, List<(int Ordinal, GameMakerFunction Function)>>(StringComparer.Ordinal);
-		foreach (GameMakerCode item in owner.ChildEntries ?? new List<GameMakerCode>())
+		var liveByFamily = new Dictionary<string, List<(int Ordinal, GameMakerFunction Function)>>(StringComparer.Ordinal);
+		foreach (var item in owner.ChildEntries ?? [])
 		{
-			string childName = item?.Name?.Content;
-			if (!string.IsNullOrEmpty(childName) && functions.TryGetValue(childName, out GameMakerFunction childFunction) && FunctionNameUtil.TryGetLocalChildOrdinalFamily(childName, out string family, out int ordinal))
+			var childName = item?.Name?.Content;
+			if (!string.IsNullOrEmpty(childName) && functions.TryGetValue(childName, out var childFunction) && FunctionNameUtil.TryGetLocalChildOrdinalFamily(childName, out var family, out var ordinal))
 			{
 				if (!liveByFamily.TryGetValue(family, out var list))
 				{
-					list = (liveByFamily[family] = new List<(int Ordinal, GameMakerFunction Function)>());
+					list = liveByFamily[family] = [];
 				}
 				list.Add((ordinal, childFunction));
 			}
 		}
-		Dictionary<string, SortedSet<int>> referencedByFamily = new Dictionary<string, SortedSet<int>>(StringComparer.Ordinal);
-		foreach (GameMakerCode code in data.Code ?? new List<GameMakerCode>())
+		var referencedByFamily = new Dictionary<string, SortedSet<int>>(StringComparer.Ordinal);
+		foreach (var code in data.Code ?? [])
 		{
 			if ((code?.ParentEntry ?? code) != owner)
 			{
 				continue;
 			}
-			foreach (GameMakerInstruction item2 in code?.Instructions ?? new List<GameMakerInstruction>())
+			foreach (var item2 in code?.Instructions ?? [])
 			{
-				string name = item2.ValueFunction?.Name?.Content;
-				if (!string.IsNullOrEmpty(name) && FunctionNameUtil.TryGetLocalChildOrdinalFamily(name, out string family2, out int ordinal2))
+				var name = item2.ValueFunction?.Name?.Content;
+				if (!string.IsNullOrEmpty(name) && FunctionNameUtil.TryGetLocalChildOrdinalFamily(name, out var family2, out var ordinal2))
 				{
 					if (!referencedByFamily.TryGetValue(family2, out var ordinals))
 					{
-						ordinals = (referencedByFamily[family2] = new SortedSet<int>());
+						ordinals = referencedByFamily[family2] = [];
 					}
 					ordinals.Add(ordinal2);
 				}
 			}
 		}
-		Dictionary<string, GameMakerFunction> result = new Dictionary<string, GameMakerFunction>(StringComparer.Ordinal);
+		var result = new Dictionary<string, GameMakerFunction>(StringComparer.Ordinal);
 		foreach (var (family3, referencedOrdinals) in referencedByFamily)
 		{
 			if (!liveByFamily.TryGetValue(family3, out var liveFunctions))
 			{
 				continue;
 			}
-			List<GameMakerFunction> liveOrdered = (from x in liveFunctions
-				orderby x.Ordinal
-				select x.Function).ToList();
-			List<int> referencedOrdered = referencedOrdinals.Order().ToList();
+			List<GameMakerFunction> liveOrdered = [.. from x in liveFunctions
+												   orderby x.Ordinal
+												   select x.Function];
+			List<int> referencedOrdered = [.. referencedOrdinals.Order()];
 			if (liveOrdered.Count >= referencedOrdered.Count)
 			{
-				for (int i = 0; i < referencedOrdered.Count; i++)
+				for (var i = 0; i < referencedOrdered.Count; i++)
 				{
 					result[family3 + "|" + referencedOrdered[i]] = liveOrdered[i];
 				}
@@ -271,43 +269,43 @@ public static class DataIntegrityService
 		{
 			return;
 		}
-		Dictionary<string, GameMakerCode> codeByName = BuildCodeByName(data);
-		Dictionary<string, GameMakerFunction> functionByName = new Dictionary<string, GameMakerFunction>(StringComparer.Ordinal);
-		foreach (GameMakerFunction function in data.Functions)
+		var codeByName = BuildCodeByName(data);
+		var functionByName = new Dictionary<string, GameMakerFunction>(StringComparer.Ordinal);
+		foreach (var function in data.Functions)
 		{
-			string name = function?.Name?.Content;
+			var name = function?.Name?.Content;
 			if (!string.IsNullOrEmpty(name) && function != null && !functionByName.ContainsKey(name))
 			{
 				functionByName[name] = function;
 			}
 		}
-		Dictionary<GameMakerCode, Dictionary<string, GameMakerFunction?>> localChildMaps = new Dictionary<GameMakerCode, Dictionary<string, GameMakerFunction>>();
-		Dictionary<GameMakerCode, Dictionary<string, GameMakerFunction>> localChildOrdinalMaps = new Dictionary<GameMakerCode, Dictionary<string, GameMakerFunction>>();
-		int repaired = 0;
-		foreach (GameMakerCode code in data.Code)
+		Dictionary<GameMakerCode, Dictionary<string, GameMakerFunction?>> localChildMaps = [];
+		Dictionary<GameMakerCode, Dictionary<string, GameMakerFunction>> localChildOrdinalMaps = [];
+		var repaired = 0;
+		foreach (var code in data.Code)
 		{
 			if (code == null)
 			{
 				continue;
 			}
-			GameMakerCode owner = code.ParentEntry ?? code;
+			var owner = code.ParentEntry ?? code;
 			if (owner.ChildEntries == null || owner.ChildEntries.Count == 0)
 			{
 				continue;
 			}
-			Dictionary<string, GameMakerFunction> localMap = GetLocalChildMap(owner);
+			var localMap = GetLocalChildMap(owner);
 			if (localMap.Count == 0)
 			{
 				continue;
 			}
-			foreach (GameMakerInstruction instruction in code.Instructions ?? new List<GameMakerInstruction>())
+			foreach (var instruction in code.Instructions ?? [])
 			{
-				GameMakerFunction currentFunction = instruction.ValueFunction;
-				string currentName = currentFunction?.Name?.Content;
+				var currentFunction = instruction.ValueFunction;
+				var currentName = currentFunction?.Name?.Content;
 				if (!string.IsNullOrEmpty(currentName) && FunctionNameUtil.IsLocalChildFunctionName(currentName) && (!codeByName.TryGetValue(currentName, out var referencedCode) || referencedCode.ParentEntry != owner))
 				{
-					string signature = FunctionNameUtil.NormalizeLocalChildFunctionName(currentName);
-					if ((!localMap.TryGetValue(signature, out var replacement) || replacement == null) && FunctionNameUtil.TryGetLocalChildOrdinalFamily(currentName, out string family, out int ordinal))
+					var signature = FunctionNameUtil.NormalizeLocalChildFunctionName(currentName);
+					if ((!localMap.TryGetValue(signature, out var replacement) || replacement == null) && FunctionNameUtil.TryGetLocalChildOrdinalFamily(currentName, out var family, out var ordinal))
 					{
 						GetLocalChildOrdinalMap(owner).TryGetValue(family + "|" + ordinal, out replacement);
 					}
@@ -321,11 +319,11 @@ public static class DataIntegrityService
 		}
 		if (repaired > 0)
 		{
-			result.Repairs.Add($"relinked {repaired} local child Function references to their owning CodeEntry");
+			result.Repair("CODE.RelinkedLocalChildFunctions", "CODE", $"relinked {repaired} local child Function references to their owning CodeEntry");
 		}
 		Dictionary<string, GameMakerFunction?> GetLocalChildMap(GameMakerCode parent)
 		{
-			if (localChildMaps.TryGetValue(parent, out Dictionary<string, GameMakerFunction> cached))
+			if (localChildMaps.TryGetValue(parent, out var cached))
 			{
 				return cached;
 			}
@@ -333,7 +331,7 @@ public static class DataIntegrityService
 		}
 		Dictionary<string, GameMakerFunction> GetLocalChildOrdinalMap(GameMakerCode parent)
 		{
-			if (localChildOrdinalMaps.TryGetValue(parent, out Dictionary<string, GameMakerFunction> cached))
+			if (localChildOrdinalMaps.TryGetValue(parent, out var cached))
 			{
 				return cached;
 			}
@@ -343,10 +341,10 @@ public static class DataIntegrityService
 
 	private static Dictionary<string, GameMakerCode> BuildCodeByName(GameMakerData data)
 	{
-		Dictionary<string, GameMakerCode> byName = new Dictionary<string, GameMakerCode>(StringComparer.Ordinal);
-		foreach (GameMakerCode code in data.Code ?? new List<GameMakerCode>())
+		var byName = new Dictionary<string, GameMakerCode>(StringComparer.Ordinal);
+		foreach (var code in data.Code ?? [])
 		{
-			string name = code?.Name?.Content;
+			var name = code?.Name?.Content;
 			if (!string.IsNullOrEmpty(name) && code != null)
 			{
 				byName[name] = code;
@@ -357,11 +355,11 @@ public static class DataIntegrityService
 
 	private static void RepairCodeParentLinks(GameMakerData data, DataIntegrityResult result)
 	{
-		HashSet<GameMakerCode> codeSet = new HashSet<GameMakerCode>(data.Code ?? new List<GameMakerCode>());
-		int relinkedParents = 0;
-		int addedChildren = 0;
-		Dictionary<string, GameMakerCode> byName = BuildCodeByName(data);
-		foreach (GameMakerCode code in data.Code ?? new List<GameMakerCode>())
+		HashSet<GameMakerCode> codeSet = [.. data.Code ?? []];
+		var relinkedParents = 0;
+		var addedChildren = 0;
+		var byName = BuildCodeByName(data);
+		foreach (var code in data.Code ?? [])
 		{
 			if (code == null)
 			{
@@ -369,7 +367,7 @@ public static class DataIntegrityService
 			}
 			if (code.ParentEntry != null && !codeSet.Contains(code.ParentEntry))
 			{
-				string parentName = code.ParentEntry.Name?.Content;
+				var parentName = code.ParentEntry.Name?.Content;
 				if (!string.IsNullOrEmpty(parentName) && byName.TryGetValue(parentName, out var liveParent))
 				{
 					code.ParentEntry = liveParent;
@@ -384,11 +382,11 @@ public static class DataIntegrityService
 		}
 		if (relinkedParents > 0)
 		{
-			result.Repairs.Add($"relinked {relinkedParents} CodeEntry ParentEntry references by name");
+			result.Repair("CODE.RelinkedParent", "CODE", $"relinked {relinkedParents} CodeEntry ParentEntry references by name");
 		}
 		if (addedChildren > 0)
 		{
-			result.Repairs.Add($"restored {addedChildren} missing CodeEntry parent child links");
+			result.Repair("CODE.RestoredChildLinks", "CODE", $"restored {addedChildren} missing CodeEntry parent child links");
 		}
 	}
 
@@ -398,35 +396,35 @@ public static class DataIntegrityService
 		{
 			return;
 		}
-		List<GameMakerCode> original = data.Code.ToList();
-		Dictionary<GameMakerCode, int> position = new Dictionary<GameMakerCode, int>(ReferenceEqualityComparer.Instance);
-		for (int index = 0; index < original.Count; index++)
+		List<GameMakerCode> original = [.. data.Code];
+		var position = new Dictionary<GameMakerCode, int>(ReferenceEqualityComparer.Instance);
+		for (var index = 0; index < original.Count; index++)
 		{
 			position[original[index]] = index;
 		}
-		List<GameMakerCode> ordered = new List<GameMakerCode>(original.Count);
-		HashSet<GameMakerCode> visited = new HashSet<GameMakerCode>(ReferenceEqualityComparer.Instance);
-		foreach (GameMakerCode code in original)
+		var ordered = new List<GameMakerCode>(original.Count);
+		var visited = new HashSet<GameMakerCode>(ReferenceEqualityComparer.Instance);
+		foreach (var code in original)
 		{
 			if (code.ParentEntry == null)
 			{
 				AddTree(code);
 			}
 		}
-		foreach (GameMakerCode code2 in original)
+		foreach (var code2 in original)
 		{
 			AddTree(code2);
 		}
-		if (ordered.Count != original.Count || ordered.Select((GameMakerCode gameMakerCode, int index2) => gameMakerCode == original[index2]).All((bool equal) => equal))
+		if (ordered.Count != original.Count || ordered.Select((gameMakerCode, index2) => gameMakerCode == original[index2]).All(equal => equal))
 		{
 			return;
 		}
 		data.Code.Clear();
-		foreach (GameMakerCode code3 in ordered)
+		foreach (var code3 in ordered)
 		{
 			data.Code.Add(code3);
 		}
-		result.Repairs.Add("restored parent-before-child CodeEntry serialization order");
+		result.Repair("CODE.ReorderedSerialization", "CODE", "restored parent-before-child CodeEntry serialization order");
 		void AddTree(GameMakerCode gameMakerCode)
 		{
 			if (!visited.Add(gameMakerCode))
@@ -434,10 +432,10 @@ public static class DataIntegrityService
 				return;
 			}
 			ordered.Add(gameMakerCode);
-			foreach (GameMakerCode child in from key in gameMakerCode.ChildEntries
-				where key != null && key.ParentEntry == gameMakerCode
-				orderby position.GetValueOrDefault(key, int.MaxValue)
-				select key)
+			foreach (var child in from key in gameMakerCode.ChildEntries
+								  where key != null && key.ParentEntry == gameMakerCode
+								  orderby position.GetValueOrDefault(key, int.MaxValue)
+								  select key)
 			{
 				AddTree(child);
 			}
@@ -454,8 +452,8 @@ public static class DataIntegrityService
 		{
 			return code;
 		}
-		string name = code.Name?.Content;
-		if (!string.IsNullOrEmpty(name) && byName.TryGetValue(name, out GameMakerCode live))
+		var name = code.Name?.Content;
+		if (!string.IsNullOrEmpty(name) && byName.TryGetValue(name, out var live))
 		{
 			return live;
 		}
@@ -464,32 +462,32 @@ public static class DataIntegrityService
 
 	private static void RepairRoomCodeReferences(GameMakerData data, DataIntegrityResult result)
 	{
-		HashSet<GameMakerCode> codeSet = new HashSet<GameMakerCode>(data.Code ?? new List<GameMakerCode>());
-		Dictionary<string, GameMakerCode> byName = BuildCodeByName(data);
-		int relinked = 0;
-		foreach (GameMakerRoom room in data.Rooms ?? new List<GameMakerRoom>())
+		HashSet<GameMakerCode> codeSet = [.. data.Code ?? []];
+		var byName = BuildCodeByName(data);
+		var relinked = 0;
+		foreach (var room in data.Rooms ?? [])
 		{
 			if (room == null)
 			{
 				continue;
 			}
-			GameMakerCode liveCreation = LiveCode(byName, codeSet, room.CreationCodeId);
+			var liveCreation = LiveCode(byName, codeSet, room.CreationCodeId);
 			if (liveCreation != room.CreationCodeId)
 			{
 				room.CreationCodeId = liveCreation;
 				relinked++;
 			}
-			foreach (GameMakerRoom.GameObject instance in room.GameObjects ?? new GameMakerPointerList<GameMakerRoom.GameObject>())
+			foreach (var instance in room.GameObjects ?? [])
 			{
 				relinked += RepairRoomObjectCodeReferences(instance, byName, codeSet);
 			}
-			foreach (GameMakerRoom.Layer layer in room.Layers ?? new GameMakerPointerList<GameMakerRoom.Layer>())
+			foreach (var layer in room.Layers ?? [])
 			{
 				if (layer?.InstancesData?.Instances == null)
 				{
 					continue;
 				}
-				foreach (GameMakerRoom.GameObject instance2 in layer.InstancesData.Instances)
+				foreach (var instance2 in layer.InstancesData.Instances)
 				{
 					relinked += RepairRoomObjectCodeReferences(instance2, byName, codeSet);
 				}
@@ -497,7 +495,7 @@ public static class DataIntegrityService
 		}
 		if (relinked > 0)
 		{
-			result.Repairs.Add($"relinked {relinked} Room CodeEntry references by name");
+			result.Repair("ROOM.RelinkedCode", "ROOM", $"relinked {relinked} Room CodeEntry references by name");
 		}
 	}
 
@@ -507,14 +505,14 @@ public static class DataIntegrityService
 		{
 			return 0;
 		}
-		int relinked = 0;
-		GameMakerCode liveCreation = LiveCode(byName, codeSet, instance.CreationCode);
+		var relinked = 0;
+		var liveCreation = LiveCode(byName, codeSet, instance.CreationCode);
 		if (liveCreation != instance.CreationCode)
 		{
 			instance.CreationCode = liveCreation;
 			relinked++;
 		}
-		GameMakerCode livePreCreate = LiveCode(byName, codeSet, instance.PreCreateCode);
+		var livePreCreate = LiveCode(byName, codeSet, instance.PreCreateCode);
 		if (livePreCreate != instance.PreCreateCode)
 		{
 			instance.PreCreateCode = livePreCreate;
@@ -525,11 +523,11 @@ public static class DataIntegrityService
 
 	private static void RepairScripts(GameMakerData data, DataIntegrityResult result)
 	{
-		int relinked = 0;
-		int created = 0;
-		HashSet<GameMakerCode> codeSet = new HashSet<GameMakerCode>(data.Code);
-		HashSet<string> scriptNames = new HashSet<string>(StringComparer.Ordinal);
-		foreach (GameMakerScript script in data.Scripts)
+		var relinked = 0;
+		var created = 0;
+		HashSet<GameMakerCode> codeSet = [.. data.Code];
+		var scriptNames = new HashSet<string>(StringComparer.Ordinal);
+		foreach (var script in data.Scripts)
 		{
 			if (script == null || script.Name?.Content == null)
 			{
@@ -538,7 +536,7 @@ public static class DataIntegrityService
 			scriptNames.Add(script.Name.Content);
 			if (script.Code == null || !codeSet.Contains(script.Code))
 			{
-				GameMakerCode replacement = PatchService.ScriptCodeResolver.Resolve(data, script.Name.Content);
+				var replacement = PatchService.ScriptCodeResolver.Resolve(data, script.Name.Content);
 				if (replacement != null)
 				{
 					script.Code = replacement;
@@ -546,12 +544,12 @@ public static class DataIntegrityService
 				}
 			}
 		}
-		foreach (GameMakerCode code in data.Code)
+		foreach (var code in data.Code)
 		{
-			string codeName = code?.Name?.Content;
+			var codeName = code?.Name?.Content;
 			if (!string.IsNullOrEmpty(codeName) && code.ParentEntry == null && codeName.StartsWith("gml_Script_", StringComparison.Ordinal) && !codeName.StartsWith("gml_Script_anon_", StringComparison.Ordinal))
 			{
-				string scriptName = codeName.Substring("gml_Script_".Length);
+				var scriptName = codeName["gml_Script_".Length..];
 				if (!string.IsNullOrEmpty(scriptName) && !scriptNames.Contains(codeName) && scriptNames.Add(scriptName))
 				{
 					data.Scripts.Add(new GameMakerScript
@@ -565,27 +563,27 @@ public static class DataIntegrityService
 		}
 		if (relinked > 0)
 		{
-			result.Repairs.Add($"relinked {relinked} Script entries to live CodeEntries");
+			result.Repair("SCPT.RelinkedCode", "SCPT", $"relinked {relinked} Script entries to live CodeEntries");
 		}
 		if (created > 0)
 		{
-			result.Repairs.Add($"created {created} Script entries for live gml_Script CodeEntries");
+			result.Repair("SCPT.CreatedForCode", "SCPT", $"created {created} Script entries for live gml_Script CodeEntries");
 		}
 	}
 
 	private static void Validate(GameMakerData data, DataIntegrityResult result)
 	{
-		HashSet<GameMakerCode> codeSet = new HashSet<GameMakerCode>(data.Code ?? new List<GameMakerCode>());
-		HashSet<GameMakerFunction> functionSet = new HashSet<GameMakerFunction>(data.Functions ?? new List<GameMakerFunction>());
-		HashSet<GameMakerGameObject> objectSet = new HashSet<GameMakerGameObject>(data.GameObjects ?? new List<GameMakerGameObject>());
-		HashSet<GameMakerSprite> spriteSet = new HashSet<GameMakerSprite>(data.Sprites ?? new List<GameMakerSprite>());
-		HashSet<GameMakerBackground> backgroundSet = new HashSet<GameMakerBackground>(data.Backgrounds ?? new List<GameMakerBackground>());
-		HashSet<GameMakerTexturePageItem> texturePageItemSet = new HashSet<GameMakerTexturePageItem>(data.TexturePageItems ?? new List<GameMakerTexturePageItem>());
-		HashSet<GameMakerEmbeddedTexture> embeddedTextureSet = new HashSet<GameMakerEmbeddedTexture>(data.EmbeddedTextures ?? new List<GameMakerEmbeddedTexture>());
-		HashSet<GameMakerAudioGroup> audioGroupSet = new HashSet<GameMakerAudioGroup>(data.AudioGroups ?? new List<GameMakerAudioGroup>());
-		HashSet<GameMakerSequence> sequenceSet = new HashSet<GameMakerSequence>(data.Sequences ?? new List<GameMakerSequence>());
-		HashSet<GameMakerParticleSystem> particleSystemSet = new HashSet<GameMakerParticleSystem>(data.ParticleSystems ?? new List<GameMakerParticleSystem>());
-		HashSet<GameMakerParticleSystemEmitter> particleEmitterSet = new HashSet<GameMakerParticleSystemEmitter>(data.ParticleSystemEmitters ?? new List<GameMakerParticleSystemEmitter>());
+		HashSet<GameMakerCode> codeSet = [.. data.Code ?? []];
+		HashSet<GameMakerFunction> functionSet = [.. data.Functions ?? []];
+		HashSet<GameMakerGameObject> objectSet = [.. data.GameObjects ?? []];
+		HashSet<GameMakerSprite> spriteSet = [.. data.Sprites ?? []];
+		HashSet<GameMakerBackground> backgroundSet = [.. data.Backgrounds ?? []];
+		HashSet<GameMakerTexturePageItem> texturePageItemSet = [.. data.TexturePageItems ?? []];
+		HashSet<GameMakerEmbeddedTexture> embeddedTextureSet = [.. data.EmbeddedTextures ?? []];
+		HashSet<GameMakerAudioGroup> audioGroupSet = [.. data.AudioGroups ?? []];
+		HashSet<GameMakerSequence> sequenceSet = [.. data.Sequences ?? []];
+		HashSet<GameMakerParticleSystem> particleSystemSet = [.. data.ParticleSystems ?? []];
+		HashSet<GameMakerParticleSystemEmitter> particleEmitterSet = [.. data.ParticleSystemEmitters ?? []];
 		ValidateScriptCodeFunction(data, codeSet, functionSet, result);
 		ValidateObjects(data, codeSet, objectSet, spriteSet, result);
 		ValidateTextures(data, spriteSet, texturePageItemSet, embeddedTextureSet, result);
@@ -596,8 +594,8 @@ public static class DataIntegrityService
 
 	private static void ValidateScriptCodeFunction(GameMakerData data, HashSet<GameMakerCode> codeSet, HashSet<GameMakerFunction> functionSet, DataIntegrityResult result)
 	{
-		HashSet<string> scriptNames = new HashSet<string>(StringComparer.Ordinal);
-		foreach (GameMakerScript script in data.Scripts)
+		var scriptNames = new HashSet<string>(StringComparer.Ordinal);
+		foreach (var script in data.Scripts)
 		{
 			if (script != null && script.Name?.Content != null)
 			{
@@ -605,97 +603,97 @@ public static class DataIntegrityService
 			}
 			if (script?.Code != null && !codeSet.Contains(script.Code))
 			{
-				result.Errors.Add($"Script '{script.Name?.Content ?? "<null>"}' references missing CodeEntry '{script.Code.Name?.Content ?? "<null>"}'");
+				result.Error("SCPT.MissingCode", "SCPT", script.Name?.Content, $"Script '{script.Name?.Content ?? "<null>"}' references missing CodeEntry '{script.Code.Name?.Content ?? "<null>"}'");
 			}
 		}
-		foreach (GameMakerCode code in data.Code)
+		foreach (var code in data.Code)
 		{
-			string codeName = code?.Name?.Content;
+			var codeName = code?.Name?.Content;
 			if (string.IsNullOrEmpty(codeName))
 			{
 				continue;
 			}
-			foreach (GameMakerCode child in code.ChildEntries ?? new List<GameMakerCode>())
+			foreach (var child in code.ChildEntries ?? [])
 			{
 				if (child == null || !codeSet.Contains(child))
 				{
-					result.Errors.Add("CodeEntry '" + codeName + "' has child missing from Code list");
+					result.Error("CODE.ChildMissingFromList", "CODE", codeName, "CodeEntry '" + codeName + "' has child missing from Code list");
 				}
 				else if (child.ParentEntry != code)
 				{
-					result.Errors.Add($"CodeEntry '{codeName}' child '{child.Name?.Content ?? "<null>"}' has incorrect ParentEntry");
+					result.Error("CODE.ChildWrongParent", "CODE", codeName, $"CodeEntry '{codeName}' child '{child.Name?.Content ?? "<null>"}' has incorrect ParentEntry");
 				}
 			}
 			if (code.ParentEntry != null)
 			{
 				if (!codeSet.Contains(code.ParentEntry))
 				{
-					result.Errors.Add($"CodeEntry '{codeName}' references missing ParentEntry '{code.ParentEntry.Name?.Content ?? "<null>"}'");
+					result.Error("CODE.MissingParent", "CODE", codeName, $"CodeEntry '{codeName}' references missing ParentEntry '{code.ParentEntry.Name?.Content ?? "<null>"}'");
 				}
 				else if (!code.ParentEntry.ChildEntries.Contains(code))
 				{
-					result.Errors.Add("CodeEntry '" + codeName + "' ParentEntry does not contain this child");
+					result.Error("CODE.ParentLacksChild", "CODE", codeName, "CodeEntry '" + codeName + "' ParentEntry does not contain this child");
 				}
 			}
-			foreach (GameMakerInstruction instruction in code.Instructions ?? new List<GameMakerInstruction>())
+			foreach (var instruction in code.Instructions ?? [])
 			{
 				if (instruction.ValueFunction != null && !functionSet.Contains(instruction.ValueFunction))
 				{
-					result.Errors.Add($"CodeEntry '{codeName}' references missing Function '{instruction.ValueFunction.Name?.Content ?? "<null>"}'");
+					result.Error("CODE.MissingFunction", "CODE", codeName, $"CodeEntry '{codeName}' references missing Function '{instruction.ValueFunction.Name?.Content ?? "<null>"}'");
 				}
 			}
 		}
-		foreach (GameMakerGlobalInit global in data.GlobalInitScripts ?? new List<GameMakerGlobalInit>())
+		foreach (var global in data.GlobalInitScripts ?? [])
 		{
 			if (global?.Code != null && !codeSet.Contains(global.Code))
 			{
-				result.Errors.Add("GlobalInitScript references missing CodeEntry '" + (global.Code.Name?.Content ?? "<null>") + "'");
+				result.Error("GLOB.MissingCode", "GLOB", global.Code.Name?.Content, "GlobalInitScript references missing CodeEntry '" + (global.Code.Name?.Content ?? "<null>") + "'");
 			}
 		}
 	}
 
 	private static void ValidateObjects(GameMakerData data, HashSet<GameMakerCode> codeSet, HashSet<GameMakerGameObject> objectSet, HashSet<GameMakerSprite> spriteSet, DataIntegrityResult result)
 	{
-		foreach (GameMakerGameObject obj in data.GameObjects)
+		foreach (var obj in data.GameObjects)
 		{
 			if (obj == null)
 			{
 				continue;
 			}
-			string name = obj.Name?.Content ?? "<unnamed object>";
+			var name = obj.Name?.Content ?? "<unnamed object>";
 			if (obj.Sprite != null && !spriteSet.Contains(obj.Sprite))
 			{
-				result.Errors.Add($"Object '{name}' references missing Sprite '{obj.Sprite.Name?.Content ?? "<null>"}'");
+				result.Error("OBJT.MissingSprite", "OBJT", obj.Name?.Content, $"Object '{name}' references missing Sprite '{obj.Sprite.Name?.Content ?? "<null>"}'");
 			}
 			if (obj.TextureMaskId != null && !spriteSet.Contains(obj.TextureMaskId))
 			{
-				result.Errors.Add($"Object '{name}' references missing TextureMask Sprite '{obj.TextureMaskId.Name?.Content ?? "<null>"}'");
+				result.Error("OBJT.MissingTextureMask", "OBJT", obj.Name?.Content, $"Object '{name}' references missing TextureMask Sprite '{obj.TextureMaskId.Name?.Content ?? "<null>"}'");
 			}
 			if (obj.ParentId != null && !objectSet.Contains(obj.ParentId))
 			{
-				result.Errors.Add($"Object '{name}' references missing parent Object '{obj.ParentId.Name?.Content ?? "<null>"}'");
+				result.Error("OBJT.MissingParent", "OBJT", obj.Name?.Content, $"Object '{name}' references missing parent Object '{obj.ParentId.Name?.Content ?? "<null>"}'");
 			}
 			if (HasParentCycle(obj))
 			{
-				result.Errors.Add("Object '" + name + "' has parent cycle");
+				result.Error("OBJT.ParentCycle", "OBJT", obj.Name?.Content, "Object '" + name + "' has parent cycle");
 			}
 			if (obj.Events.Count <= 4)
 			{
-				result.Errors.Add($"Object '{name}' has too few event lists: {obj.Events.Count}");
+				result.Error("OBJT.TooFewEventLists", "OBJT", obj.Name?.Content, $"Object '{name}' has too few event lists: {obj.Events.Count}");
 			}
-			for (int eventType = 0; eventType < obj.Events.Count; eventType++)
+			for (var eventType = 0; eventType < obj.Events.Count; eventType++)
 			{
-				foreach (GameMakerGameObject.Event evt in obj.Events[eventType])
+				foreach (var evt in obj.Events[eventType])
 				{
 					if (eventType == 4 && (evt.EventSubtype >= data.GameObjects.Count || data.GameObjects[(int)evt.EventSubtype] == null || !objectSet.Contains(data.GameObjects[(int)evt.EventSubtype])))
 					{
-						result.Errors.Add($"Object '{name}' collision event references missing Object index {evt.EventSubtype}");
+						result.Error("OBJT.MissingCollisionObject", "OBJT", obj.Name?.Content, $"Object '{name}' collision event references missing Object index {evt.EventSubtype}");
 					}
-					foreach (GameMakerGameObject.EventAction action in evt.Actions ?? new GameMakerPointerList<GameMakerGameObject.EventAction>())
+					foreach (var action in evt.Actions ?? [])
 					{
 						if (action?.CodeId != null && !codeSet.Contains(action.CodeId))
 						{
-							result.Errors.Add($"Object '{name}' event {eventType}/{evt.EventSubtype} references missing CodeEntry '{action.CodeId.Name?.Content ?? "<null>"}'");
+							result.Error("OBJT.MissingCode", "OBJT", obj.Name?.Content, $"Object '{name}' event {eventType}/{evt.EventSubtype} references missing CodeEntry '{action.CodeId.Name?.Content ?? "<null>"}'");
 						}
 					}
 				}
@@ -705,8 +703,8 @@ public static class DataIntegrityService
 
 	private static bool HasParentCycle(GameMakerGameObject obj)
 	{
-		HashSet<GameMakerGameObject> seen = new HashSet<GameMakerGameObject>();
-		for (GameMakerGameObject current = obj.ParentId; current != null; current = current.ParentId)
+		HashSet<GameMakerGameObject> seen = [];
+		for (var current = obj.ParentId; current != null; current = current.ParentId)
 		{
 			if (!seen.Add(current))
 			{
@@ -718,101 +716,101 @@ public static class DataIntegrityService
 
 	private static void ValidateTextures(GameMakerData data, HashSet<GameMakerSprite> spriteSet, HashSet<GameMakerTexturePageItem> texturePageItemSet, HashSet<GameMakerEmbeddedTexture> embeddedTextureSet, DataIntegrityResult result)
 	{
-		foreach (GameMakerTexturePageItem tpi in data.TexturePageItems)
+		foreach (var tpi in data.TexturePageItems)
 		{
 			if (tpi?.TexturePage != null && !embeddedTextureSet.Contains(tpi.TexturePage))
 			{
-				result.Errors.Add("TexturePageItem '" + (tpi.Name?.Content ?? "<unnamed>") + "' references missing EmbeddedTexture");
+				result.Error("TPAG.MissingTexture", "TPAG", tpi.Name?.Content, "TexturePageItem '" + (tpi.Name?.Content ?? "<unnamed>") + "' references missing EmbeddedTexture");
 			}
 		}
-		foreach (GameMakerSprite sprite in data.Sprites)
+		foreach (var sprite in data.Sprites)
 		{
 			if (sprite == null)
 			{
 				continue;
 			}
-			foreach (GameMakerSprite.TextureEntry texture in sprite.Textures ?? new GameMakerSimpleList<GameMakerSprite.TextureEntry>())
+			foreach (var texture in sprite.Textures ?? [])
 			{
 				if (texture?.Texture != null && !texturePageItemSet.Contains(texture.Texture))
 				{
-					result.Errors.Add("Sprite '" + (sprite.Name?.Content ?? "<unnamed>") + "' references missing TexturePageItem");
+					result.Error("SPRT.MissingTexturePageItem", "SPRT", sprite.Name?.Content, "Sprite '" + (sprite.Name?.Content ?? "<unnamed>") + "' references missing TexturePageItem");
 				}
 			}
 		}
-		foreach (GameMakerBackground background in data.Backgrounds)
+		foreach (var background in data.Backgrounds)
 		{
 			if (background?.Texture != null && !texturePageItemSet.Contains(background.Texture))
 			{
-				result.Errors.Add("Background '" + (background.Name?.Content ?? "<unnamed>") + "' references missing TexturePageItem");
+				result.Error("BGND.MissingTexturePageItem", "BGND", background.Name?.Content, "Background '" + (background.Name?.Content ?? "<unnamed>") + "' references missing TexturePageItem");
 			}
 			if (background?.GMS2ExportedSprite != null && !spriteSet.Contains(background.GMS2ExportedSprite))
 			{
-				result.Errors.Add("Background '" + (background.Name?.Content ?? "<unnamed>") + "' references missing exported Sprite");
+				result.Error("BGND.MissingSprite", "BGND", background.Name?.Content, "Background '" + (background.Name?.Content ?? "<unnamed>") + "' references missing exported Sprite");
 			}
 		}
-		foreach (GameMakerFont font in data.Fonts)
+		foreach (var font in data.Fonts)
 		{
 			if (font?.Texture != null && !texturePageItemSet.Contains(font.Texture))
 			{
-				result.Errors.Add("Font '" + (font.Name?.Content ?? "<unnamed>") + "' references missing TexturePageItem");
+				result.Error("FONT.MissingTexturePageItem", "FONT", font.Name?.Content, "Font '" + (font.Name?.Content ?? "<unnamed>") + "' references missing TexturePageItem");
 			}
 		}
 	}
 
 	private static void ValidateSounds(GameMakerData data, HashSet<GameMakerAudioGroup> audioGroupSet, DataIntegrityResult result)
 	{
-		foreach (GameMakerSound sound in data.Sounds)
+		foreach (var sound in data.Sounds)
 		{
 			if (sound?.AudioGroup != null && !audioGroupSet.Contains(sound.AudioGroup))
 			{
-				result.Errors.Add($"Sound '{sound.Name?.Content ?? "<unnamed>"}' references missing AudioGroup '{sound.AudioGroup.Name?.Content ?? "<null>"}'");
+				result.Error("SOND.MissingAudioGroup", "SOND", sound.Name?.Content, $"Sound '{sound.Name?.Content ?? "<unnamed>"}' references missing AudioGroup '{sound.AudioGroup.Name?.Content ?? "<null>"}'");
 			}
 			if (sound != null && data.AudioGroups != null && data.AudioGroups.Count > 0 && sound.GroupID >= data.AudioGroups.Count)
 			{
-				result.Errors.Add($"Sound '{sound.Name?.Content ?? "<unnamed>"}' has out-of-range GroupID {sound.GroupID}");
+				result.Error("SOND.GroupIdOutOfRange", "SOND", sound.Name?.Content, $"Sound '{sound.Name?.Content ?? "<unnamed>"}' has out-of-range GroupID {sound.GroupID}");
 			}
 		}
 	}
 
 	private static void ValidateRooms(GameMakerData data, HashSet<GameMakerCode> codeSet, HashSet<GameMakerGameObject> objectSet, HashSet<GameMakerSprite> spriteSet, HashSet<GameMakerBackground> backgroundSet, HashSet<GameMakerSequence> sequenceSet, HashSet<GameMakerParticleSystem> particleSystemSet, DataIntegrityResult result)
 	{
-		foreach (GameMakerRoom room in data.Rooms)
+		foreach (var room in data.Rooms)
 		{
 			if (room == null)
 			{
 				continue;
 			}
-			string name = room.Name?.Content ?? "<unnamed room>";
+			var name = room.Name?.Content ?? "<unnamed room>";
 			if (room.CreationCodeId != null && !codeSet.Contains(room.CreationCodeId))
 			{
-				result.Errors.Add($"Room '{name}' references missing CreationCode '{room.CreationCodeId.Name?.Content ?? "<null>"}'");
+				result.Error("ROOM.MissingCreationCode", "ROOM", room.Name?.Content, $"Room '{name}' references missing CreationCode '{room.CreationCodeId.Name?.Content ?? "<null>"}'");
 			}
 			if (data.GeneralInfo?.RoomOrder != null)
 			{
-				foreach (GameMakerResourceById<GameMakerRoom, GameMakerChunkROOM> roomRef in data.GeneralInfo.RoomOrder)
+				foreach (var roomRef in data.GeneralInfo.RoomOrder)
 				{
 					if (roomRef?.Resource != null && !data.Rooms.Contains(roomRef.Resource))
 					{
-						result.Errors.Add("GeneralInfo room order references missing Room '" + (roomRef.Resource.Name?.Content ?? "<null>") + "'");
+						result.Error("GEN8.RoomOrderMissingRoom", "GEN8", roomRef.Resource.Name?.Content, "GeneralInfo room order references missing Room '" + (roomRef.Resource.Name?.Content ?? "<null>") + "'");
 					}
 				}
 			}
-			foreach (GameMakerRoom.View view in room.Views ?? new GameMakerPointerList<GameMakerRoom.View>())
+			foreach (var view in room.Views ?? [])
 			{
 				if (view?.ObjectId != null && !objectSet.Contains(view.ObjectId))
 				{
-					result.Errors.Add($"Room '{name}' view references missing Object '{view.ObjectId.Name?.Content ?? "<null>"}'");
+					result.Error("ROOM.MissingViewObject", "ROOM", room.Name?.Content, $"Room '{name}' view references missing Object '{view.ObjectId.Name?.Content ?? "<null>"}'");
 				}
 			}
-			foreach (GameMakerRoom.GameObject instance in room.GameObjects ?? new GameMakerPointerList<GameMakerRoom.GameObject>())
+			foreach (var instance in room.GameObjects ?? [])
 			{
 				ValidateRoomObject(name, instance, codeSet, objectSet, result);
 			}
-			foreach (GameMakerRoom.Tile tile in room.Tiles ?? new GameMakerPointerList<GameMakerRoom.Tile>())
+			foreach (var tile in room.Tiles ?? [])
 			{
 				ValidateTile(name, tile, spriteSet, backgroundSet, result);
 			}
-			foreach (GameMakerRoom.Layer layer in room.Layers ?? new GameMakerPointerList<GameMakerRoom.Layer>())
+			foreach (var layer in room.Layers ?? [])
 			{
 				if (layer == null)
 				{
@@ -824,40 +822,40 @@ public static class DataIntegrityService
 				}
 				if (layer.InstancesData?.Instances != null)
 				{
-					foreach (GameMakerRoom.GameObject instance2 in layer.InstancesData.Instances)
+					foreach (var instance2 in layer.InstancesData.Instances)
 					{
 						ValidateRoomObject(name, instance2, codeSet, objectSet, result);
 					}
 				}
 				if (layer.TilesData?.Background != null && !backgroundSet.Contains(layer.TilesData.Background))
 				{
-					result.Errors.Add($"Room '{name}' tile layer references missing Background '{layer.TilesData.Background.Name?.Content ?? "<null>"}'");
+					result.Error("ROOM.MissingTileBackground", "ROOM", room.Name?.Content, $"Room '{name}' tile layer references missing Background '{layer.TilesData.Background.Name?.Content ?? "<null>"}'");
 				}
-				if (layer.TilesData?.TileData != null && (layer.TilesData.TileData.Length != layer.TilesData.TilesY || layer.TilesData.TileData.Any((uint[] row) => row == null || row.Length != layer.TilesData.TilesX)))
+				if (layer.TilesData?.TileData != null && (layer.TilesData.TileData.Length != layer.TilesData.TilesY || layer.TilesData.TileData.Any(row => row == null || row.Length != layer.TilesData.TilesX)))
 				{
-					result.Errors.Add("Room '" + name + "' tile layer has invalid TileData dimensions");
+					result.Error("ROOM.InvalidTileData", "ROOM", room.Name?.Content, "Room '" + name + "' tile layer has invalid TileData dimensions");
 				}
 				if (layer.BackgroundData?.Sprite != null && !spriteSet.Contains(layer.BackgroundData.Sprite))
 				{
-					result.Errors.Add($"Room '{name}' layer background references missing Sprite '{layer.BackgroundData.Sprite.Name?.Content ?? "<null>"}'");
+					result.Error("ROOM.MissingLayerSprite", "ROOM", room.Name?.Content, $"Room '{name}' layer background references missing Sprite '{layer.BackgroundData.Sprite.Name?.Content ?? "<null>"}'");
 				}
 				if (layer.AssetsData?.Sprites != null)
 				{
-					foreach (GameMakerRoom.SpriteInstance spriteInstance in layer.AssetsData.Sprites)
+					foreach (var spriteInstance in layer.AssetsData.Sprites)
 					{
 						if (spriteInstance?.Sprite != null && !spriteSet.Contains(spriteInstance.Sprite))
 						{
-							result.Errors.Add($"Room '{name}' asset layer references missing Sprite '{spriteInstance.Sprite.Name?.Content ?? "<null>"}'");
+							result.Error("ROOM.MissingSprite", "ROOM", room.Name?.Content, $"Room '{name}' asset layer references missing Sprite '{spriteInstance.Sprite.Name?.Content ?? "<null>"}'");
 						}
 					}
 				}
 				if (layer.AssetsData?.Sequences != null)
 				{
-					foreach (GameMakerRoom.SequenceInstance sequenceInstance in layer.AssetsData.Sequences)
+					foreach (var sequenceInstance in layer.AssetsData.Sequences)
 					{
 						if (sequenceInstance?.Sequence != null && !sequenceSet.Contains(sequenceInstance.Sequence))
 						{
-							result.Errors.Add($"Room '{name}' asset layer references missing Sequence '{sequenceInstance.Sequence.Name?.Content ?? "<null>"}'");
+							result.Error("ROOM.MissingSequence", "ROOM", room.Name?.Content, $"Room '{name}' asset layer references missing Sequence '{sequenceInstance.Sequence.Name?.Content ?? "<null>"}'");
 						}
 					}
 				}
@@ -865,11 +863,11 @@ public static class DataIntegrityService
 				{
 					continue;
 				}
-				foreach (GameMakerRoom.ParticleSystemInstance particleInstance in layer.AssetsData.ParticleSystems)
+				foreach (var particleInstance in layer.AssetsData.ParticleSystems)
 				{
 					if (particleInstance?.ParticleSystem != null && !particleSystemSet.Contains(particleInstance.ParticleSystem))
 					{
-						result.Errors.Add($"Room '{name}' asset layer references missing ParticleSystem '{particleInstance.ParticleSystem.Name?.Content ?? "<null>"}'");
+						result.Error("ROOM.MissingParticleSystem", "ROOM", room.Name?.Content, $"Room '{name}' asset layer references missing ParticleSystem '{particleInstance.ParticleSystem.Name?.Content ?? "<null>"}'");
 					}
 				}
 			}
@@ -882,15 +880,15 @@ public static class DataIntegrityService
 		{
 			if (instance.ObjectDefinition != null && !objectSet.Contains(instance.ObjectDefinition))
 			{
-				result.Errors.Add($"Room '{roomName}' instance {instance.InstanceID} references missing Object '{instance.ObjectDefinition.Name?.Content ?? "<null>"}'");
+				result.Error("ROOM.MissingInstanceObject", "ROOM", roomName, $"Room '{roomName}' instance {instance.InstanceID} references missing Object '{instance.ObjectDefinition.Name?.Content ?? "<null>"}'");
 			}
 			if (instance.CreationCode != null && !codeSet.Contains(instance.CreationCode))
 			{
-				result.Errors.Add($"Room '{roomName}' instance {instance.InstanceID} references missing CreationCode '{instance.CreationCode.Name?.Content ?? "<null>"}'");
+				result.Error("ROOM.MissingCreationCode", "ROOM", roomName, $"Room '{roomName}' instance {instance.InstanceID} references missing CreationCode '{instance.CreationCode.Name?.Content ?? "<null>"}'");
 			}
 			if (instance.PreCreateCode != null && !codeSet.Contains(instance.PreCreateCode))
 			{
-				result.Errors.Add($"Room '{roomName}' instance {instance.InstanceID} references missing PreCreateCode '{instance.PreCreateCode.Name?.Content ?? "<null>"}'");
+				result.Error("ROOM.MissingPreCreateCode", "ROOM", roomName, $"Room '{roomName}' instance {instance.InstanceID} references missing PreCreateCode '{instance.PreCreateCode.Name?.Content ?? "<null>"}'");
 			}
 		}
 	}
@@ -905,42 +903,75 @@ public static class DataIntegrityService
 		{
 			if (tile.SpriteDefinition != null && !spriteSet.Contains(tile.SpriteDefinition))
 			{
-				result.Errors.Add($"Room '{roomName}' tile {tile.InstanceID} references missing Sprite '{tile.SpriteDefinition.Name?.Content ?? "<null>"}'");
+				result.Error("ROOM.MissingTileSprite", "ROOM", roomName, $"Room '{roomName}' tile {tile.InstanceID} references missing Sprite '{tile.SpriteDefinition.Name?.Content ?? "<null>"}'");
 			}
 		}
 		else if (tile.BackgroundDefinition != null && !backgroundSet.Contains(tile.BackgroundDefinition))
 		{
-			result.Errors.Add($"Room '{roomName}' tile {tile.InstanceID} references missing Background '{tile.BackgroundDefinition.Name?.Content ?? "<null>"}'");
+			result.Error("ROOM.MissingTileBackground", "ROOM", roomName, $"Room '{roomName}' tile {tile.InstanceID} references missing Background '{tile.BackgroundDefinition.Name?.Content ?? "<null>"}'");
 		}
 	}
 
 	private static void ValidateParticles(GameMakerData data, HashSet<GameMakerSprite> spriteSet, HashSet<GameMakerParticleSystemEmitter> particleEmitterSet, DataIntegrityResult result)
 	{
-		foreach (GameMakerParticleSystemEmitter emitter in data.ParticleSystemEmitters ?? new List<GameMakerParticleSystemEmitter>())
+		foreach (var emitter in data.ParticleSystemEmitters ?? [])
 		{
 			if (emitter != null)
 			{
-				string name = emitter.Name?.Content ?? "<unnamed emitter>";
+				var name = emitter.Name?.Content ?? "<unnamed emitter>";
 				if (emitter.Sprite != null && !spriteSet.Contains(emitter.Sprite))
 				{
-					result.Errors.Add($"ParticleEmitter '{name}' references missing Sprite '{emitter.Sprite.Name?.Content ?? "<null>"}'");
+					result.Error("PSEM.MissingSprite", "PSEM", emitter.Name?.Content, $"ParticleEmitter '{name}' references missing Sprite '{emitter.Sprite.Name?.Content ?? "<null>"}'");
 				}
 				if (emitter.SpawnOnDeath != null && !particleEmitterSet.Contains(emitter.SpawnOnDeath))
 				{
-					result.Errors.Add($"ParticleEmitter '{name}' references missing SpawnOnDeath emitter '{emitter.SpawnOnDeath.Name?.Content ?? "<null>"}'");
+					result.Error("PSEM.MissingSpawnOnDeath", "PSEM", emitter.Name?.Content, $"ParticleEmitter '{name}' references missing SpawnOnDeath emitter '{emitter.SpawnOnDeath.Name?.Content ?? "<null>"}'");
 				}
 				if (emitter.SpawnOnUpdate != null && !particleEmitterSet.Contains(emitter.SpawnOnUpdate))
 				{
-					result.Errors.Add($"ParticleEmitter '{name}' references missing SpawnOnUpdate emitter '{emitter.SpawnOnUpdate.Name?.Content ?? "<null>"}'");
+					result.Error("PSEM.MissingSpawnOnUpdate", "PSEM", emitter.Name?.Content, $"ParticleEmitter '{name}' references missing SpawnOnUpdate emitter '{emitter.SpawnOnUpdate.Name?.Content ?? "<null>"}'");
 				}
 			}
 		}
 	}
 }
 
+/// <summary>Whether an <see cref="IntegrityIssue"/> is a problem that remains or a fix that was applied.</summary>
+public enum IntegritySeverity
+{
+	/// <summary>A fix the check applied.</summary>
+	Repair,
+
+	/// <summary>A problem the check found and did not fix.</summary>
+	Error
+}
+
+/// <summary>One finding of the integrity check.</summary>
+/// <param name="Severity">Error or repair.</param>
+/// <param name="Code">Stable id such as ROOM.MissingSprite.</param>
+/// <param name="Chunk">Four letter name of the chunk the finding belongs to.</param>
+/// <param name="Resource">Name of the owning resource, or null when there is none (repairs count many items).</param>
+/// <param name="Message">Same text as in <see cref="DataIntegrityResult.Errors"/> or <see cref="DataIntegrityResult.Repairs"/>.</param>
+public sealed record IntegrityIssue(IntegritySeverity Severity, string Code, string Chunk, string? Resource, string Message);
+
 public sealed class DataIntegrityResult
 {
-	public List<string> Errors { get; } = new List<string>();
-	public List<string> Repairs { get; } = new List<string>();
+	public List<string> Errors { get; } = [];
+	public List<string> Repairs { get; } = [];
+
+	/// <summary>Every error and repair as structured data, in the order found.</summary>
+	public List<IntegrityIssue> Issues { get; } = [];
 	public bool Success => Errors.Count == 0;
+
+	internal void Error(string code, string chunk, string? resource, string message)
+	{
+		Errors.Add(message);
+		Issues.Add(new IntegrityIssue(IntegritySeverity.Error, code, chunk, resource, message));
+	}
+
+	internal void Repair(string code, string chunk, string message)
+	{
+		Repairs.Add(message);
+		Issues.Add(new IntegrityIssue(IntegritySeverity.Repair, code, chunk, null, message));
+	}
 }

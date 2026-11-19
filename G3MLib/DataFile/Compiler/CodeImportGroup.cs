@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using G3MLib.Analyzer.Decompiler;
 using G3MLib.DataFile.Decompiler;
 using G3MLib.DataFile.Models;
-using G3MLib.Modding.Resources;
 
 namespace G3MLib.DataFile.Compiler;
 
@@ -23,8 +18,7 @@ public sealed class CodeImportGroup
     public GameMakerData Data { get; }
 
     // Created on first use so a group over data without a string table still constructs.
-    private DataLookup _lookup;
-    private DataLookup Lookup => _lookup ??= DataLookup.Build(Data);
+    private DataLookup Lookup => field ??= DataLookup.Build(Data);
 
     /// <summary>
     /// Associated global decompile context for this import code context.
@@ -57,7 +51,7 @@ public sealed class CodeImportGroup
     /// <remarks>
     /// <see langword="false"/> by default.
     /// </remarks>
-    public bool ThrowOnNoOpFindReplace { get; set; } = false;
+    public bool ThrowOnNoOpFindReplace { get; set; }
 
     /// <summary>
     /// Whether new object event actions are written the way GameMaker writes them, with an empty action name.
@@ -65,7 +59,7 @@ public sealed class CodeImportGroup
     /// <remarks>
     /// <see langword="false"/> by default, which names the action after its code entry.
     /// </remarks>
-    public bool GameMakerEventActions { get; set; } = false;
+    public bool GameMakerEventActions { get; set; }
 
     /// <summary>
     /// This action will be called when main-thread operations should occur, and can be changed.
@@ -77,9 +71,19 @@ public sealed class CodeImportGroup
     public Action<Action> MainThreadAction { get; set; } = static (f) => f();
 
     /// <summary>
+    /// Macros available to every queued code entry, mapping a name to the GML expression it stands for.
+    /// Macros declared with <c>#macro</c> in the queued code are added automatically and do not override these.
+    /// </summary>
+    /// <remarks>
+    /// A macro is applied only where the name would otherwise be read as an instance variable, so a declared local
+    /// of the same name wins. Use this for macros declared in code that is not part of the import.
+    /// </remarks>
+    public Dictionary<string, string> Macros { get; } = new(StringComparer.Ordinal);
+
+    /// <summary>
     /// Compile group being used by this context, if not null.
     /// </summary>
-    internal CompileGroup CompileGroup { get; private set; } = null;
+    internal CompileGroup CompileGroup { get; private set; }
 
     /// <summary>
     /// Set of code entries currently queued for compile on <see cref="CompileGroup"/>.
@@ -98,7 +102,7 @@ public sealed class CodeImportGroup
     /// If <paramref name="globalContext"/> is not provided, a new global context will be created.
     /// If <paramref name="decompileSettings"/> is not provided, default settings will be used.
     /// </remarks>
-    public CodeImportGroup(GameMakerData data, GlobalDecompileContext globalContext = null, IDecompileSettings decompileSettings = null)
+    public CodeImportGroup(GameMakerData data, GlobalDecompileContext? globalContext = null, IDecompileSettings? decompileSettings = null)
     {
         ArgumentNullException.ThrowIfNull(data);
 
@@ -120,7 +124,7 @@ public sealed class CodeImportGroup
     /// <param name="subtype">Event subtype to link to.</param>
     /// <param name="mainThreadAction">Action to call when creating new data, which may require being changed on the main thread.</param>
     /// <param name="emptyName">When set, new actions are written the way GameMaker writes code actions (library 1, id 603, kind 7, execute type 2, apply to self) with this empty name.</param>
-    public static void LinkEvent(GameMakerGameObject obj, GameMakerCode code, EventType type, uint subtype, Action<Action> mainThreadAction, GameMakerString emptyName = null)
+    public static void LinkEvent(GameMakerGameObject obj, GameMakerCode code, EventType type, uint subtype, Action<Action> mainThreadAction, GameMakerString? emptyName = null)
     {
         GameMakerGameObject.EventAction NewAction() => emptyName is null
             ? new() { ActionName = code.Name, CodeId = code }
@@ -130,13 +134,13 @@ public sealed class CodeImportGroup
         ArgumentNullException.ThrowIfNull(code);
         ArgumentNullException.ThrowIfNull(mainThreadAction);
 
-        int eventType = checked((int)type);
+        var eventType = checked((int)type);
         if ((uint)eventType >= obj.Events.Count)
             throw new ArgumentOutOfRangeException(nameof(type));
 
-        GameMakerPointerList<GameMakerGameObject.Event> eventList = obj.Events[eventType] ??= new();
-        bool foundExisting = false;
-        foreach (GameMakerGameObject.Event @event in eventList)
+        var eventList = obj.Events[eventType] ??= [];
+        var foundExisting = false;
+        foreach (var @event in eventList)
         {
             if (@event?.EventSubtype != subtype)
             {
@@ -144,7 +148,7 @@ public sealed class CodeImportGroup
                 continue;
             }
 
-            @event.Actions ??= new();
+            @event.Actions ??= [];
 
             if (@event.Actions is [GameMakerGameObject.EventAction action])
             {
@@ -214,8 +218,8 @@ public sealed class CodeImportGroup
         {
             return false;
         }
-        ReadOnlySpan<char> otherObjectName = codeEntryName.AsSpan(collisionSeparatorIndex + EventCollisionSeparator.Length);
-        int otherObjectIndex = Data.GameObjects.IndexOfName(otherObjectName);
+        var otherObjectName = codeEntryName.AsSpan(collisionSeparatorIndex + EventCollisionSeparator.Length);
+        var otherObjectIndex = Data.GameObjects.IndexOfName(otherObjectName);
         if (otherObjectIndex < 0)
         {
             return false;
@@ -242,8 +246,8 @@ public sealed class CodeImportGroup
         }
 
         // Need to create a new entry!
-        GameMakerString newEntryName = null;
-        GameMakerCode newEntry = null;
+        GameMakerString? newEntryName = null;
+        GameMakerCode? newEntry = null;
         MainThreadAction(() =>
         {
             newEntryName = Lookup.GetOrAddString(codeEntryName);
@@ -265,7 +269,7 @@ public sealed class CodeImportGroup
         {
             MainThreadAction(() =>
             {
-                ReadOnlySpan<char> scriptName = codeEntryName.AsSpan(EventScriptPrefix.Length);
+                var scriptName = codeEntryName.AsSpan(EventScriptPrefix.Length);
                 if (Data.Scripts.ByName(scriptName) is not GameMakerScript existingScript)
                 {
                     // Create script, as one doesn't already exist
@@ -285,8 +289,8 @@ public sealed class CodeImportGroup
         else if (codeEntryName.StartsWith(EventGlobalScriptPrefix, StringComparison.Ordinal))
         {
             // Scan to see if there's a global init script with a matching (and presumably, invalid) code reference.
-            GameMakerGlobalInit existingGlobalInit = null;
-            foreach (GameMakerGlobalInit globalInit in Data.GlobalInitScripts)
+            GameMakerGlobalInit? existingGlobalInit = null;
+            foreach (var globalInit in Data.GlobalInitScripts)
             {
                 if (globalInit?.Code?.Name?.Content == codeEntryName)
                 {
@@ -298,25 +302,25 @@ public sealed class CodeImportGroup
             {
                 MainThreadAction(() => Data.GlobalInitScripts.Add(new() { Code = newEntry }));
             }
-            else if (existingGlobalInit is not null)
+            else
             {
                 // Attach to existing global init entry (in case of corruption)
-                existingGlobalInit.Code = newEntry;
+                existingGlobalInit?.Code = newEntry;
             }
         }
         else if (codeEntryName.StartsWith(EventObjectPrefix, StringComparison.Ordinal))
         {
             // Parse object event.
             // First, handle collision events, if applicable. (Only supported in GM 2.3+, when "_Collision_" is not in either object name.)
-            int collisionSeparatorIndex = codeEntryName.IndexOf(EventCollisionSeparator, StringComparison.Ordinal);
-            bool containsCollisionSeparator = collisionSeparatorIndex >= 0;
-            if (containsCollisionSeparator && TryParseCollisionEvent(codeEntryName, collisionSeparatorIndex, out ReadOnlySpan<char> collisionObjectName, out uint collisionSubtype))
+            var collisionSeparatorIndex = codeEntryName.IndexOf(EventCollisionSeparator, StringComparison.Ordinal);
+            var containsCollisionSeparator = collisionSeparatorIndex >= 0;
+            if (containsCollisionSeparator && TryParseCollisionEvent(codeEntryName, collisionSeparatorIndex, out var collisionObjectName, out var collisionSubtype))
             {
                 // Create new object if necessary.
-                GameMakerGameObject collisionObj = Data.GameObjects.ByName(collisionObjectName);
+                var collisionObj = Data.GameObjects.ByName(collisionObjectName);
                 if (collisionObj is null)
                 {
-                    string collisionObjectNameStr = collisionObjectName.ToString();
+                    var collisionObjectNameStr = collisionObjectName.ToString();
                     MainThreadAction(() =>
                     {
                         collisionObj = new()
@@ -335,8 +339,8 @@ public sealed class CodeImportGroup
             }
 
             // Not a collision event: Find positions of last two underscores in name.
-            int lastUnderscore = codeEntryName.LastIndexOf('_');
-            int secondLastUnderscore = codeEntryName.LastIndexOf('_', lastUnderscore - 1);
+            var lastUnderscore = codeEntryName.LastIndexOf('_');
+            var secondLastUnderscore = codeEntryName.LastIndexOf('_', lastUnderscore - 1);
             if (lastUnderscore <= 0 || secondLastUnderscore <= 0)
             {
                 if (containsCollisionSeparator)
@@ -347,7 +351,7 @@ public sealed class CodeImportGroup
             }
 
             // Extract object name, event type, and event subtype
-            EventType eventType = codeEntryName.AsSpan(new Range(secondLastUnderscore + 1, lastUnderscore)) switch
+            var eventType = codeEntryName.AsSpan(new Range(secondLastUnderscore + 1, lastUnderscore)) switch
             {
                 "Create" => EventType.Create,
                 "Destroy" => EventType.Destroy,
@@ -368,17 +372,17 @@ public sealed class CodeImportGroup
                     throw new InvalidOperationException($"Collision event cannot be automatically resolved; must attach to object manually ({codeEntryName})") :
                     throw new InvalidOperationException($"Failed to parse object code entry name: \"{codeEntryName}\"")
             };
-            if (!uint.TryParse(codeEntryName.AsSpan(lastUnderscore + 1), out uint eventSubtype))
+            if (!uint.TryParse(codeEntryName.AsSpan(lastUnderscore + 1), out var eventSubtype))
             {
                 throw new InvalidOperationException($"Failed to parse object code entry name: \"{codeEntryName}\"");
             }
 
             // Create new object if necessary.
-            ReadOnlySpan<char> objectName = codeEntryName.AsSpan(new Range(EventObjectPrefix.Length, secondLastUnderscore));
-            GameMakerGameObject obj = Data.GameObjects.ByName(objectName);
+            var objectName = codeEntryName.AsSpan(new Range(EventObjectPrefix.Length, secondLastUnderscore));
+            var obj = Data.GameObjects.ByName(objectName);
             if (obj is null)
             {
-                string objectNameStr = objectName.ToString();
+                var objectNameStr = objectName.ToString();
                 MainThreadAction(() =>
                 {
                     obj = new()
@@ -610,7 +614,7 @@ public sealed class CodeImportGroup
     /// <returns>Result from compilation.</returns>
     public CompileResult Import(bool throwOnFailedCompile = true)
     {
-        CompileResult result = Run(CodeImportMode.Apply, null, default, true).Compile;
+        var result = Run(CodeImportMode.Apply, null, default, true).Compile;
 
         // Handle errors
         if (!result.Successful && throwOnFailedCompile)
@@ -628,7 +632,7 @@ public sealed class CodeImportGroup
     /// already created. A dry run checks every operation against the original code: an operation that follows another one on the same entry does not see its result.
     /// Cancelling throws <see cref="OperationCanceledException"/>; after a cancel in <see cref="CodeImportMode.Apply"/> the data may hold part of the operations, so discard it.
     /// </remarks>
-    public CodeImportResult Import(CodeImportMode mode, IProgress<BatchProgress> progress = null, CancellationToken cancellationToken = default) =>
+    public CodeImportResult Import(CodeImportMode mode, IProgress<BatchProgress>? progress = null, CancellationToken cancellationToken = default) =>
         Run(mode, progress, cancellationToken, false);
 
     private CodeImportResult Run(CodeImportMode mode, IProgress<BatchProgress> progress, CancellationToken cancellationToken, bool strict)
@@ -637,7 +641,7 @@ public sealed class CodeImportGroup
         _queuedOperations.Clear();
         if (mode == CodeImportMode.Stage)
         {
-            CodeImportResult check = RunPass(operations, true, progress, cancellationToken, false);
+            var check = RunPass(operations, true, progress, cancellationToken, false);
             if (check.Operations.Any(operation => operation.Status == CodeOperationStatus.Failed))
             {
                 return check with { Committed = false };
@@ -648,26 +652,26 @@ public sealed class CodeImportGroup
 
     private CodeImportResult RunPass(List<ICodeImportOperation> operations, bool dryRun, IProgress<BatchProgress> progress, CancellationToken cancellationToken, bool strict)
     {
-        CompileResult compile = CompileResult.SuccessfulResult;
-        CodeOperationResult[] results = new CodeOperationResult[operations.Count];
+        var compile = CompileResult.SuccessfulResult;
+        var results = new CodeOperationResult[operations.Count];
         List<int> pass = [];
 
-        CodeOperationResult Make(int index, CodeOperationStatus status, string message = null, int line = 0, int column = 0) =>
+        CodeOperationResult Make(int index, CodeOperationStatus status, string? message = null, int line = 0, int column = 0) =>
             new(operations[index].CodeEntry.Name?.Content, operations[index].Kind, status, message, line, column);
 
         // Compiles what is queued and assigns the compile errors to the operations of this pass.
         void Flush()
         {
-            CompileResult passResult = dryRun ? CompileGroup.Check(cancellationToken) : CompileGroup.Compile(cancellationToken);
+            var passResult = dryRun ? CompileGroup.Check(cancellationToken) : CompileGroup.Compile(cancellationToken);
             Dictionary<string, CompileError> firstErrors = [];
-            foreach (CompileError error in passResult.Errors ?? [])
+            foreach (var error in passResult.Errors ?? [])
             {
                 firstErrors.TryAdd(error.Code.Name?.Content ?? string.Empty, error);
             }
-            foreach (int index in pass)
+            foreach (var index in pass)
             {
-                string entry = operations[index].CodeEntry.Name?.Content ?? string.Empty;
-                results[index] = firstErrors.TryGetValue(entry, out CompileError error)
+                var entry = operations[index].CodeEntry.Name?.Content ?? string.Empty;
+                results[index] = firstErrors.TryGetValue(entry, out var error)
                     ? Make(index, CodeOperationStatus.Failed, error.GenerateDetailedMessage(), error.Diagnostic.Span.StartLine, error.Diagnostic.Span.StartColumn)
                     : Make(index, CodeOperationStatus.Applied);
             }
@@ -684,10 +688,14 @@ public sealed class CodeImportGroup
                 PersistLinkingLookups = true,
                 MainThreadAction = MainThreadAction
             };
-            for (int i = 0; i < operations.Count; i++)
+            foreach (var macro in Macros)
+            {
+                CompileGroup.Macros[macro.Key] = macro.Value;
+            }
+            for (var i = 0; i < operations.Count; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                ICodeImportOperation operation = operations[i];
+                var operation = operations[i];
 
                 // Force a compile pass if code entry is repeated (a dry run never links, so it cannot chain)
                 if (!dryRun && CompileQueuedCodeEntries.Contains(operation.CodeEntry))
@@ -733,7 +741,7 @@ public sealed class CodeImportGroup
             CompileGroup = null;
         }
 
-        bool committed = !dryRun && compile.Successful;
+        var committed = !dryRun && compile.Successful;
         return new CodeImportResult(results, compile, committed);
     }
 }

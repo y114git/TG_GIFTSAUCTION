@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 
@@ -224,7 +222,7 @@ internal sealed class ProjectMainOptions
             else
             {
                 writer.WriteStartArray();
-                foreach (PathList.PathPair path in value.Paths)
+                foreach (var path in value.Paths)
                 {
                     JsonSerializer.Serialize(writer, path, options);
                 }
@@ -244,7 +242,7 @@ internal sealed class ProjectMainOptions
             // Simple case: single string, same for source and destination
             if (reader.TokenType == JsonTokenType.String)
             {
-                string value = reader.GetString() ?? throw new JsonException();
+                var value = reader.GetString() ?? throw new JsonException();
                 return new(value, value);
             }
 
@@ -254,8 +252,8 @@ internal sealed class ProjectMainOptions
             }
 
             // Source and destination paths
-            string sourceValue = null, destinationValue = null;
-            for (int i = 0; i < 2; i++)
+            string? sourceValue = null, destinationValue = null;
+            for (var i = 0; i < 2; i++)
             {
                 if (!reader.Read())
                 {
@@ -265,7 +263,7 @@ internal sealed class ProjectMainOptions
                 {
                     throw new JsonException("Expected property name");
                 }
-                string propertyName = reader.GetString() ?? throw new JsonException();
+                var propertyName = reader.GetString() ?? throw new JsonException();
                 if (!reader.Read())
                 {
                     throw new JsonException();
@@ -274,7 +272,7 @@ internal sealed class ProjectMainOptions
                 {
                     throw new JsonException("Expected string path");
                 }
-                string value = reader.GetString() ?? throw new JsonException();
+                var value = reader.GetString() ?? throw new JsonException();
                 if (propertyName == nameof(PathList.PathPair.Source))
                 {
                     sourceValue = value;
@@ -336,9 +334,9 @@ internal sealed class ProjectMainOptions
             }
 
             // Otherwise, parse each field.
-            bool readPaths = false;
+            var readPaths = false;
             PathList paths = new();
-            bool required = true;
+            var required = true;
             while (reader.Read())
             {
                 if (reader.TokenType == JsonTokenType.EndObject)
@@ -349,7 +347,7 @@ internal sealed class ProjectMainOptions
                 {
                     throw new JsonException($"Expected property name \"{nameof(FileOperation.Paths)}\" or \"{nameof(FileOperation.Required)}\"");
                 }
-                string propertyName = reader.GetString() ?? throw new JsonException();
+                var propertyName = reader.GetString() ?? throw new JsonException();
                 if (propertyName == nameof(FileOperation.Paths))
                 {
                     if (!reader.Read())

@@ -4,9 +4,6 @@
   file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 
-using System;
-using System.Collections.Generic;
-
 namespace G3MLib.Analyzer.Compiler;
 
 /// <summary>
@@ -34,8 +31,9 @@ public sealed class LineMap
 
     public LineMap(string text)
     {
+        ArgumentNullException.ThrowIfNull(text);
         TextLength = text.Length;
-        for (int i = 0; i < text.Length; i++)
+        for (var i = 0; i < text.Length; i++)
         {
             if (text[i] == '\n')
             {
@@ -54,7 +52,7 @@ public sealed class LineMap
     public (int Line, int Column) GetPosition(int offset)
     {
         offset = Math.Clamp(offset, 0, TextLength);
-        int index = _lineStarts.BinarySearch(offset);
+        var index = _lineStarts.BinarySearch(offset);
         if (index < 0)
         {
             index = ~index - 1;
@@ -67,8 +65,8 @@ public sealed class LineMap
     {
         start = Math.Clamp(start, 0, TextLength);
         end = Math.Clamp(end, start, TextLength);
-        (int startLine, int startColumn) = GetPosition(start);
-        (int endLine, int endColumn) = GetPosition(end);
+        (var startLine, var startColumn) = GetPosition(start);
+        (var endLine, var endColumn) = GetPosition(end);
         return new SourceSpan(start, end, startLine, startColumn, endLine, endColumn);
     }
 }
@@ -105,23 +103,23 @@ public sealed record GmlDiagnostic(DiagnosticSeverity Severity, string Code, str
     /// <summary>Meaning error such as a duplicate declaration or an invalid assignment.</summary>
     public const string SemanticErrorCode = "GML3002";
 
-    /// <summary>The syntax is not available in the GameMaker version of the file.</summary>
+    /// <summary>Raised when the syntax needs a different GameMaker version than the file has.</summary>
     public const string UnsupportedByVersionCode = "GML4001";
 
-    /// <summary>The compiler threw an exception.</summary>
+    /// <summary>Raised when the compiler itself fails with an exception.</summary>
     public const string InternalErrorCode = "GML9001";
 
     internal static string ClassifyParserMessage(string message)
     {
-        if (message.StartsWith("Failed to find function") || message.StartsWith("Failed to find script") || message.StartsWith("Failed to find enum"))
+        if (message.StartsWith("Failed to find function", StringComparison.Ordinal) || message.StartsWith("Failed to find script", StringComparison.Ordinal) || message.StartsWith("Failed to find enum", StringComparison.Ordinal))
         {
             return UnknownSymbolCode;
         }
-        if (message.StartsWith("Expected ") || message.StartsWith("Unexpected end of code") || message.StartsWith("Failed to find a valid") || message.StartsWith("Failed to find valid"))
+        if (message.StartsWith("Expected ", StringComparison.Ordinal) || message.StartsWith("Unexpected end of code", StringComparison.Ordinal) || message.StartsWith("Failed to find a valid", StringComparison.Ordinal) || message.StartsWith("Failed to find valid", StringComparison.Ordinal))
         {
             return SyntaxErrorCode;
         }
-        if (message.Contains("before GMLv2") || message.Contains("before GMS2") || message.Contains("in this GameMaker version"))
+        if (message.Contains("before GMLv2", StringComparison.Ordinal) || message.Contains("before GMS2", StringComparison.Ordinal) || message.Contains("in this GameMaker version", StringComparison.Ordinal))
         {
             return UnsupportedByVersionCode;
         }

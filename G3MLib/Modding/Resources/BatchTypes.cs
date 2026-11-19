@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using G3MLib.Modding.Logging;
 
 namespace G3MLib.Modding.Resources;
 
@@ -47,7 +46,7 @@ internal sealed class BatchRun
 	internal static IReadOnlyList<ItemResult> RunImport(IProgress<BatchProgress>? progress, CancellationToken cancellationToken, Action body) =>
 		Execute(progress, () =>
 		{
-			using IDisposable scope = ModdingCancellation.Begin(cancellationToken);
+			using var scope = ModdingCancellation.Begin(cancellationToken);
 			cancellationToken.ThrowIfCancellationRequested();
 			try
 			{
@@ -62,8 +61,8 @@ internal sealed class BatchRun
 
 	private static IReadOnlyList<ItemResult> Execute(IProgress<BatchProgress>? progress, Action scoped)
 	{
-		BatchRun run = new BatchRun(progress);
-		BatchRun? previous = Current.Value;
+		var run = new BatchRun(progress);
+		var previous = Current.Value;
 		Current.Value = run;
 		try
 		{
@@ -74,12 +73,12 @@ internal sealed class BatchRun
 			Current.Value = previous;
 		}
 		run.Finish();
-		return run._results.OrderBy(result => result.Name, StringComparer.Ordinal).ThenBy(result => result.Kind).ToList();
+		return [.. run._results.OrderBy(result => result.Name, StringComparer.Ordinal).ThenBy(result => result.Kind)];
 	}
 
 	internal static void Expect(int count)
 	{
-		BatchRun? run = Current.Value;
+		var run = Current.Value;
 		if (run != null) Interlocked.Add(ref run._total, count);
 	}
 
@@ -87,11 +86,11 @@ internal sealed class BatchRun
 	internal static void Item(string name, ResultKind kind = ResultKind.Written, string? message = null)
 	{
 		ModdingCancellation.Throw();
-		BatchRun? run = Current.Value;
+		var run = Current.Value;
 		if (run == null) return;
 		s_reported = true;
 		run._results.Enqueue(new ItemResult(name, kind, message));
-		int done = Interlocked.Increment(ref run._done);
+		var done = Interlocked.Increment(ref run._done);
 		run._progress?.Report(new BatchProgress(done, Volatile.Read(ref run._total), name));
 	}
 
@@ -119,9 +118,9 @@ internal sealed class BatchRun
 	/// <summary>Wraps a parallel loop body: counts the candidates up front, and counts a candidate the body skipped (filtered out, unnamed) as done without a result.</summary>
 	internal static Action<T> Wrap<T>(IEnumerable<T> source, Action<T> body)
 	{
-		BatchRun? run = Current.Value;
+		var run = Current.Value;
 		if (run == null) return body;
-		if (source.TryGetNonEnumeratedCount(out int count)) Expect(count);
+		if (source.TryGetNonEnumeratedCount(out var count)) Expect(count);
 		return item =>
 		{
 			s_reported = false;
@@ -135,7 +134,7 @@ internal sealed class BatchRun
 
 	private void Finish()
 	{
-		int total = Math.Max(Volatile.Read(ref _total), Volatile.Read(ref _done));
+		var total = Math.Max(Volatile.Read(ref _total), Volatile.Read(ref _done));
 		if (_results.Count != total) _progress?.Report(new BatchProgress(total, total, string.Empty));
 	}
 }

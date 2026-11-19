@@ -1,14 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Models;
 using G3MLib.DataFile.Util;
 using G3MLib.Modding.Resources;
 using ImageMagick;
-using Xunit;
 
 namespace G3MLib.Tests;
 
@@ -22,24 +16,24 @@ public sealed class FrameExporterTests : IDisposable
 
     private static GameMakerData Load()
     {
-        using FileStream input = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures", "data-2026.win"));
+        using var input = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures", "data-2026.win"));
         return GameMakerIO.Read(input);
     }
 
     private static List<GameMakerTexturePageItem> Items(GameMakerData data) =>
-        data.Sprites.Where(s => s != null).SelectMany(s => s.Textures).Select(t => t?.Texture).Where(t => t?.TexturePage != null).Take(40).ToList();
+        [.. data.Sprites.Where(s => s != null).SelectMany(s => s.Textures).Select(t => t?.Texture).Where(t => t?.TexturePage != null).Take(40)];
 
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public void CutBgraEqualsTheImageFrame(bool padding)
     {
-        using GameMakerData data = Load();
+        using var data = Load();
         using TextureWorker worker = new();
-        foreach (GameMakerTexturePageItem item in Items(data))
+        foreach (var item in Items(data))
         {
-            ReadOnlyMemory<byte> raw = worker.CutBgra(item, padding, out int w, out int h);
-            using IMagickImage<byte> image = worker.GetTextureFor(item, "frame", padding);
+            var raw = worker.CutBgra(item, padding, out var w, out var h);
+            using var image = worker.GetTextureFor(item, "frame", padding);
             Assert.Equal((int)image.Width, w);
             Assert.Equal((int)image.Height, h);
             Assert.Equal(image.GetPixels().ToByteArray(PixelMapping.BGRA), raw.ToArray());
@@ -49,11 +43,11 @@ public sealed class FrameExporterTests : IDisposable
     [Fact]
     public void EvictKeepsLaterExportsIdentical()
     {
-        using GameMakerData data = Load();
+        using var data = Load();
         using TextureWorker worker = new();
-        GameMakerTexturePageItem item = Items(data).First();
-        string before = Path.Combine(_root, "before.png");
-        string after = Path.Combine(_root, "after.png");
+        var item = Items(data).First();
+        var before = Path.Combine(_root, "before.png");
+        var after = Path.Combine(_root, "after.png");
         worker.ExportAsPNG(item, before);
         worker.Evict(item.TexturePage);
         worker.ExportAsPNG(item, after);
@@ -63,19 +57,19 @@ public sealed class FrameExporterTests : IDisposable
     [Fact]
     public void ExportPngWritesTheSameFilesAsTheWorker()
     {
-        using GameMakerData data = Load();
-        List<GameMakerTexturePageItem> items = Items(data);
+        using var data = Load();
+        var items = Items(data);
         Directory.CreateDirectory(Path.Combine(_root, "batch"));
-        List<FrameJob> jobs = items.Select((item, i) => new FrameJob(item, Path.Combine(_root, "batch", $"f{i}.png"), i % 2 == 0)).ToList();
+        List<FrameJob> jobs = [.. items.Select((item, i) => new FrameJob(item, Path.Combine(_root, "batch", $"f{i}.png"), i % 2 == 0))];
         List<BatchProgress> reports = [];
 
-        IReadOnlyList<ItemResult> results = FrameExporter.ExportPng(jobs, 2, new Progress(reports), CancellationToken.None);
+        var results = FrameExporter.ExportPng(jobs, 2, new Progress(reports), CancellationToken.None);
 
         Assert.Equal(jobs.Count, results.Count(r => r.Kind == ResultKind.Written));
         using TextureWorker worker = new();
-        for (int i = 0; i < jobs.Count; i++)
+        for (var i = 0; i < jobs.Count; i++)
         {
-            string expected = Path.Combine(_root, $"w{i}.png");
+            var expected = Path.Combine(_root, $"w{i}.png");
             worker.ExportAsPNG(jobs[i].Item, expected, null, jobs[i].Padding);
             Assert.Equal(File.ReadAllBytes(expected), File.ReadAllBytes(jobs[i].Path));
         }
@@ -85,11 +79,11 @@ public sealed class FrameExporterTests : IDisposable
     [Fact]
     public void ExportPngReportsAFailedFrameAndContinues()
     {
-        using GameMakerData data = Load();
-        List<GameMakerTexturePageItem> items = Items(data).Take(1).ToList();
+        using var data = Load();
+        List<GameMakerTexturePageItem> items = [.. Items(data).Take(1)];
         List<FrameJob> jobs = [new(items[0], Path.Combine(_root, "missing", "a.png"), false), new(items[0], Path.Combine(_root, "b.png"), false)];
 
-        IReadOnlyList<ItemResult> results = FrameExporter.ExportPng(jobs, 1, null, CancellationToken.None);
+        var results = FrameExporter.ExportPng(jobs, 1, null, CancellationToken.None);
 
         Assert.Single(results, r => r.Kind == ResultKind.Failed);
         Assert.True(File.Exists(Path.Combine(_root, "b.png")));
@@ -98,10 +92,10 @@ public sealed class FrameExporterTests : IDisposable
     [Fact]
     public void ExportPngCancels()
     {
-        using GameMakerData data = Load();
+        using var data = Load();
         using CancellationTokenSource source = new();
         source.Cancel();
-        List<FrameJob> jobs = Items(data).Select((item, i) => new FrameJob(item, Path.Combine(_root, $"c{i}.png"), false)).ToList();
+        List<FrameJob> jobs = [.. Items(data).Select((item, i) => new FrameJob(item, Path.Combine(_root, $"c{i}.png"), false))];
 
         Assert.ThrowsAny<OperationCanceledException>(() => FrameExporter.ExportPng(jobs, 2, null, source.Token));
     }

@@ -1,4 +1,4 @@
-using System;
+using System.Globalization;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -25,11 +25,12 @@ public static class YyObject
     /// </summary>
     public static GameMakerGameObject Read(string yyPath, CodeImportGroup group)
     {
-        GameMakerData data = group.Data;
+        ArgumentNullException.ThrowIfNull(group);
+        var data = group.Data;
         group.GameMakerEventActions = true;
-        JsonElement root = YyFile.Parse(yyPath);
-        string name = root.Str("name") ?? throw new InvalidDataException($"{yyPath}: object has no name.");
-        GameMakerGameObject obj = Shell(data, name);
+        var root = YyFile.Parse(yyPath);
+        var name = root.Str("name") ?? throw new InvalidDataException($"{yyPath}: object has no name.");
+        var obj = Shell(data, name);
 
         obj.Sprite = Sprite(data, root.Child("spriteId"));
         obj.TextureMaskId = Sprite(data, root.Child("spriteMaskId"));
@@ -50,17 +51,17 @@ public static class YyObject
         obj.Awake = root.Bool("physicsStartAwake", true);
         obj.Kinematic = root.Bool("physicsKinematic");
         obj.PhysicsVertices.Clear();
-        foreach (JsonElement point in root.Items("physicsShapePoints"))
+        foreach (var point in root.Items("physicsShapePoints"))
             obj.PhysicsVertices.Add(new GameMakerGameObject.GameMakerPhysicsVertex { X = point.Float("x"), Y = point.Float("y") });
 
-        string directory = Path.GetDirectoryName(yyPath);
-        foreach (JsonElement ev in root.Items("eventList"))
+        var directory = Path.GetDirectoryName(yyPath);
+        foreach (var ev in root.Items("eventList"))
         {
-            int type = ev.Int("eventType");
-            int number = ev.Int("eventNum");
-            string other = ev.Child("collisionObjectId").Str("name");
-            string entry = EntryName(name, type, number, other);
-            string file = Path.Combine(directory, EventFile(type, number, other));
+            var type = ev.Int("eventType");
+            var number = ev.Int("eventNum");
+            var other = ev.Child("collisionObjectId").Str("name");
+            var entry = EntryName(name, type, number, other);
+            var file = Path.Combine(directory, EventFile(type, number, other));
             if (!File.Exists(file))
                 continue;
             if (other is not null)
@@ -72,7 +73,7 @@ public static class YyObject
 
     private static GameMakerGameObject Shell(GameMakerData data, string name)
     {
-        GameMakerGameObject obj = data.GameObjects.ByName(name);
+        var obj = data.GameObjects.ByName(name);
         if (obj is null)
         {
             obj = new() { Name = data.Strings.MakeString(name) };
@@ -83,7 +84,7 @@ public static class YyObject
 
     private static GameMakerSprite Sprite(GameMakerData data, JsonElement reference)
     {
-        string name = reference.Str("name");
+        var name = reference.Str("name");
         if (name is null)
             return null;
         return data.Sprites.ByName(name) ?? throw new InvalidDataException($"Sprite \"{name}\" is not in the data file.");
@@ -91,7 +92,7 @@ public static class YyObject
 
     // Collision events are named after the other object, every other event after its number.
     private static string EventFile(int type, int number, string other) =>
-        $"{(EventType)type}_{other ?? number.ToString()}.gml";
+        $"{(EventType)type}_{other ?? number.ToString(CultureInfo.InvariantCulture)}.gml";
 
     private static string EntryName(string obj, int type, int number, string other) =>
         $"gml_Object_{obj}_{EventFile(type, number, other)[..^4]}";
@@ -100,25 +101,32 @@ public static class YyObject
     /// Writes <paramref name="obj"/> as <c>{folder}/{name}.yy</c> with one decompiled <c>.gml</c> file per event that has code.
     /// </summary>
     /// <param name="parent">Folder name shown in the asset browser (LTS 2022), or the project name (LTS 2026).</param>
+    /// <param name="obj">The object to write.</param>
+    /// <param name="globalContext">The decompile context shared by all code.</param>
+    /// <param name="format">The project file format.</param>
+    /// <param name="folder">The folder to write into.</param>
+    /// <param name="data">The game data it belongs to.</param>
     public static void Write(GameMakerGameObject obj, GameMakerData data, GlobalDecompileContext globalContext, string folder, YyFormat format, string parent = "Objects")
     {
-        string name = obj.Name.Content;
+        ArgumentNullException.ThrowIfNull(data);
+        ArgumentNullException.ThrowIfNull(obj);
+        var name = obj.Name.Content;
         Directory.CreateDirectory(folder);
         JsonArray events = [];
-        for (int type = 0; type < obj.Events.Count; type++)
+        for (var type = 0; type < obj.Events.Count; type++)
         {
             if (obj.Events[type] is not { } list)
                 continue;
-            foreach (GameMakerGameObject.Event ev in list)
+            foreach (var ev in list)
             {
-                string other = type == (int)EventType.Collision ? data.GameObjects[(int)ev.EventSubtype].Name.Content : null;
-                int number = other is null ? (int)ev.EventSubtype : 0;
+                var other = type == (int)EventType.Collision ? data.GameObjects[(int)ev.EventSubtype].Name.Content : null;
+                var number = other is null ? (int)ev.EventSubtype : 0;
                 if (ev.Actions is [{ CodeId: { } code }, ..])
                 {
-                    string text = new DecompileContext(globalContext, code, new DecompileSettings()).DecompileToString();
+                    var text = new DecompileContext(globalContext, code, new DecompileSettings()).DecompileToString();
                     File.WriteAllText(Path.Combine(folder, EventFile(type, number, other)), text);
                 }
-                JsonObject e = YyFile.Resource(format, "GMEvent", "", "1.0", "v1");
+                var e = YyFile.Resource(format, "GMEvent", "", "1.0", "v1");
                 e["isDnD"] = false;
                 e["eventNum"] = number;
                 e["eventType"] = type;
@@ -127,7 +135,7 @@ public static class YyObject
             }
         }
 
-        JsonObject root = YyFile.Resource(format, "GMObject", name, "1.0", "");
+        var root = YyFile.Resource(format, "GMObject", name, "1.0", "");
         root["spriteId"] = obj.Sprite is null ? null : YyFile.Ref("sprites", obj.Sprite.Name.Content);
         root["solid"] = obj.Solid;
         root["visible"] = obj.Visible;
@@ -146,7 +154,7 @@ public static class YyObject
         root["physicsStartAwake"] = obj.Awake;
         root["physicsKinematic"] = obj.Kinematic;
         JsonArray points = [];
-        foreach (GameMakerGameObject.GameMakerPhysicsVertex v in obj.PhysicsVertices)
+        foreach (var v in obj.PhysicsVertices)
             points.Add(new JsonObject { ["x"] = (double)v.X, ["y"] = (double)v.Y });
         root["physicsShapePoints"] = points;
         root["eventList"] = events;

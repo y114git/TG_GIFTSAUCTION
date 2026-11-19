@@ -4,8 +4,6 @@
   file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 
-using System.Collections.Generic;
-
 namespace G3MLib.Analyzer.Decompiler.AST;
 
 /// <summary>
@@ -40,6 +38,7 @@ public class IfNode(IExpressionNode condition, BlockNode trueBlock, BlockNode? e
     /// <inheritdoc/>
     public IStatementNode Clean(ASTCleaner cleaner)
     {
+        ArgumentNullException.ThrowIfNull(cleaner);
         Condition = Condition.Clean(cleaner);
         Condition.Group = false;
         TrueBlock.Clean(cleaner);
@@ -53,15 +52,16 @@ public class IfNode(IExpressionNode condition, BlockNode trueBlock, BlockNode? e
     /// <inheritdoc/>
     public IStatementNode PostClean(ASTCleaner cleaner)
     {
+        ArgumentNullException.ThrowIfNull(cleaner);
         Condition = Condition.PostClean(cleaner);
 
-        cleaner.TopFragmentContext!.PushLocalScope(cleaner.Context, cleaner.TopFragmentContext!.CurrentPostCleanupBlock!, this);
+        cleaner.TopFragmentContext.PushLocalScope(cleaner.Context, cleaner.TopFragmentContext.CurrentPostCleanupBlock, this);
         TrueBlock.PostClean(cleaner);
-        cleaner.TopFragmentContext!.PopLocalScope(cleaner.Context);
+        cleaner.TopFragmentContext.PopLocalScope(cleaner.Context);
 
-        cleaner.TopFragmentContext!.PushLocalScope(cleaner.Context, cleaner.TopFragmentContext!.CurrentPostCleanupBlock!, this);
+        cleaner.TopFragmentContext.PushLocalScope(cleaner.Context, cleaner.TopFragmentContext.CurrentPostCleanupBlock, this);
         ElseBlock?.PostClean(cleaner);
-        cleaner.TopFragmentContext!.PopLocalScope(cleaner.Context);
+        cleaner.TopFragmentContext.PopLocalScope(cleaner.Context);
 
         return this;
     }
@@ -99,6 +99,7 @@ public class IfNode(IExpressionNode condition, BlockNode trueBlock, BlockNode? e
     /// <inheritdoc/>
     public void Print(ASTPrinter printer)
     {
+        ArgumentNullException.ThrowIfNull(printer);
         printer.Write("if (");
         printer.PrintNode(Condition);
         printer.Write(')');
@@ -111,6 +112,7 @@ public class IfNode(IExpressionNode condition, BlockNode trueBlock, BlockNode? e
     /// </summary>
     public void PrintElseIf(ASTPrinter printer, bool shouldRemoveBraces)
     {
+        ArgumentNullException.ThrowIfNull(printer);
         printer.Write("if (");
         printer.PrintNode(Condition);
         printer.Write(')');

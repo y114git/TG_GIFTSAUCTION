@@ -1,9 +1,6 @@
-using System;
-using System.IO;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Interop;
 using G3MLib.DataFile.Models;
-using Xunit;
 
 namespace G3MLib.Tests;
 
@@ -19,7 +16,7 @@ public sealed class YySoundTests : IDisposable
 
     private static GameMakerData Load(string fixture)
     {
-        using FileStream input = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures", fixture));
+        using var input = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures", fixture));
         return GameMakerIO.Read(input);
     }
 
@@ -33,7 +30,7 @@ public sealed class YySoundTests : IDisposable
 
     private string WriteSource(int compression, string file, byte[] audio)
     {
-        string folder = Path.Combine(_root, "snd_test");
+        var folder = Path.Combine(_root, "snd_test");
         Directory.CreateDirectory(folder);
         File.WriteAllBytes(Path.Combine(folder, file), audio);
         File.WriteAllText(Path.Combine(folder, "snd_test.yy"), $$"""
@@ -50,8 +47,8 @@ public sealed class YySoundTests : IDisposable
     public void ReadsAudioAndSurvivesWriteAndRead(string fixture, int compression, string file, GameMakerSound.AudioEntryFlags flags)
     {
         byte[] audio = [.. "RIFFdata"u8, 1, 2, 3, 4];
-        using GameMakerData data = Load(fixture);
-        GameMakerSound sound = YySound.Read(WriteSource(compression, file, audio), data);
+        using var data = Load(fixture);
+        var sound = YySound.Read(WriteSource(compression, file, audio), data);
 
         Assert.Equal(flags, sound.Flags);
         Assert.Equal(0.5f, sound.Volume);
@@ -59,16 +56,16 @@ public sealed class YySoundTests : IDisposable
         Assert.Equal(1.5f, sound.AudioLength);
         Assert.Equal(audio, sound.AudioFile.Data);
 
-        using GameMakerData reloaded = RoundTrip(data);
+        using var reloaded = RoundTrip(data);
         Assert.Equal(audio, reloaded.Sounds.ByName("snd_test").AudioFile.Data);
 
-        foreach (YyFormat format in Enum.GetValues<YyFormat>())
+        foreach (var format in Enum.GetValues<YyFormat>())
         {
-            string folder = Path.Combine(_root, "out", format.ToString());
+            var folder = Path.Combine(_root, "out", format.ToString());
             YySound.Write(reloaded.Sounds.ByName("snd_test"), reloaded, folder, format);
             Assert.Equal(audio, File.ReadAllBytes(Path.Combine(folder, file)));
-            using GameMakerData again = Load(fixture);
-            GameMakerSound back = YySound.Read(Path.Combine(folder, "snd_test.yy"), again);
+            using var again = Load(fixture);
+            var back = YySound.Read(Path.Combine(folder, "snd_test.yy"), again);
             // Older data files do not store the length, so it is whatever the data file kept.
             Assert.Equal((flags, 0.5f, reloaded.Sounds.ByName("snd_test").AudioLength), (back.Flags, back.Volume, back.AudioLength));
         }
@@ -77,7 +74,7 @@ public sealed class YySoundTests : IDisposable
     [Fact]
     public void WavSourceForCompressedSoundIsRejected()
     {
-        using GameMakerData data = Load("data-2026.win");
+        using var data = Load("data-2026.win");
         Assert.Throws<NotSupportedException>(() => YySound.Read(WriteSource(1, "snd_test.wav", [1]), data));
     }
 }

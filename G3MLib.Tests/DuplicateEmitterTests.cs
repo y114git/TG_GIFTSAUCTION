@@ -1,10 +1,6 @@
-using System;
-using System.IO;
-using System.Linq;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Models;
 using G3MLib.Modding.Resources;
-using Xunit;
 
 namespace G3MLib.Tests;
 
@@ -22,13 +18,12 @@ public sealed class DuplicateEmitterTests : IDisposable
 
     private static GameMakerData DataWithDuplicates(string fixture)
     {
-        using FileStream input = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures", fixture));
-        GameMakerData data = GameMakerIO.Read(input);
+        using var input = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures", fixture));
+        var data = GameMakerIO.Read(input);
         data.ParticleSystemEmitters.Add(new GameMakerParticleSystemEmitter { Name = data.Strings.MakeString("em_dup"), EmitCount = 1 });
         data.ParticleSystemEmitters.Add(new GameMakerParticleSystemEmitter { Name = data.Strings.MakeString("em_dup"), EmitCount = 7 });
-        GameMakerParticleSystem system = new() { Name = data.Strings.MakeString("ps_dup") };
-        system.Emitters = new();
-        foreach (GameMakerParticleSystemEmitter e in data.ParticleSystemEmitters.Where(e => e.Name.Content == "em_dup").Reverse())
+        GameMakerParticleSystem system = new() { Name = data.Strings.MakeString("ps_dup"), Emitters = [] };
+        foreach (var e in data.ParticleSystemEmitters.Where(e => e.Name.Content == "em_dup").Reverse())
         {
             system.Emitters.Add(new(e));
         }
@@ -50,9 +45,9 @@ public sealed class DuplicateEmitterTests : IDisposable
     [Fact]
     public void DuplicateNamesExportToSeparateStableFolders()
     {
-        using GameMakerData data = DataWithDuplicates("data-2026.win");
+        using var data = DataWithDuplicates("data-2026.win");
         Export(data);
-        string[] folders = [.. Directory.GetDirectories(Path.Combine(_root, "ParticleSystemEmitters")).Select(Path.GetFileName).Where(n => n.StartsWith("em_dup"))];
+        string[] folders = [.. Directory.GetDirectories(Path.Combine(_root, "ParticleSystemEmitters")).Select(Path.GetFileName).Where(n => n.StartsWith("em_dup", StringComparison.Ordinal))];
         Assert.Equal(2, folders.Length);
         Assert.Equal(2, folders.Distinct().Count());
     }
@@ -60,7 +55,7 @@ public sealed class DuplicateEmitterTests : IDisposable
     [Fact]
     public void ImportMapsDuplicateEmittersAndSystemReferencesBack()
     {
-        using GameMakerData data = DataWithDuplicates("data-2026.win");
+        using var data = DataWithDuplicates("data-2026.win");
         Export(data);
         Import(data, _root);
         GameMakerParticleSystemEmitter[] dups = [.. data.ParticleSystemEmitters.Where(e => e.Name.Content == "em_dup")];
@@ -71,12 +66,12 @@ public sealed class DuplicateEmitterTests : IDisposable
     [Fact]
     public void EditingTheSecondDuplicateChangesOnlyTheSecond()
     {
-        using GameMakerData data = DataWithDuplicates("data-2026.win");
+        using var data = DataWithDuplicates("data-2026.win");
         Export(data);
-        string second = Directory.GetDirectories(Path.Combine(_root, "ParticleSystemEmitters"))
-            .Single(d => File.ReadAllText(Path.Combine(d, Path.GetFileName(d) + ".json")).Contains("\"EmitCount\": 7"));
-        string file = Path.Combine(second, Path.GetFileName(second) + ".json");
-        File.WriteAllText(file, File.ReadAllText(file).Replace("\"EmitCount\": 7", "\"EmitCount\": 9"));
+        var second = Directory.GetDirectories(Path.Combine(_root, "ParticleSystemEmitters"))
+            .Single(d => File.ReadAllText(Path.Combine(d, Path.GetFileName(d) + ".json")).Contains("\"EmitCount\": 7", StringComparison.Ordinal));
+        var file = Path.Combine(second, Path.GetFileName(second) + ".json");
+        File.WriteAllText(file, File.ReadAllText(file).Replace("\"EmitCount\": 7", "\"EmitCount\": 9", StringComparison.Ordinal));
         Import(data, _root);
         Assert.Equal([1, 9], data.ParticleSystemEmitters.Where(e => e.Name.Content == "em_dup").Select(e => e.EmitCount));
     }

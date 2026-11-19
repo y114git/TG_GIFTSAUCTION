@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using G3MLib.DataFile.Models;
-
 namespace G3MLib.DataFile;
 
 /// <summary>
@@ -23,7 +17,7 @@ public sealed class DataLookup
     private readonly GameMakerData _data;
     private readonly IList<GameMakerString> _strings;
     private readonly Dictionary<string, int> _stringIndex = new(StringComparer.Ordinal);
-    private readonly Dictionary<Type, object> _nameIndexes = new();
+    private readonly Dictionary<Type, object> _nameIndexes = [];
     private int _stringVersion;
 
     private DataLookup(GameMakerData data)
@@ -51,7 +45,7 @@ public sealed class DataLookup
     {
         ArgumentNullException.ThrowIfNull(s);
 
-        return TryFindString(s, out int index) ? _strings[index] : null;
+        return TryFindString(s, out var index) ? _strings[index] : null;
     }
 
     private bool TryFindString(string s, out int index)
@@ -98,10 +92,10 @@ public sealed class DataLookup
     {
         ArgumentNullException.ThrowIfNull(name);
 
-        NameIndex<T> names = Names<T>();
+        var names = Names<T>();
         names.Sync();
         // A hit whose name no longer matches means an in-place rename: rebuild once and look again.
-        for (int attempt = 0; attempt < 2; attempt++)
+        for (var attempt = 0; attempt < 2; attempt++)
         {
             if (!names.Map.TryGetValue(name, out index))
             {
@@ -127,7 +121,7 @@ public sealed class DataLookup
     {
         ArgumentNullException.ThrowIfNull(item);
 
-        NameIndex<T> names = Names<T>();
+        var names = Names<T>();
         names.Sync();
         names.List.Add(item);
         if (item.Name?.Content is string content)
@@ -139,16 +133,16 @@ public sealed class DataLookup
 
     private NameIndex<T> Names<T>() where T : GameMakerNamedResource
     {
-        if (_nameIndexes.TryGetValue(typeof(T), out object existing))
+        if (_nameIndexes.TryGetValue(typeof(T), out var existing))
         {
             return (NameIndex<T>)existing;
         }
 
-        // shortcut: the first IList<T> property wins, so the two GameMakerGlobalInit lists are not told apart
-        System.Reflection.PropertyInfo property = typeof(GameMakerData).GetProperties()
+        // Limit: the first IList<T> property wins, so the two GameMakerGlobalInit lists are not told apart.
+        var property = typeof(GameMakerData).GetProperties()
             .FirstOrDefault(p => p.PropertyType == typeof(IList<T>))
             ?? throw new InvalidOperationException($"The data file has no list of {typeof(T).Name}.");
-        IList<T> list = (IList<T>)property.GetValue(_data)
+        var list = (IList<T>)property.GetValue(_data)
             ?? throw new InvalidOperationException($"The data file has no {property.Name} list.");
         NameIndex<T> created = new(list);
         created.Rebuild();
@@ -169,7 +163,7 @@ public sealed class DataLookup
     private void RebuildStrings(CancellationToken ct)
     {
         _stringIndex.Clear();
-        for (int i = 0; i < _strings.Count; i++)
+        for (var i = 0; i < _strings.Count; i++)
         {
             if ((i & 0xFFF) == 0)
             {
@@ -204,7 +198,7 @@ public sealed class DataLookup
         public void Rebuild()
         {
             Map.Clear();
-            for (int i = 0; i < List.Count; i++)
+            for (var i = 0; i < List.Count; i++)
             {
                 if (List[i]?.Name?.Content is string content)
                 {

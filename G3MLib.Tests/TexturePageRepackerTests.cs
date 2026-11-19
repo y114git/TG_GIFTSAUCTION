@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Models;
 using G3MLib.DataFile.Util;
 using ImageMagick;
-using Xunit;
 
 namespace G3MLib.Tests;
 
@@ -14,7 +9,7 @@ public sealed class TexturePageRepackerTests
 {
     private static GameMakerData Load(string fixture)
     {
-        using FileStream input = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures", fixture));
+        using var input = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures", fixture));
         return GameMakerIO.Read(input);
     }
 
@@ -28,14 +23,14 @@ public sealed class TexturePageRepackerTests
 
     private static byte[] Pixels(TextureWorker worker, GameMakerTexturePageItem item)
     {
-        using IMagickImage<byte> image = worker.GetTextureFor(item, "frame");
+        using var image = worker.GetTextureFor(item, "frame");
         return image.ToByteArray(MagickFormat.Rgba);
     }
 
     private static List<byte[]> Snapshot(GameMakerData data)
     {
         using TextureWorker worker = new();
-        return data.TexturePageItems.Select(item => Pixels(worker, item)).ToList();
+        return [.. data.TexturePageItems.Select(item => Pixels(worker, item))];
     }
 
     private static MagickImage Solid(int width, int height, MagickColor color) => new(color, (uint)width, (uint)height);
@@ -47,41 +42,41 @@ public sealed class TexturePageRepackerTests
     [InlineData("data-2026.win")]
     public void RepackKeepsEveryFrameAndNeverGrowsThePages(string fixture)
     {
-        using GameMakerData data = Load(fixture);
-        List<byte[]> before = Snapshot(data);
-        long areaBefore = PageArea(data);
+        using var data = Load(fixture);
+        var before = Snapshot(data);
+        var areaBefore = PageArea(data);
 
         new TexturePageRepacker(data).Repack();
 
         Assert.Equal(before, Snapshot(data));
         Assert.True(PageArea(data) <= areaBefore, $"{fixture}: {areaBefore} -> {PageArea(data)}");
-        using GameMakerData reloaded = RoundTrip(data);
+        using var reloaded = RoundTrip(data);
         Assert.Equal(before, Snapshot(reloaded));
     }
 
     [Fact]
     public void ReplaceChangesOnlyTheReplacedFrame()
     {
-        using GameMakerData data = Load("data-2026.win");
-        List<byte[]> before = Snapshot(data);
-        int index = data.TexturePageItems.ToList().FindIndex(item => item.SourceWidth > 4 && item.SourceHeight > 4 && item.TexturePage != null);
-        GameMakerTexturePageItem target = data.TexturePageItems[index];
-        using MagickImage replacement = Solid(target.SourceWidth + 3, target.SourceHeight + 5, new MagickColor(255, 0, 0, 255));
+        using var data = Load("data-2026.win");
+        var before = Snapshot(data);
+        var index = data.TexturePageItems.ToList().FindIndex(item => item.SourceWidth > 4 && item.SourceHeight > 4 && item.TexturePage != null);
+        var target = data.TexturePageItems[index];
+        using var replacement = Solid(target.SourceWidth + 3, target.SourceHeight + 5, new MagickColor(255, 0, 0, 255));
 
         TexturePageRepacker repacker = new(data);
         repacker.Replace(target, replacement);
         repacker.Repack();
 
-        using GameMakerData reloaded = RoundTrip(data);
+        using var reloaded = RoundTrip(data);
         using TextureWorker worker = new();
-        GameMakerTexturePageItem reloadedTarget = reloaded.TexturePageItems[index];
-        using IMagickImage<byte> shown = worker.GetTextureFor(reloadedTarget, "frame");
+        var reloadedTarget = reloaded.TexturePageItems[index];
+        using var shown = worker.GetTextureFor(reloadedTarget, "frame");
         Assert.Equal(replacement.Width, shown.Width);
         Assert.Equal(replacement.Height, shown.Height);
         Assert.Equal(replacement.ToByteArray(MagickFormat.Rgba), shown.ToByteArray(MagickFormat.Rgba));
 
-        List<byte[]> after = Snapshot(reloaded);
-        for (int i = 0; i < before.Count; i++)
+        var after = Snapshot(reloaded);
+        for (var i = 0; i < before.Count; i++)
         {
             if (i != index)
                 Assert.Equal(before[i], after[i]);
@@ -91,53 +86,53 @@ public sealed class TexturePageRepackerTests
     [Fact]
     public void RepackOfConfiguredDataFilesKeepsEveryFrame()
     {
-        string? configured = Environment.GetEnvironmentVariable("G3MLIB_REPACK_DATA_FILES");
+        var configured = Environment.GetEnvironmentVariable("G3MLIB_REPACK_DATA_FILES");
         if (string.IsNullOrWhiteSpace(configured))
             return;
 
-        foreach (string path in configured.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        foreach (var path in configured.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
-            using FileStream input = File.OpenRead(path);
-            using GameMakerData data = GameMakerIO.Read(input);
-            List<string> before = Hashes(data);
-            long areaBefore = PageArea(data);
+            using var input = File.OpenRead(path);
+            using var data = GameMakerIO.Read(input);
+            var before = Hashes(data);
+            var areaBefore = PageArea(data);
             TexturePageRepacker repacker = new(data);
-            using MagickImage extra = Solid(40, 30, new MagickColor(1, 2, 3, 255));
+            using var extra = Solid(40, 30, new MagickColor(1, 2, 3, 255));
             repacker.Add(extra);
             repacker.Repack();
 
-            using GameMakerData reloaded = RoundTrip(data);
-            List<string> after = Hashes(reloaded);
-            Assert.Equal(before, Hashes(data).Take(before.Count).ToList());
+            using var reloaded = RoundTrip(data);
+            var after = Hashes(reloaded);
+            Assert.Equal(before, [.. Hashes(data).Take(before.Count)]);
             Assert.Equal(before.Count + 1, after.Count);
             // The in-memory round trip has no game folder, so external pages cannot reload there.
-            int[] inFile = Enumerable.Range(0, before.Count).Where(i => !data.TexturePageItems[i].TexturePage.TextureExternal).ToArray();
+            int[] inFile = [.. Enumerable.Range(0, before.Count).Where(i => !data.TexturePageItems[i].TexturePage.TextureExternal)];
             Assert.NotEmpty(inFile);
             Assert.All(inFile, i => Assert.Equal(before[i], after[i]));
-            Assert.True(PageArea(reloaded) <= areaBefore + (4096L * 4096), $"{path}: {areaBefore} -> {PageArea(reloaded)}");
+            Assert.True(PageArea(reloaded) <= areaBefore + 4096L * 4096, $"{path}: {areaBefore} -> {PageArea(reloaded)}");
         }
     }
 
     private static List<string> Hashes(GameMakerData data)
     {
         using TextureWorker worker = new();
-        return data.TexturePageItems.Select(item => Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Pixels(worker, item)))).ToList();
+        return [.. data.TexturePageItems.Select(item => Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Pixels(worker, item))))];
     }
 
     [Fact]
     public void ManyAddedFramesPackIntoFewPagesWithTheGivenPixels()
     {
-        using GameMakerData data = Load("data-2026.win");
-        int count = data.TexturePageItems.Count;
+        using var data = Load("data-2026.win");
+        var count = data.TexturePageItems.Count;
         TexturePageRepacker repacker = new(data);
-        List<MagickImage> images = Enumerable.Range(0, 60).Select(i => Solid(9 + (i % 5), 6 + (i % 3), new MagickColor((byte)(i * 4), (byte)i, 0, 255))).ToList();
-        foreach (MagickImage image in images)
+        List<MagickImage> images = [.. Enumerable.Range(0, 60).Select(i => Solid(9 + i % 5, 6 + i % 3, new MagickColor((byte)(i * 4), (byte)i, 0, 255)))];
+        foreach (var image in images)
             repacker.Add(image);
         repacker.Repack();
 
-        using GameMakerData reloaded = RoundTrip(data);
+        using var reloaded = RoundTrip(data);
         using TextureWorker worker = new();
-        for (int i = 0; i < images.Count; i++)
+        for (var i = 0; i < images.Count; i++)
             Assert.Equal(images[i].ToByteArray(MagickFormat.Rgba), Pixels(worker, reloaded.TexturePageItems[count + i]));
         Assert.True(PageArea(reloaded) <= 4 * 256 * 256);
     }
@@ -145,19 +140,19 @@ public sealed class TexturePageRepackerTests
     [Fact]
     public void AddAppendsAnItemWithTheGivenPixels()
     {
-        using GameMakerData data = Load("data-2026.win");
-        int count = data.TexturePageItems.Count;
-        using MagickImage image = Solid(13, 7, new MagickColor(0, 255, 0, 255));
+        using var data = Load("data-2026.win");
+        var count = data.TexturePageItems.Count;
+        using var image = Solid(13, 7, new MagickColor(0, 255, 0, 255));
 
         TexturePageRepacker repacker = new(data);
-        GameMakerTexturePageItem added = repacker.Add(image);
+        var added = repacker.Add(image);
         repacker.Repack();
 
         Assert.Equal(count + 1, data.TexturePageItems.Count);
         Assert.Same(added, data.TexturePageItems[count]);
-        using GameMakerData reloaded = RoundTrip(data);
+        using var reloaded = RoundTrip(data);
         using TextureWorker worker = new();
-        using IMagickImage<byte> shown = worker.GetTextureFor(reloaded.TexturePageItems[count], "frame");
+        using var shown = worker.GetTextureFor(reloaded.TexturePageItems[count], "frame");
         Assert.Equal(image.ToByteArray(MagickFormat.Rgba), shown.ToByteArray(MagickFormat.Rgba));
         Assert.Equal(13, reloaded.TexturePageItems[count].BoundingWidth);
         Assert.Equal(7, reloaded.TexturePageItems[count].BoundingHeight);
@@ -166,7 +161,7 @@ public sealed class TexturePageRepackerTests
     [Fact]
     public void ItemsSharingARectangleStillShareItAfterRepack()
     {
-        using GameMakerData data = Load("data-2026.win");
+        using var data = Load("data-2026.win");
         var shared = data.TexturePageItems
             .GroupBy(i => (i.TexturePage, i.SourceX, i.SourceY, i.SourceWidth, i.SourceHeight))
             .Where(g => g.Count() > 1)
@@ -183,14 +178,14 @@ public sealed class TexturePageRepackerTests
     [Fact]
     public void PlanChangesNothingAndApplyEqualsRepack()
     {
-        using GameMakerData planned = Load("data-2026.win");
-        using GameMakerData direct = Load("data-2026.win");
-        using MagickImage frame = Solid(11, 5, new MagickColor(9, 8, 7, 255));
-        List<byte[]> before = Snapshot(planned);
+        using var planned = Load("data-2026.win");
+        using var direct = Load("data-2026.win");
+        using var frame = Solid(11, 5, new MagickColor(9, 8, 7, 255));
+        var before = Snapshot(planned);
 
         TexturePageRepacker repacker = new(planned);
         repacker.Add(frame);
-        RepackPlan plan = repacker.Plan(new RepackOptions());
+        var plan = repacker.Plan(new RepackOptions(), cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(before, Snapshot(planned));
         Assert.Equal(before.Count, planned.TexturePageItems.Count);
         Assert.Equal(1, plan.GroupCount);
@@ -203,10 +198,52 @@ public sealed class TexturePageRepackerTests
     }
 
     [Fact]
+    public void PlanReportsPerPageDimensionsFillRatioAndItemCountsBeforeApply()
+    {
+        using var data = Load("data-2026.win");
+        var expectedGroup = data.EmbeddedTextures.First(t => !t.TextureExternal).TextureInfo;
+        var existingItems = data.TexturePageItems.Count(i => i.TexturePage is { TextureExternal: false } && ReferenceEquals(i.TexturePage.TextureInfo, expectedGroup));
+        using var first = Solid(20, 16, new MagickColor(10, 20, 30, 255));
+        using var second = Solid(24, 18, new MagickColor(40, 50, 60, 255));
+
+        TexturePageRepacker repacker = new(data);
+        var isolatedItem = repacker.Add(first);
+        repacker.Add(second);
+        var plan = repacker.Plan(new RepackOptions(KeepAlone: item => ReferenceEquals(item, isolatedItem)), cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Equal(plan.PageCount.After, plan.Pages.Count);
+        Assert.True(plan.Pages.Count >= 2);
+        Assert.Equal(Enumerable.Range(0, plan.Pages.Count), plan.Pages.Select(p => p.PageIndex));
+        Assert.Equal(existingItems + 2, plan.Pages.Sum(p => p.ItemCount));
+        Assert.All(plan.Pages, page =>
+        {
+            Assert.Same(expectedGroup, page.Group);
+            Assert.True(page.Width >= 16);
+            Assert.True(page.Height >= 16);
+            Assert.InRange(page.FillRatio, 0.0001, 1.0);
+            Assert.True(page.ItemCount >= 1);
+        });
+        var isolatedPage = Assert.Single(plan.Pages, p => p.ItemCount == 1);
+        Assert.Equal((double)(20 * 16) / (isolatedPage.Width * isolatedPage.Height), isolatedPage.FillRatio, 6);
+
+        repacker.Apply(plan);
+        var committedPages = data.EmbeddedTextures.Where(t => !t.TextureExternal && ReferenceEquals(t.TextureInfo, expectedGroup)).ToList();
+        Assert.Equal(plan.Pages.Count, committedPages.Count);
+        for (var i = 0; i < plan.Pages.Count; i++)
+        {
+            var plannedPage = plan.Pages[i];
+            var committedPage = committedPages[i];
+            Assert.Equal(plannedPage.PageIndex, committedPage.IndexInGroup);
+            Assert.Equal((plannedPage.Width, plannedPage.Height), (committedPage.TextureData.Width, committedPage.TextureData.Height));
+            Assert.Equal(plannedPage.ItemCount, data.TexturePageItems.Count(item => ReferenceEquals(item.TexturePage, committedPage)));
+        }
+    }
+
+    [Fact]
     public void PlanHonoursCancellation()
     {
-        using GameMakerData data = Load("data-2026.win");
-        using System.Threading.CancellationTokenSource source = new();
+        using var data = Load("data-2026.win");
+        using CancellationTokenSource source = new();
         source.Cancel();
         Assert.ThrowsAny<OperationCanceledException>(() => new TexturePageRepacker(data).Plan(new RepackOptions(), null, source.Token));
     }
@@ -214,18 +251,18 @@ public sealed class TexturePageRepackerTests
     [Fact]
     public void PreparedFrameAddsTheGivenPixels()
     {
-        using GameMakerData data = Load("data-2026.win");
-        int count = data.TexturePageItems.Count;
-        byte[] bgra = Enumerable.Range(0, 6 * 4 * 4).Select(i => (byte)(i * 7)).ToArray();
-        for (int i = 3; i < bgra.Length; i += 4) bgra[i] = 255;
+        using var data = Load("data-2026.win");
+        var count = data.TexturePageItems.Count;
+        byte[] bgra = [.. Enumerable.Range(0, 6 * 4 * 4).Select(i => (byte)(i * 7))];
+        for (var i = 3; i < bgra.Length; i += 4) bgra[i] = 255;
 
         TexturePageRepacker repacker = new(data);
-        GameMakerTexturePageItem item = repacker.Add(new PreparedFrame(6, 4, 2, 3, bgra));
+        var item = repacker.Add(new PreparedFrame(6, 4, 2, 3, bgra));
         repacker.Repack();
 
-        using GameMakerData reloaded = RoundTrip(data);
+        using var reloaded = RoundTrip(data);
         using TextureWorker worker = new();
-        GameMakerTexturePageItem shown = reloaded.TexturePageItems[count];
+        var shown = reloaded.TexturePageItems[count];
         Assert.Equal((2, 3, 8, 7), (shown.TargetX, shown.TargetY, shown.BoundingWidth, shown.BoundingHeight));
         Assert.Equal(bgra, worker.CutBgra(shown, false, out _, out _).ToArray());
         Assert.Same(item, data.TexturePageItems[count]);
@@ -234,34 +271,73 @@ public sealed class TexturePageRepackerTests
     [Fact]
     public void FramesLargerThanTheSizeFieldsAreRejected()
     {
-        using GameMakerData data = Load("data-2026.win");
-        using MagickImage wide = Solid(70000, 1, new MagickColor(1, 1, 1, 255));
+        using var data = Load("data-2026.win");
+        using var wide = Solid(70000, 1, new MagickColor(1, 1, 1, 255));
         Assert.Throws<OverflowException>(() => new TexturePageRepacker(data).Add(wide));
+    }
+
+    [Fact]
+    public void PagePlanItemCountIncludesAllSharedOwnersMatchingCommittedItemCount()
+    {
+        using var data = Load("data-2026.win");
+        var existingItem = data.TexturePageItems.First(i => i.TexturePage is { TextureExternal: false });
+        var duplicateItem = new GameMakerTexturePageItem
+        {
+            Name = data.Strings.MakeString("duplicate_item"),
+            TexturePage = existingItem.TexturePage,
+            SourceX = existingItem.SourceX,
+            SourceY = existingItem.SourceY,
+            SourceWidth = existingItem.SourceWidth,
+            SourceHeight = existingItem.SourceHeight,
+            TargetX = existingItem.TargetX,
+            TargetY = existingItem.TargetY,
+            TargetWidth = existingItem.TargetWidth,
+            TargetHeight = existingItem.TargetHeight,
+            BoundingWidth = existingItem.BoundingWidth,
+            BoundingHeight = existingItem.BoundingHeight
+        };
+        data.TexturePageItems.Add(duplicateItem);
+
+        TexturePageRepacker repacker = new(data);
+        var plan = repacker.Plan(new RepackOptions(), cancellationToken: TestContext.Current.CancellationToken);
+        Assert.NotNull(plan);
+
+        repacker.Apply(plan);
+        var committedPages = data.EmbeddedTextures.Where(t => !t.TextureExternal).ToList();
+        for (var i = 0; i < plan.Pages.Count; i++)
+        {
+            var plannedPage = plan.Pages[i];
+            var committedPage = committedPages.FirstOrDefault(p => p.IndexInGroup == plannedPage.PageIndex && ReferenceEquals(p.TextureInfo, plannedPage.Group));
+            if (committedPage != null)
+            {
+                Assert.Equal(plannedPage.ItemCount, data.TexturePageItems.Count(item => ReferenceEquals(item.TexturePage, committedPage)));
+            }
+        }
     }
 
     [Fact]
     public void PageEditorReplacesOnlyTheBlittedFrame()
     {
-        using GameMakerData data = Load("data-2026.win");
-        List<byte[]> before = Snapshot(data);
-        int index = data.TexturePageItems.ToList().FindIndex(item => item.SourceWidth > 2 && item.SourceHeight > 2 && item.TexturePage != null && !item.TexturePage.TextureExternal);
-        GameMakerTexturePageItem target = data.TexturePageItems[index];
+        using var data = Load("data-2026.win");
+        var before = Snapshot(data);
+        var index = data.TexturePageItems.ToList().FindIndex(item => item.SourceWidth > 2 && item.SourceHeight > 2 && item.TexturePage != null && !item.TexturePage.TextureExternal);
+        var target = data.TexturePageItems[index];
         int w = target.SourceWidth, h = target.SourceHeight;
-        byte[] bgra = new byte[w * h * 4];
-        for (int i = 0; i < bgra.Length; i += 4) { bgra[i] = 10; bgra[i + 1] = 20; bgra[i + 2] = 30; bgra[i + 3] = 255; }
+        var bgra = new byte[w * h * 4];
+        for (var i = 0; i < bgra.Length; i += 4) { bgra[i] = 10; bgra[i + 1] = 20; bgra[i + 2] = 30; bgra[i + 3] = 255; }
 
-        PageEditor editor = PageEditor.Open(target.TexturePage);
+        var editor = PageEditor.Open(target.TexturePage);
         Assert.Throws<ArgumentException>(() => editor.Blit(target, bgra, w + 1, h));
         editor.Blit(target, bgra, w, h);
         editor.Commit();
 
-        using GameMakerData reloaded = RoundTrip(data);
+        using var reloaded = RoundTrip(data);
         using TextureWorker worker = new();
         Assert.Equal(bgra, worker.CutBgra(reloaded.TexturePageItems[index], false, out _, out _).ToArray());
-        List<byte[]> after = Snapshot(reloaded);
-        for (int i = 0; i < before.Count; i++)
+        var after = Snapshot(reloaded);
+        for (var i = 0; i < before.Count; i++)
         {
-            bool samePage = data.TexturePageItems[i].TexturePage == target.TexturePage;
+            var samePage = data.TexturePageItems[i].TexturePage == target.TexturePage;
             if (i != index && !samePage)
                 Assert.Equal(before[i], after[i]);
         }

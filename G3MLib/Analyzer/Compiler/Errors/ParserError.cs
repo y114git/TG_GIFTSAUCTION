@@ -4,7 +4,6 @@
   file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 
-using System;
 using G3MLib.Analyzer.Compiler.Lexer;
 
 namespace G3MLib.Analyzer.Compiler.Errors;
@@ -35,12 +34,12 @@ public sealed class ParserError : ICompileError
     {
         get
         {
-            string code = GmlDiagnostic.ClassifyParserMessage(BaseMessage);
+            var code = GmlDiagnostic.ClassifyParserMessage(BaseMessage);
             if (_nearbyToken is IToken token)
             {
-                string text = token.Context.Text;
-                int start = Math.Min(token.TextPosition, text.Length);
-                SourceSpan span = new LineMap(text).GetSpan(start, start + Math.Max(1, token.ToString().Length));
+                var text = token.Context.Text;
+                var start = Math.Min(token.TextPosition, text.Length);
+                var span = new LineMap(text).GetSpan(start, start + Math.Max(1, token.ToString().Length));
                 return new GmlDiagnostic(DiagnosticSeverity.Error, code, BaseMessage, span, token.Context.MacroName);
             }
             // No token: the error is about the end of the code
@@ -53,7 +52,7 @@ public sealed class ParserError : ICompileError
     {
         if (_nearbyToken is IToken token)
         {
-            (int line, int column) = token.Context.GetLineAndColumnFromPos(token.TextPosition);
+            (var line, var column) = token.Context.GetLineAndColumnFromPos(token.TextPosition);
             if (token.Context.MacroName is string macroName)
             {
                 return $"{BaseMessage} around line {line}, column {column} of macro \"{macroName}\"";

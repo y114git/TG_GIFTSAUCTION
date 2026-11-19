@@ -1,11 +1,5 @@
 using ImageMagick;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using G3MLib.DataFile.Models;
-using G3MLib.Modding.Resources;
 
 namespace G3MLib.DataFile.Util;
 
@@ -42,7 +36,7 @@ public sealed class TexturePageRepacker
     /// </summary>
     /// <param name="image">Frame pixels.</param>
     /// <param name="group">Target texture group. Default: the group of the first in-file page.</param>
-    public GameMakerTexturePageItem Add(MagickImage image, GameMakerTextureGroupInfo group = null)
+    public GameMakerTexturePageItem Add(MagickImage image, GameMakerTextureGroupInfo? group = null)
     {
         ArgumentNullException.ThrowIfNull(image);
         group ??= _data.EmbeddedTextures.FirstOrDefault(t => !t.TextureExternal)?.TextureInfo;
@@ -56,13 +50,13 @@ public sealed class TexturePageRepacker
     /// <summary>
     /// Queues a new item from raw BGRA pixels. Target offset and bounding box come from the frame; the pixels are copied once.
     /// </summary>
-    public GameMakerTexturePageItem Add(PreparedFrame frame, GameMakerTextureGroupInfo group = null)
+    public GameMakerTexturePageItem Add(PreparedFrame frame, GameMakerTextureGroupInfo? group = null)
     {
         ArgumentNullException.ThrowIfNull(frame);
         if (frame.Bgra.Length != (long)frame.Width * frame.Height * 4)
             throw new ArgumentException("The pixel data does not match the frame size.", nameof(frame));
         MagickImage image = new(frame.Bgra.Span, new PixelReadSettings((uint)frame.Width, (uint)frame.Height, StorageType.Char, PixelMapping.BGRA));
-        GameMakerTexturePageItem item = Add(image, group);
+        var item = Add(image, group);
         item.TargetX = checked((ushort)frame.TargetX);
         item.TargetY = checked((ushort)frame.TargetY);
         item.BoundingWidth = checked((ushort)(frame.TargetX + frame.Width));
@@ -98,25 +92,22 @@ public sealed class TexturePageRepacker
     /// <summary>
     /// Computes the new pages and placements without changing the data file. Groups are packed in parallel.
     /// </summary>
-    public RepackPlan Plan(RepackOptions options, IProgress<BatchProgress> progress = null, CancellationToken cancellationToken = default)
+    public RepackPlan Plan(RepackOptions options, IProgress<BatchProgress>? progress = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(options);
         // Rectangles are read before any item moves, so snapshot the owners per page first.
-        List<GameMakerTexturePageItem> existing = _data.TexturePageItems
-            .Where(i => i.TexturePage is { TextureExternal: false })
-            .ToList();
-        List<IGrouping<GameMakerTextureGroupInfo, GameMakerEmbeddedTexture>> groups = _data.EmbeddedTextures
+        List<GameMakerTexturePageItem> existing = [.. _data.TexturePageItems.Where(i => i.TexturePage is { TextureExternal: false })];
+        List<IGrouping<GameMakerTextureGroupInfo, GameMakerEmbeddedTexture>> groups = [.. _data.EmbeddedTextures
             .Where(t => !t.TextureExternal && (options.Groups is null || options.Groups.Contains(t.TextureInfo)))
-            .GroupBy(t => t.TextureInfo, ReferenceEqualityComparer.Instance as IEqualityComparer<GameMakerTextureGroupInfo>)
-            .ToList();
-        GroupPlan[] plans = new GroupPlan[groups.Count];
-        int done = 0;
+            .GroupBy(t => t.TextureInfo, ReferenceEqualityComparer.Instance as IEqualityComparer<GameMakerTextureGroupInfo>)];
+        var plans = new GroupPlan[groups.Count];
+        var done = 0;
         Parallel.For(0, groups.Count, new ParallelOptions { CancellationToken = cancellationToken }, index =>
         {
-            plans[index] = PlanGroup(groups[index].Key, groups[index].ToList(), existing, options);
+            plans[index] = PlanGroup(groups[index].Key, [.. groups[index]], existing, options);
             progress?.Report(new BatchProgress(Interlocked.Increment(ref done), groups.Count, groups[index].Key?.Name?.Content ?? string.Empty));
         });
-        return new RepackPlan(plans.Where(p => p is not null).ToList());
+        return new RepackPlan([.. plans.Where(p => p is not null)]);
     }
 
     /// <summary>
@@ -125,11 +116,11 @@ public sealed class TexturePageRepacker
     public void Apply(RepackPlan plan)
     {
         ArgumentNullException.ThrowIfNull(plan);
-        foreach (GroupPlan group in plan.Plans)
+        foreach (var group in plan.Plans)
         {
-            foreach ((List<GameMakerTexturePageItem> owners, GameMakerTexturePageItem placed) in group.Placements)
+            foreach ((var owners, var placed) in group.Placements)
             {
-                foreach (GameMakerTexturePageItem owner in owners)
+                foreach (var owner in owners)
                 {
                     owner.TexturePage = placed.TexturePage;
                     owner.SourceX = placed.SourceX;
@@ -139,7 +130,7 @@ public sealed class TexturePageRepacker
             SwapPages(group.Group, group.OldPages, group.NewPages);
         }
 
-        foreach ((GameMakerTexturePageItem item, _) in _added)
+        foreach ((var item, _) in _added)
             _data.TexturePageItems.Add(item);
         _added.Clear();
         _images.Clear();
@@ -148,8 +139,8 @@ public sealed class TexturePageRepacker
     private GroupPlan PlanGroup(GameMakerTextureGroupInfo group, List<GameMakerEmbeddedTexture> oldPages, List<GameMakerTexturePageItem> existing, RepackOptions options)
     {
         HashSet<GameMakerEmbeddedTexture> pageSet = new(oldPages, ReferenceEqualityComparer.Instance);
-        List<GameMakerTexturePageItem> items = existing.Where(i => pageSet.Contains(i.TexturePage)).ToList();
-        List<GameMakerTexturePageItem> added = _added.Where(a => ReferenceEquals(a.Group, group)).Select(a => a.Item).ToList();
+        List<GameMakerTexturePageItem> items = [.. existing.Where(i => pageSet.Contains(i.TexturePage))];
+        List<GameMakerTexturePageItem> added = [.. _added.Where(a => ReferenceEquals(a.Group, group)).Select(a => a.Item)];
         if (items.Count == 0 && added.Count == 0)
             return null;
 
@@ -157,33 +148,33 @@ public sealed class TexturePageRepacker
         Dictionary<(GameMakerEmbeddedTexture, int, int, int, int), List<GameMakerTexturePageItem>> rects = [];
         List<(List<GameMakerTexturePageItem> Owners, MagickImage Image)> frames = [];
         using TextureWorker worker = new();
-        foreach (GameMakerTexturePageItem item in items)
+        foreach (var item in items)
         {
-            if (_images.TryGetValue(item, out MagickImage replacement))
+            if (_images.TryGetValue(item, out var replacement))
             {
                 frames.Add(([item], new MagickImage(replacement)));
                 continue;
             }
             var key = (item.TexturePage, (int)item.SourceX, (int)item.SourceY, (int)item.SourceWidth, (int)item.SourceHeight);
-            if (!rects.TryGetValue(key, out List<GameMakerTexturePageItem> owners))
+            if (!rects.TryGetValue(key, out var owners))
             {
                 rects[key] = owners = [];
                 frames.Add((owners, CutFrame(worker, item)));
             }
             owners.Add(item);
         }
-        foreach (GameMakerTexturePageItem item in added)
+        foreach (var item in added)
             frames.Add(([item], new MagickImage(_images[item])));
 
-        int border = options.Border ?? _border;
+        var border = options.Border ?? _border;
         bool IsAlone((List<GameMakerTexturePageItem> Owners, MagickImage Image) frame) =>
-            (options.MaxItemSize is { } limit && Math.Max(frame.Image.Width, frame.Image.Height) > limit)
-            || (options.KeepAlone is { } keep && frame.Owners.Any(keep));
+            options.MaxItemSize is { } limit && Math.Max(frame.Image.Width, frame.Image.Height) > limit
+            || options.KeepAlone is { } keep && frame.Owners.Any(keep);
         var shared = frames.Where(f => !IsAlone(f)).ToList();
-        int largestFrame = shared.Count == 0 ? 0 : shared.Max(f => (int)Math.Max(f.Image.Width, f.Image.Height)) + (border * 2);
-        int largestPage = oldPages.Count == 0 ? 0 : oldPages.Max(p => Math.Max(p.TextureData.Width, p.TextureData.Height));
-        int maxSize = options.MaxPageSize ?? _maxTextureSize ?? Math.Max(NextPowerOfTwo(largestFrame), NextPowerOfTwo(largestPage));
-        GMImage.ImageFormat format = oldPages.Count == 0 ? GMImage.ImageFormat.Png : oldPages[0].TextureData.Image.Format;
+        var largestFrame = shared.Count == 0 ? 0 : shared.Max(f => (int)Math.Max(f.Image.Width, f.Image.Height)) + border * 2;
+        var largestPage = oldPages.Count == 0 ? 0 : oldPages.Max(p => Math.Max(p.TextureData.Width, p.TextureData.Height));
+        var maxSize = options.MaxPageSize ?? _maxTextureSize ?? Math.Max(NextPowerOfTwo(largestFrame), NextPowerOfTwo(largestPage));
+        var format = oldPages.Count == 0 ? GMImage.ImageFormat.Png : oldPages[0].TextureData.Image.Format;
 
         // Items with different keys are packed apart; an item kept alone is a bucket of one.
         List<TextureGroupPacker> packers = [];
@@ -194,13 +185,13 @@ public sealed class TexturePageRepacker
             TextureGroupPacker packer;
             if (IsAlone(frame))
             {
-                int side = (int)Math.Max(frame.Image.Width, frame.Image.Height) + (border * 2);
+                var side = (int)Math.Max(frame.Image.Width, frame.Image.Height) + border * 2;
                 packer = new(Math.Max(options.PowerOfTwo ? NextPowerOfTwo(side) : side, 16), border, false, format, options.PowerOfTwo);
                 packers.Add(packer);
             }
             else
             {
-                object key = options.GroupKey?.Invoke(frame.Owners[0]) ?? string.Empty;
+                var key = options.GroupKey?.Invoke(frame.Owners[0]) ?? string.Empty;
                 if (!keyed.TryGetValue(key, out packer))
                 {
                     keyed[key] = packer = new(Math.Max(maxSize, 16), border, false, format, options.PowerOfTwo);
@@ -209,23 +200,39 @@ public sealed class TexturePageRepacker
             }
             placements.Add((frame.Owners, packer.AddImage(frame.Image, TextureGroupPacker.BorderFlags.Enabled, false)));
         }
-        foreach (TextureGroupPacker packer in packers)
+        foreach (var packer in packers)
             packer.PackPages();
 
-        List<GameMakerEmbeddedTexture> newPages = placements.Select(p => p.Placed.TexturePage).Distinct().ToList();
-        bool changed = added.Count > 0 || items.Any(_images.ContainsKey);
+        List<GameMakerEmbeddedTexture> newPages = [.. placements.Select(p => p.Placed.TexturePage).Distinct()];
+        var changed = added.Count > 0 || items.Any(_images.ContainsKey);
         if (!changed && newPages.Sum(p => (long)p.TextureData.Width * p.TextureData.Height) >= oldPages.Sum(p => (long)p.TextureData.Width * p.TextureData.Height))
             return null;
 
-        return new GroupPlan(group, oldPages, newPages, placements);
+        List<RepackPagePlan> pagePlans = new(newPages.Count);
+        for (var i = 0; i < newPages.Count; i++)
+        {
+            var page = newPages[i];
+            int width = page.TextureData.Width, height = page.TextureData.Height;
+            var onPage = placements.Where(p => ReferenceEquals(p.Placed.TexturePage, page)).ToList();
+            var usedArea = onPage
+                .Select(p => ((int)p.Placed.SourceX, (int)p.Placed.SourceY, (int)p.Placed.SourceWidth, (int)p.Placed.SourceHeight))
+                .Distinct()
+                .Sum(r => (long)r.Item3 * r.Item4);
+            var pageArea = (long)width * height;
+            var fillRatio = pageArea > 0 ? Math.Clamp((double)usedArea / pageArea, 0.0, 1.0) : 0.0;
+            var itemCount = onPage.Sum(p => p.Owners.Count);
+            pagePlans.Add(new RepackPagePlan(group, i, width, height, fillRatio, itemCount));
+        }
+
+        return new GroupPlan(group, oldPages, newPages, placements, pagePlans);
     }
 
     internal sealed record GroupPlan(GameMakerTextureGroupInfo Group, List<GameMakerEmbeddedTexture> OldPages, List<GameMakerEmbeddedTexture> NewPages,
-        List<(List<GameMakerTexturePageItem> Owners, GameMakerTexturePageItem Placed)> Placements);
+        List<(List<GameMakerTexturePageItem> Owners, GameMakerTexturePageItem Placed)> Placements, List<RepackPagePlan> PagePlans);
 
     private static MagickImage CutFrame(TextureWorker worker, GameMakerTexturePageItem item)
     {
-        MagickImage page = worker.GetEmbeddedTexture(item.TexturePage);
+        var page = worker.GetEmbeddedTexture(item.TexturePage);
         lock (page)
         {
             return new MagickImage(page.CloneArea(item.SourceX, item.SourceY, item.SourceWidth, item.SourceHeight));
@@ -234,14 +241,14 @@ public sealed class TexturePageRepacker
 
     private void SwapPages(GameMakerTextureGroupInfo group, List<GameMakerEmbeddedTexture> oldPages, List<GameMakerEmbeddedTexture> newPages)
     {
-        IList<GameMakerEmbeddedTexture> list = _data.EmbeddedTextures;
-        int at = oldPages.Count == 0 ? list.Count : list.IndexOf(oldPages[0]);
-        foreach (GameMakerEmbeddedTexture old in oldPages)
+        var list = _data.EmbeddedTextures;
+        var at = oldPages.Count == 0 ? list.Count : list.IndexOf(oldPages[0]);
+        foreach (var old in oldPages)
             list.Remove(old);
 
-        GameMakerEmbeddedTexture template = oldPages.FirstOrDefault();
-        int number = 0;
-        foreach (GameMakerEmbeddedTexture page in newPages)
+        var template = oldPages.FirstOrDefault();
+        var number = 0;
+        foreach (var page in newPages)
         {
             page.TextureInfo = group;
             page.IndexInGroup = number++;
@@ -258,11 +265,11 @@ public sealed class TexturePageRepacker
         if (group?.TexturePages is { } references)
         {
             references.Clear();
-            foreach (GameMakerEmbeddedTexture page in newPages)
+            foreach (var page in newPages)
                 references.Add(new(page));
         }
 
-        for (int i = 0; i < list.Count; i++)
+        for (var i = 0; i < list.Count; i++)
             list[i].Name = new GameMakerString($"Texture {i}");
     }
 
@@ -280,12 +287,25 @@ public sealed record PreparedFrame(int Width, int Height, int TargetX, int Targe
 /// <param name="MaxItemSize">Items with a side larger than this get a page of their own.</param>
 /// <param name="KeepAlone">Items for which this returns true get a page of their own. For items that share a rectangle, one match is enough.</param>
 /// <param name="GroupKey">Items with different keys never share a page.</param>
-public sealed record RepackOptions(int? MaxPageSize = null, int? Border = null, ISet<GameMakerTextureGroupInfo> Groups = null, bool PowerOfTwo = true, int? MaxItemSize = null, Func<GameMakerTexturePageItem, bool> KeepAlone = null, Func<GameMakerTexturePageItem, object> GroupKey = null);
+public sealed record RepackOptions(int? MaxPageSize = null, int? Border = null, ISet<GameMakerTextureGroupInfo>? Groups = null, bool PowerOfTwo = true, int? MaxItemSize = null, Func<GameMakerTexturePageItem, bool>? KeepAlone = null, Func<GameMakerTexturePageItem, object>? GroupKey = null);
+
+/// <summary>Planned texture page in a <see cref="RepackPlan"/>.</summary>
+/// <param name="Group">Texture group the page belongs to, or <see langword="null"/> when the page has no group info.</param>
+/// <param name="PageIndex">Zero-based index of the page within its group.</param>
+/// <param name="Width">Page width in pixels.</param>
+/// <param name="Height">Page height in pixels.</param>
+/// <param name="FillRatio">Fraction of the page area covered by packed frame pixels (excluding borders), from 0 to 1.</param>
+/// <param name="ItemCount">Number of texture page items placed on the page.</param>
+public sealed record RepackPagePlan(GameMakerTextureGroupInfo Group, int PageIndex, int Width, int Height, double FillRatio, int ItemCount);
 
 /// <summary>The result of <see cref="TexturePageRepacker.Plan"/>: new pages and placements that <see cref="TexturePageRepacker.Apply"/> writes into the data file.</summary>
 public sealed class RepackPlan
 {
-    internal RepackPlan(List<TexturePageRepacker.GroupPlan> plans) => Plans = plans;
+    internal RepackPlan(List<TexturePageRepacker.GroupPlan> plans)
+    {
+        Plans = plans;
+        Pages = [.. plans.SelectMany(p => p.PagePlans)];
+    }
 
     internal List<TexturePageRepacker.GroupPlan> Plans { get; }
 
@@ -294,4 +314,7 @@ public sealed class RepackPlan
 
     /// <summary>Pages of the changed groups before and after.</summary>
     public (int Before, int After) PageCount => (Plans.Sum(p => p.OldPages.Count), Plans.Sum(p => p.NewPages.Count));
+
+    /// <summary>Per-page report for the planned texture pages in the changed groups.</summary>
+    public IReadOnlyList<RepackPagePlan> Pages { get; }
 }

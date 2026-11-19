@@ -1,5 +1,4 @@
 using ImageMagick;
-using System;
 using G3MLib.DataFile.Models;
 
 namespace G3MLib.DataFile.Util;
@@ -27,8 +26,8 @@ public sealed class PageEditor
     public static PageEditor Open(GameMakerEmbeddedTexture page)
     {
         ArgumentNullException.ThrowIfNull(page);
-        GMImage image = page.TextureData?.Image ?? throw new InvalidOperationException("The page has no image.");
-        using MagickImage decoded = image.GetMagickImage();
+        var image = page.TextureData?.Image ?? throw new InvalidOperationException("The page has no image.");
+        using var decoded = image.GetMagickImage();
         return new PageEditor(page, decoded.GetPixels().ToByteArray(PixelMapping.BGRA), (int)decoded.Width, (int)decoded.Height);
     }
 
@@ -42,7 +41,7 @@ public sealed class PageEditor
             throw new ArgumentException($"The pixels are {width}x{height} but the item is {item.SourceWidth}x{item.SourceHeight}.", nameof(bgra));
         if (item.SourceX + width > _width || item.SourceY + height > _height)
             throw new ArgumentException("The item lies outside the page.", nameof(item));
-        for (int y = 0; y < height; y++)
+        for (var y = 0; y < height; y++)
         {
             bgra.Slice(y * width * 4, width * 4).CopyTo(_bgra.AsSpan(((item.SourceY + y) * _width + item.SourceX) * 4, width * 4));
         }
@@ -54,7 +53,7 @@ public sealed class PageEditor
     {
         if (!_changed)
             return;
-        GMImage.ImageFormat format = _page.TextureData.Image.Format;
+        var format = _page.TextureData.Image.Format;
         using MagickImage edited = new(_bgra, new PixelReadSettings((uint)_width, (uint)_height, StorageType.Char, PixelMapping.BGRA));
         _page.TextureData.Image = GMImage.FromMagickImage(edited).ConvertToFormat(format);
         _changed = false;

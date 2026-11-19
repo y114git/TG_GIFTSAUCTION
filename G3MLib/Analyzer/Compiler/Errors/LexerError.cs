@@ -4,7 +4,6 @@
   file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 
-using System;
 using G3MLib.Analyzer.Compiler.Lexer;
 
 namespace G3MLib.Analyzer.Compiler.Errors;
@@ -36,8 +35,8 @@ public sealed class LexerError : ICompileError
     {
         get
         {
-            int start = Math.Min(_textPosition, _lexContext.Text.Length);
-            SourceSpan span = new LineMap(_lexContext.Text).GetSpan(start, start + 1);
+            var start = Math.Min(_textPosition, _lexContext.Text.Length);
+            var span = new LineMap(_lexContext.Text).GetSpan(start, start + 1);
             return new GmlDiagnostic(DiagnosticSeverity.Error, GmlDiagnostic.LexerErrorCode, BaseMessage, span, _lexContext.MacroName);
         }
     }
@@ -45,7 +44,7 @@ public sealed class LexerError : ICompileError
     /// <inheritdoc/>
     public string GenerateMessage()
     {
-        (int line, int column) = _lexContext.GetLineAndColumnFromPos(_textPosition);
+        (var line, var column) = _lexContext.GetLineAndColumnFromPos(_textPosition);
         if (_lexContext.MacroName is string macroName)
         {
             return $"{BaseMessage} on line {line}, column {column} of macro \"{macroName}\"";

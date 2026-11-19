@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Scripting;
@@ -11,22 +12,22 @@ if (args.Length != 4)
     return 2;
 }
 
-string scriptsSource = Path.GetFullPath(args[0]);
-string fixture = Path.GetFullPath(args[1]);
-string work = Path.GetFullPath(args[2]);
-string reportPath = Path.GetFullPath(args[3]);
-TimeSpan timeout = TimeSpan.FromSeconds(60);
+var scriptsSource = Path.GetFullPath(args[0]);
+var fixture = Path.GetFullPath(args[1]);
+var work = Path.GetFullPath(args[2]);
+var reportPath = Path.GetFullPath(args[3]);
+var timeout = TimeSpan.FromSeconds(60);
 
 if (Directory.Exists(work)) Directory.Delete(work, recursive: true);
-string scriptsCopy = Path.Combine(work, "Scripts");
+var scriptsCopy = Path.Combine(work, "Scripts");
 CopyDirectory(scriptsSource, scriptsCopy);
 Directory.SetCurrentDirectory(work);
 
 List<Row> rows = [];
-foreach (string script in Directory.EnumerateFiles(scriptsCopy, "*.csx", SearchOption.AllDirectories).Order(StringComparer.Ordinal))
+foreach (var script in Directory.EnumerateFiles(scriptsCopy, "*.csx", SearchOption.AllDirectories).Order(StringComparer.Ordinal))
 {
-    string category = Path.GetFileName(Path.GetDirectoryName(script));
-    string name = Path.GetFileName(script);
+    var category = Path.GetFileName(Path.GetDirectoryName(script));
+    var name = Path.GetFileName(script);
     Row row = new(name, category);
     rows.Add(row);
 
@@ -37,7 +38,7 @@ foreach (string script in Directory.EnumerateFiles(scriptsCopy, "*.csx", SearchO
     }
     catch (CompilationErrorException exception)
     {
-        row.Reason = "compile: " + Shorten(string.Join("; ", exception.Diagnostics.Take(2).Select(d => d.Id + " " + d.GetMessage() + " (line " + (d.Location.GetLineSpan().StartLinePosition.Line + 1) + ")")));
+        row.Reason = "compile: " + Shorten(string.Join("; ", exception.Diagnostics.Take(2).Select(d => d.Id + " " + d.GetMessage(CultureInfo.InvariantCulture) + " (line " + (d.Location.GetLineSpan().StartLinePosition.Line + 1) + ")")));
         continue;
     }
     catch (Exception exception)
@@ -46,21 +47,21 @@ foreach (string script in Directory.EnumerateFiles(scriptsCopy, "*.csx", SearchO
         continue;
     }
 
-    string runDirectory = Path.Combine(work, "runs", rows.Count.ToString("000"));
+    var runDirectory = Path.Combine(work, "runs", rows.Count.ToString("000", CultureInfo.InvariantCulture));
     Directory.CreateDirectory(runDirectory);
-    string dataPath = Path.Combine(runDirectory, Path.GetFileName(fixture));
+    var dataPath = Path.Combine(runDirectory, Path.GetFileName(fixture));
     File.Copy(fixture, dataPath);
-    using GameMakerData data = GameMakerIO.Read(File.OpenRead(dataPath));
+    using var data = GameMakerIO.Read(File.OpenRead(dataPath));
     CompatGlobals globals = new(data, dataPath, script) { ExePath = work, ScriptRootPath = work, CanSave = true };
     Directory.SetCurrentDirectory(runDirectory);
-    Task<ScriptRunResult> run = Task.Run(() => ScriptRunner.RunAsync(script, globals));
+    var run = Task.Run(() => ScriptRunner.RunAsync(script, globals));
     if (!run.Wait(timeout))
     {
         row.Reason = "run: no result after " + timeout.TotalSeconds + " s";
         continue;
     }
 
-    ScriptRunResult result = run.Result;
+    var result = run.Result;
     if (globals.DialogCalled is not null)
     {
         row.Runs = "needs dialog";
@@ -86,22 +87,22 @@ return 0;
 static void CopyDirectory(string source, string destination)
 {
     Directory.CreateDirectory(destination);
-    foreach (string file in Directory.GetFiles(source)) File.Copy(file, Path.Combine(destination, Path.GetFileName(file)));
-    foreach (string directory in Directory.GetDirectories(source)) CopyDirectory(directory, Path.Combine(destination, Path.GetFileName(directory)));
+    foreach (var file in Directory.GetFiles(source)) File.Copy(file, Path.Combine(destination, Path.GetFileName(file)));
+    foreach (var directory in Directory.GetDirectories(source)) CopyDirectory(directory, Path.Combine(destination, Path.GetFileName(directory)));
 }
 
 string Explain(string error)
 {
     const string trace = "The current stacktrace:";
-    int split = error.IndexOf(trace, StringComparison.Ordinal);
+    var split = error.IndexOf(trace, StringComparison.Ordinal);
     if (split < 0) return Shorten(error);
-    string type = error["Script execution failed: ".Length..error.IndexOf(':', "Script execution failed: ".Length)];
+    var type = error["Script execution failed: ".Length..error.IndexOf(':', "Script execution failed: ".Length)];
     return Shorten(type + " at " + error[(split + trace.Length)..]);
 }
 
 string Shorten(string text)
 {
-    string line = text.Replace('\r', ' ').Replace('\n', ' ').Replace("|", "/").Trim();
+    var line = text.Replace('\r', ' ').Replace('\n', ' ').Replace("|", "/", StringComparison.Ordinal).Trim();
     return line.Length <= 200 ? line : line[..197] + "...";
 }
 
@@ -110,13 +111,13 @@ static void WriteReport(string path, List<Row> rows)
     StringBuilder report = new();
     report.AppendLine("| Script | Category | Compiles | Runs | Reason |");
     report.AppendLine("| --- | --- | --- | --- | --- |");
-    foreach (Row row in rows)
-        report.AppendLine($"| {row.Name} | {row.Category} | {(row.Compiles ? "yes" : "no")} | {row.Runs} | {row.Reason} |");
-    Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+    foreach (var row in rows)
+        report.AppendLine(CultureInfo.InvariantCulture, $"| {row.Name} | {row.Category} | {(row.Compiles ? "yes" : "no")} | {row.Runs} | {row.Reason} |");
+    Directory.CreateDirectory(Path.GetDirectoryName(path));
     File.WriteAllText(path, report.ToString());
 }
 
-sealed class Row(string name, string category)
+internal sealed class Row(string name, string category)
 {
     public string Name { get; } = name;
     public string Category { get; } = category;
@@ -125,11 +126,11 @@ sealed class Row(string name, string category)
     public string Reason { get; set; } = "";
 }
 
-sealed class CompatGlobals(GameMakerData data, string filePath, string scriptPath) : ScriptGlobals(data, filePath, scriptPath)
+internal sealed class CompatGlobals(GameMakerData data, string filePath, string scriptPath) : ScriptGlobals(data, filePath, scriptPath)
 {
     public string DialogCalled { get; private set; }
 
-    private Exception Dialog(string name)
+    private ScriptCancelledException Dialog(string name)
     {
         DialogCalled ??= name;
         return new ScriptCancelledException("Dialog needed: " + name);

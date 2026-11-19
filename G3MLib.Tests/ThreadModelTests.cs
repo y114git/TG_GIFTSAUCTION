@@ -14,13 +14,14 @@ public class ThreadModelTests : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         if (Directory.Exists(_root))
         {
             Directory.Delete(_root, true);
         }
     }
 
-    public static IEnumerable<object[]> Runs => Enumerable.Range(1, 20).Select(i => new object[] { i });
+    public static TheoryData<int> Runs => [.. Enumerable.Range(1, 20)];
 
     private static GameMakerData Load()
     {
@@ -42,8 +43,8 @@ public class ThreadModelTests : IDisposable
 
     private string Export(GameMakerData data, string name)
     {
-        string directory = Path.Combine(_root, name);
-        HashSet<string> codeNames = data.Code.Select(c => c.Name.Content).ToHashSet();
+        var directory = Path.Combine(_root, name);
+        HashSet<string> codeNames = [.. data.Code.Select(c => c.Name.Content)];
         G3MProjectService.Export(data, directory, null, new G3MProjectOptions
         {
             Name = "P",
@@ -68,7 +69,7 @@ public class ThreadModelTests : IDisposable
     {
         data.Sprites[0].OriginX = step % 50;
         data.Sprites[0].OriginY = step % 70;
-        data.Sounds[0].Volume = (step % 10) / 10f;
+        data.Sounds[0].Volume = step % 10 / 10f;
         data.Fonts[0].EmSize = 8 + step % 8;
         data.Fonts[0].Bold = step % 2 == 0;
     }
@@ -77,43 +78,43 @@ public class ThreadModelTests : IDisposable
     [MemberData(nameof(Runs))]
     public void DecompileAndExportInBackgroundWhileUnrelatedResourcesAreEdited(int run)
     {
-        using GameMakerData data = Load();
+        using var data = Load();
         GlobalDecompileContext context = new(data);
         List<GameMakerCode> codes = [.. data.Code];
-        Dictionary<GameMakerCode, string> expected = codes.ToDictionary(c => c, c => Decompile(context, c));
-        Dictionary<string, string> expectedFiles = Snapshot(Export(data, "expected"));
+        var expected = codes.ToDictionary(c => c, c => Decompile(context, c));
+        var expectedFiles = Snapshot(Export(data, "expected"));
         Assert.NotEmpty(expectedFiles);
 
         using CancellationTokenSource stop = new();
-        int step = 0;
-        Task editor = Task.Run(() =>
+        var step = 0;
+        var editor = Task.Run(() =>
         {
             while (!stop.IsCancellationRequested)
             {
                 Edit(data, step++);
             }
-        });
+        }, TestContext.Current.CancellationToken);
         List<Task> jobs = [];
-        for (int worker = 0; worker < 3; worker++)
+        for (var worker = 0; worker < 3; worker++)
         {
             jobs.Add(Task.Run(() =>
             {
-                for (int pass = 0; pass < 3; pass++)
+                for (var pass = 0; pass < 3; pass++)
                 {
-                    foreach (GameMakerCode code in codes)
+                    foreach (var code in codes)
                     {
                         Assert.Equal(expected[code], Decompile(context, code));
                     }
                 }
-            }));
+            }, TestContext.Current.CancellationToken));
         }
         jobs.Add(Task.Run(() =>
         {
-            for (int pass = 0; pass < 2; pass++)
+            for (var pass = 0; pass < 2; pass++)
             {
                 Assert.Equal(expectedFiles, Snapshot(Export(data, $"job{run}-{pass}")));
             }
-        }));
+        }, TestContext.Current.CancellationToken));
 
         try
         {
@@ -121,8 +122,10 @@ public class ThreadModelTests : IDisposable
         }
         finally
         {
+            // A busy runner may not have scheduled the editor yet; let it make one edit before it is stopped.
+            SpinWait.SpinUntil(() => Volatile.Read(ref step) > 0, TimeSpan.FromSeconds(30));
             stop.Cancel();
-            editor.Wait();
+            editor.Wait(TestContext.Current.CancellationToken);
         }
         Assert.True(step > 0);
     }
@@ -130,15 +133,15 @@ public class ThreadModelTests : IDisposable
     [Fact]
     public void LockedStructuralEditsNeverReachRunningJobs()
     {
-        using GameMakerData data = Load();
+        using var data = Load();
         using ModelLock modelLock = new();
         GlobalDecompileContext context = new(data);
         List<GameMakerCode> codes = [.. data.Code];
-        Dictionary<GameMakerCode, string> expected = codes.ToDictionary(c => c, c => Decompile(context, c));
+        var expected = codes.ToDictionary(c => c, c => Decompile(context, c));
 
         using CancellationTokenSource stop = new();
-        int edits = 0;
-        Task editor = Task.Run(() =>
+        var edits = 0;
+        var editor = Task.Run(() =>
         {
             while (!stop.IsCancellationRequested)
             {
@@ -150,14 +153,14 @@ public class ThreadModelTests : IDisposable
                     edits++;
                 }
             }
-        });
+        }, TestContext.Current.CancellationToken);
         // The jobs may otherwise finish before the editor takes the write lock once.
         Assert.True(SpinWait.SpinUntil(() => Volatile.Read(ref edits) > 0, TimeSpan.FromSeconds(10)));
-        Task[] jobs = Enumerable.Range(0, 3).Select(_ => Task.Run(() =>
+        Task[] jobs = [.. Enumerable.Range(0, 3).Select(_ => Task.Run(() =>
         {
-            for (int pass = 0; pass < 3; pass++)
+            for (var pass = 0; pass < 3; pass++)
             {
-                foreach (GameMakerCode code in codes)
+                foreach (var code in codes)
                 {
                     using (modelLock.Read())
                     {
@@ -165,16 +168,16 @@ public class ThreadModelTests : IDisposable
                     }
                 }
             }
-        })).ToArray();
+        }))];
 
         try
         {
-            Task.WaitAll(jobs);
+            Task.WaitAll(jobs, TestContext.Current.CancellationToken);
         }
         finally
         {
             stop.Cancel();
-            editor.Wait();
+            editor.Wait(TestContext.Current.CancellationToken);
         }
         Assert.True(edits > 0);
     }
@@ -183,48 +186,50 @@ public class ThreadModelTests : IDisposable
     public void WriteLockExcludesReadersAndReadersShare()
     {
         using ModelLock modelLock = new();
+        Task writer;
         using (modelLock.Read())
         {
-            Task<bool> second = Task.Run(() =>
+            var second = Task.Run(() =>
             {
                 using (modelLock.Read())
                 {
                     return true;
                 }
             });
-            Assert.True(second.Wait(TimeSpan.FromSeconds(5)) && second.Result);
+            Assert.True(second.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken) && second.Result);
 
-            Task writer = Task.Run(() =>
+            writer = Task.Run(() =>
             {
                 using (modelLock.Write())
                 {
                 }
-            });
-            Assert.False(writer.Wait(TimeSpan.FromMilliseconds(200)));
-            Task.Run(() => { }).Wait();
+            }, TestContext.Current.CancellationToken);
+            Assert.False(writer.Wait(TimeSpan.FromMilliseconds(200), TestContext.Current.CancellationToken));
+            Task.Run(() => { }, TestContext.Current.CancellationToken).Wait(TestContext.Current.CancellationToken);
         }
         // Reader released: the queued writer proceeds
-        Assert.True(Task.Run(() => { using (modelLock.Write()) { } }).Wait(TimeSpan.FromSeconds(5)));
+        Assert.True(writer.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
+        Assert.True(Task.Run(() => { using (modelLock.Write()) { } }, TestContext.Current.CancellationToken).Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
     }
 
     [Fact]
     public void ReadingAndWritingInParallelGivesTheSameFile()
     {
         byte[] reference;
-        using (GameMakerData data = Load())
+        using (var data = Load())
         using (MemoryStream output = new())
         {
             GameMakerIO.Write(output, data);
             reference = output.ToArray();
         }
 
-        byte[][] results = Enumerable.Range(0, 8).Select(_ => Task.Run(() =>
+        byte[][] results = [.. Enumerable.Range(0, 8).Select(_ => Task.Run(() =>
         {
-            for (int i = 0; i < 3; i++)
+            for (var i = 0; i < 3; i++)
             {
-                using GameMakerData data = Load();
+                using var data = Load();
                 GlobalDecompileContext context = new(data);
-                foreach (GameMakerCode code in data.Code.Take(20))
+                foreach (var code in data.Code.Take(20))
                 {
                     Decompile(context, code);
                 }
@@ -232,11 +237,11 @@ public class ThreadModelTests : IDisposable
                 GameMakerIO.Write(output, data);
                 if (!output.ToArray().AsSpan().SequenceEqual(reference))
                 {
-                    return Array.Empty<byte>();
+                    return [];
                 }
             }
             return reference;
-        })).ToArray().Select(t => t.Result).ToArray();
+        })).ToArray().Select(t => t.Result)];
 
         Assert.All(results, r => Assert.Equal(reference.Length, r.Length));
     }
@@ -244,24 +249,24 @@ public class ThreadModelTests : IDisposable
     [Fact]
     public void ContextsBuiltConcurrentlyForOneModelAgree()
     {
-        using GameMakerData data = Load();
+        using var data = Load();
         GlobalDecompileContext first = new(data);
         List<GameMakerCode> codes = [.. data.Code.Take(40)];
-        Dictionary<GameMakerCode, string> expected = codes.ToDictionary(c => c, c => Decompile(first, c));
+        var expected = codes.ToDictionary(c => c, c => Decompile(first, c));
 
-        Task[] jobs = Enumerable.Range(0, 8).Select(_ => Task.Run(() =>
+        Task[] jobs = [.. Enumerable.Range(0, 8).Select(_ => Task.Run(() =>
         {
-            for (int pass = 0; pass < 3; pass++)
+            for (var pass = 0; pass < 3; pass++)
             {
                 GlobalDecompileContext context = new(data);
                 context.PrepareForCompilation();
-                foreach (GameMakerCode code in codes)
+                foreach (var code in codes)
                 {
                     Assert.Equal(expected[code], Decompile(context, code));
                 }
             }
-        })).ToArray();
+        }))];
 
-        Task.WaitAll(jobs);
+        Task.WaitAll(jobs, TestContext.Current.CancellationToken);
     }
 }

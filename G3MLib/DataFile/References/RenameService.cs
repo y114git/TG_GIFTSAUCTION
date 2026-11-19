@@ -1,12 +1,7 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using System.Text.RegularExpressions;
 using G3MLib.DataFile.Compiler;
 using G3MLib.DataFile.Models;
-using G3MLib.Modding.Resources;
 
 namespace G3MLib.DataFile.References;
 
@@ -28,7 +23,7 @@ public enum RenameFailure
 /// <summary>Thrown when a rename is refused. Nothing has been changed when this is thrown.</summary>
 public sealed class RenameException(RenameFailure reason, string message) : ArgumentException(message)
 {
-    /// <summary>The kind of refusal.</summary>
+    /// <summary>Why the rename was refused.</summary>
     public RenameFailure Reason { get; } = reason;
 }
 
@@ -73,15 +68,15 @@ public sealed class RenameChangeSet : IReadOnlyList<RenameChange>
 
     private void Apply(bool reverse)
     {
-        foreach (RenameChange change in _changes)
+        foreach (var change in _changes)
         {
-            string expected = reverse ? change.NewValue : change.OldValue;
+            var expected = reverse ? change.NewValue : change.OldValue;
             if (change.String.Content != expected)
             {
                 throw new InvalidOperationException($"'{change.Location}' is now '{change.String.Content}', expected '{expected}'. It was edited after the rename.");
             }
         }
-        foreach (RenameChange change in reverse ? _changes.AsEnumerable().Reverse() : _changes)
+        foreach (var change in reverse ? _changes.AsEnumerable().Reverse() : _changes)
         {
             change.String.Content = reverse ? change.OldValue : change.NewValue;
         }
@@ -118,7 +113,8 @@ public static partial class RenameService
         "begin", "end", "and", "or", "not", "xor", "div", "mod", "true", "false", "undefined", "self", "other", "all", "noone", "global"
     };
 
-    [GeneratedRegex("^[A-Za-z_][A-Za-z0-9_]*$")]
+    // \z, because $ also matches before a final newline
+    [GeneratedRegex("^[A-Za-z_][A-Za-z0-9_]*\\z")]
     private static partial Regex IdentifierPattern();
 
     /// <summary>
@@ -159,7 +155,7 @@ public static partial class RenameService
 
     private static RenameChangeSet RenameOne(GameMakerData data, RenameRequest request, ReferenceIndex? index)
     {
-        RenamePlan plan = PlanRenames(data, [request], index);
+        var plan = PlanRenames(data, [request], index);
         if (plan.Conflicts.Count > 0)
         {
             throw new RenameException(plan.Conflicts[0].Reason, plan.Conflicts[0].Message);
@@ -184,13 +180,13 @@ public static partial class RenameService
         List<RenameConflict> conflicts = [];
         List<Candidate> candidates = [];
         List<Reference> uses = [];
-        for (int i = 0; i < list.Count; i++)
+        for (var i = 0; i < list.Count; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            RenameRequest request = list[i];
+            var request = list[i];
             try
             {
-                Candidate? candidate = PlanRequest(data, request, i, plan);
+                var candidate = PlanRequest(data, request, i, plan);
                 if (candidate is not null)
                 {
                     candidates.Add(candidate);
@@ -204,7 +200,7 @@ public static partial class RenameService
             progress?.Report(new BatchProgress(i + 1, list.Count, request.OldName ?? request.Resource?.Name?.Content ?? string.Empty));
         }
 
-        CheckFinalNames(data, plan, candidates, list, conflicts);
+        CheckFinalNames(data, plan, candidates, conflicts);
         conflicts.AddRange(plan.Overlaps.Select(o => new RenameConflict(list[o.Request], RenameFailure.Overlap, o.Message)));
         return new RenamePlan(plan.Changes(), [.. conflicts.OrderBy(c => list.IndexOf(c.Request))], uses);
     }
@@ -220,7 +216,7 @@ public static partial class RenameService
         {
             throw new InvalidOperationException($"The plan has {plan.Conflicts.Count} conflict(s): {plan.Conflicts[0].Message}");
         }
-        foreach (RenameChange change in plan.Changes)
+        foreach (var change in plan.Changes)
         {
             change.String.Content = change.NewValue;
         }
@@ -252,8 +248,8 @@ public static partial class RenameService
 
     private static Candidate? PlanResource(GameMakerData data, RenameRequest request, int number, Plan plan, GameMakerNamedResource resource)
     {
-        string newName = request.NewName;
-        string oldName = resource.Name?.Content ?? throw new RenameException(RenameFailure.NotFound, "The resource has no name.");
+        var newName = request.NewName;
+        var oldName = resource.Name?.Content ?? throw new RenameException(RenameFailure.NotFound, "The resource has no name.");
         RequireIdentifier(newName);
         if (newName == oldName)
         {
@@ -261,22 +257,22 @@ public static partial class RenameService
         }
 
         plan.Add(resource.Name, newName, $"{TypeName(resource)} {oldName}: Name", number);
-        Regex[] patterns = EmbeddedPatterns(resource, oldName);
-        foreach (GameMakerCode code in data.Code ?? [])
+        var patterns = EmbeddedPatterns(resource, oldName);
+        foreach (var code in data.Code ?? [])
         {
             Embed(plan, code?.Name, patterns, newName, "Code", number);
         }
-        foreach (GameMakerCodeLocals locals in data.CodeLocals ?? [])
+        foreach (var locals in data.CodeLocals ?? [])
         {
             Embed(plan, locals?.Name, patterns, newName, "Code locals", number);
         }
-        foreach (GameMakerFunction function in data.Functions ?? [])
+        foreach (var function in data.Functions ?? [])
         {
             Embed(plan, function?.Name, patterns, newName, "Function", number);
         }
         if (resource is GameMakerScript)
         {
-            foreach (GameMakerFunction function in (data.Functions ?? []).Where(f => f?.Name?.Content == oldName))
+            foreach (var function in (data.Functions ?? []).Where(f => f?.Name?.Content == oldName))
             {
                 plan.Add(function.Name, newName, $"Function {oldName}: Name", number);
             }
@@ -286,10 +282,10 @@ public static partial class RenameService
 
     private static Candidate? PlanVariable(GameMakerData data, RenameRequest request, int number, Plan plan)
     {
-        string oldName = request.OldName;
-        string newName = request.NewName;
+        var oldName = request.OldName;
+        var newName = request.NewName;
         RequireIdentifier(newName);
-        List<GameMakerVariable> entries = (data.Variables ?? []).Where(v => v?.Name?.Content == oldName).ToList();
+        List<GameMakerVariable> entries = [.. (data.Variables ?? []).Where(v => v?.Name?.Content == oldName)];
         if (entries.Count == 0)
         {
             throw new RenameException(RenameFailure.NotFound, $"No variable named '{oldName}'.");
@@ -304,11 +300,11 @@ public static partial class RenameService
             throw new RenameException(RenameFailure.Builtin, $"'{oldName}' is a built-in variable.");
         }
 
-        foreach (GameMakerVariable entry in entries)
+        foreach (var entry in entries)
         {
             plan.Add(entry.Name, newName, $"Variable {oldName}: Name", number);
         }
-        foreach (GameMakerCodeLocals.LocalVar local in (data.CodeLocals ?? []).SelectMany(l => l?.Locals ?? []).Where(l => l?.Name?.Content == oldName))
+        foreach (var local in (data.CodeLocals ?? []).SelectMany(l => l?.Locals ?? []).Where(l => l?.Name?.Content == oldName))
         {
             plan.Add(local.Name, newName, $"Code local {oldName}: Name", number);
         }
@@ -317,12 +313,12 @@ public static partial class RenameService
 
     private static Candidate? PlanFunction(GameMakerData data, RenameRequest request, int number, Plan plan)
     {
-        string oldName = request.OldName;
-        string newName = request.NewName;
+        var oldName = request.OldName;
+        var newName = request.NewName;
         RequireIdentifier(newName);
-        string oldEntry = ScriptPrefix + oldName;
-        string newEntry = ScriptPrefix + newName;
-        List<GameMakerFunction> entries = (data.Functions ?? []).Where(f => f?.Name?.Content == oldEntry).ToList();
+        var oldEntry = ScriptPrefix + oldName;
+        var newEntry = ScriptPrefix + newName;
+        List<GameMakerFunction> entries = [.. (data.Functions ?? []).Where(f => f?.Name?.Content == oldEntry)];
         if (entries.Count == 0)
         {
             throw (data.Functions ?? []).Any(f => f?.Name?.Content == oldName)
@@ -334,15 +330,15 @@ public static partial class RenameService
             return null;
         }
 
-        foreach (GameMakerFunction entry in entries)
+        foreach (var entry in entries)
         {
             plan.Add(entry.Name, newEntry, $"Function {oldName}: Name", number);
         }
-        foreach (GameMakerCode code in (data.Code ?? []).Where(c => c?.Name?.Content == oldEntry))
+        foreach (var code in (data.Code ?? []).Where(c => c?.Name?.Content == oldEntry))
         {
             plan.Add(code.Name, newEntry, $"Code {oldEntry}: Name", number);
         }
-        foreach (GameMakerCodeLocals locals in (data.CodeLocals ?? []).Where(l => l?.Name?.Content == oldEntry))
+        foreach (var locals in (data.CodeLocals ?? []).Where(l => l?.Name?.Content == oldEntry))
         {
             plan.Add(locals.Name, newEntry, $"Code locals {oldEntry}: Name", number);
         }
@@ -350,7 +346,7 @@ public static partial class RenameService
     }
 
     // Name clashes are judged on the names after the whole batch, so a swap or a shift is allowed.
-    private static void CheckFinalNames(GameMakerData data, Plan plan, List<Candidate> candidates, List<RenameRequest> requests, List<RenameConflict> conflicts)
+    private static void CheckFinalNames(GameMakerData data, Plan plan, List<Candidate> candidates, List<RenameConflict> conflicts)
     {
         HashSet<int> failed = [];
         void Fail(Candidate candidate, string message, RenameFailure reason = RenameFailure.NameInUse)
@@ -361,13 +357,13 @@ public static partial class RenameService
             }
         }
 
-        List<GameMakerNamedResource> assets = AssetLists(data).SelectMany(l => l.OfType<GameMakerNamedResource>()).ToList();
-        foreach (Candidate candidate in candidates)
+        List<GameMakerNamedResource> assets = [.. AssetLists(data).SelectMany(l => l.OfType<GameMakerNamedResource>())];
+        foreach (var candidate in candidates)
         {
-            string newName = candidate.Request.NewName;
+            var newName = candidate.Request.NewName;
             if (candidate.Resource is not null)
             {
-                GameMakerNamedResource? other = assets.FirstOrDefault(a => a.Name is not null && !ReferenceEquals(a, candidate.Resource) && plan.Final(a.Name) == newName);
+                var other = assets.FirstOrDefault(a => a.Name is not null && !ReferenceEquals(a, candidate.Resource) && plan.Final(a.Name) == newName);
                 if (other is not null)
                 {
                     Fail(candidate, $"'{newName}' is already the name of {TypeName(other)} '{newName}'.");
@@ -388,19 +384,34 @@ public static partial class RenameService
         }
 
         // A renamed code entry must not land on the name of another code entry
-        foreach (IGrouping<string, GameMakerCode> group in (data.Code ?? []).Where(c => c?.Name?.Content is not null).GroupBy(c => plan.Final(c.Name), StringComparer.Ordinal))
+        foreach (var group in (data.Code ?? []).Where(c => c?.Name?.Content is not null).GroupBy(c => plan.Final(c.Name), StringComparer.Ordinal))
         {
             if (group.Count() < 2 || !group.Any(c => plan.Contains(c.Name)))
             {
                 continue;
             }
-            Candidate? culprit = candidates.FirstOrDefault(c => group.Any(code => plan.OriginOf(code.Name) == c.Number));
+            var culprit = candidates.FirstOrDefault(c => group.Any(code => plan.OriginOf(code.Name) == c.Number));
             if (culprit is not null)
             {
                 Fail(culprit, $"A code entry named '{group.Key}' already exists.");
             }
         }
     }
+
+    /// <summary>True when the text can name an asset or code entry: letters, digits and underscores, not starting with a digit, and not a GML keyword. Names of built-in functions and variables are not checked.</summary>
+    public static bool IsValidName(string? name) => !string.IsNullOrEmpty(name) && IdentifierPattern().IsMatch(name) && !Reserved.Contains(name);
+
+    /// <summary>True when an asset or a code entry of the data file already has the name. GameMaker wants one name for every asset and code entry, and treats names that differ only in case as one, so the comparison ignores case.</summary>
+    public static bool IsNameInUse(GameMakerData data, string name)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        return AllNames(data).Any(used => string.Equals(used, name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    // The names IsNameInUse compares with, so a caller that asks many times can build one set
+    internal static IEnumerable<string> AllNames(GameMakerData data) =>
+        AssetLists(data).SelectMany(list => list.OfType<GameMakerNamedResource>()).Select(resource => resource.Name?.Content)
+            .Concat((data.Code ?? []).Select(code => code?.Name?.Content)).OfType<string>();
 
     private static void RequireIdentifier(string name)
     {
@@ -418,7 +429,7 @@ public static partial class RenameService
 
     private static IEnumerable<IList> AssetLists(GameMakerData data)
     {
-        foreach (IList? list in new IList?[] { (IList?)data.GameObjects, (IList?)data.Sprites, (IList?)data.Sounds, (IList?)data.Rooms, (IList?)data.Backgrounds,
+        foreach (var list in new IList?[] { (IList?)data.GameObjects, (IList?)data.Sprites, (IList?)data.Sounds, (IList?)data.Rooms, (IList?)data.Backgrounds,
             (IList?)data.Paths, (IList?)data.Scripts, (IList?)data.Fonts, (IList?)data.Timelines, (IList?)data.Shaders, (IList?)data.Sequences,
             (IList?)data.AnimationCurves, (IList?)data.ParticleSystems })
         {
@@ -430,9 +441,9 @@ public static partial class RenameService
     }
 
     // Names GameMaker derives from a resource name: lookbehind and lookahead keep a longer name (obj_a_b) from matching obj_a
-    private static Regex[] EmbeddedPatterns(GameMakerNamedResource resource, string name)
+    internal static Regex[] EmbeddedPatterns(GameMakerNamedResource resource, string name)
     {
-        string old = Regex.Escape(name);
+        var old = Regex.Escape(name);
         return resource switch
         {
             GameMakerGameObject =>
@@ -457,8 +468,8 @@ public static partial class RenameService
         {
             return;
         }
-        string rewritten = content;
-        foreach (Regex pattern in patterns)
+        var rewritten = content;
+        foreach (var pattern in patterns)
         {
             rewritten = pattern.Replace(rewritten, newName);
         }
@@ -499,7 +510,7 @@ public static partial class RenameService
 
         public int OriginOf(GameMakerString text) => _items.TryGetValue(text, out var item) ? item.Request : -1;
 
-        public List<RenameChange> Changes() => _order.Select(t => new RenameChange(t, t.Content!, _items[t].NewValue, _items[t].Location)).ToList();
+        public List<RenameChange> Changes() => [.. _order.Select(t => new RenameChange(t, t.Content, _items[t].NewValue, _items[t].Location))];
     }
 }
 
@@ -514,7 +525,11 @@ public enum RenameKind
 /// <summary>One rename of a batch. Create it with <see cref="ForResource"/>, <see cref="ForVariable"/> or <see cref="ForFunction"/>.</summary>
 public sealed record RenameRequest(RenameKind Kind, string OldName, string NewName, GameMakerNamedResource? Resource = null)
 {
-    public static RenameRequest ForResource(GameMakerNamedResource resource, string newName) => new(RenameKind.Resource, resource.Name?.Content ?? string.Empty, newName, resource);
+    public static RenameRequest ForResource(GameMakerNamedResource resource, string newName)
+    {
+        ArgumentNullException.ThrowIfNull(resource);
+        return new(RenameKind.Resource, resource.Name?.Content ?? string.Empty, newName, resource);
+    }
 
     public static RenameRequest ForVariable(string oldName, string newName) => new(RenameKind.Variable, oldName, newName);
 

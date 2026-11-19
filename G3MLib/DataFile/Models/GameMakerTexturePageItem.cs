@@ -1,7 +1,5 @@
 using ImageMagick;
-using System;
 using System.ComponentModel;
-using System.Drawing;
 using G3MLib.DataFile.Util;
 
 namespace G3MLib.DataFile.Models;
@@ -75,7 +73,7 @@ public class GameMakerTexturePageItem : GameMakerNamedResource, INotifyPropertyC
     /// </summary>
     public ushort BoundingHeight { get; set; }
 
-    private GameMakerResourceById<GameMakerEmbeddedTexture, GameMakerChunkTXTR> _texturePage = new GameMakerResourceById<GameMakerEmbeddedTexture, GameMakerChunkTXTR>();
+    private GameMakerResourceById<GameMakerEmbeddedTexture, GameMakerChunkTXTR> _texturePage = new();
 
     /// <summary>
     /// The texture page this item is referencing
@@ -88,6 +86,7 @@ public class GameMakerTexturePageItem : GameMakerNamedResource, INotifyPropertyC
     /// <inheritdoc />
     public void Serialize(GameMakerWriter writer)
     {
+        ArgumentNullException.ThrowIfNull(writer);
         writer.Write(SourceX);
         writer.Write(SourceY);
         writer.Write(SourceWidth);
@@ -104,6 +103,7 @@ public class GameMakerTexturePageItem : GameMakerNamedResource, INotifyPropertyC
     /// <inheritdoc />
     public void Unserialize(GameMakerReader reader)
     {
+        ArgumentNullException.ThrowIfNull(reader);
         SourceX = reader.ReadUInt16();
         SourceY = reader.ReadUInt16();
         SourceWidth = reader.ReadUInt16();
@@ -139,23 +139,37 @@ public class GameMakerTexturePageItem : GameMakerNamedResource, INotifyPropertyC
     /// <param name="replaceImage">The new image that shall be applied to this texture page item.</param>
     public void ReplaceTexture(MagickImage replaceImage)
     {
-        // Resize image to bounds on texture page
-        using IMagickImage<byte> finalImage = TextureWorker.ResizeImage(replaceImage, SourceWidth, SourceHeight);
+        PrepareReplace(replaceImage).Commit();
+    }
 
-        // Apply the image to the texture page
+    /// <summary>
+    /// Does the image work of <see cref="ReplaceTexture"/> without changing the data file, so it can run outside a write lock.
+    /// </summary>
+    /// <param name="replaceImage">The new image that shall be applied to this texture page item.</param>
+    /// <returns>A replacement whose <see cref="PreparedTextureReplace.Commit"/> swaps the page image.</returns>
+    public PreparedTextureReplace PrepareReplace(MagickImage replaceImage)
+    {
+        ArgumentNullException.ThrowIfNull(replaceImage);
+        if (TexturePage?.TextureData is null)
+        {
+            throw new InvalidOperationException("The texture page item has no texture page to replace.");
+        }
+        // Resize image to bounds on texture page
+        using var finalImage = TextureWorker.ResizeImage(replaceImage, SourceWidth, SourceHeight);
+
+        GMImage baseImage, pageImage;
         lock (TexturePage.TextureData)
         {
+            baseImage = TexturePage.TextureData.Image;
             using TextureWorker worker = new();
-            MagickImage embImage = worker.GetEmbeddedTexture(TexturePage);
+            var embImage = worker.GetEmbeddedTexture(TexturePage);
 
             embImage.Composite(finalImage, SourceX, SourceY, CompositeOperator.Copy);
 
             // Replace original texture with the new version, in the original texture format
-            TexturePage.TextureData.Image = GMImage.FromMagickImage(embImage)
-                                                   .ConvertToFormat(TexturePage.TextureData.Image.Format);
+            pageImage = GMImage.FromMagickImage(embImage).ConvertToFormat(TexturePage.TextureData.Image.Format);
         }
 
-        TargetWidth = (ushort)replaceImage.Width;
-        TargetHeight = (ushort)replaceImage.Height;
+        return new PreparedTextureReplace(this, baseImage, pageImage, (ushort)replaceImage.Width, (ushort)replaceImage.Height);
     }
 }

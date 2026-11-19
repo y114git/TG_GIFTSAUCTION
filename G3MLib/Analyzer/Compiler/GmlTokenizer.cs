@@ -4,9 +4,6 @@
   file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 
-using System;
-using System.Collections.Generic;
-
 namespace G3MLib.Analyzer.Compiler;
 
 /// <summary>
@@ -27,7 +24,7 @@ public enum GmlTokenKind
     Unknown
 }
 
-/// <summary>A token with its kind and source range.</summary>
+/// <summary>One lexed piece of GML text: its kind and where it sits in the source.</summary>
 public readonly record struct GmlToken(GmlTokenKind Kind, SourceSpan Span);
 
 /// <summary>
@@ -63,19 +60,20 @@ public static class GmlTokenizer
     /// <param name="gms2OrLater">Whether to use GameMaker Studio 2 string rules (escapes, <c>@"</c> and <c>$"</c> strings).</param>
     public static IReadOnlyList<GmlToken> Tokenize(string text, bool gms2OrLater = true)
     {
+        ArgumentNullException.ThrowIfNull(text);
         LineMap map = new(text);
         List<GmlToken> tokens = new(Math.Max(16, text.Length / 4));
-        int pos = 0;
+        var pos = 0;
         while (pos < text.Length)
         {
-            char c = text[pos];
+            var c = text[pos];
             if (char.IsWhiteSpace(c))
             {
                 pos++;
                 continue;
             }
 
-            char next = pos + 1 < text.Length ? text[pos + 1] : '\0';
+            var next = pos + 1 < text.Length ? text[pos + 1] : '\0';
             GmlTokenKind kind;
             int end;
             if (c == '/' && next == '/')
@@ -93,7 +91,7 @@ public static class GmlTokenizer
             else if (IsIdentStart(c))
             {
                 end = ScanWhile(text, pos, IsIdentPart);
-                string word = text.Substring(pos, end - pos);
+                var word = text[pos..end];
                 kind = word is "true" or "false" ? GmlTokenKind.Boolean
                     : Keywords.Contains(word) ? GmlTokenKind.Keyword
                     : GmlTokenKind.Identifier;
@@ -118,12 +116,12 @@ public static class GmlTokenizer
                 end = ScanEscaped(text, pos + 1);
                 kind = GmlTokenKind.String;
             }
-            else if (c == '"' || (c == '\'' && !gms2OrLater))
+            else if (c == '"' || c == '\'' && !gms2OrLater)
             {
                 end = ScanVerbatim(text, pos + 1, c);
                 kind = GmlTokenKind.String;
             }
-            else if (char.IsAsciiDigit(c) || (c == '.' && char.IsAsciiDigit(next)))
+            else if (char.IsAsciiDigit(c) || c == '.' && char.IsAsciiDigit(next))
             {
                 end = ScanNumber(text, pos);
                 kind = GmlTokenKind.Number;
@@ -170,7 +168,7 @@ public static class GmlTokenizer
 
     private static int Match(string text, int pos, string[] candidates)
     {
-        foreach (string candidate in candidates)
+        foreach (var candidate in candidates)
         {
             if (string.CompareOrdinal(text, pos, candidate, 0, candidate.Length) == 0)
             {
@@ -199,7 +197,7 @@ public static class GmlTokenizer
     {
         while (pos < text.Length)
         {
-            char c = text[pos];
+            var c = text[pos];
             if (c == '\\' && pos + 1 < text.Length && text[pos + 1] != '\n')
             {
                 pos += 2;
@@ -221,17 +219,17 @@ public static class GmlTokenizer
     // Verbatim string: no escapes, may span lines.
     private static int ScanVerbatim(string text, int pos, char quote)
     {
-        int close = text.IndexOf(quote, pos);
+        var close = text.IndexOf(quote, pos);
         return close < 0 ? text.Length : close + 1;
     }
 
     // Template string: fields in braces may hold quotes, so quotes only end the string at brace depth 0.
     private static int ScanTemplate(string text, int pos)
     {
-        int depth = 0;
+        var depth = 0;
         while (pos < text.Length)
         {
-            char c = text[pos++];
+            var c = text[pos++];
             if (c == '\\' && depth == 0 && pos < text.Length)
             {
                 pos++;

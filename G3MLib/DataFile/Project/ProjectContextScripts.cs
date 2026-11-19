@@ -1,16 +1,11 @@
-using System.Collections.Generic;
 using System.IO;
 using G3MLib.DataFile.Scripting;
 using G3MLib.DataFile.Util;
 
 namespace G3MLib.DataFile.Project;
 
-partial class ProjectContext
+public partial class ProjectContext
 {
-    /// <summary>
-    /// Full path to currently-executing script, or <see langword="null"/> if no script is executing.
-    /// </summary>
-    private string _scriptPath = null;
 
     /// <summary>
     /// Throws if this context does not allow running scripts.
@@ -33,21 +28,21 @@ partial class ProjectContext
             return;
         }
         InitializeScripting();
-        foreach (string relativePath in relativePathList)
+        foreach (var relativePath in relativePathList)
         {
             // Get path to script file
-            string path = Path.GetFullPath(Path.Join(MainDirectory, relativePath));
+            var path = Path.GetFullPath(Path.Join(MainDirectory, relativePath));
             Paths.VerifyWithinDirectory(MainDirectory, path);
 
             ScriptRunResult result;
             try
             {
-                _scriptPath = path;
+                ScriptPath = path;
                 result = ScriptRunner.RunAsync(path, CreateScriptGlobals()).GetAwaiter().GetResult();
             }
             finally
             {
-                _scriptPath = null;
+                ScriptPath = null;
             }
             if (!result.Success)
             {

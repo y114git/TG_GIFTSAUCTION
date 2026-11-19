@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -20,11 +19,12 @@ internal static class MurmurHash
     /// </remarks>
     public static uint Hash(ReadOnlySpan<char> chars, uint seed = 0)
     {
-        // Allocate (probably) enough space on stack - it's fine if there isn't enough in edge cases
-        Span<byte> utf8 = stackalloc byte[chars.Length * 2];
+        // Short text is encoded on the stack, long text (a name from a data file has no length limit) on the heap
+        var byteCount = Encoding.UTF8.GetByteCount(chars);
+        Span<byte> utf8 = byteCount <= 512 ? stackalloc byte[512] : new byte[byteCount];
 
         // Decode UTF8 into stack memory and hash it
-        int numBytes = Encoding.UTF8.GetBytes(chars, utf8);
+        var numBytes = Encoding.UTF8.GetBytes(chars, utf8);
         return Hash(utf8[..numBytes], seed);
     }
 
@@ -33,16 +33,14 @@ internal static class MurmurHash
     /// </summary>
     public static uint Hash(ReadOnlySpan<byte> bytes, uint seed = 0)
     {
-        // Initialize hash based on seed
-        uint hash = seed;
-        int len = bytes.Length;
+        var hash = seed;
+        var len = bytes.Length;
 
-        // Process each group of 4 bytes
-        int position = 0;
-        for (int i = len >> 2; i > 0; i--)
+        var position = 0;
+        for (var i = len >> 2; i > 0; i--)
         {
             // Take next 4 bytes
-            uint group = BitConverter.ToUInt32(bytes[position..]);
+            var group = BitConverter.ToUInt32(bytes[position..]);
             if (!BitConverter.IsLittleEndian)
             {
                 // Swap endianness to match little endian
@@ -53,7 +51,7 @@ internal static class MurmurHash
             // Apply group to current hash value
             hash ^= Scramble(group);
             hash = (hash << 13) | (hash >> 19);
-            hash = (hash * 5) + 0xe6546b64;
+            hash = hash * 5 + 0xe6546b64;
 
             // Move to next 4 byte chunk
             position += 4;
@@ -61,7 +59,7 @@ internal static class MurmurHash
 
         // Take remaining bytes from the end (0 to 3 bytes)
         uint endGroup = 0;
-        for (int i = len & 3; i > 0; i--)
+        for (var i = len & 3; i > 0; i--)
         {
             endGroup <<= 8;
             endGroup |= bytes[position + (i - 1)];

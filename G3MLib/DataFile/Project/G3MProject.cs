@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-
 namespace G3MLib.DataFile.Project;
 
 /// <summary>
@@ -44,7 +39,7 @@ public sealed class G3MProject
         AudioGroups = audioGroups;
         TextureGroups = textureGroups;
         _byPath = new(resources.Count, StringComparer.Ordinal);
-        foreach (G3MProjectResource resource in resources)
+        foreach (var resource in resources)
         {
             _byPath[resource.Path] = resource;
         }
@@ -85,7 +80,7 @@ public sealed class G3MProject
     public IEnumerable<G3MProjectResource> OfType(string type) => _byType[type];
 
     /// <summary>Finds a resource by its project-relative path, or returns null.</summary>
-    public G3MProjectResource Find(string path) => path is not null && _byPath.TryGetValue(path, out G3MProjectResource resource) ? resource : null;
+    public G3MProjectResource Find(string path) => path is not null && _byPath.TryGetValue(path, out var resource) ? resource : null;
 
     /// <summary>Absolute path of the resource folder or file.</summary>
     public string GetPath(G3MProjectResource resource)

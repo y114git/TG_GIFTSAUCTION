@@ -1,13 +1,8 @@
-using System;
-using System.IO;
-using System.Linq;
-using G3MLib.Analyzer.Decompiler;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Compiler;
 using G3MLib.DataFile.Decompiler;
 using G3MLib.DataFile.Interop;
 using G3MLib.DataFile.Models;
-using Xunit;
 
 namespace G3MLib.Tests;
 
@@ -23,7 +18,7 @@ public sealed class YyObjectTests : IDisposable
 
     private static GameMakerData Load(string fixture)
     {
-        using FileStream input = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures", fixture));
+        using var input = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures", fixture));
         return GameMakerIO.Read(input);
     }
 
@@ -37,12 +32,12 @@ public sealed class YyObjectTests : IDisposable
 
     private string WriteSource()
     {
-        string folder = Path.Combine(_root, "objects", "obj_yy");
+        var folder = Path.Combine(_root, "objects", "obj_yy");
         Directory.CreateDirectory(folder);
         File.WriteAllText(Path.Combine(folder, "Create_0.gml"), "yy_value = 5;\n");
         File.WriteAllText(Path.Combine(folder, "Step_0.gml"), "yy_value += 1;\n");
         File.WriteAllText(Path.Combine(folder, "Collision_obj_yy_other.gml"), "yy_value = 0;\n");
-        File.WriteAllText(Path.Combine(folder, "obj_yy.yy"), """
+        File.WriteAllText(Path.Combine(folder, "obj_yy.yy"), /*lang=json*/ """
             {"$GMObject":"","%Name":"obj_yy","managed":false,
              "eventList":[
               {"$GMEvent":"v1","collisionObjectId":null,"eventNum":0,"eventType":0,"isDnD":false,"name":"","resourceType":"GMEvent",},
@@ -64,20 +59,20 @@ public sealed class YyObjectTests : IDisposable
     [InlineData("data-2026.win")]
     public void ImportsFieldsAndLinksCompiledEvents(string fixture)
     {
-        using GameMakerData data = Load(fixture);
+        using var data = Load(fixture);
         CodeImportGroup group = new(data);
         YyObject.Read(WriteSource(), group);
         group.Import();
 
-        using GameMakerData reloaded = RoundTrip(data);
-        GameMakerGameObject obj = reloaded.GameObjects.ByName("obj_yy");
+        using var reloaded = RoundTrip(data);
+        var obj = reloaded.GameObjects.ByName("obj_yy");
         Assert.True(obj.Persistent && obj.Solid && obj.UsesPhysics && !obj.Visible && !obj.Awake);
         Assert.Equal((CollisionShapeFlags.Custom, 2u, 0.75f), (obj.CollisionShape, obj.Group, obj.Density));
-        Assert.Equal([(1f, 2f), (3f, 4f)], obj.PhysicsVertices.Select(v => (v.X, v.Y)).ToArray());
+        Assert.Equal([(1f, 2f), (3f, 4f)], [.. obj.PhysicsVertices.Select(v => (v.X, v.Y))]);
         Assert.Equal("obj_yy_parent", obj.ParentId.Name.Content);
         Assert.Equal("gml_Object_obj_yy_Create_0", EventCode(obj, EventType.Create, 0).Name.Content);
         Assert.Equal("gml_Object_obj_yy_Step_0", EventCode(obj, EventType.Step, 0).Name.Content);
-        uint otherId = (uint)reloaded.GameObjects.IndexOfName("obj_yy_other");
+        var otherId = (uint)reloaded.GameObjects.IndexOfName("obj_yy_other");
         Assert.Equal("gml_Object_obj_yy_Collision_obj_yy_other", EventCode(obj, EventType.Collision, otherId).Name.Content);
     }
 
@@ -86,16 +81,16 @@ public sealed class YyObjectTests : IDisposable
     [InlineData("data-2026.win")]
     public void WritesFieldsAndEventsOfAnExistingObject(string fixture)
     {
-        using GameMakerData data = Load(fixture);
+        using var data = Load(fixture);
         GlobalDecompileContext context = new(data);
-        GameMakerGameObject obj = data.GameObjects.First(o => o.Events.Any(l => l?.Any(e => e.Actions.Count > 0) == true));
-        foreach (YyFormat format in Enum.GetValues<YyFormat>())
+        var obj = data.GameObjects.First(o => o.Events.Any(l => l?.Any(e => e.Actions.Count > 0) == true));
+        foreach (var format in Enum.GetValues<YyFormat>())
         {
-            string folder = Path.Combine(_root, "out", format.ToString());
+            var folder = Path.Combine(_root, "out", format.ToString());
             YyObject.Write(obj, data, context, folder, format);
-            string yy = File.ReadAllText(Path.Combine(folder, obj.Name.Content + ".yy"));
-            Assert.Contains("\"resourceType\": \"GMObject\"", yy);
-            Assert.Contains("\"eventList\"", yy);
+            var yy = File.ReadAllText(Path.Combine(folder, obj.Name.Content + ".yy"));
+            Assert.Contains("\"resourceType\": \"GMObject\"", yy, StringComparison.Ordinal);
+            Assert.Contains("\"eventList\"", yy, StringComparison.Ordinal);
             Assert.NotEmpty(Directory.GetFiles(folder, "*.gml"));
         }
     }

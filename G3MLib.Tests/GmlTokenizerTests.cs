@@ -5,7 +5,7 @@ namespace G3MLib.Tests;
 public class GmlTokenizerTests
 {
     private static List<(GmlTokenKind Kind, string Text)> Tokens(string code, bool gms2 = true)
-        => GmlTokenizer.Tokenize(code, gms2).Select(t => (t.Kind, code[t.Span.StartOffset..t.Span.EndOffset])).ToList();
+        => [.. GmlTokenizer.Tokenize(code, gms2).Select(t => (t.Kind, code[t.Span.StartOffset..t.Span.EndOffset]))];
 
     [Fact]
     public void ClassifiesCommonTokens()
@@ -52,7 +52,7 @@ public class GmlTokenizerTests
     [Fact]
     public void SpansCarryLinesAndColumns()
     {
-        GmlToken token = GmlTokenizer.Tokenize("a\n  bb")[1];
+        var token = GmlTokenizer.Tokenize("a\n  bb")[1];
         Assert.Equal(2, token.Span.StartLine);
         Assert.Equal(3, token.Span.StartColumn);
         Assert.Equal(5, token.Span.EndColumn);

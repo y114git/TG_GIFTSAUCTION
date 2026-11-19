@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Models;
-using Xunit;
 
 namespace G3MLib.Tests;
 
@@ -12,20 +7,16 @@ public sealed class DataRepairTests
 {
     private static string? Find(string name)
     {
-        string fixture = Path.Combine(AppContext.BaseDirectory, "Fixtures", name);
-        if (File.Exists(fixture))
-            return fixture;
-        return File.Exists(name) ? name : null;
+        var fixture = Path.Combine(AppContext.BaseDirectory, "Fixtures", name);
+        return File.Exists(fixture) ? fixture : null;
     }
 
-    public static IEnumerable<object[]> Files() =>
+    public static TheoryData<string> Files() =>
     [
-        ["data-2022.win"],
-        ["data-2023.win"],
-        ["data-2024.win"],
-        ["data-2026.win"],
-        [@"C:\Program Files (x86)\Steam\steamapps\common\Undertale\data.win"],
-        [@"C:\Program Files (x86)\Steam\steamapps\common\DELTARUNE\chapter1_windows\data.win"]
+        "data-2022.win",
+        "data-2023.win",
+        "data-2024.win",
+        "data-2026.win"
     ];
 
     [Theory]
@@ -34,10 +25,10 @@ public sealed class DataRepairTests
     {
         if (Find(name) is not { } path)
             return;
-        using FileStream input = File.OpenRead(path);
-        using GameMakerData data = GameMakerIO.Read(input);
+        using var input = File.OpenRead(path);
+        using var data = GameMakerIO.Read(input);
 
-        VariableCounters counters = DataRepair.RecomputeVariableCounters(data);
+        var counters = DataRepair.RecomputeVariableCounters(data);
 
         Assert.Equal((data.VarCount1, data.VarCount2, data.MaxLocalVarCount), (counters.VarCount1, counters.VarCount2, counters.MaxLocalVarCount));
     }
@@ -48,15 +39,15 @@ public sealed class DataRepairTests
     {
         if (Find(name) is not { } path)
             return;
-        using FileStream input = File.OpenRead(path);
-        using GameMakerData data = GameMakerIO.Read(input);
-        int different = 0;
-        foreach (GameMakerCode code in data.Code.Where(c => c.ParentEntry is null))
+        using var input = File.OpenRead(path);
+        using var data = GameMakerIO.Read(input);
+        var different = 0;
+        foreach (var code in data.Code.Where(c => c.ParentEntry is null))
         {
-            GameMakerCodeLocals? real = data.CodeLocals?.FirstOrDefault(l => l.Name.Content == code.Name.Content);
+            var real = data.CodeLocals?.FirstOrDefault(l => l.Name.Content == code.Name.Content);
             if (real is null)
                 continue;
-            GameMakerCodeLocals built = DataRepair.BuildCodeLocals(data, code);
+            var built = DataRepair.BuildCodeLocals(data, code);
             if (!built.Locals.Select(l => (l.Name.Content, l.Index)).Order().SequenceEqual(real.Locals.Select(l => (l.Name.Content, l.Index)).Order()))
                 different++;
         }
@@ -68,28 +59,28 @@ public sealed class DataRepairTests
     [Fact]
     public void RestoreAddsMissingLocalsAndLeavesOthers()
     {
-        using FileStream input = File.OpenRead(Find("data-2022.win")!);
-        using GameMakerData data = GameMakerIO.Read(input);
-        GameMakerCode code = data.Code.First(c => c.ParentEntry is null && data.CodeLocals.Any(l => l.Name.Content == c.Name.Content));
-        GameMakerCodeLocals real = data.CodeLocals.First(l => l.Name.Content == code.Name.Content);
+        using var input = File.OpenRead(Find("data-2022.win"));
+        using var data = GameMakerIO.Read(input);
+        var code = data.Code.First(c => c.ParentEntry is null && data.CodeLocals.Any(l => l.Name.Content == c.Name.Content));
+        var real = data.CodeLocals.First(l => l.Name.Content == code.Name.Content);
         List<(string?, uint)> expected = real.Locals.Select(l => (l.Name.Content, l.Index)).ToList();
-        int before = data.CodeLocals.Count;
+        var before = data.CodeLocals.Count;
         data.CodeLocals.Remove(real);
 
-        int restored = DataRepair.RestoreMissingCodeLocals(data);
+        var restored = DataRepair.RestoreMissingCodeLocals(data, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(1, restored);
         Assert.Equal(before, data.CodeLocals.Count);
         Assert.Equal(expected.Order(), data.CodeLocals.First(l => l.Name.Content == code.Name.Content).Locals.Select(l => (l.Name.Content, l.Index)).Order());
-        Assert.Equal(0, DataRepair.RestoreMissingCodeLocals(data));
+        Assert.Equal(0, DataRepair.RestoreMissingCodeLocals(data, cancellationToken: TestContext.Current.CancellationToken));
     }
 
     [Fact]
     public void ApplyWritesTheCountersIntoTheHeader()
     {
-        using FileStream input = File.OpenRead(Find("data-2026.win")!);
-        using GameMakerData data = GameMakerIO.Read(input);
-        (uint one, uint two, uint max) = (data.VarCount1, data.VarCount2, data.MaxLocalVarCount);
+        using var input = File.OpenRead(Find("data-2026.win"));
+        using var data = GameMakerIO.Read(input);
+        (var one, var two, var max) = (data.VarCount1, data.VarCount2, data.MaxLocalVarCount);
         data.VarCount1 = data.VarCount2 = 0;
         data.MaxLocalVarCount = 0;
 
@@ -101,15 +92,15 @@ public sealed class DataRepairTests
     [Fact]
     public void WriterRaisesTheCountersWhenVariablesWereAdded()
     {
-        using FileStream input = File.OpenRead(Find("data-2026.win")!);
-        using GameMakerData data = GameMakerIO.Read(input);
-        uint declared = data.VarCount1;
+        using var input = File.OpenRead(Find("data-2026.win"));
+        using var data = GameMakerIO.Read(input);
+        var declared = data.VarCount1;
         data.Variables.Add(new GameMakerVariable { Name = data.Strings.MakeString("added_without_counter"), InstanceType = GameMakerInstruction.InstanceType.Self, VarID = (int)declared + 4 });
 
         using MemoryStream output = new();
         GameMakerIO.Write(output, data);
         output.Position = 0;
-        using GameMakerData reloaded = GameMakerIO.Read(output);
+        using var reloaded = GameMakerIO.Read(output);
 
         Assert.Equal(declared + 5, reloaded.VarCount1);
     }

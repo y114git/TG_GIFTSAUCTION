@@ -1,4 +1,3 @@
-using System.IO;
 using G3MLib.DataFile.Models;
 using G3MLib.DataFile.Util;
 
@@ -12,13 +11,13 @@ public static class FrameExporter
 	public static IReadOnlyList<ItemResult> ExportPng(IReadOnlyList<FrameJob> jobs, int maxPagesInFlight, IProgress<BatchProgress>? progress, CancellationToken cancellationToken) =>
 		BatchRun.RunImport(progress, cancellationToken, () =>
 		{
-			List<IGrouping<GameMakerEmbeddedTexture, FrameJob>> pages = jobs.GroupBy(job => job.Item.TexturePage).ToList();
+			List<IGrouping<GameMakerEmbeddedTexture, FrameJob>> pages = [.. jobs.GroupBy(job => job.Item.TexturePage)];
 			BatchRun.Expect(jobs.Count - pages.Count);
-			using TextureWorker worker = new TextureWorker();
-			ParallelOptions options = new ParallelOptions { MaxDegreeOfParallelism = Math.Max(1, maxPagesInFlight) };
+			using var worker = new TextureWorker();
+			var options = new ParallelOptions { MaxDegreeOfParallelism = Math.Max(1, maxPagesInFlight) };
 			CancellableParallel.ForEach(pages, options, group =>
 			{
-				foreach (FrameJob job in group)
+				foreach (var job in group)
 				{
 					try
 					{

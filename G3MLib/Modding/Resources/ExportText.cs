@@ -1,7 +1,5 @@
-using System;
 using System.IO;
 using System.Text;
-using System.Threading;
 using G3MLib.DataFile.Project;
 
 namespace G3MLib.Modding.Resources;
@@ -16,30 +14,30 @@ namespace G3MLib.Modding.Resources;
 /// </remarks>
 internal static class ExportText
 {
-    private static readonly string[] NormalizedExtensions = [".json", ".gml", ".asm"];
+	private static readonly string[] NormalizedExtensions = [".json", ".gml", ".asm"];
 
-    private static readonly AsyncLocal<bool> normalizeForProject = new();
+	private static readonly AsyncLocal<bool> normalizeForProject = new();
 
-    /// <summary>Set by the project export for the current execution context and the tasks it starts.</summary>
-    internal static bool NormalizeForProject
-    {
-        get => normalizeForProject.Value;
-        set => normalizeForProject.Value = value;
-    }
+	/// <summary>Switched on by the project export for the current execution context and the tasks it starts.</summary>
+	internal static bool NormalizeForProject
+	{
+		get => normalizeForProject.Value;
+		set => normalizeForProject.Value = value;
+	}
 
-    internal static void WriteAllText(string path, string contents, Encoding encoding = null)
-    {
-        if (NormalizeForProject && Array.Exists(NormalizedExtensions, e => path.EndsWith(e, StringComparison.OrdinalIgnoreCase)))
-        {
-            File.WriteAllBytes(path, ProjectContext.NormalizeTextBytes(new UTF8Encoding(false).GetBytes(contents)));
-        }
-        else if (encoding is null)
-        {
-            File.WriteAllText(path, contents);
-        }
-        else
-        {
-            File.WriteAllText(path, contents, encoding);
-        }
-    }
+	internal static void WriteAllText(string path, string contents, Encoding? encoding = null)
+	{
+		if (NormalizeForProject && Array.Exists(NormalizedExtensions, e => path.EndsWith(e, StringComparison.OrdinalIgnoreCase)))
+		{
+			File.WriteAllBytes(path, ProjectContext.NormalizeTextBytes(new UTF8Encoding(false).GetBytes(contents)));
+		}
+		else if (encoding is null)
+		{
+			File.WriteAllText(path, contents);
+		}
+		else
+		{
+			File.WriteAllText(path, contents, encoding);
+		}
+	}
 }

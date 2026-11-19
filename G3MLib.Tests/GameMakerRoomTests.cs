@@ -1,8 +1,6 @@
 using System.Collections.ObjectModel;
-using System.IO;
 using G3MLib.DataFile;
 using G3MLib.DataFile.Models;
-using Xunit;
 
 namespace G3MLib.Tests;
 
@@ -48,7 +46,7 @@ public sealed class GameMakerRoomTests
     [Fact("GameMakerRoomTests.cs", 38)]
     public void CompressedTileLayerRoundTripsVerbatimAndRepeatedTiles()
     {
-        using GameMakerData data = GameMakerData.CreateNew2026LTS();
+        using var data = GameMakerData.CreateNew2026LTS();
         GameMakerBackground tileset = new()
         {
             Name = data.Strings.MakeString("tileset_probe"),
@@ -80,11 +78,28 @@ public sealed class GameMakerRoomTests
         using MemoryStream stream = new();
         GameMakerIO.Write(stream, data);
         stream.Position = 0;
-        using GameMakerData output = GameMakerIO.Read(stream);
-        GameMakerRoom.Layer.LayerTilesData tiles = output.Rooms.Single().Layers.Single().TilesData;
+        using var output = GameMakerIO.Read(stream);
+        var tiles = output.Rooms.Single().Layers.Single().TilesData;
 
         Assert.Same(output.Backgrounds.Single(), tiles.Background);
         Assert.Equal(Enumerable.Repeat(3u, 130), tiles.TileData[0]);
         Assert.Equal(Enumerable.Range(0, 130).Select(static value => (uint)value), tiles.TileData[1]);
+    }
+
+    [Fact]
+    public void TileLayerWithOnlyOneEmptyDimensionIsRejected()
+    {
+        using var data = GameMakerData.CreateNew2026LTS();
+        data.Rooms.Single().Layers.Add(new GameMakerRoom.Layer
+        {
+            LayerName = data.Strings.MakeString("tiles"),
+            LayerType = GameMakerRoom.LayerType.Tiles,
+            Data = new GameMakerRoom.Layer.LayerTilesData { TilesX = 0, TilesY = 1, TileData = [[]] }
+        });
+        using MemoryStream stream = new();
+        GameMakerIO.Write(stream, data);
+        stream.Position = 0;
+
+        Assert.Throws<GameMakerSerializationException>(() => GameMakerIO.Read(stream));
     }
 }

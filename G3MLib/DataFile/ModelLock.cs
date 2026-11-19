@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-
 namespace G3MLib.DataFile;
 
 /// <summary>
@@ -40,7 +37,7 @@ public sealed class ModelLock : IDisposable
 
         public void Dispose()
         {
-            ReaderWriterLockSlim? held = Interlocked.Exchange(ref _target, null);
+            var held = Interlocked.Exchange(ref _target, null);
             if (held is null)
             {
                 return;

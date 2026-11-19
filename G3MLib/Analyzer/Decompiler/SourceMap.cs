@@ -4,8 +4,6 @@
   file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 
-using System;
-using System.Collections.Generic;
 using G3MLib.Analyzer.Compiler;
 using G3MLib.Analyzer.Decompiler.AST;
 
@@ -21,7 +19,7 @@ public sealed record DecompiledSource(string Text, SourceMap Map);
 /// </summary>
 public sealed class SourceMapEntry
 {
-    /// <summary>The AST node.</summary>
+    /// <summary>The node that was printed at <see cref="Span"/>.</summary>
     public IBaseASTNode Node { get; }
 
     /// <summary>Text range of the node, without surrounding whitespace.</summary>
@@ -80,7 +78,7 @@ public sealed class SourceMap
     public SourceMapEntry? FindAtTextOffset(int offset)
     {
         SourceMapEntry? best = null;
-        foreach (SourceMapEntry entry in Entries)
+        foreach (var entry in Entries)
         {
             if (entry.Span.StartOffset > offset)
             {
@@ -102,7 +100,7 @@ public sealed class SourceMap
     {
         SourceMapEntry? exact = null;
         SourceMapEntry? range = null;
-        foreach (SourceMapEntry entry in Entries)
+        foreach (var entry in Entries)
         {
             if (entry.InstructionOffset == instructionOffset)
             {
@@ -122,7 +120,7 @@ public sealed class SourceMap
     /// </summary>
     public SourceMapEntry? FindStatementOnLine(int line)
     {
-        foreach (SourceMapEntry entry in Entries)
+        foreach (var entry in Entries)
         {
             if (entry.Span.StartLine > line)
             {
@@ -171,12 +169,12 @@ internal sealed class SourceMapRecorder
         List<SourceMapEntry> entries = new(_records.Count);
 
         // Record index to entry index; dropped (empty) records map to their nearest kept ancestor
-        int[] entryOf = new int[_records.Count];
-        for (int i = 0; i < _records.Count; i++)
+        var entryOf = new int[_records.Count];
+        for (var i = 0; i < _records.Count; i++)
         {
-            Record record = _records[i];
-            int start = record.Start;
-            int end = Math.Min(record.End, text.Length);
+            var record = _records[i];
+            var start = record.Start;
+            var end = Math.Min(record.End, text.Length);
             while (start < end && char.IsWhiteSpace(text[start]))
             {
                 start++;
@@ -185,15 +183,15 @@ internal sealed class SourceMapRecorder
             {
                 end--;
             }
-            int parent = record.Parent < 0 ? -1 : entryOf[record.Parent];
+            var parent = record.Parent < 0 ? -1 : entryOf[record.Parent];
             if (start >= end)
             {
                 entryOf[i] = parent;
                 continue;
             }
 
-            (int first, int last) = InstructionRange(record.Node, nodeOffsets, ranges);
-            int own = nodeOffsets.TryGetValue(record.Node, out int ownOffset) ? ownOffset : -1;
+            (var first, var last) = InstructionRange(record.Node, nodeOffsets, ranges);
+            var own = nodeOffsets.TryGetValue(record.Node, out var ownOffset) ? ownOffset : -1;
             entries.Add(new SourceMapEntry(record.Node, lines.GetSpan(start, end), parent, own, first, last));
             entryOf[i] = entries.Count - 1;
         }
@@ -203,26 +201,26 @@ internal sealed class SourceMapRecorder
     private static (int First, int Last) InstructionRange(IBaseASTNode node, Dictionary<IBaseASTNode, int> nodeOffsets,
                                                           Dictionary<IBaseASTNode, (int First, int Last)> memo)
     {
-        if (memo.TryGetValue(node, out (int First, int Last) known))
+        if (memo.TryGetValue(node, out var known))
         {
             return known;
         }
-        int first = int.MaxValue;
-        int last = -1;
-        if (nodeOffsets.TryGetValue(node, out int own))
+        var first = int.MaxValue;
+        var last = -1;
+        if (nodeOffsets.TryGetValue(node, out var own))
         {
             first = last = own;
         }
-        foreach (IBaseASTNode child in node.EnumerateChildren())
+        foreach (var child in node.EnumerateChildren())
         {
-            (int childFirst, int childLast) = InstructionRange(child, nodeOffsets, memo);
+            (var childFirst, var childLast) = InstructionRange(child, nodeOffsets, memo);
             if (childLast >= 0)
             {
                 first = Math.Min(first, childFirst);
                 last = Math.Max(last, childLast);
             }
         }
-        (int, int) result = last < 0 ? (-1, -1) : (first, last);
+        var result = last < 0 ? (-1, -1) : (first, last);
         memo[node] = result;
         return result;
     }
