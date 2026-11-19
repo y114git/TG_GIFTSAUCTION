@@ -445,6 +445,12 @@
     "typeId": "{type}、ID {id}"
   },
   "explorer": {
+    "hidden": "{count} 件を非表示",
+    "hiddenTip": "非表示の設定により一部の項目が一覧にありません。クリックして変更できます。",
+    "codeHeading": "コードの項目",
+    "visShow": "表示",
+    "visDim": "グレーアウト",
+    "visHide": "非表示",
     "generalName": "一般情報",
     "noSection": "このデータファイルには{type}のセクションがないため、新規作成できません。",
     "noValue": "なし",
@@ -1294,6 +1300,9 @@
     "explorerShowCounts": "エクスプローラーに件数を表示する",
     "explorerHideUndecompilable": "デコンパイルできないコード(とそれを使うスクリプト)を隠す",
     "explorerHideBroken": "壊れたリソースやエラーのある項目を隠す",
+    "explorerAnonymous": "コード内の匿名関数",
+    "explorerStructs": "コード内の構造体コンストラクター",
+    "explorerInner": "コードエントリ内のその他の関数",
     "explorerFoldersOpen": "フォルダーとコレクションを表示時に開く",
     "explorerSort": "エクスプローラーの既定の並び順",
     "explorerIconSize": "エクスプローラーのアイコンのサイズ（ズーム 100%）"

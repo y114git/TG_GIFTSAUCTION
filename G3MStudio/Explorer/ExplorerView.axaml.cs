@@ -32,7 +32,8 @@ public partial class ExplorerView : UserControl
         Model = new ExplorerModel(key => key == "null" ? Loc.Current["explorer.nullEntry"] : QuickTitle(key) ?? Loc.Current["explorer.type." + (key == "tileSets" && _legacy ? "backgrounds" : key)]);
         ToolTip.SetTip(FilterOptions, Loc.Current["explorer.filterOptions"]);
         Avalonia.Automation.AutomationProperties.SetName(FilterOptions, Loc.Current["explorer.filterOptions"]);
-        FilterOptions.Click += (_, _) => new Flyout { Content = ExplorerFilterPopup.Build(Model.Options, Model.Quick.TagNames, FilterBox.Text ?? "", change => EditQuick?.Invoke(change)) }.ShowAt(FilterOptions);
+        FilterOptions.Click += (_, _) => ShowFilterOptions();
+        HiddenCount.Tapped += (_, _) => ShowFilterOptions();
         ViewToggle.Click += (_, _) => ViewToggleRequested?.Invoke();
         FilterOptions.Content = G3MStudio.Theme.GlyphIcons.Chevron(Avalonia.Layout.Orientation.Vertical, true);
         OptionsFold.Click += (_, _) => OptionsFolded = !OptionsFolded;
@@ -53,6 +54,19 @@ public partial class ExplorerView : UserControl
     public ExplorerModel Model { get; }
 
     public Action<Func<QuickAccess, QuickAccess>>? EditQuick { get; set; }
+
+    /// <summary>The settings the popup edits (what code entries to hide) and the way to change them; the window sets both.</summary>
+    public Func<G3MStudio.Core.Settings.AppSettings>? CurrentSettings { get; set; }
+
+    public Action<Func<G3MStudio.Core.Settings.AppSettings, G3MStudio.Core.Settings.AppSettings>>? EditSettings { get; set; }
+
+    private void ShowFilterOptions()
+    {
+        var settings = CurrentSettings?.Invoke();
+        var content = ExplorerFilterPopup.Build(Model.Options, Model.Quick.TagNames, FilterBox.Text ?? "", change => EditQuick?.Invoke(change), settings, EditSettings);
+        // Scrolls when the window is short or the text scaling is large: the popup never grows past the screen.
+        new Flyout { Content = new ScrollViewer { Content = content, MaxHeight = Math.Max(200, (TopLevel.GetTopLevel(this)?.ClientSize.Height ?? 700) * 0.8), HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled } }.ShowAt(FilterOptions);
+    }
 
     /// <summary>Types text into the filter box, as the user would.</summary>
     public void SetFilterText(string text)
@@ -180,6 +194,7 @@ public partial class ExplorerView : UserControl
             List.UpdateLayout();
         }
         var index = Model.Rows.ToList().FindIndex(r => r.IsItem && r.Key == type && r.Text == name);
+        if (index < 0 && Model.Reveal(key)) index = Model.Rows.ToList().FindIndex(r => r.IsItem && r.Key == type && r.Text == name);
         if (index < 0) return;
         List.SelectedIndex = index;
         G3MStudio.Theme.Motion.ScrollTo(List, index);
@@ -268,6 +283,13 @@ public partial class ExplorerView : UserControl
     {
         if (container is not ListBoxItem item) return;
         item.MinHeight = RowHeight;
+        // A child code entry the settings ask to gray out: italic and muted, so it reads as part of another entry and not only as a lighter color.
+        var dim = item.DataContext is ExplorerRow { Dim: true };
+        if (item.GetVisualDescendants().OfType<TextBlock>().FirstOrDefault(t => t.Name != "RowChevron" && Grid.GetColumn(t) == 3) is { } label)
+        {
+            label.FontStyle = dim ? Avalonia.Media.FontStyle.Italic : Avalonia.Media.FontStyle.Normal;
+            label.Opacity = dim ? 0.65 : 1;
+        }
         // The chevron grows with the text, so its slot (and the gap to the name) grows with it.
         if (item.GetVisualDescendants().OfType<TextBlock>().FirstOrDefault(t => t.Name == "RowChevron") is { } chevron) chevron.Width = ChevronSlot * Zoom;
         var thumb = item.GetVisualDescendants().OfType<Image>().FirstOrDefault(i => i.Name == "Thumb");
@@ -359,6 +381,8 @@ public partial class ExplorerView : UserControl
         Footer.Text = Model.IsFiltering
             ? Loc.Current.Format("explorer.matches", ("matches", Model.Matches.ToString("N0", System.Globalization.CultureInfo.CurrentCulture)), ("total", Model.Total.ToString("N0", System.Globalization.CultureInfo.CurrentCulture)))
             : Loc.Current.Format("explorer.count", ("count", Model.Total.ToString("N0", System.Globalization.CultureInfo.CurrentCulture)), ("n", Model.Total));
+        HiddenCount.IsVisible = Model.Hidden > 0 && !Model.IsFiltering;
+        if (HiddenCount.IsVisible) HiddenCount.Text = Loc.Current.Format("explorer.hidden", ("count", Model.Hidden.ToString("N0", System.Globalization.CultureInfo.CurrentCulture)), ("n", Model.Hidden));
         ShowBreadcrumb();
         NoMatch.IsVisible = Model.IsFiltering && Model.Matches == 0;
         NoMatch.Text = Loc.Current.Format("explorer.noMatch", ("filter", Model.Filter));

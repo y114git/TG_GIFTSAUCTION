@@ -9,6 +9,9 @@ public sealed record ExplorerRow(ExplorerRowKind Kind, string Key, string Text, 
 {
     public int Count { get; init; }
 
+    /// <summary>True when the settings ask for the row to be grayed out (a child code entry).</summary>
+    public bool Dim { get; init; }
+
     public bool Expanded { get; init; }
 
     /// <summary>#RRGGBB of a folder, collection or tag row, or empty.</summary>

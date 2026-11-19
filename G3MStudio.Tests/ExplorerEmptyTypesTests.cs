@@ -1,3 +1,4 @@
+using Avalonia.LogicalTree;
 using Avalonia.Controls;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Explorer;
@@ -58,6 +59,22 @@ public sealed class ExplorerEmptyTypesTests
             empty.IsChecked = true;
             Assert.True(quick.Filter.HideEmpty);
             Assert.True(ExplorerFilterPopup.Build(quick.Filter, [], "", _ => { }).Children.OfType<CheckBox>().Single(b => b.Name == "ExplorerHideEmpty").IsChecked); // a reopened popup shows the state in force
+            return Task.CompletedTask;
+        });
+    }
+    [Fact]
+    public async Task ThePopupHoldsTheCodeEntryChoicesAndWritesTheSettings()
+    {
+        await HeadlessApp.Run(() =>
+        {
+            Loc.Current.SetLanguage("en");
+            var settings = new G3MStudio.Core.Settings.AppSettings();
+            var popup = ExplorerFilterPopup.Build(QuickAccess.Empty.Filter, [], "", _ => { }, settings, change => settings = change(settings));
+            var anonymous = popup.GetLogicalDescendants().OfType<ComboBox>().Single(b => b.Name == "ExplorerAnonymousFunctions");
+            Assert.Equal(1, anonymous.SelectedIndex); // gray out is the default
+            anonymous.SelectedIndex = 2;
+            Assert.Equal(G3MStudio.Core.Settings.EntryVisibility.Hide, settings.ExplorerAnonymousFunctions);
+            Assert.DoesNotContain(ExplorerFilterPopup.Build(QuickAccess.Empty.Filter, [], "", _ => { }).GetLogicalDescendants(), c => c is ComboBox);
             return Task.CompletedTask;
         });
     }

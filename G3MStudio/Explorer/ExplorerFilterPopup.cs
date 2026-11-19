@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using G3MStudio.Core.Settings;
 using G3MStudio.Core.Workspace;
 using G3MStudio.Localization;
 
@@ -11,7 +12,8 @@ namespace G3MStudio.Explorer;
 /// </summary>
 public static class ExplorerFilterPopup
 {
-    public static StackPanel Build(ExplorerFilter filter, IReadOnlyList<string> tags, string searchText, Action<Func<QuickAccess, QuickAccess>> change)
+    public static StackPanel Build(ExplorerFilter filter, IReadOnlyList<string> tags, string searchText, Action<Func<QuickAccess, QuickAccess>> change,
+        AppSettings? settings = null, Action<Func<AppSettings, AppSettings>>? edit = null)
     {
         void Set(Func<ExplorerFilter, ExplorerFilter> edit) => change(q => q with { Filter = edit(q.Filter) });
         var panel = new StackPanel { Name = "ExplorerFilterPopup", Spacing = Space("Space.1"), MinWidth = 220, Margin = new Thickness(Space("Space.2")) };
@@ -36,6 +38,20 @@ public static class ExplorerFilterPopup
             var box = new CheckBox { Content = Loc.Current["explorer.type." + type.Key], IsChecked = !filter.Hides(type.Key), Tag = type.Key };
             box.IsCheckedChanged += (_, _) => Set(f => f.Hides(type.Key) == (box.IsChecked == true) ? f.Toggle(type.Key) : f);
             panel.Children.Add(box);
+        }
+
+        if (settings is not null && edit is not null)
+        {
+            panel.Children.Add(Heading("explorer.codeHeading"));
+            panel.Children.Add(EntryVisibilityBox.Row("ExplorerAnonymousFunctions", "settings.explorerAnonymous", settings.ExplorerAnonymousFunctions, v => edit(x => x with { ExplorerAnonymousFunctions = v })));
+            panel.Children.Add(EntryVisibilityBox.Row("ExplorerStructConstructors", "settings.explorerStructs", settings.ExplorerStructConstructors, v => edit(x => x with { ExplorerStructConstructors = v })));
+            panel.Children.Add(EntryVisibilityBox.Row("ExplorerInnerFunctions", "settings.explorerInner", settings.ExplorerInnerFunctions, v => edit(x => x with { ExplorerInnerFunctions = v })));
+            var undecompilable = new CheckBox { Name = "ExplorerHideUndecompilable", Content = Loc.Current["settings.explorerHideUndecompilable"], IsChecked = settings.ExplorerHideUndecompilable };
+            undecompilable.IsCheckedChanged += (_, _) => edit(x => x with { ExplorerHideUndecompilable = undecompilable.IsChecked == true });
+            panel.Children.Add(undecompilable);
+            var broken = new CheckBox { Name = "ExplorerHideBroken", Content = Loc.Current["settings.explorerHideBroken"], IsChecked = settings.ExplorerHideBroken };
+            broken.IsCheckedChanged += (_, _) => edit(x => x with { ExplorerHideBroken = broken.IsChecked == true });
+            panel.Children.Add(broken);
         }
 
         if (tags.Count > 0)

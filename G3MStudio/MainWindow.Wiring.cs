@@ -8,6 +8,8 @@ public sealed partial class MainWindow
     {
         Explorer.MenuRequested += ShowExplorerMenu;
         Explorer.EditQuick = EditQuick;
+        Explorer.CurrentSettings = () => Workspaces.Settings.Current;
+        Explorer.EditSettings = change => Workspaces.Settings.Update(change);
         Explorer.DropOnto = DropOntoRow;
         Explorer.ViewToggleRequested += ToggleFolderView;
         Explorer.OptionsFoldChanged += folded => Workspaces.Settings.Update(x => x with { ExplorerOptionsFolded = folded });

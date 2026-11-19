@@ -22,6 +22,7 @@
           <!-- The selected count follows the total on the same line and wraps below only when the whole text no longer fits. -->
           <WrapPanel VerticalAlignment="Center" ItemSpacing="12">
             <TextBlock Name="Footer" Classes="muted" FontSize="{DynamicResource FontSize.Caption}" />
+            <TextBlock Name="HiddenCount" Classes="muted" IsVisible="False" Cursor="Hand" TextDecorations="Underline" FontSize="{DynamicResource FontSize.Caption}" ToolTip.Tip="{loc:Tr explorer.hiddenTip}" />
             <TextBlock Name="SelectedCount" Classes="muted" IsVisible="False" FontSize="{DynamicResource FontSize.Caption}" />
           </WrapPanel>
         </DockPanel>

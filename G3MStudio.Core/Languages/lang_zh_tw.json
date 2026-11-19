@@ -445,6 +445,12 @@
     "typeId": "{type}，ID {id}"
   },
   "explorer": {
+    "hidden": "已隱藏 {count} 項",
+    "hiddenTip": "部分項目已依你的隱藏設定從清單中省略。點擊可變更。",
+    "codeHeading": "程式碼項目",
+    "visShow": "顯示",
+    "visDim": "灰顯",
+    "visHide": "隱藏",
     "generalName": "一般資訊",
     "noSection": "此資料檔案沒有{type}區段，因此無法新增。",
     "noValue": "無",
@@ -1294,6 +1300,9 @@
     "explorerShowCounts": "在資源管理員中顯示數量",
     "explorerHideUndecompilable": "隱藏無法反編譯的程式碼(及使用它的指令碼)",
     "explorerHideBroken": "隱藏損毀的資源和有錯誤的項目",
+    "explorerAnonymous": "程式碼中的匿名函式",
+    "explorerStructs": "程式碼中的結構建構函式",
+    "explorerInner": "程式碼項目內的其他函式",
     "explorerFoldersOpen": "出現時開啟資料夾和集合",
     "explorerSort": "資源管理員的預設排序",
     "explorerIconSize": "資源管理員圖示的大小（縮放 100%）"

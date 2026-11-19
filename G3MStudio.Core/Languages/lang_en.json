@@ -445,6 +445,12 @@
     "typeId": "{type}, ID {id}"
   },
   "explorer": {
+    "hidden": "{count} hidden",
+    "hiddenTip": "Some entries are left out by your hide settings. Click to change them.",
+    "codeHeading": "Code entries",
+    "visShow": "Show",
+    "visDim": "Gray out",
+    "visHide": "Hide",
     "generalName": "General Info",
     "noSection": "This data file has no section for {type}, so it cannot hold a new one.",
     "noValue": "None",
@@ -1294,6 +1300,9 @@
     "explorerShowCounts": "Show counts in the Explorer",
     "explorerHideUndecompilable": "Hide code that cannot be decompiled (and scripts using it)",
     "explorerHideBroken": "Hide broken resources and entries with errors",
+    "explorerAnonymous": "Anonymous functions in code",
+    "explorerStructs": "Struct constructors in code",
+    "explorerInner": "Other functions inside code entries",
     "explorerFoldersOpen": "Open folders and collections when they appear",
     "explorerSort": "Default sort order of the Explorer",
     "explorerIconSize": "Size of the Explorer icons at 100% zoom"

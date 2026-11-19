@@ -100,6 +100,10 @@ public sealed partial class CodeEditorTab
             if (context is not null && !found.Any(d => d.Severity == DiagnosticSeverity.Error) && run == _liveRun)
                 issues = await Task.Run(() => Lint(text, context, cancel));
         }
+        catch (OperationCanceledException)
+        {
+            found = []; // a newer key press stopped this run; the newer run shows the squiggles
+        }
         catch (Exception e) when (e is not OutOfMemoryException)
         {
             // A parser failure must not crash the editor; the squiggles of this entry are dropped.
@@ -134,7 +138,7 @@ public sealed partial class CodeEditorTab
         {
             return GmlLint.Analyze(GmlDoc.Parse(text), context, cancellationToken);
         }
-        catch (Exception e) when (e is not OutOfMemoryException)
+        catch (Exception e) when (e is not (OutOfMemoryException or OperationCanceledException)) // a stopped run is dropped by the caller
         {
             // A check that fails on odd text shows nothing rather than stopping the parse results.
             FailureReport.Report(e, "lint.check");

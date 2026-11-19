@@ -93,7 +93,7 @@ public sealed partial class ExplorerModel
     {
         if (!Narrowed) _foldedNarrow.Clear();
         var rows = new List<ExplorerRow>(Total + 40);
-        Matches = 0;
+        (Matches, Hidden) = (0, 0);
         if (Scope is not null && ScopeRows() is { } scoped)
         {
             Rows = FinishRows(scoped);
@@ -132,7 +132,7 @@ public sealed partial class ExplorerModel
             if (!restrict && section.ItemCount == 0 && Options.HideEmpty) continue;
             var items = !restrict ? section.Items
                 : (_typeFilter.Length > 0 && _typeFilter != section.Type.Key) ? []
-                : [.. section.Items.Where(r => r.IsItem && r.Matches(_needle) && TagOk(r) && (!unfiltered || !IsFiled(r)) && HideItem?.Invoke(r.Item) != true)];
+                : [.. section.Items.Where(r => r.IsItem && r.Matches(_needle) && TagOk(r) && (!unfiltered || !IsFiled(r)) && !IsHidden(r))];
             if (Options.Sort != ExplorerSort.ListOrder) items = Sorted(items);
             if (restrict && items.Length == 0) continue;
             var open = unfiltered ? _expanded.Contains(section.Type.Key) : !_foldedNarrow.Contains(section.Type.Key);

@@ -445,6 +445,12 @@
     "typeId": "{type}, ID {id}"
   },
   "explorer": {
+    "hidden": "{count} ocultos",
+    "hiddenTip": "Tu configuración oculta algunas entradas. Haz clic para cambiarlos.",
+    "codeHeading": "Entradas de código",
+    "visShow": "Mostrar",
+    "visDim": "Atenuar",
+    "visHide": "Ocultar",
     "generalName": "Información general",
     "noSection": "Este archivo de datos no tiene sección para {type}, así que no puede contener uno nuevo.",
     "noValue": "Ninguno",
@@ -1294,6 +1300,9 @@
     "explorerShowCounts": "Mostrar recuentos en el Explorador",
     "explorerHideUndecompilable": "Ocultar el código que no se puede descompilar (y los scripts que lo usan)",
     "explorerHideBroken": "Ocultar recursos rotos y entradas con errores",
+    "explorerAnonymous": "Funciones anónimas del código",
+    "explorerStructs": "Constructores de structs del código",
+    "explorerInner": "Otras funciones dentro de entradas de código",
     "explorerFoldersOpen": "Abrir las carpetas y colecciones al aparecer",
     "explorerSort": "Orden predeterminado del Explorador",
     "explorerIconSize": "Tamaño de los iconos del Explorador con zoom al 100 %"

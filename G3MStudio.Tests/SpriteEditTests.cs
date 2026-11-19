@@ -48,6 +48,9 @@ public sealed class SpriteEditTests
         Assert.Equal(new MaskBox(0, 4, 10, 10), SpriteMask.Drag(box, BoxHandle.Left, -50, 0, 16, 16));
         Assert.Equal(new MaskBox(10, 4, 10, 10), SpriteMask.Drag(box, BoxHandle.Left, 50, 0, 16, 16));
         Assert.Equal(new MaskBox(9, 9, 15, 15), SpriteMask.Drag(box, BoxHandle.Move, 5, 5, 16, 16));
+        var wide = new MaskBox(0, 0, 40, 40); // the sprite shrank under the box: no drag may throw
+        Assert.Equal(wide, SpriteMask.Drag(wide, BoxHandle.Move, 5, 5, 16, 16));
+        Assert.Equal(new MaskBox(0, 0, 15, 15), SpriteMask.Drag(wide, BoxHandle.BottomRight, 5, 5, 16, 16));
         Assert.Equal(new MaskBox(4, 4, 15, 15), SpriteMask.Drag(box, BoxHandle.BottomRight, 99, 99, 16, 16));
         Assert.Equal(BoxHandle.TopLeft, SpriteMask.HandleAt(box, 4.5, 3.8, 1));
         Assert.Equal(BoxHandle.Move, SpriteMask.HandleAt(box, 7, 7, 1));

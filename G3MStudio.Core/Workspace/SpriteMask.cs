@@ -110,16 +110,17 @@ public static class SpriteMask
         var (maxX, maxY) = (Math.Max(0, width - 1), Math.Max(0, height - 1));
         if (handle == BoxHandle.Move)
         {
-            dx = Math.Clamp(dx, -box.Left, maxX - box.Right);
-            dy = Math.Clamp(dy, -box.Top, maxY - box.Bottom);
+            // A box wider than the picture (the sprite shrank under it) cannot move: the range is empty, never inverted.
+            dx = Math.Clamp(dx, -box.Left, Math.Max(-box.Left, maxX - box.Right));
+            dy = Math.Clamp(dy, -box.Top, Math.Max(-box.Top, maxY - box.Bottom));
             return new MaskBox(box.Left + dx, box.Top + dy, box.Right + dx, box.Bottom + dy);
         }
 
         var (left, top, right, bottom) = box;
         if (handle is BoxHandle.Left or BoxHandle.TopLeft or BoxHandle.BottomLeft) left = Math.Clamp(left + dx, 0, right);
-        if (handle is BoxHandle.Right or BoxHandle.TopRight or BoxHandle.BottomRight) right = Math.Clamp(right + dx, left, maxX);
+        if (handle is BoxHandle.Right or BoxHandle.TopRight or BoxHandle.BottomRight) right = Math.Clamp(right + dx, left, Math.Max(left, maxX));
         if (handle is BoxHandle.Top or BoxHandle.TopLeft or BoxHandle.TopRight) top = Math.Clamp(top + dy, 0, bottom);
-        if (handle is BoxHandle.Bottom or BoxHandle.BottomLeft or BoxHandle.BottomRight) bottom = Math.Clamp(bottom + dy, top, maxY);
+        if (handle is BoxHandle.Bottom or BoxHandle.BottomLeft or BoxHandle.BottomRight) bottom = Math.Clamp(bottom + dy, top, Math.Max(top, maxY));
         return new MaskBox(left, top, right, bottom);
     }
 

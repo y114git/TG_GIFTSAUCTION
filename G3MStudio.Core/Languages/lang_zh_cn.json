@@ -445,6 +445,12 @@
     "typeId": "{type}，ID {id}"
   },
   "explorer": {
+    "hidden": "已隐藏 {count} 项",
+    "hiddenTip": "部分条目已按你的隐藏设置从列表中省略。点击可更改。",
+    "codeHeading": "代码条目",
+    "visShow": "显示",
+    "visDim": "灰显",
+    "visHide": "隐藏",
     "generalName": "常规信息",
     "noSection": "此数据文件没有{type}部分，因此无法新建。",
     "noValue": "无",
@@ -1294,6 +1300,9 @@
     "explorerShowCounts": "在资源管理器中显示数量",
     "explorerHideUndecompilable": "隐藏无法反编译的代码(及使用它的脚本)",
     "explorerHideBroken": "隐藏损坏的资源和有错误的条目",
+    "explorerAnonymous": "代码中的匿名函数",
+    "explorerStructs": "代码中的结构体构造函数",
+    "explorerInner": "代码条目内的其他函数",
     "explorerFoldersOpen": "出现时打开文件夹和集合",
     "explorerSort": "资源管理器的默认排序",
     "explorerIconSize": "资源管理器图标的大小（缩放 100%）"

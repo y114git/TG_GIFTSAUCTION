@@ -121,13 +121,20 @@ public partial class MainWindow
 
     private ResourceHealth? _health;
     private bool _hideUndecompilable, _hideBroken;
+    private AppSettings _childSettings = new();
 
     // The Explorer hides what the settings ask for; the decompiler is tried in the background, and the list is built again as failures turn up.
     private void UpdateHiding()
     {
-        if (!_hideUndecompilable && !_hideBroken || Workspaces.Current is not { } workspace)
+        var settings = _childSettings;
+        var dims = settings.ExplorerAnonymousFunctions == EntryVisibility.Dim || settings.ExplorerStructConstructors == EntryVisibility.Dim || settings.ExplorerInnerFunctions == EntryVisibility.Dim;
+        var hidesChildren = settings.ExplorerAnonymousFunctions == EntryVisibility.Hide || settings.ExplorerStructConstructors == EntryVisibility.Hide || settings.ExplorerInnerFunctions == EntryVisibility.Hide;
+        var dimsNow = Explorer.Model.DimItem is not null;
+        Explorer.Model.DimItem = dims ? item => ChildEntries.VisibilityOf(item, settings) == EntryVisibility.Dim : null;
+        if (!_hideUndecompilable && !_hideBroken && !hidesChildren || Workspaces.Current is not { } workspace)
         {
             Explorer.Model.HideItem = null;
+            if (dims || dimsNow) Explorer.Model.RebuildRows(); // the gray rows follow the settings even when nothing is left out
             return;
         }
 
@@ -139,7 +146,7 @@ public partial class MainWindow
 
         var current = _health;
         if (_hideUndecompilable) current.Start(workspace);
-        Explorer.Model.HideItem = item => _hideUndecompilable && current.Hides(item) || _hideBroken && ResourceHealth.IsBroken(item);
+        Explorer.Model.HideItem = item => _hideUndecompilable && current.Hides(item) || _hideBroken && ResourceHealth.IsBroken(item) || ChildEntries.VisibilityOf(item, settings) == EntryVisibility.Hide;
     }
 
     private void ApplySettings()
@@ -173,7 +180,7 @@ public partial class MainWindow
         (Explorer.Model.DefaultFolderView, Explorer.Model.ShowCounts, Explorer.Model.FoldersOpen) = (s.ExplorerFolderView, s.ExplorerShowCounts, s.ExplorerFoldersOpen);
         Explorer.OptionsFolded = s.ExplorerOptionsFolded;
         Explorer.ThumbnailSize = s.ExplorerThumbnailSize;
-        (_hideUndecompilable, _hideBroken) = (s.ExplorerHideUndecompilable, s.ExplorerHideBroken);
+        (_hideUndecompilable, _hideBroken, _childSettings) = (s.ExplorerHideUndecompilable, s.ExplorerHideBroken, s);
         UpdateHiding();
         Editor.RoomOptions.Set(s.RoomGridOverride, Math.Clamp(s.RoomGridWidth, 1, 1024), Math.Clamp(s.RoomGridHeight, 1, 1024));
         Editor.RoomOptions.SetAutoTile(s.AutoTile);

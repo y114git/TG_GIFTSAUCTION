@@ -103,13 +103,41 @@ public sealed partial class ExplorerModel
         {
             if (field is null && value is null) return;
             field = value;
+            _revealed.Clear();
             Rebuild();
         }
     }
 
+    /// <summary>Entries this says yes to are listed grayed out (child code entries); null dims nothing. Set before <see cref="HideItem"/> or call <see cref="RebuildRows"/> afterwards.</summary>
+    public Func<object?, bool>? DimItem { get; set; }
+
+    // An entry that was typed in full is found even when the settings leave it out of the lists: a search by exact name must not read as "missing".
+    private bool IsHidden(ExplorerRow row)
+    {
+        if (HideItem is not { } hide || !row.IsItem || !hide(row.Item)) return false;
+        if (_needle.Length > 0 && string.Equals(row.Text, _needle, StringComparison.OrdinalIgnoreCase)) return false;
+        if (_revealed.Contains(ResourceTypes.KeyOf(row.Key, row.Text))) return false;
+        Hidden++;
+        return true;
+    }
+
+    private readonly HashSet<string> _revealed = [];
+
+    /// <summary>How many entries the hide settings leave out of the lists now.</summary>
+    public int Hidden { get; private set; }
+
+    /// <summary>Lists an entry the settings hide, for a link or a jump that points at it; it stays listed until the hide settings change. False when nothing was hidden.</summary>
+    public bool Reveal(string key)
+    {
+        if (HideItem is null || !_revealed.Add(key)) return false;
+        Rebuild();
+        return true;
+    }
+
     private List<ExplorerRow> FinishRows(List<ExplorerRow> rows)
     {
-        if (HideItem is { } hide) rows = [.. rows.Where(r => !r.IsItem || !hide(r.Item))];
+        if (HideItem is not null) rows = [.. rows.Where(r => !IsHidden(r))];
+        if (DimItem is { } dim) rows = [.. rows.Select(r => r.IsItem && dim(r.Item) ? r with { Dim = true } : r)];
         return ShowCounts ? rows : [.. rows.Select(r => r with { ShowCount = false })];
     }
 

@@ -445,6 +445,12 @@
     "typeId": "{type}, ID {id}"
   },
   "explorer": {
+    "hidden": "{count}개 숨김",
+    "hiddenTip": "숨김 설정으로 일부 항목이 목록에서 빠져 있습니다. 클릭하여 변경하세요.",
+    "codeHeading": "코드 항목",
+    "visShow": "표시",
+    "visDim": "회색 처리",
+    "visHide": "숨김",
     "generalName": "일반 정보",
     "noSection": "이 데이터 파일에는 {type} 섹션이 없어 새로 만들 수 없습니다.",
     "noValue": "없음",
@@ -1294,6 +1300,9 @@
     "explorerShowCounts": "탐색기에 개수 표시",
     "explorerHideUndecompilable": "디컴파일할 수 없는 코드(와 이를 쓰는 스크립트) 숨기기",
     "explorerHideBroken": "손상된 리소스와 오류가 있는 항목 숨기기",
+    "explorerAnonymous": "코드 내 익명 함수",
+    "explorerStructs": "코드 내 구조체 생성자",
+    "explorerInner": "코드 항목 안의 기타 함수",
     "explorerFoldersOpen": "폴더와 컬렉션이 나타날 때 열기",
     "explorerSort": "탐색기 기본 정렬 순서",
     "explorerIconSize": "탐색기 아이콘 크기 (확대/축소 100%)"

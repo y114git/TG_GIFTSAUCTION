@@ -215,6 +215,15 @@ public sealed record AppSettings
     /// <summary>The Explorer leaves out code (and the scripts using it) that has no text of its own: child entries and what the decompiler fails on.</summary>
     public bool ExplorerHideUndecompilable { get; init; }
 
+    /// <summary>How the Explorer lists the anonymous functions of code (gml_Script_anon_...): shown, grayed out or left out. They only lead to the entry they are part of.</summary>
+    public EntryVisibility ExplorerAnonymousFunctions { get; init; } = EntryVisibility.Dim;
+
+    /// <summary>How the Explorer lists the constructors of struct literals (gml_Script____struct___N_...).</summary>
+    public EntryVisibility ExplorerStructConstructors { get; init; } = EntryVisibility.Dim;
+
+    /// <summary>How the Explorer lists the other functions that are defined inside a code entry and have a name of their own.</summary>
+    public EntryVisibility ExplorerInnerFunctions { get; init; } = EntryVisibility.Show;
+
     /// <summary>The Explorer leaves out resources that point at nothing, such as a sprite frame without its picture.</summary>
     public bool ExplorerHideBroken { get; init; }
 

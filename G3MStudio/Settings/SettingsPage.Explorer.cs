@@ -1,11 +1,21 @@
 using Avalonia.Controls;
+using G3MStudio.Core.Settings;
 using G3MStudio.Core.Workspace;
+using G3MStudio.Explorer;
 using G3MStudio.Localization;
 
 namespace G3MStudio.Settings;
 
 public sealed partial class SettingsPage
 {
+    // A row with a choice of showing, graying out or hiding one kind of Explorer entry; the label is also what the settings search matches.
+    private StackPanel Visibility(string name, string labelKey, EntryVisibility current, Func<AppSettings, EntryVisibility, AppSettings> set)
+    {
+        var box = EntryVisibilityBox.Create(name, current, v => { if (!_building) _store.Update(x => set(x, v)); });
+        box.MinWidth = Wide(10);
+        return Row(labelKey, box);
+    }
+
     private static readonly ExplorerSort[] SortOrders = [ExplorerSort.ListOrder, ExplorerSort.NameAscending, ExplorerSort.NameDescending];
 
     /// <summary>The Explorer options: default view, counts, folder behaviour, the sort order of files without a saved view and the size of the row pictures.</summary>
@@ -21,6 +31,9 @@ public sealed partial class SettingsPage
         hideCode.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { ExplorerHideUndecompilable = hideCode.IsChecked == true }); };
         var hideBroken = new CheckBox { Name = "ExplorerHideBroken", Tag = Loc.Current["settings.explorerHideBroken"], Content = Loc.Current["settings.explorerHideBroken"], IsChecked = s.ExplorerHideBroken };
         hideBroken.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { ExplorerHideBroken = hideBroken.IsChecked == true }); };
+        var anonymous = Visibility("ExplorerAnonymousFunctions", "settings.explorerAnonymous", s.ExplorerAnonymousFunctions, (x, v) => x with { ExplorerAnonymousFunctions = v });
+        var structs = Visibility("ExplorerStructConstructors", "settings.explorerStructs", s.ExplorerStructConstructors, (x, v) => x with { ExplorerStructConstructors = v });
+        var inner = Visibility("ExplorerInnerFunctions", "settings.explorerInner", s.ExplorerInnerFunctions, (x, v) => x with { ExplorerInnerFunctions = v });
         var sort = new ComboBox
         {
             Name = "ExplorerSortOrder",
@@ -30,6 +43,6 @@ public sealed partial class SettingsPage
         };
         sort.SelectionChanged += (_, _) => { if (!_building && sort.SelectedIndex >= 0) _store.Update(x => x with { ExplorerSortOrder = SortOrders[sort.SelectedIndex] }); };
         var thumbSize = Number("ExplorerThumbnailSize", 16, 96, 2, s.ExplorerThumbnailSize, (x, n) => x with { ExplorerThumbnailSize = n });
-        return [folderView, counts, open, hideCode, hideBroken, Row("settings.explorerSort", sort), Row("settings.explorerIconSize", thumbSize, new TextBlock { Text = Loc.Current["settings.pixelUnit"], VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center })];
+        return [folderView, counts, open, hideCode, hideBroken, anonymous, structs, inner, Row("settings.explorerSort", sort), Row("settings.explorerIconSize", thumbSize, new TextBlock { Text = Loc.Current["settings.pixelUnit"], VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center })];
     }
 }

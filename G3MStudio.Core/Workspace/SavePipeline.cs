@@ -43,6 +43,23 @@ public sealed partial class SavePipeline(UserData userData, int backupCount = 3)
 
     private const long SpaceMargin = 16L * 1024 * 1024;
 
+    // A scanner or sync client can hold a file for a moment right after it was written; a short wait ends most of those.
+    private static async Task DeleteWithRetry(string path, CancellationToken cancellationToken)
+    {
+        for (var attempt = 0; ; attempt++)
+        {
+            try
+            {
+                File.Delete(path);
+                return;
+            }
+            catch (IOException) when (attempt < 4)
+            {
+                await Task.Delay(150 * (attempt + 1), cancellationToken);
+            }
+        }
+    }
+
     public string BackupSlot(string target, int slot) =>
         userData.Combine("backups", UserData.KeyFor(target), $"{Path.GetFileName(target)}.{slot}");
 
@@ -54,7 +71,7 @@ public sealed partial class SavePipeline(UserData userData, int backupCount = 3)
             CheckRoom(target);
             Hook?.Invoke(SaveStep.Writing, next);
             // A file or link left under this name (a shared folder can carry one) is removed, never written through; CreateNew refuses one that appears meanwhile.
-            File.Delete(next);
+            await DeleteWithRetry(next, cancellationToken);
             PagePixels.EncodeAll(data); // pages the editors keep as raw pixels go back to their stored format
             await using (var stream = new FileStream(next, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None))
             {
