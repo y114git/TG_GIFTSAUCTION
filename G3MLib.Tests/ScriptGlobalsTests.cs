@@ -80,6 +80,26 @@ public sealed class ScriptGlobalsTests : IDisposable
     }
 
     [Fact]
+    public async Task InfiniteTimeoutRunsWithoutALimit()
+    {
+        var result = await ScriptRunner.RunAsync(WriteScript("infinite.csx", ""), new ScriptGlobals(), timeout: Timeout.InfiniteTimeSpan);
+
+        Assert.True(result.Success, result.Error);
+    }
+
+    [Fact]
+    public async Task ScriptWithoutDataCanCreateItAndTheNewDataIsNotGated()
+    {
+        ScriptGlobals globals = new();
+
+        var result = await ScriptRunner.RunAsync(WriteScript("make.csx", "MakeNewDataFile();"), globals);
+
+        Assert.True(result.Success, result.Error);
+        Assert.NotNull(globals.Data);
+        using var free = globals.Data.Gate.BeginWrite(TimeSpan.Zero);
+    }
+
+    [Fact]
     public async Task ScriptFailureIsNotReportedAsCancelled()
     {
         var result = await ScriptRunner.RunAsync(WriteScript("fail.csx", "throw new System.InvalidOperationException(\"x\");"), new ScriptGlobals());
@@ -189,5 +209,31 @@ public sealed class ScriptGlobalsTests : IDisposable
         Assert.True(context.LintUMTScript(script));
         Assert.False(context.LintUMTScript(WriteScript("broken.csx", "int x = ;")));
         Assert.Equal("CompilationErrorException", context.ScriptErrorType);
+    }
+
+    private sealed class AskingGlobals : ScriptGlobals
+    {
+        public string? Asked;
+
+        public override string ScriptInputDialog(string title, string label, string defaultInput, string cancelText, string submitText, bool isMultiline, bool preventClose)
+        {
+            Asked = $"{title}|{label}|{defaultInput}|{cancelText}|{submitText}|{isMultiline}|{preventClose}";
+            return "typed";
+        }
+    }
+
+    [Fact]
+    public async Task ShortScriptInputDialogFormMapsToTheFullForm()
+    {
+        AskingGlobals globals = new();
+        var script = WriteScript("ask.csx", "var a = ScriptInputDialog(\"T\", \"L\", \"D\", true, true); var b = ScriptInputDialog(\"T\", \"L\", \"D\", false, false); ScriptMessage(a + \"/\" + b);");
+        List<string> messages = [];
+        globals.MessageHandler = messages.Add;
+
+        var result = await ScriptRunner.RunAsync(script, globals, TestContext.Current.CancellationToken);
+
+        Assert.True(result.Success, result.Error);
+        Assert.Equal("T|L|D|Cancel|OK|True|False", globals.Asked);
+        Assert.Equal("typed/D", Assert.Single(messages));
     }
 }

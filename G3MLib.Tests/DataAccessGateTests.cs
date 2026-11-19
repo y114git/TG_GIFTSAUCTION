@@ -1,5 +1,8 @@
 using G3MLib.DataFile;
+using G3MLib.DataFile.Models;
+using G3MLib.DataFile.References;
 using G3MLib.DataFile.Scripting;
+using G3MLib.Modding.Resources;
 
 namespace G3MLib.Tests;
 
@@ -116,5 +119,27 @@ public sealed class DataAccessGateTests
             using var free = data.Gate.BeginWrite(TimeSpan.Zero);
         }
         finally { File.Delete(path); }
+    }
+
+    [Fact]
+    public async Task PublicMutatorsWaitForAHeldReader()
+    {
+        using var data = GameMakerData.CreateNew2026LTS();
+        var index = ReferenceIndex.Build(data);
+        var empty = Directory.CreateTempSubdirectory("g3mlib-gate-").FullName;
+        try
+        {
+            var holder = data.Gate.BeginRead();
+            var order = OnOtherFlow(() => { ResourceImportService.ImportAssetOrder(data, empty); return true; });
+            var clear = OnOtherFlow(() => index.ClearUsages(new GameMakerSprite()));
+            await Task.Delay(150, TestContext.Current.CancellationToken);
+            Assert.False(order.IsCompleted);
+            Assert.False(clear.IsCompleted);
+
+            holder.Dispose();
+            await order.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
+            await clear.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
+        }
+        finally { Directory.Delete(empty, recursive: true); }
     }
 }

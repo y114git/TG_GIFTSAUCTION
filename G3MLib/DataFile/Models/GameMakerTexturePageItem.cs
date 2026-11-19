@@ -150,7 +150,8 @@ public class GameMakerTexturePageItem : GameMakerNamedResource, INotifyPropertyC
     public PreparedTextureReplace PrepareReplace(MagickImage replaceImage)
     {
         ArgumentNullException.ThrowIfNull(replaceImage);
-        if (TexturePage?.TextureData is null)
+        var page = TexturePage;
+        if (page?.TextureData is null)
         {
             throw new InvalidOperationException("The texture page item has no texture page to replace.");
         }
@@ -158,18 +159,18 @@ public class GameMakerTexturePageItem : GameMakerNamedResource, INotifyPropertyC
         using var finalImage = TextureWorker.ResizeImage(replaceImage, SourceWidth, SourceHeight);
 
         GMImage baseImage, pageImage;
-        lock (TexturePage.TextureData)
+        lock (page.TextureData)
         {
-            baseImage = TexturePage.TextureData.Image;
+            baseImage = page.TextureData.Image;
             using TextureWorker worker = new();
-            var embImage = worker.GetEmbeddedTexture(TexturePage);
+            var embImage = worker.GetEmbeddedTexture(page);
 
             embImage.Composite(finalImage, SourceX, SourceY, CompositeOperator.Copy);
 
             // Replace original texture with the new version, in the original texture format
-            pageImage = GMImage.FromMagickImage(embImage).ConvertToFormat(TexturePage.TextureData.Image.Format);
+            pageImage = GMImage.FromMagickImage(embImage).ConvertToFormat(page.TextureData.Image.Format);
         }
 
-        return new PreparedTextureReplace(this, baseImage, pageImage, (ushort)replaceImage.Width, (ushort)replaceImage.Height);
+        return new PreparedTextureReplace(this, page, baseImage, pageImage, (ushort)replaceImage.Width, (ushort)replaceImage.Height);
     }
 }

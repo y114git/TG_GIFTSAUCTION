@@ -1629,6 +1629,7 @@ public static partial class ResourceImportService
 	public static void ImportAssetOrder(GameMakerData data, string inputDir)
 	{
 		ArgumentNullException.ThrowIfNull(data);
+		using var gate = data.Gate.BeginWrite(cancellationToken: ModdingCancellation.Token);
 		ImportAssetOrderInternal(data, inputDir);
 	}
 

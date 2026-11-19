@@ -154,10 +154,11 @@ public sealed class AudioGroupFile : IDisposable
 		return map;
 	}
 
-	/// <summary>Writes the file to a temporary file and moves it over <paramref name="path"/>. With <paramref name="backup"/> an existing file is kept as path.bak.</summary>
+	/// <summary>Writes the file to a temporary file and moves it over <paramref name="path"/>. With <paramref name="backup"/> an existing file is kept as path.bak. Saving over the opened file reopens it; if that fails after the file was written, an <see cref="IOException"/> says so and the instance must be disposed.</summary>
 	public void Save(string path, bool backup, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
 	{
-		var inPlace = string.Equals(Path.GetFullPath(path), _path, StringComparison.OrdinalIgnoreCase);
+		var comparison = OperatingSystem.IsWindows() || OperatingSystem.IsMacOS() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+		var inPlace = string.Equals(Path.GetFullPath(path), _path, comparison);
 		var released = false;
 		try
 		{
@@ -207,16 +208,19 @@ public sealed class AudioGroupFile : IDisposable
 		}
 		if (inPlace)
 		{
-			var reopened = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+			// The file is saved at this point, so the token no longer applies
+			FileStream? reopened = null;
 			try
 			{
+				reopened = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
 				_stream = reopened;
-				ReadTable(cancellationToken);
+				ReadTable(CancellationToken.None);
 			}
-			catch
+			catch (Exception error)
 			{
-				reopened.Dispose();
-				throw;
+				// The old table no longer matches the file, so the instance is closed instead of left half read
+				reopened?.Dispose();
+				throw new IOException($"'{path}' was saved, but reopening it failed. Dispose this instance and open the file again.", error);
 			}
 		}
 	}

@@ -163,7 +163,6 @@ public static class ResourceCloneService
             _newName = newName;
             _list = list;
             _patterns = RenameService.EmbeddedPatterns(source, oldName);
-            _nameString = NewString(newName);
             foreach (var code in data.Code ?? [])
             {
                 if (code?.Name?.Content is { } name && _patterns.Any(p => p.IsMatch(name)))
@@ -173,6 +172,8 @@ public static class ResourceCloneService
             }
             // shortcut: the copy walks the model by reflection (about 0.5 s for a room with 20000 instances and 50000 tiles), compile a delegate per type if rooms get slower
             _cloner = new ModelCloner(ReferenceIndex.CollectRegistry(data), IsOwned, Created, Filled);
+            // Last, so a throw above leaves no string behind and the caller has no clone to undo
+            _nameString = NewString(newName);
         }
 
         private void AddOwnedWithChildren(GameMakerCode code)
@@ -410,22 +411,13 @@ public static class ResourceCloneService
                     info.LastTile = lastTile;
                 }
             });
-            HashSet<GameMakerRoom.GameObject> instances = new(ReferenceEqualityComparer.Instance);
-            foreach (var instance in room.GameObjects ?? [])
+            HashSet<GameMakerRoom.GameObject> instances = new(AllInstances(room), ReferenceEqualityComparer.Instance);
+            // LastObj can be stale in a modded file; new ids above every existing one cannot meet the old id of a later instance
+            foreach (var other in _data.Rooms ?? [])
             {
-                if (instance is not null)
+                foreach (var existing in AllInstances(other))
                 {
-                    instances.Add(instance);
-                }
-            }
-            foreach (var layer in room.Layers ?? [])
-            {
-                foreach (var instance in layer?.InstancesData?.Instances ?? [])
-                {
-                    if (instance is not null)
-                    {
-                        instances.Add(instance);
-                    }
+                    info.LastObj = Math.Max(info.LastObj, existing.InstanceID);
                 }
             }
             foreach (var instance in instances)
@@ -456,6 +448,27 @@ public static class ResourceCloneService
             }
             Add((IList)info.RoomOrder, new GameMakerResourceById<GameMakerRoom, GameMakerChunkROOM> { Resource = room });
             set = (info.LastObj, info.LastTile);
+        }
+
+        private static IEnumerable<GameMakerRoom.GameObject> AllInstances(GameMakerRoom? room)
+        {
+            foreach (var instance in room?.GameObjects ?? [])
+            {
+                if (instance is not null)
+                {
+                    yield return instance;
+                }
+            }
+            foreach (var layer in room?.Layers ?? [])
+            {
+                foreach (var instance in layer?.InstancesData?.Instances ?? [])
+                {
+                    if (instance is not null)
+                    {
+                        yield return instance;
+                    }
+                }
+            }
         }
 
         // Only code the copy owns is renamed: its name already holds the new room name.

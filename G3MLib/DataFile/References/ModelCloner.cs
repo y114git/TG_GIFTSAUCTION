@@ -59,6 +59,10 @@ internal sealed class ModelCloner(HashSet<object> shared, Func<object, bool> isO
         {
             return copy;
         }
+        if (copy.Rank != 1 || copy.GetLowerBound(0) != 0)
+        {
+            throw new NotSupportedException($"{type.Name} cannot be copied: only one-dimensional arrays that start at index 0 are supported.");
+        }
         for (var i = 0; i < copy.Length; i++)
         {
             copy.SetValue(CloneValue(copy.GetValue(i)), i);

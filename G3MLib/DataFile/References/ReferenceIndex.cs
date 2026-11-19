@@ -137,6 +137,7 @@ public sealed class ReferenceIndex
     public ClearedReferences ClearUsages(object target)
     {
         ArgumentNullException.ThrowIfNull(target);
+        using var gate = Data.Gate.BeginWrite();
         return ClearedReferences.Clear(this, target);
     }
 

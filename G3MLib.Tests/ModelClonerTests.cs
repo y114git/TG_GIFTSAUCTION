@@ -18,4 +18,15 @@ public sealed class ModelClonerTests
         Assert.NotSame(tags.AssetTags[7], copy.AssetTags[7]);
         Assert.True(copy.AssetTags.ContainsKey(7));
     }
+
+    [Fact]
+    public void ArraysOfModelObjectsWithOtherShapesThrowAClearError()
+    {
+        var cloner = new ModelCloner([], _ => false, (_, _) => { }, (_, _) => { });
+        var matrix = new GameMakerSimpleListString[1, 1];
+        var shifted = Array.CreateInstance(typeof(GameMakerSimpleListString), [1], [1]);
+
+        Assert.Contains("GameMakerSimpleListString[,]", Assert.Throws<NotSupportedException>(() => cloner.CloneValue(matrix)).Message);
+        Assert.Throws<NotSupportedException>(() => cloner.CloneValue(shifted));
+    }
 }

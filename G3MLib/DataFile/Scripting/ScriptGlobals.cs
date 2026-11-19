@@ -192,6 +192,13 @@ public class ScriptGlobals : IScriptInterface
     }
 
     public virtual string ScriptInputDialog(string title, string label, string defaultInput, string cancelText, string submitText, bool isMultiline, bool preventClose) => throw UiUnavailable();
+
+    /// <summary>
+    /// Short form of <see cref="ScriptInputDialog(string, string, string, string, string, bool, bool)"/> kept for scripts written for earlier G3MLib hosts:
+    /// returns <paramref name="defaultInput"/> without asking when <paramref name="showDialog"/> is false.
+    /// </summary>
+    public string ScriptInputDialog(string title, string label, string defaultInput, bool allowMultiline, bool showDialog) =>
+        showDialog ? ScriptInputDialog(title, label, defaultInput, "Cancel", "OK", allowMultiline, false) : defaultInput;
     public virtual string SimpleTextInput(string title, string label, string defaultValue, bool allowMultiline, bool showDialog = true) => throw UiUnavailable();
     public virtual void SimpleTextOutput(string title, string label, string message, bool allowMultiline) => ScriptMessage(message);
 

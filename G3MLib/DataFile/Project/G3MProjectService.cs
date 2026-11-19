@@ -415,6 +415,8 @@ public static class G3MProjectService
             }
 
             using var data = ReadData(baseDataFilePath);
+            // One scope for the whole build; the importers below take the same gate again inside it
+            using var gate = data.Gate.BeginWrite();
             var imported = 0;
             foreach (var deleted in project.Deleted)
             {
@@ -480,7 +482,7 @@ public static class G3MProjectService
                 warnings.AddRange(integrity.Errors);
             }
 
-            AtomicFile.Write(outputDataFilePath, output => GameMakerIO.Write(output, data));
+            AtomicFile.Write(outputDataFilePath, output => GameMakerIO.Write(output, data), createDirectory: true);
             return new() { Path = outputDataFilePath, Resources = imported, Unchanged = unchanged, Warnings = warnings };
         }
         finally

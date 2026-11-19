@@ -51,21 +51,28 @@ public static class ScriptRunner
     /// Runs a script and reports failures as a result instead of throwing. Cancellation is cooperative: the script sees the token as <see cref="ScriptGlobals.CancellationToken"/>,
     /// and <see cref="ScriptGlobals"/> members, progress calls and the library's bulk operations stop with an <see cref="OperationCanceledException"/> once it is cancelled,
     /// so a script that never checks it still ends at its next library call. The token also ends when <paramref name="timeout"/> passes, when a nested run's parent is cancelled,
-    /// or when the operation that started the script (such as a project import) is cancelled. The timeout also counts the time spent waiting for the data gate. A cancelled run (a nested one included) returns <see cref="ScriptRunResult.Cancelled"/>.
+    /// or when the operation that started the script (such as a project import) is cancelled. The timeout also counts the time spent waiting for the data gate; <see cref="Timeout.InfiniteTimeSpan"/> or null means no limit. A cancelled run (a nested one included) returns <see cref="ScriptRunResult.Cancelled"/>.
     /// </summary>
+    /// <remarks>
+    /// The run holds the write gate of the <see cref="ScriptGlobals.Data"/> that is set when it starts. With no data (a script may call <c>MakeNewDataFile</c>) nothing is held, and a data
+    /// object a script creates or assigns itself is not gated. The gate scope is bound to the thread that <see cref="ScriptGlobals.MainThreadAction"/> runs the script on and stays bound
+    /// until the script ends, so code that runs on that thread meanwhile (a click handler handled while the script shows a dialog) is inside the scope and passes the gate.
+    /// A host must not save, import or start another script from such a callback while a script runs.
+    /// </remarks>
     public static Task<ScriptRunResult> RunAsync(string scriptPath, ScriptGlobals globals, CancellationToken cancellationToken = default, TimeSpan? timeout = null)
     {
         ArgumentNullException.ThrowIfNull(globals);
-        if (timeout is { } limit && limit <= TimeSpan.Zero)
+        TimeSpan? limit = timeout == Timeout.InfiniteTimeSpan ? null : timeout;
+        if (limit is { } checkedLimit && checkedLimit <= TimeSpan.Zero)
         {
-            throw new ArgumentOutOfRangeException(nameof(timeout), "The timeout must be positive.");
+            throw new ArgumentOutOfRangeException(nameof(timeout), "The timeout must be positive, or Timeout.InfiniteTimeSpan for no limit.");
         }
 
         var fullPath = Path.GetFullPath(scriptPath);
         var previousPath = globals.ScriptPath;
         var previousToken = globals.CancellationToken;
         using var timeoutSource = new CancellationTokenSource();
-        if (timeout is { } after)
+        if (limit is { } after)
         {
             timeoutSource.CancelAfter(after);
         }

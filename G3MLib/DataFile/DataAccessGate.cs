@@ -12,6 +12,8 @@ namespace G3MLib.DataFile;
 /// <see cref="Project.G3MProjectService.Export"/>. Nothing else uses it, so a host that never takes the gate only pays for an uncontended lock.
 /// A scope is shared by the code that runs under it, including tasks it starts, so a script that saves the data does not wait on itself.
 /// A reader cannot become a writer: asking for write inside a read scope throws <see cref="InvalidOperationException"/> instead of deadlocking.
+/// The scope that <see cref="Scripting.ScriptRunner"/> takes is bound to the thread that runs the script, so anything that runs on that thread while the script waits (a UI click handler
+/// handled during a dialog) shares the scope and is not held back. A host must not save or import from such a callback while a script runs.
 /// Waiting blocks the calling thread; give a timeout or a token when the caller is a UI thread. The async overloads of the library wait on a pool thread.
 /// A timeout of <see cref="Timeout.InfiniteTimeSpan"/> waits without a limit; other negative values throw <see cref="ArgumentOutOfRangeException"/>.
 /// </remarks>

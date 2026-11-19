@@ -12,15 +12,17 @@ namespace G3MLib.DataFile.Util;
 public sealed class PreparedTextureReplace
 {
     private readonly GameMakerTexturePageItem _item;
+    private readonly GameMakerEmbeddedTexture _page;
     private readonly GMImage _pageImage;
     private readonly GMImage _baseImage;
     private readonly ushort _targetWidth;
     private readonly ushort _targetHeight;
     private bool _committed;
 
-    internal PreparedTextureReplace(GameMakerTexturePageItem item, GMImage baseImage, GMImage pageImage, ushort targetWidth, ushort targetHeight)
+    internal PreparedTextureReplace(GameMakerTexturePageItem item, GameMakerEmbeddedTexture page, GMImage baseImage, GMImage pageImage, ushort targetWidth, ushort targetHeight)
     {
         _item = item;
+        _page = page;
         _baseImage = baseImage;
         _pageImage = pageImage;
         _targetWidth = targetWidth;
@@ -28,14 +30,18 @@ public sealed class PreparedTextureReplace
     }
 
     /// <summary>Puts the prepared image on the texture page and updates the target size of the item.</summary>
-    /// <exception cref="InvalidOperationException">The replacement was already committed, or the page image changed since it was prepared.</exception>
+    /// <exception cref="InvalidOperationException">The replacement was already committed, the item points at another texture page than when it was prepared, or the page image changed since.</exception>
     public void Commit()
     {
         if (_committed)
         {
             throw new InvalidOperationException("The texture replacement was already committed.");
         }
-        var data = _item.TexturePage.TextureData;
+        if (!ReferenceEquals(_item.TexturePage, _page))
+        {
+            throw new InvalidOperationException("The texture page item was repointed or cleared after this replacement was prepared; prepare it again.");
+        }
+        var data = _page.TextureData;
         lock (data)
         {
             if (!ReferenceEquals(data.Image, _baseImage))

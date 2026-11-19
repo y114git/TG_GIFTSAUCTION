@@ -30,7 +30,8 @@ public sealed class AtomicFileTests
         try
         {
             var path = Path.Combine(directory, "sub", "out.dat");
-            AtomicFile.Write(path, stream => stream.WriteByte(1));
+            Assert.Throws<DirectoryNotFoundException>(() => AtomicFile.Write(path, stream => stream.WriteByte(1)));
+            AtomicFile.Write(path, stream => stream.WriteByte(1), createDirectory: true);
             AtomicFile.Write(path, stream => stream.Write([2, 3]));
             Assert.Equal([2, (byte)3], File.ReadAllBytes(path));
             Assert.Equal([path], Directory.GetFiles(Path.Combine(directory, "sub")));
@@ -126,6 +127,40 @@ public sealed class AtomicFileTests
             AtomicFile.Write(link, stream => stream.WriteByte(7));
             Assert.NotNull(new FileInfo(link).LinkTarget);
             Assert.Equal([(byte)7], File.ReadAllBytes(real));
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
+
+    [Fact]
+    public void DanglingSymlinkIsWrittenThrough()
+    {
+        var directory = Directory.CreateTempSubdirectory("g3mlib-atomic-").FullName;
+        try
+        {
+            var real = Path.Combine(directory, "real.dat");
+            var link = Path.Combine(directory, "link.dat");
+            try { File.CreateSymbolicLink(link, real); }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException) { return; }
+            AtomicFile.Write(link, stream => stream.WriteByte(7));
+            Assert.NotNull(new FileInfo(link).LinkTarget);
+            Assert.Equal([(byte)7], File.ReadAllBytes(real));
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
+
+    [Fact]
+    public void StaleTemporaryFilesAreSweptOncePerTarget()
+    {
+        var directory = Directory.CreateTempSubdirectory("g3mlib-atomic-").FullName;
+        try
+        {
+            var path = Path.Combine(directory, "out.dat");
+            AtomicFile.Write(path, stream => stream.WriteByte(1));
+            var late = path + ".89ab.g3mtmp";
+            File.WriteAllText(late, "leftover");
+            File.SetLastWriteTimeUtc(late, DateTime.UtcNow.AddDays(-2));
+            AtomicFile.Write(path, stream => stream.WriteByte(2));
+            Assert.True(File.Exists(late));
         }
         finally { Directory.Delete(directory, recursive: true); }
     }

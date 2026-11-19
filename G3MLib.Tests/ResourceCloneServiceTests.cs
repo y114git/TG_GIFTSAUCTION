@@ -225,4 +225,31 @@ public sealed class ResourceCloneServiceTests
 
         Assert.Same(custom, Assert.Single(roomClone.SharedCode));
     }
+
+    [Fact]
+    public void RoomCloneWithStaleLastObjKeepsEveryInstanceCodeAndItsLocalsApart()
+    {
+        using var data = GameMakerData.CreateNew2026LTS();
+        var room = new GameMakerRoom { Name = data.Strings.MakeString("rm_a") };
+        foreach (var id in new uint[] { 100, 51 })
+        {
+            var code = new GameMakerCode { Name = data.Strings.MakeString($"gml_RoomCC_rm_a_{id}_Create") };
+            data.Code.Add(code);
+            data.CodeLocals.Add(new GameMakerCodeLocals { Name = code.Name });
+            room.GameObjects.Add(new GameMakerRoom.GameObject { InstanceID = id, CreationCode = code });
+        }
+        data.Rooms.Add(room);
+        data.GeneralInfo.LastObj = 50;
+
+        var clone = (GameMakerRoom)ResourceCloneService.Clone(data, room, "rm_b").Resource;
+
+        Assert.All(clone.GameObjects, i => Assert.True(i.InstanceID > 100));
+        var names = clone.GameObjects.Select(i => i.CreationCode.Name.Content).ToList();
+        Assert.Equal(names.Count, names.Distinct().Count());
+        foreach (var instance in clone.GameObjects)
+        {
+            Assert.Equal($"gml_RoomCC_rm_b_{instance.InstanceID}_Create", instance.CreationCode.Name.Content);
+            Assert.Contains(data.CodeLocals, locals => ReferenceEquals(locals.Name, instance.CreationCode.Name));
+        }
+    }
 }

@@ -75,6 +75,26 @@ public sealed class TextureWorkerTests
     }
 
     [Fact]
+    public void CommitFailsWhenTheItemWasRepointedOrClearedSincePrepare()
+    {
+        using var input = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures", "data-2026.win"));
+        using var data = GameMakerIO.Read(input);
+        var item = data.Sprites.Where(s => s != null).SelectMany(s => s.Textures).First(t => t?.Texture?.TexturePage != null).Texture;
+        var page = item.TexturePage;
+        var other = data.EmbeddedTextures.First(t => !ReferenceEquals(t, page));
+        using var replacement = new MagickImage(MagickColors.Red, 3, 5);
+
+        var repointed = item.PrepareReplace(replacement);
+        item.TexturePage = other;
+        Assert.Throws<InvalidOperationException>(repointed.Commit);
+
+        item.TexturePage = page;
+        var cleared = item.PrepareReplace(replacement);
+        item.TexturePage = null;
+        Assert.Throws<InvalidOperationException>(cleared.Commit);
+    }
+
+    [Fact]
     public void ExportedPngMatchesDirectEncodeAndRepeatedFramesAreIdentical()
     {
         using var input = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures", "data-2026.win"));

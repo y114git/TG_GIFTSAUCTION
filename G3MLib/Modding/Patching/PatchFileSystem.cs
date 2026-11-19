@@ -594,7 +594,7 @@ public sealed class PatchFileSystem
 	}
 
 	public void SaveToZip(string outputPath, G3MPatchManifest? manifest = null) =>
-		AtomicFile.Write(outputPath, zipStream => WriteZip(zipStream, manifest), 1048576, FileOptions.SequentialScan);
+		AtomicFile.Write(outputPath, zipStream => WriteZip(zipStream, manifest), 1048576, FileOptions.SequentialScan, createDirectory: true);
 
 	private void WriteZip(Stream zipStream, G3MPatchManifest? manifest)
 	{
