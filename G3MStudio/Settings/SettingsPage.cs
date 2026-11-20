@@ -161,6 +161,7 @@ public sealed partial class SettingsPage : UserControl
             x => x with { Audio = d.Audio },
             x => x with { Diff = d.Diff },
             x => x with { RoomGridOverride = d.RoomGridOverride, RoomGridWidth = d.RoomGridWidth, RoomGridHeight = d.RoomGridHeight },
+            x => x with { AutoTile = d.AutoTile },
             x => x with { Decompiler = d.Decompiler },
             x => x with { BackupCount = d.BackupCount, AskOnClose = d.AskOnClose, RememberWindow = d.RememberWindow },
             x => x with { Project = d.Project },

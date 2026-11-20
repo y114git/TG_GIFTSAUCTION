@@ -65,7 +65,7 @@ public static partial class AppCommands
     public static readonly string[] OutsideMenuBar = [.. TabMenu.Where(id => id != "-"), "run.migrateOptions", "settings.resetPrompts"];
 
     /// <summary>The settings pages in the order of the Settings page, as language keys <c>settings.&lt;name&gt;</c>.</summary>
-    public static readonly string[] SettingsPages = ["appearance", "colors", "editor", "image", "rooms", "decompiler", "files", "projects", "run", "advanced", "privacy", "prompts", "modBase", "shortcuts"];
+    public static readonly string[] SettingsPages = ["appearance", "colors", "editor", "image", "sound", "diff", "rooms", "autoTile", "decompiler", "files", "projects", "run", "advanced", "privacy", "prompts", "modBase", "shortcuts"];
 
     /// <summary>The panels that can be shown again from View > Panels after they were closed. The key is the dock panel id.</summary>
     public static readonly string[] Panels = ["Explorer", "Search", "Inspector", "Problems", "Output", "Usages", "Reference", "History", "Git"];

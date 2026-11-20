@@ -44,14 +44,17 @@ public static class RunLinks
                 continue;
             }
 
+            var item = new LinkedItem(target, directory, false);
             try
             {
                 var linked = TryLink(source, target, directory);
+                item = item with { IsLink = linked };
                 if (!linked) Copy(source, target, directory);
-                added.Add(new LinkedItem(target, directory, linked));
+                added.Add(item);
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
+                Remove([item]); // a half copy must not stay: the next run would take it for the user's own folder
                 failed.Add(source + ": " + e.Message);
             }
         }
@@ -66,7 +69,9 @@ public static class RunLinks
         {
             try
             {
-                if (item.IsDirectory) Directory.Delete(item.Path, !item.IsLink);
+                // A link is removed itself (never its target), whatever the platform: the info says what it is, not the record.
+                if (item.IsDirectory && new DirectoryInfo(item.Path).LinkTarget is not null) new DirectoryInfo(item.Path).Delete();
+                else if (item.IsDirectory) Directory.Delete(item.Path, true);
                 else File.Delete(item.Path);
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)

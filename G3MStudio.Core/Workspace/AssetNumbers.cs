@@ -90,7 +90,8 @@ public sealed class AssetParameters
             {
                 var types = new string?[arguments.Keys.Max() + 1];
                 foreach (var (argument, kinds) in arguments)
-                    if (kinds.Count == 1) types[argument] = kinds.Keys.First();
+                    // one asset type and at least two calls: a single call is too little to say what a parameter means
+                    if (kinds.Count == 1 && kinds.Values.Sum() >= 2) types[argument] = kinds.Keys.First();
                 if (types.Any(t => t is not null)) _functions[call] = types;
             }
 
@@ -183,6 +184,14 @@ public static class AssetNumberReplacer
             var op = text[tokens[i - 1].Span.StartOffset..tokens[i - 1].Span.EndOffset];
             var next = text[tokens[i + 1].Span.StartOffset..tokens[i + 1].Span.EndOffset];
             if (op is not ("=" or "==" or "!=") || next is not (";" or ")" or "," or "&&" or "||" or "}")) continue;
+            // var room = 3; static room = 3; global.room = 3; other.thing.room = 3 declare or name something else: only self/other or a bare name is the built-in.
+            if (i >= 3)
+            {
+                var before = text[tokens[i - 3].Span.StartOffset..tokens[i - 3].Span.EndOffset];
+                if (before is "var" or "static" or "globalvar") continue;
+                if (before == "." && (i < 4 || text[tokens[i - 4].Span.StartOffset..tokens[i - 4].Span.EndOffset] is not ("self" or "other"))) continue;
+            }
+
             var variable = text[tokens[i - 2].Span.StartOffset..tokens[i - 2].Span.EndOffset];
             Consider(i, parameters.TypeOfVariable(variable));
         }

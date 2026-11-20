@@ -21,7 +21,7 @@ public sealed partial class SettingsPage
         runArguments.TextChanged += (_, _) => { if (!_building) _store.Update(x => x with { RunArguments = runArguments.Text ?? "" }); };
         var workDir = new TextBox { Name = "RunWorkingDir", Text = s.RunWorkingDir, MinWidth = Wide(22.5) };
         workDir.TextChanged += (_, _) => { if (!_building) _store.Update(x => x with { RunWorkingDir = (workDir.Text ?? "").Trim() }); };
-        var links = new TextBox { Name = "RunLinks", [ToolTip.TipProperty] = Loc.Current["settings.runLinksHint"], [ToolTip.TipProperty] = Loc.Current["settings.runLinksHint"], [ToolTip.TipProperty] = Loc.Current["settings.runLinksHint"], Text = s.RunLinks, AcceptsReturn = true, MinHeight = 60, MinWidth = Wide(22.5), TextWrapping = Avalonia.Media.TextWrapping.NoWrap };
+        var links = new TextBox { Name = "RunLinks", [ToolTip.TipProperty] = Loc.Current["settings.runLinksHint"], Text = s.RunLinks, AcceptsReturn = true, MinHeight = 60, MinWidth = Wide(22.5), TextWrapping = Avalonia.Media.TextWrapping.NoWrap };
         links.TextChanged += (_, _) => { if (!_building) _store.Update(x => x with { RunLinks = links.Text ?? "" }); };
         var environment = new TextBox { Name = "RunEnvironment", Text = s.RunEnvironment, MinWidth = Wide(22.5) };
         environment.TextChanged += (_, _) => { if (!_building) _store.Update(x => x with { RunEnvironment = environment.Text ?? "" }); };

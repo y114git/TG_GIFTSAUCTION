@@ -202,7 +202,7 @@ public sealed partial class MainWindow
             if (!await _live.StartAsync(async () =>
             {
                 var prepared = await PrepareRunAsync(workspace, spec, startRoom, inPlace, temp);
-                if (prepared is not null) AddRunLinks(prepared, settings.RunLinks);
+                if (prepared is not null) await AddRunLinksAsync(prepared, settings.RunLinks);
                 return prepared;
             })) return;
             _runWorkspace?.History.Changed -= OnEditDuringRun;
@@ -279,11 +279,11 @@ public sealed partial class MainWindow
     }
 
     /// <summary>Makes the outside files from the run links setting available in the run folder; with none set, only says when a usual game folder sits beside the run folder and is missing in it.</summary>
-    private void AddRunLinks(RunSpec spec, string setting)
+    private async Task AddRunLinksAsync(RunSpec spec, string setting)
     {
         var data = Path.GetDirectoryName(Path.GetFullPath(spec.DataFile)) ?? ".";
         var folder = spec.WorkingDir.Length > 0 ? spec.WorkingDir : data;
-        var (added, failed) = RunLinks.Apply(folder, data, setting);
+        var (added, failed) = await Task.Run(() => RunLinks.Apply(folder, data, setting)); // a big folder is copied off the UI thread
         _runLinks = [.. _runLinks, .. added];
         foreach (var path in failed) Notify(NotificationLevel.Warning, Loc.Current.Format("run.linkFailed", ("path", path)));
         if (setting.Trim().Length == 0 && RunLinks.Missing(folder) is { Count: > 0 } missing && _warnedLinkHint.Add(folder)) Notify(NotificationLevel.Info, Loc.Current.Format("run.linkHint", ("names", string.Join(", ", missing))));

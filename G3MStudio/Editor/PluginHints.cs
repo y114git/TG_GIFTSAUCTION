@@ -57,7 +57,7 @@ internal sealed class PluginHints : VisualLineElementGenerator
     private void Schedule()
     {
         // With no plugin that adds notes there is nothing to wait for: no timer is started.
-        if (_byLine.Count == 0 && PluginHooks.Host is not { HasHints: true }) return;
+        if (_host is null || (_byLine.Count == 0 && PluginHooks.Host is not { HasHints: true })) return;
         _timer.Stop();
         _timer.Start();
     }

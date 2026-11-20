@@ -64,14 +64,21 @@ public static class AssetNumbersApply
         var done = 0;
         await Parallel.ForEachAsync(entries, new ParallelOptions { CancellationToken = cancellationToken, MaxDegreeOfParallelism = Environment.ProcessorCount }, (entry, _) =>
         {
-            if (TryDecompile(workspace, entry, context) is { } text)
+            try
             {
-                var found = AssetNumberReplacer.Find(text, names, parameters, allowed);
-                if (found.Count > 0) edits.Add((new EditCodeCommand(entry, AssetNumberReplacer.Apply(text, found)), entry, found.Count));
+                if (TryDecompile(workspace, entry, context) is { } text)
+                {
+                    var found = AssetNumberReplacer.Find(text, names, parameters, allowed);
+                    if (found.Count > 0) edits.Add((new EditCodeCommand(entry, AssetNumberReplacer.Apply(text, found)), entry, found.Count));
+                }
+                else
+                {
+                    failed.Add(entry);
+                }
             }
-            else
+            catch (Exception e) when (e is not OperationCanceledException)
             {
-                failed.Add(entry);
+                failed.Add(entry); // one entry the decompiler chokes on is listed, the others still go in
             }
 
             var finished = Interlocked.Increment(ref done);
