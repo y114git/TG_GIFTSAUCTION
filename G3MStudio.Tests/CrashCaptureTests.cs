@@ -198,6 +198,22 @@ public sealed class CrashCaptureTests : IDisposable
     }
 
     [Fact]
+    public async Task AFileAnotherProgramHoldsOpenForWritingIsNotReported()
+    {
+        if (!OperatingSystem.IsWindows()) Assert.Skip("The sharing check is the Windows one.");
+        using var dir = new TempDir();
+        var path = dir.File("held.exe");
+        await using var holder = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+        var users = new UserData(dir.File("user"));
+        var service = new WorkspaceService(users, RecentFiles.Load(users));
+
+        await Assert.ThrowsAnyAsync<IOException>(() => service.OpenAsync(path, cancellationToken: TestContext.Current.CancellationToken));
+
+        await SentrySdk.FlushAsync(TimeSpan.FromSeconds(5));
+        Assert.Empty(_transport.Events("g3mlib.read"));
+    }
+
+    [Fact]
     public async Task AnErrorTheUserSawIsATrailForTheNextReportWithItsNamesLeftOut()
     {
         var marker = Marker();

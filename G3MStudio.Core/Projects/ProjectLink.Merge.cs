@@ -75,7 +75,7 @@ public sealed partial class ProjectLink
     public async Task<MergePlan> PlanMergeAsync(IProgress<BatchProgress>? progress = null, CancellationToken cancellationToken = default)
     {
         var theirsDir = Path.Combine(MergeDir, "theirs");
-        CopyPackage.TryDelete(theirsDir);
+        await Task.Run(() => CopyPackage.TryDelete(theirsDir), CancellationToken.None); // a folder of thousands of files takes seconds to delete: never on the UI thread
         if (Directory.Exists(theirsDir)) theirsDir += "-" + Guid.NewGuid().ToString("N")[..8]; // still held by a scanner: use a fresh name
         // Each phase hands its memory back before the next one starts (the export, the three project files, the build), so the peak is the largest phase and not their sum.
         var theirsFile = await Exclusive(() =>
@@ -93,7 +93,7 @@ public sealed partial class ProjectLink
         }
         finally
         {
-            CopyPackage.TryDelete(theirsDir);
+            await Task.Run(() => CopyPackage.TryDelete(theirsDir), CancellationToken.None);
         }
     }
 

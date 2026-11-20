@@ -15,6 +15,6 @@
     <Authors>y114git</Authors>
     <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
     <!-- One place for the G3MLib package version. -->
-    <G3MLibVersion Condition="'$(G3MLibVersion)' == ''">1.1.4</G3MLibVersion>
+    <G3MLibVersion Condition="'$(G3MLibVersion)' == ''">1.1.5</G3MLibVersion>
   </PropertyGroup>
 </Project>

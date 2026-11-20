@@ -34,7 +34,8 @@ public sealed partial class WorkspaceService
         return workspace;
     }
 
-    // A file G3MLib cannot read is reported with its size range and the library version, never its name.
+    // A file G3MLib cannot read is reported with its size range and the library version, never its name. A file another program holds open (a game that is running,
+    // an archive tool still writing) is no fault of the reader: the open fails with the usual message and nothing is sent.
     private static async Task WhenRead(Task read, Task identity, string path)
     {
         try
@@ -43,7 +44,7 @@ public sealed partial class WorkspaceService
         }
         catch (Exception e) when (e is not OperationCanceledException)
         {
-            FailureReport.Report(e, "g3mlib.read", FailureReport.FileTags(path));
+            if (e is not IOException io || !Journal.IsHeld(io)) FailureReport.Report(e, "g3mlib.read", FailureReport.FileTags(path));
             throw;
         }
     }

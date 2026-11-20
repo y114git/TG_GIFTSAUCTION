@@ -42,7 +42,7 @@ public static class ExplorerFilterPopup
 
         if (settings is not null && edit is not null)
         {
-            panel.Children.Add(Heading("explorer.codeHeading"));
+            panel.Children.Add(Heading("explorer.codeHeading", center: true));
             panel.Children.Add(EntryVisibilityBox.Row("ExplorerAnonymousFunctions", "settings.explorerAnonymous", settings.ExplorerAnonymousFunctions, v => edit(x => x with { ExplorerAnonymousFunctions = v })));
             panel.Children.Add(EntryVisibilityBox.Row("ExplorerStructConstructors", "settings.explorerStructs", settings.ExplorerStructConstructors, v => edit(x => x with { ExplorerStructConstructors = v })));
             panel.Children.Add(EntryVisibilityBox.Row("ExplorerInnerFunctions", "settings.explorerInner", settings.ExplorerInnerFunctions, v => edit(x => x with { ExplorerInnerFunctions = v })));
@@ -71,7 +71,7 @@ public static class ExplorerFilterPopup
         return panel;
     }
 
-    private static TextBlock Heading(string key) => new() { Text = Loc.Current[key], Classes = { "muted" }, Margin = new Thickness(0, Space("Space.2"), 0, 0) };
+    private static TextBlock Heading(string key, bool center = false) => new() { Text = Loc.Current[key], Classes = { "muted" }, Margin = new Thickness(0, Space("Space.2"), 0, 0), TextAlignment = center ? Avalonia.Media.TextAlignment.Center : Avalonia.Media.TextAlignment.Left };
 
     private static double Space(string key) => Application.Current is { } app && app.TryGetResource(key, app.ActualThemeVariant, out var value) && value is double d ? d : 8;
 }

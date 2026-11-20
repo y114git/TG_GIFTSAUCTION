@@ -14,7 +14,8 @@ public static class EntryVisibilityBox
     public static StackPanel Row(string name, string labelKey, EntryVisibility current, Action<EntryVisibility> changed)
     {
         var box = Create(name, current, changed);
-        return new StackPanel { Spacing = 2, Children = { new TextBlock { Text = Loc.Current[labelKey], TextWrapping = Avalonia.Media.TextWrapping.Wrap }, box } };
+        box.HorizontalContentAlignment = HorizontalAlignment.Center;
+        return new StackPanel { Spacing = 2, Children = { new TextBlock { Text = Loc.Current[labelKey], TextWrapping = Avalonia.Media.TextWrapping.Wrap, TextAlignment = Avalonia.Media.TextAlignment.Center }, box } };
     }
 
     public static ComboBox Create(string name, EntryVisibility current, Action<EntryVisibility> changed)

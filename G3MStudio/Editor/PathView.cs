@@ -358,7 +358,10 @@ public sealed class PathEditor : DockPanel
         foreach (var (name, key, operation) in new[] { ("PathReverse", "editors.path.reverse", PathEditCommand.Reverse), ("PathMirror", "editors.path.mirror", PathEditCommand.FlipX), ("PathFlip", "editors.path.flip", PathEditCommand.FlipY) })
         {
             var button = new Button { Name = name, Content = Loc.Current[key] }.GateKey(_workspace is null ? "why.readOnly" : null);
-            button.Click += (_, _) => _workspace?.Edit(new PathEditCommand(_path.Name.Content ?? "", operation, [.. View.Picked.Order()]));
+            button.Click += (_, _) =>
+            {
+                if (_path.Points.Count > 0) _workspace?.Edit(new PathEditCommand(_path.Name.Content ?? "", operation, [.. View.Picked.Order()])); // nothing to reverse or flip on an empty path
+            };
             panel.Children.Add(button);
         }
 

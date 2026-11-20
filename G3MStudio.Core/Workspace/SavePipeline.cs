@@ -63,7 +63,24 @@ public sealed partial class SavePipeline(UserData userData, int backupCount = 3)
     public string BackupSlot(string target, int slot) =>
         userData.Combine("backups", UserData.KeyFor(target), $"{Path.GetFileName(target)}.{slot}");
 
+    // One save at a time in the program: two saves share the temp file name of a target and the write state of the model, so a second one would find the temp file
+    // held by the first or see the first one's write tables cleared halfway.
+    private static readonly SemaphoreSlim OneSave = new(1, 1);
+
     public async Task<SaveResult> SaveAsync(GameMakerData data, string target, IProgress<GameMakerProgress>? progress = null, CancellationToken cancellationToken = default)
+    {
+        await OneSave.WaitAsync(cancellationToken);
+        try
+        {
+            return await SaveCoreAsync(data, target, progress, cancellationToken);
+        }
+        finally
+        {
+            OneSave.Release();
+        }
+    }
+
+    private async Task<SaveResult> SaveCoreAsync(GameMakerData data, string target, IProgress<GameMakerProgress>? progress, CancellationToken cancellationToken)
     {
         var next = target + NextSuffix;
         try

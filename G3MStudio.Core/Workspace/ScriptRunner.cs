@@ -46,17 +46,17 @@ public sealed class StudioScripts(GameMakerData data, string filePath, string sc
     public override void ScriptError(string error, string title = "Error", bool SetConsoleText = true) =>
         base.ScriptError(string.IsNullOrEmpty(title) ? error : title + ": " + error, title, SetConsoleText);
 
-    public override string ScriptInputDialog(string title, string label, string defaultInput, string cancelText, string submitText, bool isMultiline, bool preventClose) =>
+    public override string? ScriptInputDialog(string title, string label, string defaultInput, string cancelText, string submitText, bool isMultiline, bool preventClose) =>
         host.Input is { } input ? Answer(input(title, label, defaultInput, isMultiline)) : base.ScriptInputDialog(title, label, defaultInput, cancelText, submitText, isMultiline, preventClose);
 
-    public override string SimpleTextInput(string title, string label, string defaultValue, bool allowMultiline, bool showDialog = true) =>
+    public override string? SimpleTextInput(string title, string label, string defaultValue, bool allowMultiline, bool showDialog = true) =>
         !showDialog ? defaultValue : host.Input is { } input ? Answer(input(title, label, defaultValue, allowMultiline)) : base.SimpleTextInput(title, label, defaultValue, allowMultiline, showDialog);
 
-    public override string PromptChooseDirectory() => host.ChooseDirectory is { } choose ? Answer(choose()) : base.PromptChooseDirectory();
+    public override string? PromptChooseDirectory() => host.ChooseDirectory is { } choose ? Answer(choose()) : base.PromptChooseDirectory();
 
-    public override string PromptLoadFile(string defaultExt, string filter) => host.LoadFile is { } load ? Answer(load(defaultExt, filter)) : base.PromptLoadFile(defaultExt, filter);
+    public override string? PromptLoadFile(string defaultExt, string filter) => host.LoadFile is { } load ? Answer(load(defaultExt, filter)) : base.PromptLoadFile(defaultExt, filter);
 
-    public override string PromptSaveFile(string defaultExt, string filter) => host.SaveFile is { } save ? Answer(save(defaultExt, filter)) : base.PromptSaveFile(defaultExt, filter);
+    public override string? PromptSaveFile(string defaultExt, string filter) => host.SaveFile is { } save ? Answer(save(defaultExt, filter)) : base.PromptSaveFile(defaultExt, filter);
 
     public override void ChangeSelection(object newSelection, bool inNewTab = false)
     {

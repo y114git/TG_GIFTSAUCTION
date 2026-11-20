@@ -48,6 +48,37 @@ public sealed class SavePipelineTests
     }
 
     [Fact]
+    public async Task ASecondSaveWaitsForTheFirstInsteadOfTakingItsTempFile()
+    {
+        using var dir = new TempDir();
+        var target = TestData.WriteSample(dir, objects: 1);
+        var data = TestData.Create(4);
+        using var firstWritten = new ManualResetEventSlim();
+        using var release = new ManualResetEventSlim();
+        var first = true;
+        var pipeline = Pipeline(dir, hook: (step, _) =>
+        {
+            if (step != SaveStep.Written || !first) return;
+            first = false;
+            firstWritten.Set();
+            release.Wait(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
+        });
+
+        var one = Task.Run(() => pipeline.SaveAsync(data, target, cancellationToken: TestContext.Current.CancellationToken), TestContext.Current.CancellationToken);
+        Assert.True(firstWritten.Wait(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken), "the first save never reached the write step");
+        var two = Task.Run(() => pipeline.SaveAsync(data, target, cancellationToken: TestContext.Current.CancellationToken), TestContext.Current.CancellationToken);
+        await Task.Delay(300, TestContext.Current.CancellationToken);
+        Assert.False(two.IsCompleted);
+        release.Set();
+
+        Assert.True((await one).Saved);
+        Assert.True((await two).Saved);
+        data.Dispose();
+        AssertValidFile(target, 4);
+        Assert.False(File.Exists(target + SavePipeline.NextSuffix));
+    }
+
+    [Fact]
     public async Task SaveReplacesTheTargetAndLeavesNoTempFile()
     {
         using var dir = new TempDir();

@@ -78,4 +78,33 @@ public sealed class ExplorerEmptyTypesTests
             return Task.CompletedTask;
         });
     }
+
+    [Theory]
+    [InlineData("en")]
+    [InlineData("ru")]
+    [InlineData("ja")]
+    [InlineData("zh_cn")]
+    public async Task TheCodeEntriesHeadingAndItsBoxesAreCenteredInThePopup(string language)
+    {
+        await HeadlessApp.Run(async () =>
+        {
+            Loc.Current.SetLanguage(language);
+            var popup = ExplorerFilterPopup.Build(QuickAccess.Empty.Filter, [], "", _ => { }, new G3MStudio.Core.Settings.AppSettings(), _ => { });
+            var window = new Window { Width = 420, Height = 1000, Content = new ScrollViewer { Content = popup } };
+            window.Show();
+            Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+            await Task.Delay(50);
+            var heading = popup.Children.OfType<TextBlock>().Single(t => t.Text == Loc.Current["explorer.codeHeading"]);
+            Assert.Equal(Avalonia.Media.TextAlignment.Center, heading.TextAlignment);
+            Assert.Equal(popup.Bounds.Width, heading.Bounds.Width, 1);
+            foreach (var row in popup.Children.OfType<StackPanel>())
+            {
+                Assert.Equal(Avalonia.Media.TextAlignment.Center, row.Children.OfType<TextBlock>().Single().TextAlignment);
+                var box = row.Children.OfType<ComboBox>().Single();
+                Assert.Equal(popup.Bounds.Width, box.Bounds.Width, 1);
+                Assert.Equal(Avalonia.Layout.HorizontalAlignment.Center, box.HorizontalContentAlignment);
+            }
+            window.Close();
+        });
+    }
 }
