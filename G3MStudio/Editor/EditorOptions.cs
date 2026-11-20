@@ -52,6 +52,13 @@ public static class EditorOptions
         G3MStudio.Theme.TooltipDelay.Apply(HoverDelayMs);
     }
 
+    /// <summary>What the editor does with numbers that are assets, and for which asset types.</summary>
+    public static G3MStudio.Core.Settings.AssetNumberMode AssetNumbers { get; private set; } = G3MStudio.Core.Settings.AssetNumberMode.Manual;
+
+    public static IReadOnlyList<string> AssetNumberTypes { get; private set; } = G3MStudio.Core.Settings.AssetNumberTypes.All;
+
+    public static void SetAssetNumbers(G3MStudio.Core.Settings.AssetNumberMode mode, IReadOnlyList<string> types) => (AssetNumbers, AssetNumberTypes) = (mode, types);
+
     private static List<string> _favourites = [];
 
     // Kept in the settings file by the window; a name stays starred when the game it belongs to is closed.

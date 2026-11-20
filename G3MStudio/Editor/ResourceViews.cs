@@ -57,6 +57,7 @@ public sealed class TextureItemView : DockPanel
     public TextureItemView(GameMakerTexturePageItem? item, TextureBitmaps textures, Func<Task<bool>>? replace = null, Action? edit = null, EditHistory? history = null)
     {
         Name = "TextureItemView";
+        (_item, _textures) = (item, textures);
         Height = 300;
         RenderOptions.SetBitmapInterpolationMode(_image, BitmapInterpolationMode.None);
         _zoomBar.ValueChanged += (_, e) => Zoom = e.NewValue;
@@ -125,6 +126,15 @@ public sealed class TextureItemView : DockPanel
     }
 
     public Task Ready { get; private set; }
+
+    /// <summary>Redraws the picture shown through <see cref="DisplayAs"/>; the item itself is untouched.</summary>
+    public Task RelayoutAsync() => Ready = ShowAsync(_item, _textures);
+
+    /// <summary>Turns the picture of the item into what is displayed (a view only, for example the tiles of a tile set in other columns); null shows the picture as it is.</summary>
+    public Func<IImage, IImage>? DisplayAs { get; set; }
+
+    private readonly GameMakerTexturePageItem? _item;
+    private readonly TextureBitmaps _textures;
 
     /// <summary>The picture of the item as drawn now (a part of the page), or null before it is decoded or when there is none.</summary>
     public IImage? Picture => _image.Source;
@@ -289,9 +299,10 @@ public sealed class TextureItemView : DockPanel
 
         _frame = FrameOf(item);
         _image.Source = new CroppedBitmap(bitmap, new PixelRect(item.SourceX, item.SourceY, item.SourceWidth, item.SourceHeight));
+        if (DisplayAs is not null && _image.Source is { } plain) _image.Source = DisplayAs(plain);
         _caption.Text = $"{item.SourceWidth} x {item.SourceHeight}";
-        // Start at the largest whole scale that still fits the view, so a small sheet is readable without touching the slider.
-        _zoomBar.Value = Math.Clamp(Math.Floor(260.0 / Math.Max(item.SourceWidth, item.SourceHeight)), 1, 8);
+        // Start at the largest whole scale that still fits the view, so a small sheet is readable without touching the slider. A view in other columns keeps the zoom.
+        if (DisplayAs is null) _zoomBar.Value = Math.Clamp(Math.Floor(260.0 / Math.Max(item.SourceWidth, item.SourceHeight)), 1, 8);
         ApplyZoom();
         PictureChanged?.Invoke();
     }

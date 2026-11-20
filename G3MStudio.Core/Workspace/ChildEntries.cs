@@ -11,7 +11,10 @@ public static class ChildEntries
     /// <summary>The kind of a code entry that sits inside a parent entry, or null for any other item. The parent is set when the file is read, so this costs a field read.</summary>
     public static ChildEntryKind? KindOf(object? item)
     {
-        if (item is not GameMakerCode { ParentEntry: not null } code) return null;
+        // A script resource stands for its code; an ordinary script's function sits in its gml_GlobalScript_ entry, which is not a child entry of anything odd.
+        var code = item as GameMakerCode ?? (item as GameMakerScript)?.Code;
+        if (code is not { ParentEntry: { } parent }) return null;
+        if (item is GameMakerScript && (parent.Name?.Content?.StartsWith("gml_GlobalScript_", StringComparison.Ordinal) ?? false)) return null;
         var name = code.Name?.Content ?? "";
         // The compiler names the functions it makes itself gml_Script_anon_... and the constructors of struct literals gml_Script____struct___N_...
         if (name.Contains("____struct___", StringComparison.Ordinal)) return ChildEntryKind.Struct;

@@ -284,4 +284,62 @@ public sealed class PluginTests
         host.Disable(host.Plugins[0]);
         Assert.Null(host.CreateEditorView("sprites", "thing"));
     }
+
+    private const string ApiPlugin = """
+        using G3MStudio.Core.Plugins;
+
+        public sealed class Main : IStudioPlugin
+        {
+            public void Activate(IStudioContext c)
+            {
+                c.AddSetting(new PluginSetting("word", "Word", PluginSettingKind.Text, "hi"));
+                c.AddCodeHints(r => new[] { new CodeHint(1, c.Settings.Get("word")) });
+                c.AddCodeAction("up", "Upper", r => r.Text.ToUpperInvariant());
+                c.On("workspace.opened", e => c.Log("opened"));
+                c.AddCommand("set", "Set", () => c.Log("result: " + (c.SetCodeAsync("gml_Script_probe", "return 2;").Result ?? "ok") + "|" + (c.SetCodeAsync("gml_Script_probe", "return (;").Result is null ? "accepted" : "refused") + "|" + c.GetCode("gml_Script_probe")?.Trim()));
+            }
+
+            public void Deactivate() { }
+        }
+        """;
+
+    [Fact]
+    public async Task APluginCanDeclareOptionsAddCodeHintsAndActionsListenToEventsAndEditCode()
+    {
+        using var dir = new TempDir();
+        string file;
+        using (var data = TestData.Create(1, true)) file = TestData.Write(dir.File("data.win"), data);
+        var userData = new UserData(dir.File("user"));
+        using var workspace = await new WorkspaceService(userData, RecentFiles.Load(userData)).OpenAsync(file, cancellationToken: TestContext.Current.CancellationToken);
+        var registry = new CommandRegistry();
+        var host = new PluginHost(userData, registry, () => workspace, (_, _) => { });
+        var folder = host.CreateTemplate("Api");
+        await File.WriteAllTextAsync(Path.Combine(folder, "src", "Main.cs"), ApiPlugin, TestContext.Current.CancellationToken);
+        host.Load();
+        var plugin = Assert.Single(host.Plugins);
+        Assert.True(plugin.State == PluginState.Active, plugin.Error);
+
+        // Options: a default, a change that is saved and survives a restart, and a refresh signal for open editors.
+        Assert.Equal("hi", Assert.Single(host.CollectHints("e", "x")).Text);
+        var refreshed = 0;
+        host.HintsChanged += () => refreshed++;
+        plugin.Settings!.Set("word", "yo");
+        Assert.Equal(1, refreshed);
+        Assert.Equal("yo", Assert.Single(host.CollectHints("e", "x")).Text);
+        var again = new PluginHost(userData, new CommandRegistry(), () => workspace, (_, _) => { });
+        again.Load();
+        Assert.Equal("yo", again.Plugins[0].Settings!.Get("word"));
+
+        // A code action returns the whole new text.
+        Assert.Equal("ABC", Assert.Single(host.CodeActions).Run(new CodeRequest("e", "abc")));
+
+        // Events reach the handler, a command can read and replace code (a text that does not compile is refused), and the global switch silences everything.
+        host.Notify(new PluginEvent("workspace.opened"));
+        Assert.Contains("opened", plugin.Log);
+        Assert.True(registry.Execute(Assert.Single(plugin.CommandIds)));
+        Assert.Contains("result: ok|refused|return 2;", plugin.Log);
+        host.Enabled = false;
+        Assert.Empty(host.CollectHints("e", "x"));
+        Assert.Empty(host.CodeActions);
+    }
 }

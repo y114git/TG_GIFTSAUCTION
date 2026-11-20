@@ -21,7 +21,7 @@ public sealed class GmlColorizer : DocumentColorizingTransformer
     private static readonly GmlTokenKind[] Kinds = [GmlTokenKind.Keyword, GmlTokenKind.Boolean, GmlTokenKind.String, GmlTokenKind.TemplateString, GmlTokenKind.Number, GmlTokenKind.Comment, GmlTokenKind.Operator, GmlTokenKind.Preprocessor];
 
     /// <summary>What an identifier can name; each has a Syntax.* brush of the same name.</summary>
-    public static readonly string[] Names = ["Function", "Variable", "Constant", "Asset", GmlScopes.Local, GmlScopes.Global];
+    public static readonly string[] Names = ["Function", "Variable", "Constant", "Asset", "BuiltinFunction", "BuiltinVariable", "BuiltinConstant", GmlScopes.Local, GmlScopes.Global];
 
     private readonly Func<string, IBrush?> _resolve;
     private readonly Dictionary<GmlTokenKind, IBrush> _brushes = [];

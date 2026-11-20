@@ -14,6 +14,7 @@ public sealed class PluginsWindow : Window
     private readonly ListBox _list = new() { Name = "PluginList", MinHeight = 160 };
     private readonly TextBox _details = new() { Name = "PluginDetails", IsReadOnly = true, AcceptsReturn = true, TextWrapping = Avalonia.Media.TextWrapping.Wrap, MinHeight = 100, MaxHeight = 200 };
     private readonly TextBlock _empty = new() { Name = "PluginsEmpty", Classes = { "muted" }, [HelpText.KindProperty] = HelpKind.Hint, TextWrapping = Avalonia.Media.TextWrapping.Wrap };
+    private readonly StackPanel _options = new() { Name = "PluginOptions", Spacing = 6 };
     private readonly TextBox _url = new TextBox { Name = "PluginUrl", MinWidth = 240, PlaceholderText = "https://github.com/owner/repository" }.Labeled("plugins.urlLabel");
     private readonly List<Button> _needsSelection = [];
     private bool _building;
@@ -21,6 +22,7 @@ public sealed class PluginsWindow : Window
     public PluginsWindow(PluginHost host, Func<string, string, Task<bool>> confirm)
     {
         (_host, _confirm) = (host, confirm);
+        _optionsScroll = new ScrollViewer { Name = "PluginOptionsScroll", Content = _options, MaxHeight = 220, IsVisible = false, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto };
         Title = Loc.Current["plugins.title"];
         Width = 560;
         Height = 680;
@@ -70,10 +72,13 @@ public sealed class PluginsWindow : Window
         DockPanel.SetDock(tools, Avalonia.Controls.Dock.Top);
         DockPanel.SetDock(_empty, Avalonia.Controls.Dock.Top);
         DockPanel.SetDock(_details, Avalonia.Controls.Dock.Bottom);
+        var optionsScroll = _optionsScroll;
+        DockPanel.SetDock(optionsScroll, Avalonia.Controls.Dock.Bottom);
         panel.Children.Add(install);
         panel.Children.Add(tools);
         panel.Children.Add(_empty);
         panel.Children.Add(_details);
+        panel.Children.Add(optionsScroll);
         panel.Children.Add(_list);
         DialogFrame.Show(this, panel, [DialogFrame.Close(this, isDefault: false)]);
         _list.SelectionChanged += (_, _) => ShowDetails();
@@ -81,6 +86,52 @@ public sealed class PluginsWindow : Window
         Closed += (_, _) => host.Changed -= Refresh;
         Refresh();
     }
+
+    private readonly ScrollViewer _optionsScroll;
+
+    /// <summary>One control per option the selected plugin declared; a change is saved at once and the plugin's notes in open code editors follow.</summary>
+    private void ShowOptions(PluginInfo? plugin)
+    {
+        _options.Children.Clear();
+        var settings = plugin?.Settings;
+        _optionsScroll.IsVisible = settings is { Definitions.Count: > 0 };
+        if (settings is null) return;
+        if (settings.Definitions.Count > 0) _options.Children.Add(new TextBlock { Text = Loc.Current["plugins.options"], Classes = { "muted" } });
+        foreach (var option in settings.Definitions)
+        {
+            Control input;
+            switch (option.Kind)
+            {
+                case PluginSettingKind.Bool:
+                    var check = new CheckBox { Name = "PluginOption_" + option.Key, Content = option.Label, IsChecked = settings.GetBool(option.Key) };
+                    check.IsCheckedChanged += (_, _) => settings.Set(option.Key, check.IsChecked == true ? "true" : "false");
+                    input = check;
+                    break;
+                case PluginSettingKind.Number:
+                    var number = new NumericUpDown { Name = "PluginOption_" + option.Key, Minimum = (decimal)option.Min, Maximum = (decimal)option.Max, Value = (decimal)settings.GetNumber(option.Key), MinWidth = 120 };
+                    number.ValueChanged += (_, e) => { if (e.NewValue is { } v) settings.Set(option.Key, ((double)v).ToString(System.Globalization.CultureInfo.InvariantCulture)); };
+                    input = Labeled(option.Label, number);
+                    break;
+                case PluginSettingKind.Choice:
+                    var choices = option.Choices ?? [];
+                    var combo = new ComboBox { Name = "PluginOption_" + option.Key, ItemsSource = choices, SelectedIndex = Math.Max(0, Array.IndexOf(choices, settings.Get(option.Key))), MinWidth = 160 };
+                    combo.SelectionChanged += (_, _) => { if (combo.SelectedItem is string chosen) settings.Set(option.Key, chosen); };
+                    input = Labeled(option.Label, combo);
+                    break;
+                default:
+                    var text = new TextBox { Name = "PluginOption_" + option.Key, Text = settings.Get(option.Key), MinWidth = 220 };
+                    text.LostFocus += (_, _) => settings.Set(option.Key, text.Text ?? "");
+                    text.KeyDown += (_, e) => { if (e.Key == Avalonia.Input.Key.Enter) settings.Set(option.Key, text.Text ?? ""); };
+                    input = Labeled(option.Label, text);
+                    break;
+            }
+
+            _options.Children.Add(input);
+            if (option.Description.Length > 0) _options.Children.Add(new TextBlock { Text = option.Description, Classes = { "muted" }, TextWrapping = Avalonia.Media.TextWrapping.Wrap });
+        }
+    }
+
+    private static StackPanel Labeled(string label, Control input) => new() { Spacing = 2, Children = { new TextBlock { Text = label }, input } };
 
     private PluginInfo? Selected => (_list.SelectedItem as ListBoxItem)?.Tag as PluginInfo;
 
@@ -218,6 +269,7 @@ public sealed class PluginsWindow : Window
     private void ShowDetails()
     {
         foreach (var button in _needsSelection) button.IsEnabled = Selected is not null;
+        ShowOptions(Selected);
         if (Selected is not { } plugin)
         {
             _details.Text = "";

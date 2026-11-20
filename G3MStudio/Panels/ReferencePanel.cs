@@ -234,7 +234,7 @@ public sealed partial class ReferencePanel : UserControl
 
     private Grid Row(RefEntry entry)
     {
-        var key = entry.Kind switch { RefKind.Function => "Syntax.Function", RefKind.Variable => "Syntax.Variable", _ => "Syntax.Constant" };
+        var key = entry.Kind switch { RefKind.Function => "Syntax.BuiltinFunction", RefKind.Variable => "Syntax.BuiltinVariable", _ => "Syntax.BuiltinConstant" };
         var row = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto,Auto"), ColumnSpacing = 6, Margin = new Thickness(0, 0, 14, 0) }; // keeps the star clear of the overlay scrollbar
         row.Children.Add(new TextBlock { Text = GmlReference.Badge(entry.Kind), Width = 12, FontWeight = FontWeight.Bold, Foreground = Application.Current?.FindResource(key) as IBrush });
         // A game function lists with its name only; its parameters come from the script read in the background, and the row follows when that is done.

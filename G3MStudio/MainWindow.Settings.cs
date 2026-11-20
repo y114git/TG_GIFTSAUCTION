@@ -187,6 +187,7 @@ public partial class MainWindow
         Editor.EditorOptions.Set(s.CodeFontSize, s.CodeWordWrap, s.CodeLineNumbers, s.CodeFontFamily.Length > 0 ? Fonts.Resolve(s.CodeFontFamily) ?? new FontFamily(s.CodeFontFamily) : null, s.CodeAutoComplete, s.CodeIndentGuides);
         Editor.EditorOptions.SetLayout(s.CodeTabWidth, s.CodeBracketColors, s.CodeLigatures, s.CodeLiveCheck);
         Editor.EditorOptions.SetHoverDelay(s.CodeHoverDelayMs);
+        Editor.EditorOptions.SetAssetNumbers(s.CodeAssetNumbers, s.CodeAssetNumberTypes);
         Editor.EditorOptions.SetFavourites(s.FavouriteFunctions);
         if (_layerAutosave is { } autosave) autosave.Enabled = s.Image.LayerAutosave;
         foreach (var command in Registry.All.ToList())
@@ -216,7 +217,7 @@ public partial class MainWindow
     {
         if (Application.Current?.Resources is not { } resources) return;
         // The selected row, the hover and the pressed fill follow the accent until the user picks a color for them.
-        var colors = chosen.TryGetValue(ThemeColors.Accent, out var accent) ? ThemeColors.FollowAccent(chosen, accent) : chosen;
+        var colors = ThemeColors.WithFollowers(chosen);
         foreach (var key in ThemeColors.Editable)
         {
             if (colors.TryGetValue(key, out var hex))

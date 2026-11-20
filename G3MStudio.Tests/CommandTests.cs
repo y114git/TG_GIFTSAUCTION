@@ -211,6 +211,8 @@ internal sealed class FakeShell : IShell
     public void CopyName() { }
     public void ShowDisassembly() { }
     public void ShowReplace() { }
+
+    public void ReplaceAssetNumbers() { }
     public void ImportCodeFolder() { }
     public void ImportCodeFiles() { }
     public void FindUnreferenced() { }

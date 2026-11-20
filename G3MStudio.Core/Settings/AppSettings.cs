@@ -111,6 +111,9 @@ public sealed record AppSettings
     /// <summary>Working folder of the run; empty means the folder of the data file.</summary>
     public string RunWorkingDir { get; init; } = "";
 
+    /// <summary>Outside files and folders made available to the game while it runs, one per line ("source" or "source => name"; see RunLinks).</summary>
+    public string RunLinks { get; init; } = "";
+
     /// <summary>Environment variables of the run as <c>NAME=value</c> pairs separated by semicolons or line breaks.</summary>
     public string RunEnvironment { get; init; } = "";
 
@@ -222,7 +225,7 @@ public sealed record AppSettings
     public EntryVisibility ExplorerStructConstructors { get; init; } = EntryVisibility.Dim;
 
     /// <summary>How the Explorer lists the other functions that are defined inside a code entry and have a name of their own.</summary>
-    public EntryVisibility ExplorerInnerFunctions { get; init; } = EntryVisibility.Show;
+    public EntryVisibility ExplorerInnerFunctions { get; init; } = EntryVisibility.Dim;
 
     /// <summary>The Explorer leaves out resources that point at nothing, such as a sprite frame without its picture.</summary>
     public bool ExplorerHideBroken { get; init; }
@@ -267,6 +270,21 @@ public sealed record AppSettings
 
     /// <summary>Squiggles for syntax problems while typing, after a pause of about 400 ms.</summary>
     public bool CodeLiveCheck { get; init; } = true;
+
+    /// <summary>Plugins run at all. Off stops every plugin; which ones are enabled is kept.</summary>
+    public bool PluginsEnabled { get; init; } = true;
+
+    /// <summary>A plugin reloads when its source files are saved, so it can be written while the app runs.</summary>
+    public bool PluginsHotReload { get; init; } = true;
+
+    /// <summary>What the code editor does with numbers that are really assets (draw_sprite(5, ...)): nothing, offer the replacement in the menu, or write the names when an entry opens.</summary>
+    public AssetNumberMode CodeAssetNumbers { get; init; } = AssetNumberMode.Manual;
+
+    /// <summary>Also learn the game's own functions from the calls that already pass an asset name, so scr_play(12) becomes scr_play(snd_item).</summary>
+    public bool CodeAssetNumbersGameFunctions { get; init; } = true;
+
+    /// <summary>The asset types whose numbers are replaced (Explorer type keys).</summary>
+    public IReadOnlyList<string> CodeAssetNumberTypes { get; init; } = AssetNumberTypes.All;
 
     /// <summary>Milliseconds the pointer rests on a name before a tooltip or the info card shows; 300 to 3000.</summary>
     public int CodeHoverDelayMs { get; init; } = 400;

@@ -91,9 +91,9 @@ public sealed class StringUseTests
         var userData = new UserData(dir.File("user"));
         using var workspace = await new WorkspaceService(userData, RecentFiles.Load(userData)).OpenAsync(path, cancellationToken: TestContext.Current.CancellationToken);
         var classify = Editor.GmlNames.For(workspace);
-        Assert.Equal("Function", classify("show_debug_message"));
+        Assert.Equal("BuiltinFunction", classify("show_debug_message"));
         Assert.Equal("Asset", classify("obj_0"));
-        Assert.Equal("Constant", classify("pi"));
+        Assert.Equal("BuiltinConstant", classify("pi"));
         Assert.Null(classify("my_local_variable"));
     }
 }

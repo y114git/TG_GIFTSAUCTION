@@ -177,6 +177,7 @@ public sealed partial class CodeEditorTab : IOverlayHost
             menu.Items.Add(new Separator());
             menu.Items.Add(Item("code.menu.rename", RenameSymbol, word is not null));
             menu.Items.Add(Item("code.menu.quickFix", () => Run("code.quickFix")));
+            if (EditorOptions.AssetNumbers != G3MStudio.Core.Settings.AssetNumberMode.Off) menu.Items.Add(Item("code.menu.assetNumbers", () => Run("code.assetNumbers"), !Editor.IsReadOnly));
             menu.Items.Add(Item("code.menu.toggleComment", () => Run("code.toggleComment"), !Editor.IsReadOnly));
             menu.Items.Add(Item("code.menu.tabIn", () => Run("code.indent"), !Editor.IsReadOnly));
             menu.Items.Add(Item("code.menu.tabOut", () => Run("code.outdent"), !Editor.IsReadOnly));
@@ -188,6 +189,17 @@ public sealed partial class CodeEditorTab : IOverlayHost
             menu.Items.Add(Item("code.menu.copy", Editor.Copy));
             menu.Items.Add(Item("code.menu.paste", Editor.Paste, !Editor.IsReadOnly));
             menu.Items.Add(Item("code.menu.selectAll", Editor.SelectAll));
+            if (PluginHooks.Host is { CodeActions: { Count: > 0 } actions } && !Editor.IsReadOnly)
+            {
+                menu.Items.Add(new Separator());
+                foreach (var (title, run) in actions)
+                {
+                    var item = new MenuItem { Header = title };
+                    item.Click += (_, _) => RunPluginAction(run);
+                    menu.Items.Add(item);
+                }
+            }
+
             if (ResourceMenu?.Invoke() is { Count: > 0 } resource)
             {
                 menu.Items.Add(new Separator());

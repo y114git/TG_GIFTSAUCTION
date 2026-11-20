@@ -21,6 +21,7 @@ public sealed partial class CodeEditorTab
         var writable = !Editor.IsReadOnly;
         switch (id)
         {
+            case "code.assetNumbers" when writable: ReplaceAssetNumbers(); break;
             case "code.helpOnWord": HelpRequested?.Invoke(GmlNames.WordAt(text, Editor.CaretOffset) ?? ""); break;
             case "code.openInManual": ManualRequested?.Invoke(ManualLinkAtCaret()); break;
             case "code.goToLine": _ = AskLineAsync(); break;

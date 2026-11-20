@@ -71,7 +71,7 @@ public static class GmlNames
 
     /// <summary>A lookup for the names of one data file: scripts are functions, every other resource is an asset, then the built-in names. It follows renames and new resources.</summary>
     public static Func<string, string?> For(Workspace workspace) =>
-        name => TableOf(workspace).Own.TryGetValue(name, out var found) ? found : TableOf(workspace).Builtin.GetValueOrDefault(name);
+        name => TableOf(workspace).Own.TryGetValue(name, out var found) ? found : TableOf(workspace).Builtin.GetValueOrDefault(name) is { } kind ? "Builtin" + kind : null;
 
     /// <summary>Every name the editor can complete: the resources of the file, then the built-in names (a resource wins when both have the name).</summary>
     public static Func<IReadOnlyList<KeyValuePair<string, string>>> Completions(Workspace workspace) => () => TableOf(workspace).All;

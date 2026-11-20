@@ -12,6 +12,7 @@ public static partial class AppCommands
         ("code.insertSnippet", "Ctrl+J"),
         ("code.toggleComment", "Ctrl+OemQuestion"),
         ("code.blockComment", "Shift+Alt+A"),
+        ("code.assetNumbers", null),
         ("code.indent", null),
         ("code.outdent", null),
         ("code.duplicateLine", "Shift+Alt+Down"),

@@ -80,6 +80,7 @@ public sealed partial class CodeEditorTab : DockPanel
         InstallGoTo();
         InstallIntel(workspace);
         InstallLive();
+        PluginHints.Install(Editor, () => Entry);
         InstallGrowth();
         _search = SearchPanel.Install(Editor);
         _search.IsReplaceMode = true;
@@ -333,7 +334,7 @@ public sealed partial class CodeEditorTab : DockPanel
         Show(Loc.Current["code.decompiling"], false);
         try
         {
-            var load = await Task.Run(Load);
+            var load = await Task.Run(() => WithAssetNames(Load()));
             if (id != _loadId) return;
             (_loadedVersion, _loadedRevision) = (version, revision);
             // The same text again (an edit elsewhere) is left alone, so the caret, scroll and selection stay and nothing is tokenized twice.

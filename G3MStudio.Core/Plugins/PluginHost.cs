@@ -37,6 +37,15 @@ public sealed class PluginInfo(string folder, PluginManifest manifest)
 
     internal List<(string TypeKey, Func<object, object?> Create)> Editors { get; } = [];
 
+    internal List<Func<CodeRequest, IEnumerable<CodeHint>>> Hints { get; } = [];
+
+    internal List<(string Id, string Title, Func<CodeRequest, string?> Run)> CodeActions { get; } = [];
+
+    internal List<(string Name, Action<PluginEvent> Handler)> Handlers { get; } = [];
+
+    /// <summary>The options the plugin declared and their saved values; null while the plugin is not running.</summary>
+    public PluginSettings? Settings { get; internal set; }
+
     /// <summary>The GitHub address the plugin was installed from, or null. Installing from it again updates the plugin.</summary>
     public string? Origin => File.Exists(OriginFile) ? File.ReadLines(OriginFile).FirstOrDefault()?.Trim() : null;
 
@@ -96,6 +105,100 @@ public sealed class PluginHost
 
     public event Action? Changed;
 
+    /// <summary>The code hints may look different now: a plugin started or stopped, or one of its options changed. Open code editors read them again.</summary>
+    public event Action? HintsChanged;
+
+    /// <summary>Whether plugins run at all (the global option). Turning it off stops every plugin without forgetting which ones were enabled.</summary>
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>Whether any active plugin adds code hints; editors skip their timers and text reads when none does.</summary>
+    public bool HasHints => Enabled && _plugins.Any(p => p.State == PluginState.Active && p.Hints.Count > 0);
+
+    /// <summary>The gray notes every active plugin wants after the lines of this text. A provider that throws is logged and skipped.</summary>
+    public IReadOnlyList<CodeHint> CollectHints(string entry, string text)
+    {
+        var all = new List<CodeHint>();
+        if (!Enabled) return all;
+        foreach (var plugin in _plugins.Where(p => p.State == PluginState.Active).ToList())
+            foreach (var provider in plugin.Hints.ToList())
+            {
+                try
+                {
+                    all.AddRange(provider(new CodeRequest(entry, text)));
+                }
+                catch (Exception e)
+                {
+                    plugin.Log.Add("Code hints: " + e);
+                }
+            }
+
+        return all;
+    }
+
+    public IReadOnlyList<(string Title, Func<CodeRequest, string?> Run)> CodeActions =>
+        Enabled ? [.. _plugins.Where(p => p.State == PluginState.Active).SelectMany(p => p.CodeActions.Select(a => (a.Title, Guarded(p, a.Run))))] : [];
+
+    private static Func<CodeRequest, string?> Guarded(PluginInfo plugin, Func<CodeRequest, string?> run) => request =>
+    {
+        try
+        {
+            return run(request);
+        }
+        catch (Exception e)
+        {
+            plugin.Log.Add(e.ToString());
+            return null;
+        }
+    };
+
+    /// <summary>Tells the plugins that asked to hear about this event.</summary>
+    public void Notify(PluginEvent e)
+    {
+        if (!Enabled) return;
+        foreach (var plugin in _plugins.Where(p => p.State == PluginState.Active).ToList())
+            foreach (var (name, handler) in plugin.Handlers.Where(h => h.Name == e.Name).ToList())
+            {
+                try
+                {
+                    handler(e);
+                }
+                catch (Exception ex)
+                {
+                    plugin.Log.Add($"{e.Name}: {ex}");
+                }
+            }
+    }
+
+    private string SettingsFile(PluginInfo plugin) => _userData.Combine("plugin-settings", plugin.Manifest.Id + ".json");
+
+    private PluginSettings OpenSettings(PluginInfo plugin)
+    {
+        Dictionary<string, string> values = [];
+        try
+        {
+            if (File.Exists(SettingsFile(plugin))) values = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(SettingsFile(plugin))) ?? [];
+        }
+        catch (Exception e) when (e is IOException or JsonException or UnauthorizedAccessException)
+        {
+            plugin.Log.Add("The saved options could not be read and are ignored: " + e.Message);
+        }
+
+        var settings = new PluginSettings(values, saved =>
+        {
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(SettingsFile(plugin)) ?? ".");
+                UserData.WriteAllTextAtomic(SettingsFile(plugin), JsonSerializer.Serialize(saved));
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                plugin.Log.Add("The options could not be saved: " + e.Message);
+            }
+        });
+        settings.Changed += () => HintsChanged?.Invoke();
+        return settings;
+    }
+
     /// <summary>A plugin panel was opened from its command: the window should show the content.</summary>
     public event Action<string, Func<object>>? PanelRequested;
 
@@ -128,7 +231,7 @@ public sealed class PluginHost
             var plugin = Read(folder);
             _plugins.Add(plugin);
             if (plugin.State == PluginState.Failed) continue;
-            if (disabled.Contains(plugin.Manifest.Id)) plugin.State = PluginState.Disabled;
+            if (disabled.Contains(plugin.Manifest.Id) || !Enabled) plugin.State = PluginState.Disabled;
             else Start(plugin);
         }
 
@@ -225,12 +328,14 @@ public sealed class PluginHost
             var libs = Path.Combine(plugin.Folder, "lib");
             context.Resolving += (_, name) => File.Exists(Path.Combine(libs, name.Name + ".dll")) ? context.LoadFromAssemblyPath(Path.Combine(libs, name.Name + ".dll")) : null;
             using var stream = new MemoryStream(bytes);
+            plugin.Settings = OpenSettings(plugin);
             var assembly = context.LoadFromStream(stream);
             var type = assembly.GetTypes().FirstOrDefault(t => typeof(IStudioPlugin).IsAssignableFrom(t) && t is { IsAbstract: false, IsInterface: false })
                 ?? throw new InvalidOperationException("No class in the plugin implements IStudioPlugin.");
             plugin.Instance = (IStudioPlugin)(Activator.CreateInstance(type) ?? throw new InvalidOperationException($"{type.Name} could not be created."));
             plugin.Instance.Activate(new Context(this, plugin));
             plugin.State = PluginState.Active;
+            HintsChanged?.Invoke();
         }
         catch (Exception e)
         {
@@ -256,6 +361,10 @@ public sealed class PluginHost
         foreach (var id in plugin.CommandIds) _registry.Remove(id);
         plugin.CommandIds.Clear();
         plugin.Editors.Clear();
+        plugin.Hints.Clear();
+        plugin.CodeActions.Clear();
+        plugin.Handlers.Clear();
+        plugin.Settings = null;
         plugin.Instance = null;
         plugin.Context?.Unload();
         plugin.Context = null;
@@ -270,7 +379,9 @@ public sealed class PluginHost
         var cache = _userData.Combine("plugin-cache", plugin.Manifest.Id + "-" + CacheKey(sources.Concat(libs), typeof(PluginHost).Assembly.ManifestModule.ModuleVersionId) + ".dll");
         if (File.Exists(cache)) return File.ReadAllBytes(cache);
 
-        var trees = sources.Select(f => CSharpSyntaxTree.ParseText(File.ReadAllText(f), path: f, encoding: Encoding.UTF8));
+        // The usings every .NET project gets, so a plugin does not need a block of using lines to use List, Task or File.
+        var trees = sources.Select(f => CSharpSyntaxTree.ParseText(File.ReadAllText(f), path: f, encoding: Encoding.UTF8))
+            .Append(CSharpSyntaxTree.ParseText("global using System; global using System.Collections.Generic; global using System.IO; global using System.Linq; global using System.Threading; global using System.Threading.Tasks;"));
         var references = HostReferences.Value.Concat(libs.Select(l => MetadataReference.CreateFromFile(l)));
         var compilation = CSharpCompilation.Create("Plugin_" + new string([.. plugin.Manifest.Id.Where(char.IsLetterOrDigit)]), trees, references,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release, nullableContextOptions: NullableContextOptions.Enable));
@@ -484,6 +595,49 @@ public sealed class PluginHost
         public void Notify(NotificationLevel level, string message) => host._notify(level, message);
 
         public void Log(string message) => plugin.Log.Add(message);
+
+        public PluginSettings Settings => plugin.Settings ?? throw new InvalidOperationException("The plugin is not running.");
+
+        public void AddSetting(PluginSetting setting) => Settings.Define(setting);
+
+        public void On(string eventName, Action<PluginEvent> handler) => plugin.Handlers.Add((eventName, handler));
+
+        public void AddCodeHints(Func<CodeRequest, IEnumerable<CodeHint>> provider) => plugin.Hints.Add(provider);
+
+        public void AddCodeAction(string id, string title, Func<CodeRequest, string?> run) => plugin.CodeActions.Add((id, title, run));
+
+        public IReadOnlyList<string> CodeEntries
+        {
+            get
+            {
+                if (host._workspace() is not { } workspace) return [];
+                using (workspace.Lock.Read()) return [.. workspace.Data.Code.Where(c => c.ParentEntry is null).Select(c => c.Name?.Content).OfType<string>()];
+            }
+        }
+
+        public string? GetCode(string entry)
+        {
+            if (host._workspace() is not { } workspace) return null;
+            try
+            {
+                using (workspace.Lock.Read()) return CodeText.Decompile(workspace.Data, entry, workspace.DecompileContext());
+            }
+            catch (Exception e) when (e is InvalidOperationException or ArgumentException or NullReferenceException or IndexOutOfRangeException)
+            {
+                return null;
+            }
+        }
+
+        public async Task<string?> SetCodeAsync(string entry, string text)
+        {
+            if (host._workspace() is not { } workspace) return "No data file is open.";
+            var command = new EditCodeCommand(entry, text);
+            if ((await workspace.ProbeInBackground([command])) is [{ } failed, ..]) return failed.Error.Message;
+            await workspace.EditInBackground(command);
+            return null;
+        }
+
+        public string? GameFolder => host._workspace() is { Path: { Length: > 0 } path } ? Path.GetDirectoryName(path) : null;
 
         // A failing command reports its error and leaves the app running.
         private void Guard(Action run)

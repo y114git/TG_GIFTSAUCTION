@@ -206,34 +206,48 @@ public sealed class EntryScriptsView : StackPanel
 public sealed class TilePickerView : StackPanel
 {
     private readonly GameMakerBackground _background;
+    private readonly GameMakerBackground _view; // the same tile set seen in a chosen number of columns; never part of the data
     private readonly ListBox _list = new() { Name = "TileIds" };
 
     public TilePickerView(GameMakerBackground background, TextureBitmaps textures, Workspace workspace, AutoTileStore? autoTiles = null, Func<Task<bool>>? replace = null, Action? edit = null)
     {
         _background = background;
+        _view = TileArrange.ViewOf(background);
         Name = "TilePickerView";
         Spacing = 4;
         Texture = new TextureItemView(background.Texture, textures, replace, edit, workspace.History);
         Texture.Picked += (x, y) =>
         {
-            var index = TileGeometry.IndexAt(_background, x, y);
+            var index = TileGeometry.IndexAt(_view, x, y);
             Pick(index);
             if (AutoTiles is { Armed: true } rules && index >= 0) rules.Assign(index);
         };
-        _list.SelectionChanged += (_, _) => Texture.Highlight(_list.SelectedIndex is >= 0 and var i ? TileGeometry.RectOf(_background, i) : null);
+        _list.SelectionChanged += (_, _) => Texture.Highlight(_list.SelectedIndex is >= 0 and var i ? TileGeometry.RectOf(_view, i) : null);
         // Sections, top to bottom: the picture (what the tile set looks like), the tile ids, then the rarely used parts folded away.
         Children.Add(Heading("editors.tiles.sheetTitle"));
         Children.Add(new TextBlock { Text = Loc.Current["editors.tiles.sheetHint"], Classes = { "muted" }, [HelpText.KindProperty] = HelpKind.Hint, TextWrapping = Avalonia.Media.TextWrapping.Wrap });
         Children.Add(new TileSetInfoView(background, workspace));
-        var overlay = new TileIndexOverlay(background, () => Texture.Zoom) { IsVisible = false };
+        var overlay = new TileIndexOverlay(_view, () => Texture.Zoom) { IsVisible = false };
         Texture.AddOverlay(overlay);
         var indices = new CheckBox { Name = "TileIndices", Content = Loc.Current["editors.tiles.indices"] };
         indices.IsCheckedChanged += (_, _) => overlay.IsVisible = indices.IsChecked == true;
-        var gridLines = new TileGridOverlay(background, () => Texture.Zoom) { IsVisible = false };
+        var gridLines = new TileGridOverlay(_view, () => Texture.Zoom) { IsVisible = false };
         Texture.AddOverlay(gridLines);
         var grid = new CheckBox { Name = "TileGridLines", Content = Loc.Current["editors.tiles.gridLines"] };
         grid.IsCheckedChanged += (_, _) => gridLines.IsVisible = grid.IsChecked == true;
-        Children.Add(new WrapPanel { ItemSpacing = 12, LineSpacing = 4, Children = { grid, indices } });
+        // View only: the tiles are drawn in another number of columns, the tile set and its picture stay as they are.
+        var viewColumns = new NumericUpDown { Name = "TileViewColumns", Minimum = 1, Maximum = Math.Max(1, (int)background.GMS2TileCount), Value = _view.GMS2TileColumns, FormatString = "0", Width = 120, Height = 32, [ToolTip.TipProperty] = Loc.Current["editors.tiles.viewColumnsHint"] };
+        var viewReset = new Button { Name = "TileViewReset", Content = Loc.Current["editors.tiles.viewReset"] };
+        viewColumns.ValueChanged += (_, e) =>
+        {
+            if (e.NewValue is not { } v) return;
+            _view.GMS2TileColumns = (uint)Math.Clamp((int)v, 1, Math.Max(1, (int)_background.GMS2TileCount));
+            Texture.DisplayAs = _view.GMS2TileColumns == _background.GMS2TileColumns ? null : image => TileArrange.Compose(image, _background, (int)_view.GMS2TileColumns);
+            _ = Texture.RelayoutAsync();
+            Texture.Highlight(_list.SelectedIndex is >= 0 and var i ? TileGeometry.RectOf(_view, i) : null);
+        };
+        viewReset.Click += (_, _) => viewColumns.Value = _background.GMS2TileColumns;
+        Children.Add(new WrapPanel { ItemSpacing = 12, LineSpacing = 4, Children = { grid, indices, new TextBlock { Text = Loc.Current["editors.tiles.viewColumns"], VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center }, viewColumns, viewReset } });
         Texture.Height = 260;
         Children.Add(Texture);
         Children.Add(DragHandle.For(Texture, "tiles.sheet"));

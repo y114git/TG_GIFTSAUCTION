@@ -145,6 +145,7 @@ public static partial class AppCommands
         Add("edit.find", "Ctrl+F", shell.Find, WorkspaceOpen);
         Add("edit.findInCode", "Ctrl+Shift+F", shell.ShowSearch, WorkspaceOpen);
         Add("edit.replaceInCode", "Ctrl+Shift+H", shell.ShowReplace, WorkspaceOpen);
+        Add("edit.assetNumbers", null, shell.ReplaceAssetNumbers, WorkspaceOpen);
         Add("edit.findUsages", "Shift+F12", shell.FindUsages, WorkspaceOpen);
         Add("edit.findUses", null, shell.FindUses, WorkspaceOpen);
     }

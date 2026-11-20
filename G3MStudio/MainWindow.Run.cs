@@ -19,8 +19,10 @@ public sealed partial class MainWindow
     private bool _restarting;
     private bool _warnedTempRun;
     private readonly HashSet<string> _warnedUnknownRunner = [];
+    private readonly HashSet<string> _warnedLinkHint = [];
     private RunExit? _lastCrash;
     private Workspace? _runWorkspace;
+    private List<LinkedItem> _runLinks = [];
     private DispatcherTimer? _autoRestart;
 
     private void InitRun()
@@ -197,7 +199,12 @@ public sealed partial class MainWindow
         if (startRoom is not null) Notify(NotificationLevel.Warning, Loc.Current.Format("run.roomWarning", ("room", Shown("rooms", startRoom))));
         try
         {
-            if (!await _live.StartAsync(() => PrepareRunAsync(workspace, spec, startRoom, inPlace, temp))) return;
+            if (!await _live.StartAsync(async () =>
+            {
+                var prepared = await PrepareRunAsync(workspace, spec, startRoom, inPlace, temp);
+                if (prepared is not null) AddRunLinks(prepared, settings.RunLinks);
+                return prepared;
+            })) return;
             _runWorkspace?.History.Changed -= OnEditDuringRun;
             _runWorkspace = workspace;
             workspace.History.Changed += OnEditDuringRun;
@@ -271,8 +278,25 @@ public sealed partial class MainWindow
         }
     }
 
+    /// <summary>Makes the outside files from the run links setting available in the run folder; with none set, only says when a usual game folder sits beside the run folder and is missing in it.</summary>
+    private void AddRunLinks(RunSpec spec, string setting)
+    {
+        var data = Path.GetDirectoryName(Path.GetFullPath(spec.DataFile)) ?? ".";
+        var folder = spec.WorkingDir.Length > 0 ? spec.WorkingDir : data;
+        var (added, failed) = RunLinks.Apply(folder, data, setting);
+        _runLinks = [.. _runLinks, .. added];
+        foreach (var path in failed) Notify(NotificationLevel.Warning, Loc.Current.Format("run.linkFailed", ("path", path)));
+        if (setting.Trim().Length == 0 && RunLinks.Missing(folder) is { Count: > 0 } missing && _warnedLinkHint.Add(folder)) Notify(NotificationLevel.Info, Loc.Current.Format("run.linkHint", ("names", string.Join(", ", missing))));
+    }
+
     private void OnRunFinished(RunExit exit)
     {
+        if (!_restarting)
+        {
+            RunLinks.Remove(_runLinks);
+            _runLinks = [];
+        }
+
         if (_runWorkspace is { } workspace)
         {
             workspace.History.Changed -= OnEditDuringRun;

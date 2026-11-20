@@ -19,7 +19,7 @@ public static partial class ThemeColors
         ("colors.group.status", ["Danger", "Warning", "Success", "Info"]),
         ("colors.group.canvas", ["Canvas.Bg", "Canvas.Stage", "Canvas.Line", "Canvas.Point", "Canvas.Guide", "Canvas.Handle", "Canvas.Hover", "Canvas.Muted"]),
         ("colors.group.diff", ["Diff.Added", "Diff.Removed", "Diff.Changed"]),
-        ("colors.group.code", ["Syntax.Keyword", "Syntax.Function", "Syntax.Variable", "Syntax.Local", "Syntax.Global", "Syntax.Constant", "Syntax.Asset", "Syntax.String", "Syntax.Number", "Syntax.Comment", "Syntax.Operator", "Syntax.Preprocessor", "Syntax.Bracket1", "Syntax.Bracket2", "Syntax.Bracket3"]),
+        ("colors.group.code", ["Syntax.Keyword", "Syntax.Function", "Syntax.Variable", "Syntax.Local", "Syntax.Global", "Syntax.Constant", "Syntax.Asset", "Syntax.BuiltinFunction", "Syntax.BuiltinVariable", "Syntax.BuiltinConstant", "Syntax.String", "Syntax.Number", "Syntax.Comment", "Syntax.Operator", "Syntax.Preprocessor", "Syntax.Bracket1", "Syntax.Bracket2", "Syntax.Bracket3"]),
     ];
 
     /// <summary>Every settings key of <see cref="Groups"/>.</summary>
@@ -113,6 +113,18 @@ public static partial class ThemeColors
         colors.TryAdd("Selection.Bg", ForDarkText(accent));
         colors.TryAdd("Hover", ForLightText(Mix(accent, "#4D4D4D", 0.6)));
         colors.TryAdd("Pressed", ForLightText(Mix(accent, "#3A3A3A", 0.82)));
+        return colors;
+    }
+
+    /// <summary>A built-in name has the color of the game's own kind of name until the user gives it one.</summary>
+    private static readonly (string Builtin, string Game)[] SyntaxFollowers = [("Syntax.BuiltinFunction", "Syntax.Function"), ("Syntax.BuiltinVariable", "Syntax.Variable"), ("Syntax.BuiltinConstant", "Syntax.Constant")];
+
+    /// <summary>The colors in use: the chosen ones, with the colors that follow another one filled in (accent followers and built-in names).</summary>
+    public static Dictionary<string, string> WithFollowers(IReadOnlyDictionary<string, string> chosen)
+    {
+        var colors = chosen.TryGetValue(Accent, out var accent) ? FollowAccent(chosen, accent) : new Dictionary<string, string>(chosen);
+        foreach (var (builtin, game) in SyntaxFollowers)
+            if (colors.TryGetValue(game, out var hex)) colors.TryAdd(builtin, hex);
         return colors;
     }
 

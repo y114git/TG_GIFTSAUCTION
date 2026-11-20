@@ -63,6 +63,9 @@ public interface IShell : IOrganizeShell
     /// <summary>Ctrl+Shift+H: opens the Search panel with the cursor in the replace box.</summary>
     void ShowReplace();
 
+    /// <summary>Writes asset names instead of asset numbers in all code (Edit menu).</summary>
+    void ReplaceAssetNumbers();
+
     /// <summary>Lists where the selected resource (or the one in the tab in front) is used.</summary>
     void FindUsages();
 

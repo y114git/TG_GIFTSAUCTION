@@ -38,6 +38,7 @@ public partial class MainWindow
         workspace.DataWriteFailed += e => Dispatcher.UIThread.Post(() => Notify(NotificationLevel.Warning, Loc.Current.Format("project.dataWriteFailed", ("reason", e.Message))));
         workspace.QueuedEditFailed += (_, e) => Notify(NotificationLevel.Error, Loc.Current.Format("project.queueFailed", ("reason", e.Message)));
         BindGit();
+        _plugins?.Notify(new G3MStudio.Core.Plugins.PluginEvent("workspace.opened"));
         if (workspace.Project is { } link)
         {
             link.Changed += UpdateTexts;
@@ -199,7 +200,14 @@ public partial class MainWindow
     /// <summary>ADR-0011: a data file that changed outside. Merging and replacing write the data file and then open it again.</summary>
     private async Task ResolveExternalChangeAsync()
     {
-        if (Workspaces.Current is not { Project: { DataFileChanged: true } link } workspace) return;
+        if (Workspaces.Current is not { Project: { } project } current) return;
+        if (!project.DataFileChanged)
+        {
+            Notify(NotificationLevel.Info, Loc.Current["project.nothingOutside"]);
+            return;
+        }
+
+        var (link, workspace) = (project, current);
         if (await ProjectDialogs.AskExternalChangeAsync(this, workspace.Name) is not { } choice) return;
         if (choice == ExternalChange.KeepBoth)
         {
@@ -240,7 +248,13 @@ public partial class MainWindow
             return;
         }
 
-        if (result is not { Saved: true }) return;
+        if (result is { Saved: false } failed)
+        {
+            Notify(NotificationLevel.Error, Loc.Current.Format("project.mergeNotSaved", ("reason", failed.Message ?? failed.Failure.ToString())));
+            return;
+        }
+
+        if (result is null) return;
         Notify(NotificationLevel.Info, Loc.Current.Format("project.merged", ("name", Path.GetFileName(path))));
         await OpenAsync(path);
     }

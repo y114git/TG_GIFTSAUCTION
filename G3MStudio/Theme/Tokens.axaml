@@ -56,6 +56,10 @@
   <SolidColorBrush x:Key="Syntax.Global" Color="#E89BFF" />
   <SolidColorBrush x:Key="Syntax.Constant" Color="#F78FB3" />
   <SolidColorBrush x:Key="Syntax.Asset" Color="#E6D37A" />
+  <!-- Built-in names start out like the game's own; each can be given a color of its own (they follow Function, Variable and Constant until then). -->
+  <SolidColorBrush x:Key="Syntax.BuiltinFunction" Color="#6FD3E0" />
+  <SolidColorBrush x:Key="Syntax.BuiltinVariable" Color="#C3A6FF" />
+  <SolidColorBrush x:Key="Syntax.BuiltinConstant" Color="#F78FB3" />
   <SolidColorBrush x:Key="Syntax.Operator" Color="#E8E9EB" />
   <SolidColorBrush x:Key="Syntax.Preprocessor" Color="#FF9F9F" />
   <SolidColorBrush x:Key="Syntax.Bracket1" Color="#E6D37A" />

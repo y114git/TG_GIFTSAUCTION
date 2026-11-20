@@ -21,6 +21,8 @@ public sealed partial class SettingsPage
         runArguments.TextChanged += (_, _) => { if (!_building) _store.Update(x => x with { RunArguments = runArguments.Text ?? "" }); };
         var workDir = new TextBox { Name = "RunWorkingDir", Text = s.RunWorkingDir, MinWidth = Wide(22.5) };
         workDir.TextChanged += (_, _) => { if (!_building) _store.Update(x => x with { RunWorkingDir = (workDir.Text ?? "").Trim() }); };
+        var links = new TextBox { Name = "RunLinks", [ToolTip.TipProperty] = Loc.Current["settings.runLinksHint"], [ToolTip.TipProperty] = Loc.Current["settings.runLinksHint"], [ToolTip.TipProperty] = Loc.Current["settings.runLinksHint"], Text = s.RunLinks, AcceptsReturn = true, MinHeight = 60, MinWidth = Wide(22.5), TextWrapping = Avalonia.Media.TextWrapping.NoWrap };
+        links.TextChanged += (_, _) => { if (!_building) _store.Update(x => x with { RunLinks = links.Text ?? "" }); };
         var environment = new TextBox { Name = "RunEnvironment", Text = s.RunEnvironment, MinWidth = Wide(22.5) };
         environment.TextChanged += (_, _) => { if (!_building) _store.Update(x => x with { RunEnvironment = environment.Text ?? "" }); };
         var inPlace = new CheckBox { Name = "RunSaveInPlace", Tag = Loc.Current["live.saveInPlace"], Content = Loc.Current["live.saveInPlace"], IsChecked = s.RunSaveInPlace };
@@ -69,6 +71,7 @@ public sealed partial class SettingsPage
             Row("settings.runRunner", runner),
             Row("settings.runArguments", runArguments),
             Row("live.workingDir", workDir),
+            Row("settings.runLinks", links),
             Row("live.environment", environment),
             Row("live.stopSeconds", Number("RunStopSeconds", 1, 60, 1, s.RunStopSeconds, (x, n) => x with { RunStopSeconds = n })),
             Row("settings.runtimeFolders", runtimeFolders),

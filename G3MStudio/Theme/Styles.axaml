@@ -28,8 +28,8 @@
   <Style Selector="Button, ToggleButton, CheckBox, ComboBox, NumericUpDown, MenuItem">
     <Setter Property="ToolTip.ShowOnDisabled" Value="True" />
   </Style>
-  <!-- Button text is often a resource name; an underscore in it must not become an access key and vanish. -->
-  <Style Selector="Button /template/ ContentPresenter"><Setter Property="RecognizesAccessKey" Value="False" /></Style>
+  <!-- Text in menus, tabs, buttons and lists is often a resource name; an underscore in it must not become an access key and vanish. No label in the app uses access keys. -->
+  <Style Selector="ContentPresenter"><Setter Property="RecognizesAccessKey" Value="False" /></Style>
   <!-- A list is framed by a thin quiet line, not the white theme default. -->
   <Style Selector="ListBox">
     <Setter Property="BorderBrush" Value="{DynamicResource Border.Subtle}" />

@@ -167,6 +167,30 @@ public sealed partial class SettingsPage
         var codeLive = new CheckBox { Name = "CodeLiveCheck", Tag = Loc.Current["settings.codeLiveCheck"], Content = Loc.Current["settings.codeLiveCheck"], IsChecked = s.CodeLiveCheck };
         codeLive.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { CodeLiveCheck = codeLive.IsChecked == true }); };
 
+        var assetModes = new[] { AssetNumberMode.Off, AssetNumberMode.Manual, AssetNumberMode.Auto };
+        var assetMode = new ComboBox
+        {
+            Name = "CodeAssetNumbers",
+            ItemsSource = new[] { Loc.Current["settings.codeAssetNumbersOff"], Loc.Current["settings.codeAssetNumbersManual"], Loc.Current["settings.codeAssetNumbersAuto"] },
+            SelectedIndex = Math.Max(0, Array.IndexOf(assetModes, s.CodeAssetNumbers)),
+            MinWidth = Wide(15),
+        };
+        assetMode.SelectionChanged += (_, _) => { if (!_building && assetMode.SelectedIndex >= 0) _store.Update(x => x with { CodeAssetNumbers = assetModes[assetMode.SelectedIndex] }); };
+        var assetGame = new CheckBox { Name = "CodeAssetNumbersGameFunctions", Tag = Loc.Current["settings.codeAssetNumbersGame"], Content = Loc.Current["settings.codeAssetNumbersGame"], IsChecked = s.CodeAssetNumbersGameFunctions };
+        assetGame.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { CodeAssetNumbersGameFunctions = assetGame.IsChecked == true }); };
+        var assetTypes = new WrapPanel { Tag = Loc.Current["settings.codeAssetNumberTypes"], ItemSpacing = 12, LineSpacing = 4 };
+        foreach (var type in AssetNumberTypes.All)
+        {
+            var key = type;
+            var box = new CheckBox { Name = "CodeAssetNumberType_" + key, Content = Loc.Current["explorer.type." + key], IsChecked = s.CodeAssetNumberTypes.Contains(key) };
+            box.IsCheckedChanged += (_, _) =>
+            {
+                if (_building) return;
+                _store.Update(x => x with { CodeAssetNumberTypes = [.. AssetNumberTypes.All.Where(t => t == key ? box.IsChecked == true : x.CodeAssetNumberTypes.Contains(t))] });
+            };
+            assetTypes.Children.Add(box);
+        }
+
         return
         [
             Heading("settings.editor"),
@@ -179,6 +203,9 @@ public sealed partial class SettingsPage
             codeBrackets,
             codeLigatures,
             codeLive,
+            Row("settings.codeAssetNumbers", assetMode),
+            assetGame,
+            Row("settings.codeAssetNumberTypes", assetTypes),
             Row("settings.codeTabWidth", Number("CodeTabWidth", 2, 8, 1, s.CodeTabWidth, (x, n) => x with { CodeTabWidth = n })),
             Row("settings.codeHoverDelay", Number("CodeHoverDelay", Editor.EditorOptions.MinHoverDelayMs, Editor.EditorOptions.MaxHoverDelayMs, 100, s.CodeHoverDelayMs, (x, n) => x with { CodeHoverDelayMs = n }), new TextBlock { Text = Loc.Current["settings.msUnit"], VerticalAlignment = VerticalAlignment.Center }),
         ];
@@ -353,6 +380,11 @@ public sealed partial class SettingsPage
         var unsafeSilently = new CheckBox { Name = "AllowUnsafeSilently", Tag = Loc.Current["settings.unsafeSilently"], Content = Loc.Current["settings.unsafeSilently"], IsChecked = s.AllowUnsafeSilently };
         unsafeSilently.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { AllowUnsafeSilently = unsafeSilently.IsChecked == true }); };
 
+        var pluginsOn = new CheckBox { Name = "PluginsEnabled", Tag = Loc.Current["settings.pluginsEnabled"], Content = Loc.Current["settings.pluginsEnabled"], IsChecked = s.PluginsEnabled };
+        pluginsOn.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { PluginsEnabled = pluginsOn.IsChecked == true }); };
+        var pluginsReload = new CheckBox { Name = "PluginsHotReload", Tag = Loc.Current["settings.pluginsHotReload"], Content = Loc.Current["settings.pluginsHotReload"], IsChecked = s.PluginsHotReload };
+        pluginsReload.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { PluginsHotReload = pluginsReload.IsChecked == true }); };
+
         return
         [
             Heading("settings.advanced"),
@@ -360,6 +392,8 @@ public sealed partial class SettingsPage
             askRisky,
             unsafeSilently,
             new TextBlock { Text = Loc.Current["settings.riskyNote"], Classes = { "muted" }, [HelpText.KindProperty] = HelpKind.Detail, TextWrapping = TextWrapping.Wrap },
+            pluginsOn,
+            pluginsReload,
             .. MemoryControls(_store.Current),
             Row("settings.undoLimit", Number("UndoLimitMb", 16, 1_048_576, 64, s.UndoLimitMb, (x, n) => x with { UndoLimitMb = n }), new TextBlock { Text = "MB", VerticalAlignment = VerticalAlignment.Center }),
             new TextBlock { Text = Loc.Current["settings.undoNote"], Classes = { "muted" }, [HelpText.KindProperty] = HelpKind.Detail, TextWrapping = TextWrapping.Wrap },

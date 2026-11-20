@@ -18,7 +18,14 @@ public sealed partial class MainWindow
 
     private void InitPlugins()
     {
-        _plugins = new PluginHost(Workspaces.UserData, Registry, () => Workspaces.Current, Notify);
+        _plugins = new PluginHost(Workspaces.UserData, Registry, () => Workspaces.Current, Notify) { Enabled = Workspaces.Settings.Current.PluginsEnabled };
+        Editor.PluginHooks.Host = _plugins;
+        Workspaces.Settings.Changed += ApplyPluginSettings;
+        Closed += (_, _) =>
+        {
+            Workspaces.Settings.Changed -= ApplyPluginSettings;
+            if (ReferenceEquals(Editor.PluginHooks.Host, _plugins)) Editor.PluginHooks.Host = null; // the static must not keep a closed window alive through the host
+        };
         _pluginMenu.Bind(MenuItem.HeaderProperty, Tr("menu.plugins"));
         Bar.Insert(Math.Max(0, Bar.Count - 2), _pluginMenu); // before Window and Help
         Registry.CommandsChanged += RefreshPluginMenu;
@@ -42,8 +49,17 @@ public sealed partial class MainWindow
         // Saving a plugin's sources reloads it, so a plugin can be developed while the app runs.
         _pluginWatcher = PluginWatcher.TryStart(_plugins.Folder, name => Dispatcher.UIThread.Post(() =>
         {
+            if (!Workspaces.Settings.Current.PluginsHotReload) return;
             if (_plugins.Plugins.FirstOrDefault(p => Path.GetFileName(p.Folder) == name && p.State != PluginState.Disabled) is { } plugin) _ = _plugins.ReloadAsync(plugin);
         }));
+    }
+
+    // The global option: with plugins off none runs; turning them on starts the ones that were enabled.
+    private void ApplyPluginSettings()
+    {
+        if (_plugins is not { } host || host.Enabled == Workspaces.Settings.Current.PluginsEnabled) return;
+        host.Enabled = Workspaces.Settings.Current.PluginsEnabled;
+        host.Load();
     }
 
     private void RefreshPluginMenu()

@@ -80,7 +80,7 @@ public sealed partial class SettingsPage
                 {
                     var changed = _store.Current.Colors.TryGetValue(key, out var custom);
                     // The theme token holds the color in use: the user's, or the default once the override is taken away.
-                    var hex = custom ?? (_store.Current.Colors.TryGetValue(ThemeColors.Accent, out var accent) && ThemeColors.FollowAccent(_store.Current.Colors, accent).TryGetValue(key, out var followed) ? followed : HexOf(ThemeColors.Tokens(key).First()));
+                    var hex = custom ?? (ThemeColors.WithFollowers(_store.Current.Colors).TryGetValue(key, out var followed) ? followed : HexOf(ThemeColors.Tokens(key).First()));
                     box.Text = shown = hex;
                     swatch.Background = new SolidColorBrush(Color.Parse(hex));
                     reset.IsEnabled = changed;
