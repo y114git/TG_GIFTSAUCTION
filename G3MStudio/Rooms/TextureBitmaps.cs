@@ -107,15 +107,12 @@ public sealed class TextureBitmaps(ModelLock? gate = null, long budget = Texture
 
     public void Dispose()
     {
-        foreach (var page in _pages.Values) DisposeDone(page.Bitmap);
+        // An open view (a closing tab) may be drawn once more: the bitmaps are freed after the pending render passes.
+        DeferredDispose.Release(_pages.Values.Select(p => p.Bitmap).Concat(_retired.Select(r => r.Bitmap)).Select(Done));
         _pages.Clear();
-        foreach (var retired in _retired) DisposeDone(retired.Bitmap);
         _retired.Clear();
     }
 
-    private static void DisposeDone(Task<Bitmap?> page)
-    {
-        // The task has completed here, so Result does not block.
-        if (page.IsCompletedSuccessfully) page.Result?.Dispose();
-    }
+    // The task has completed here, so Result does not block.
+    private static Bitmap? Done(Task<Bitmap?> page) => page.IsCompletedSuccessfully ? page.Result : null;
 }

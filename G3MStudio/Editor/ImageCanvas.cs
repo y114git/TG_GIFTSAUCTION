@@ -20,7 +20,9 @@ public sealed record ImageEdit(PixelSelection? Selection, IReadOnlyList<ImageOp>
 /// </summary>
 public sealed partial class ImageCanvas : Control, IDisposable
 {
+#pragma warning disable CA2213 // freed by DeferredDispose after the pending render passes
     private WriteableBitmap _bitmap;
+#pragma warning restore CA2213
     private PixelBuffer _shown;
     private PixelBuffer _flat;
     private bool _space;
@@ -209,8 +211,7 @@ public sealed partial class ImageCanvas : Control, IDisposable
         if (_disposed) return;
         _disposed = true; // the compositor may still draw this control once after its tab closed: Render then skips the bitmaps
         ReleaseShapePreview();
-        _bitmap.Dispose();
-        foreach (var bitmap in _onion.Values) bitmap.Dispose();
+        Rooms.DeferredDispose.Release(_onion.Values.Append(_bitmap));
     }
 
     public void SetSelection(PixelSelection? selection)

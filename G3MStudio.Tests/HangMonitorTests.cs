@@ -20,7 +20,8 @@ public sealed class HangMonitorTests
             Assert.Null(monitor.LastFile);
             HangMonitor.Note("open tab probe");
             BlockTheUiThread(4000);
-            for (var i = 0; i < 400 && monitor.LastFile is null; i++) { await Task.Delay(50); Dispatcher.UIThread.RunJobs(); }
+            var wait = (int)(400 * Budget.Slowdown); // a loaded machine answers its beats late
+            for (var i = 0; i < wait && monitor.LastFile is null; i++) { await Task.Delay(50); Dispatcher.UIThread.RunJobs(); }
             Assert.NotNull(monitor.LastFile);
             var text = await File.ReadAllTextAsync(monitor.LastFile, TestContext.Current.CancellationToken);
             Assert.Contains("did not answer", text, StringComparison.Ordinal);
@@ -35,7 +36,7 @@ public sealed class HangMonitorTests
             Assert.Contains("Processor time in that window", text, StringComparison.Ordinal);
             Assert.Contains("Recent actions:", text, StringComparison.Ordinal);
             Assert.Contains("open tab probe", text, StringComparison.Ordinal);
-            for (var i = 0; i < 400 && !(await File.ReadAllTextAsync(monitor.LastFile, TestContext.Current.CancellationToken)).Contains("answered again", StringComparison.Ordinal); i++) { await Task.Delay(50); Dispatcher.UIThread.RunJobs(); }
+            for (var i = 0; i < wait && !(await File.ReadAllTextAsync(monitor.LastFile, TestContext.Current.CancellationToken)).Contains("answered again", StringComparison.Ordinal); i++) { await Task.Delay(50); Dispatcher.UIThread.RunJobs(); }
             Assert.Contains("answered again", await File.ReadAllTextAsync(monitor.LastFile, TestContext.Current.CancellationToken), StringComparison.Ordinal);
         });
 

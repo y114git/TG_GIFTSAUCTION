@@ -75,8 +75,8 @@ public sealed class SpritePreviewPlayer : WrapPanel
     {
         Stop();
         // The frames are this player's own drawings and nothing shows them after Stop; a load still running is dropped when it ends.
-        foreach (var frame in _frames ?? []) frame?.Dispose();
-        _first?.Dispose();
+        // The old target may still show one of these until the next render pass: they are freed after it.
+        DeferredDispose.Release((_frames ?? []).Append(_first));
         (_sprite, _target, _frames, _loading, _first, FirstShown) = (sprite, target, null, null, null, Task.CompletedTask);
         var many = sprite is { Textures.Count: > 1 } && target is not null;
         foreach (var control in new Control[] { _play, _stop, _loop, _speed }) control.GateKey(many ? null : "editors.object.oneFrame");
@@ -97,8 +97,9 @@ public sealed class SpritePreviewPlayer : WrapPanel
 #pragma warning disable CA2000 // owned by the player, disposed when it binds another sprite
         var picture = Draw(bitmap, item, sprite);
 #pragma warning restore CA2000
-        _first?.Dispose();
+        var replaced = _first;
         (_first, target.Source) = (picture, picture);
+        DeferredDispose.Release(replaced);
     }
 
     public async Task PlayAsync()
@@ -122,7 +123,7 @@ public sealed class SpritePreviewPlayer : WrapPanel
         // The sprite may have changed while the pages decoded: its frames are not shown.
         if (!ReferenceEquals(loading, _loading))
         {
-            if (!ReferenceEquals(frames, _frames)) foreach (var frame in frames) frame?.Dispose();
+            if (!ReferenceEquals(frames, _frames)) DeferredDispose.Release(frames);
             return;
         }
 

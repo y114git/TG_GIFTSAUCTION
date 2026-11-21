@@ -22,6 +22,7 @@ public sealed class TextureBitmapsRetireTests
             Assert.True(second.PixelSize.Width > 0);
             Assert.True(third.PixelSize.Width > 0);
             textures.Dispose();
+            Avalonia.Threading.Dispatcher.UIThread.RunJobs(); // freed after the pending render passes
             Assert.Throws<ObjectDisposedException>(() => third.PixelSize);
         });
     }
