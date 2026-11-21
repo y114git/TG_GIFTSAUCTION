@@ -799,8 +799,9 @@
     },
     "working": "正在處理 {name}...",
     "merged": "已將外部變更合併到 {name}。",
+    "nothingOutside": "自上次同步以來，專案資料夾和資料檔案都沒有變更。",
+    "missingInFolder": "以下資源在專案中已沒有資料夾，但仍保留在資料檔案中：{names}。",
     "mergeFailed": "無法合併外部變更：{reason}",
-    "nothingOutside": "自上次同步以來資料檔案沒有在外部被修改，沒有需要帶入的內容。",
     "mergeNotSaved": "未能寫入合併後的資料檔案：{reason}",
     "external": {
       "title": "資料檔案已在外部變更",
@@ -1324,6 +1325,8 @@
     "explorerStructs": "程式碼中的結構建構函式",
     "explorerInner": "程式碼項目內的其他函式",
     "explorerFoldersOpen": "出現時開啟資料夾和集合",
+    "explorerOpenDataOnSearch": "搜尋時開啟字串、變數等資料清單",
+    "explorerHideData": "不顯示資料清單（字串、變數、函式等）",
     "explorerSort": "資源管理員的預設排序",
     "explorerIconSize": "資源管理員圖示的大小（縮放 100%）"
   },

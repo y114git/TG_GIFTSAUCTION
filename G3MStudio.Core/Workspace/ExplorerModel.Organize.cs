@@ -29,6 +29,30 @@ public sealed partial class ExplorerModel
         }
     }
 
+    /// <summary>The data group (strings, variables, functions and the like) opens on its own to show the matches of a search; off, it stays folded until opened by hand.</summary>
+    public bool OpenDataOnSearch
+    {
+        get;
+        set
+        {
+            if (field == value) return;
+            field = value;
+            Rebuild();
+        }
+    }
+
+    /// <summary>Set by the "Leave out the data lists" setting: Strings, Variables, Functions and the other data lists do not appear; the code entries stay.</summary>
+    public bool HideData
+    {
+        get;
+        set
+        {
+            if (field == value) return;
+            field = value;
+            Rebuild();
+        }
+    }
+
     public bool FolderView => Organizer.FolderView ?? DefaultFolderView;
 
     /// <summary>Folders start open (the setting); a click on a folder row flips it.</summary>

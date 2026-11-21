@@ -201,14 +201,15 @@ public partial class MainWindow
     private async Task ResolveExternalChangeAsync()
     {
         if (Workspaces.Current is not { Project: { } project } current) return;
-        if (!project.DataFileChanged)
+        var (link, workspace) = (project, current);
+        // The data file is as the last sync left it: what changed outside is the project folder (a pasted resource folder, a Git pull), and building the data file from the folder takes it in.
+        var choice = ExternalChange.Overwrite;
+        if (link.DataFileChanged)
         {
-            Notify(NotificationLevel.Info, Loc.Current["project.nothingOutside"]);
-            return;
+            if (await ProjectDialogs.AskExternalChangeAsync(this, workspace.Name) is not { } asked) return;
+            choice = asked;
         }
 
-        var (link, workspace) = (project, current);
-        if (await ProjectDialogs.AskExternalChangeAsync(this, workspace.Name) is not { } choice) return;
         if (choice == ExternalChange.KeepBoth)
         {
             Workspaces.Projects.Disable(workspace, deleteProject: false);
@@ -218,13 +219,15 @@ public partial class MainWindow
 
         var path = workspace.Path;
         SaveResult? result = null;
+        var nothingChanged = false;
         try
         {
             await WithProgressAsync(workspace.Name, async (progress, token) =>
             {
                 if (choice == ExternalChange.Overwrite)
                 {
-                    result = await link.OverwriteDataFileAsync(Pipeline, token);
+                    result = await link.BringInFolderAsync(Pipeline, token);
+                    nothingChanged = result is null;
                     return;
                 }
 
@@ -251,6 +254,15 @@ public partial class MainWindow
         if (result is { Saved: false } failed)
         {
             Notify(NotificationLevel.Error, Loc.Current.Format("project.mergeNotSaved", ("reason", failed.Message ?? failed.Failure.ToString())));
+            return;
+        }
+
+        if (link.MissingFromFolder is { Count: > 0 } missing)
+            Notify(NotificationLevel.Warning, Loc.Current.Format("project.missingInFolder", ("names", string.Join(", ", missing.Take(5)) + (missing.Count > 5 ? ", ..." : ""))));
+
+        if (nothingChanged)
+        {
+            Notify(NotificationLevel.Info, Loc.Current["project.nothingOutside"]);
             return;
         }
 

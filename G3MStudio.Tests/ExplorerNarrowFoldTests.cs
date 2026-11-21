@@ -26,7 +26,7 @@ public sealed class ExplorerNarrowFoldTests
     public void TheDataGroupFoldsWhileAFilterIsActive()
     {
         using var data = ExplorerModelTests.Generate(40);
-        var model = NewModel();
+        var model = new ExplorerModel(key => key) { OpenDataOnSearch = true }; // the old behaviour, on by choice
         model.Load(data);
         model.SetFilter("1");
         Assert.Contains(model.Rows, r => r is { IsItem: true, Key: "strings" });

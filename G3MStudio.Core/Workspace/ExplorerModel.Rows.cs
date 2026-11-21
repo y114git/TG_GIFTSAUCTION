@@ -106,10 +106,10 @@ public sealed partial class ExplorerModel
         if (FolderView && _data is not null && !IsFiltering && Options.Tag.Length == 0) AddFolders(typeRows, 1);
         AddSections(typeRows, _sections.Where(s => !s.Type.IsData), 1);
         var dataRows = new List<ExplorerRow>();
-        AddSections(dataRows, _sections.Where(s => s.Type.IsData), 2);
+        AddSections(dataRows, _sections.Where(s => s.Type.IsData && (!HideData || s.Type.Key == "code")), 2); // hiding the data lists keeps the code entries
         if (dataRows.Count > 0)
         {
-            var open = !Narrowed ? _expanded.Contains(DataGroup) : !_foldedNarrow.Contains(DataGroup);
+            var open = !Follows(DataGroup) ? _expanded.Contains(DataGroup) : !_foldedNarrow.Contains(DataGroup);
             var heading = new ExplorerRow(ExplorerRowKind.Group, DataGroup, Title(DataGroup), 1) { Expanded = open, Count = dataRows.Where(r => r.Kind == ExplorerRowKind.Type).Sum(r => r.Count) };
             dataRows = open ? [heading, .. dataRows] : [heading];
         }
@@ -127,6 +127,7 @@ public sealed partial class ExplorerModel
         {
             if (Options.Hides(section.Type.Key)) continue;
             var unfiltered = !Narrowed;
+            var follows = Follows(section.Type.Key);
             // In the folder view the types list what no folder holds.
             var restrict = !unfiltered || FolderView && Organizer.FolderOf.Count > 0 || HideItem is not null;
             if (!restrict && section.ItemCount == 0 && Options.HideEmpty) continue;
@@ -135,13 +136,19 @@ public sealed partial class ExplorerModel
                 : [.. section.Items.Where(r => r.IsItem && r.Matches(_needle) && TagOk(r) && (!unfiltered || !IsFiled(r)) && !IsHidden(r))];
             if (Options.Sort != ExplorerSort.ListOrder) items = Sorted(items);
             if (restrict && items.Length == 0) continue;
-            var open = unfiltered ? _expanded.Contains(section.Type.Key) : !_foldedNarrow.Contains(section.Type.Key);
+            var open = !follows ? _expanded.Contains(section.Type.Key) : !_foldedNarrow.Contains(section.Type.Key);
             var count = !restrict ? section.ItemCount : items.Count(r => r.IsItem);
             rows.Add(new ExplorerRow(ExplorerRowKind.Type, section.Type.Key, Title(section.Type.Key), depth) { Count = count, Expanded = open });
             Matches += count;
             if (open) rows.AddRange(items);
         }
     }
+
+    /// <summary>
+    /// True when a heading opens on its own while the list is narrowed. The data group and code always do; the other data lists (strings, variables, ...)
+    /// only when the setting asks for it, otherwise they keep the fold the user gave them.
+    /// </summary>
+    private bool Follows(string key) => Narrowed && (OpenDataOnSearch || key == DataGroup || key == "code" || !_sections.Any(s => s.Type.IsData && s.Type.Key == key));
 
     /// <summary>True for the key of a resource or data type of the loaded file, the headings that hold entries.</summary>
     public bool IsType(string key) => _sections.Any(s => s.Type.Key == key);
@@ -151,8 +158,8 @@ public sealed partial class ExplorerModel
     {
         foreach (var key in _sections.Select(s => s.Type.Key).Append(DataGroup))
         {
-            if (!Narrowed) _touched.Add(key);
-            _ = Narrowed ? (open ? _foldedNarrow.Remove(key) : _foldedNarrow.Add(key)) : open ? _expanded.Add(key) : _expanded.Remove(key);
+            if (!Follows(key)) _touched.Add(key);
+            _ = Follows(key) ? (open ? _foldedNarrow.Remove(key) : _foldedNarrow.Add(key)) : open ? _expanded.Add(key) : _expanded.Remove(key);
         }
 
         Rebuild();
@@ -161,7 +168,7 @@ public sealed partial class ExplorerModel
     public void Toggle(string key)
     {
         if (IsOrganizeKey(key)) { if (!_flipped.Remove(key)) _flipped.Add(key); }
-        else if (Narrowed && (key == DataGroup || IsType(key))) { if (!_foldedNarrow.Remove(key)) _foldedNarrow.Add(key); }
+        else if (Follows(key) && (key == DataGroup || IsType(key))) { if (!_foldedNarrow.Remove(key)) _foldedNarrow.Add(key); }
         else
         {
             _touched.Add(key);

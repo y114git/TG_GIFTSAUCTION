@@ -178,6 +178,7 @@ public partial class MainWindow
         Explorer.Model.ShowNulls = s.ShowNullEntries;
         G3MStudio.Explorer.HoverCards.Enabled = s.HoverPreviews;
         (Explorer.Model.DefaultFolderView, Explorer.Model.ShowCounts, Explorer.Model.FoldersOpen) = (s.ExplorerFolderView, s.ExplorerShowCounts, s.ExplorerFoldersOpen);
+        (Explorer.Model.OpenDataOnSearch, Explorer.Model.HideData) = (s.ExplorerOpenDataOnSearch, s.ExplorerHideData);
         Explorer.OptionsFolded = s.ExplorerOptionsFolded;
         Explorer.ThumbnailSize = s.ExplorerThumbnailSize;
         (_hideUndecompilable, _hideBroken, _childSettings) = (s.ExplorerHideUndecompilable, s.ExplorerHideBroken, s);

@@ -799,8 +799,9 @@
     },
     "working": "正在处理 {name}...",
     "merged": "已将外部更改合并到 {name}。",
+    "nothingOutside": "自上次同步以来，项目文件夹和数据文件都没有更改。",
+    "missingInFolder": "以下资源在项目中已没有文件夹，但仍保留在数据文件中：{names}。",
     "mergeFailed": "无法合并外部更改：{reason}",
-    "nothingOutside": "自上次同步以来数据文件没有在外部被修改，没有需要带入的内容。",
     "mergeNotSaved": "未能写入合并后的数据文件：{reason}",
     "external": {
       "title": "数据文件已在外部更改",
@@ -1324,6 +1325,8 @@
     "explorerStructs": "代码中的结构体构造函数",
     "explorerInner": "代码条目内的其他函数",
     "explorerFoldersOpen": "出现时打开文件夹和集合",
+    "explorerOpenDataOnSearch": "搜索时打开字符串、变量等数据列表",
+    "explorerHideData": "不显示数据列表（字符串、变量、函数等）",
     "explorerSort": "资源管理器的默认排序",
     "explorerIconSize": "资源管理器图标的大小（缩放 100%）"
   },

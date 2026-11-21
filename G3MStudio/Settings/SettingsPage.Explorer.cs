@@ -31,6 +31,10 @@ public sealed partial class SettingsPage
         hideCode.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { ExplorerHideUndecompilable = hideCode.IsChecked == true }); };
         var hideBroken = new CheckBox { Name = "ExplorerHideBroken", Tag = Loc.Current["settings.explorerHideBroken"], Content = Loc.Current["settings.explorerHideBroken"], IsChecked = s.ExplorerHideBroken };
         hideBroken.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { ExplorerHideBroken = hideBroken.IsChecked == true }); };
+        var dataOpen = new CheckBox { Name = "ExplorerOpenDataOnSearch", Tag = Loc.Current["settings.explorerOpenDataOnSearch"], Content = Loc.Current["settings.explorerOpenDataOnSearch"], IsChecked = s.ExplorerOpenDataOnSearch };
+        dataOpen.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { ExplorerOpenDataOnSearch = dataOpen.IsChecked == true }); };
+        var dataHide = new CheckBox { Name = "ExplorerHideData", Tag = Loc.Current["settings.explorerHideData"], Content = Loc.Current["settings.explorerHideData"], IsChecked = s.ExplorerHideData };
+        dataHide.IsCheckedChanged += (_, _) => { if (!_building) _store.Update(x => x with { ExplorerHideData = dataHide.IsChecked == true }); };
         var anonymous = Visibility("ExplorerAnonymousFunctions", "settings.explorerAnonymous", s.ExplorerAnonymousFunctions, (x, v) => x with { ExplorerAnonymousFunctions = v });
         var structs = Visibility("ExplorerStructConstructors", "settings.explorerStructs", s.ExplorerStructConstructors, (x, v) => x with { ExplorerStructConstructors = v });
         var inner = Visibility("ExplorerInnerFunctions", "settings.explorerInner", s.ExplorerInnerFunctions, (x, v) => x with { ExplorerInnerFunctions = v });
@@ -43,6 +47,6 @@ public sealed partial class SettingsPage
         };
         sort.SelectionChanged += (_, _) => { if (!_building && sort.SelectedIndex >= 0) _store.Update(x => x with { ExplorerSortOrder = SortOrders[sort.SelectedIndex] }); };
         var thumbSize = Number("ExplorerThumbnailSize", 16, 96, 2, s.ExplorerThumbnailSize, (x, n) => x with { ExplorerThumbnailSize = n });
-        return [folderView, counts, open, hideCode, hideBroken, anonymous, structs, inner, Row("settings.explorerSort", sort), Row("settings.explorerIconSize", thumbSize, new TextBlock { Text = Loc.Current["settings.pixelUnit"], VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center })];
+        return [folderView, counts, open, dataOpen, dataHide, hideCode, hideBroken, anonymous, structs, inner, Row("settings.explorerSort", sort), Row("settings.explorerIconSize", thumbSize, new TextBlock { Text = Loc.Current["settings.pixelUnit"], VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center })];
     }
 }

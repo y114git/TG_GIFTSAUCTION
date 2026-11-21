@@ -230,6 +230,12 @@ public sealed record AppSettings
     /// <summary>The Explorer leaves out resources that point at nothing, such as a sprite frame without its picture.</summary>
     public bool ExplorerHideBroken { get; init; }
 
+    /// <summary>A search in the Explorer opens the data group (Strings, Variables, ...) to show its matches. Off, the group stays as the user left it.</summary>
+    public bool ExplorerOpenDataOnSearch { get; init; }
+
+    /// <summary>The Explorer leaves out the data group (Strings, Variables, Functions and the other data lists).</summary>
+    public bool ExplorerHideData { get; init; }
+
     /// <summary>Folders and collections start open in the Explorer.</summary>
     public bool ExplorerFoldersOpen { get; init; } = true;
 

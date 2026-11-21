@@ -799,8 +799,9 @@
     },
     "working": "{name} を処理中...",
     "merged": "外部の変更を {name} にマージしました。",
+    "nothingOutside": "前回の同期以降、プロジェクトフォルダーもデータファイルも変更されていません。",
+    "missingInFolder": "次のリソースはプロジェクトにフォルダーがなくなりましたが、データファイルには残ります: {names}。",
     "mergeFailed": "外部の変更をマージできませんでした: {reason}",
-    "nothingOutside": "前回の同期以降、データファイルは外部で変更されていないため、取り込む内容はありません。",
     "mergeNotSaved": "統合したデータファイルを書き込めませんでした: {reason}",
     "external": {
       "title": "データファイルが外部で変更されました",
@@ -1324,6 +1325,8 @@
     "explorerStructs": "コード内の構造体コンストラクター",
     "explorerInner": "コードエントリ内のその他の関数",
     "explorerFoldersOpen": "フォルダーとコレクションを表示時に開く",
+    "explorerOpenDataOnSearch": "検索時に文字列、変数などのデータ一覧を開く",
+    "explorerHideData": "データ一覧（文字列、変数、関数など）を表示しない",
     "explorerSort": "エクスプローラーの既定の並び順",
     "explorerIconSize": "エクスプローラーのアイコンのサイズ（ズーム 100%）"
   },

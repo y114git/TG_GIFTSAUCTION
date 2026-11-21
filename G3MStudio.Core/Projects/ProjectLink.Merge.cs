@@ -121,7 +121,9 @@ public sealed partial class ProjectLink
     /// Writes the data file from the project, whatever the file on disk holds: every project resource is imported over it and the ones the
     /// project dropped since the last sync are removed. Resources only the data file has stay in it (the library cannot tell them from the game's own).
     /// </summary>
-    public async Task<SaveResult> OverwriteDataFileAsync(SavePipeline pipeline, CancellationToken cancellationToken = default)
+    public Task<SaveResult> OverwriteDataFileAsync(SavePipeline pipeline, CancellationToken cancellationToken = default) => OverwriteDataFileAsync(pipeline, [], cancellationToken);
+
+    private async Task<SaveResult> OverwriteDataFileAsync(SavePipeline pipeline, List<(string Type, string Name, string Path)> refresh, CancellationToken cancellationToken)
     {
         var deleted = new List<string>();
         var info = new Dictionary<string, (string Type, string Name)>();
@@ -136,17 +138,94 @@ public sealed partial class ProjectLink
             }
         }
 
-        return await ReplaceDataFileAsync([], deleted, info, pipeline, cancellationToken);
+        return await ReplaceDataFileAsync([], deleted, info, pipeline, cancellationToken, refresh);
     }
 
-    private async Task<SaveResult> ReplaceDataFileAsync(List<string> theirs, List<string> deleted, Dictionary<string, (string Type, string Name)> info, SavePipeline pipeline, CancellationToken cancellationToken)
+    /// <summary>
+    /// Takes what changed in the project folder outside (a pasted resource folder, a Git pull) into the data file. A resource whose folder differs from
+    /// the last write is taken from the folder, even when the app edited it too. Other edits not synced yet are written first
+    /// (a data file that changed outside is never overwritten: it goes through the merge), then the data file is built from the folder.
+    /// </summary>
+    public async Task<SaveResult?> BringInFolderAsync(SavePipeline pipeline, CancellationToken cancellationToken = default)
+    {
+        List<(string Type, string Name, string Path)> outside = [];
+        if (!DataFileChanged)
+        {
+            // shortcut: a write of everything (_full) cannot spare single resources, so it still overwrites the pasted folder; upgrade when such edits show up in practice.
+            outside = await FoldersChangedOutsideAsync(cancellationToken);
+            if (outside.Count == 0 && NotSynced == 0 && !HasPendingWrite && !await HasNewFoldersAsync(cancellationToken)) return null; // nothing changed in the folder or the data file
+            _touched.RemoveWhere(t => t.Name is not null && outside.Any(o => o.Type == t.Type && o.Name == t.Name));
+            if (NotSynced > 0 || HasPendingWrite)
+            {
+                var synced = await SyncAsync(pipeline, null, cancellationToken);
+                if (!synced.Saved) return synced;
+            }
+        }
+
+        return await OverwriteDataFileAsync(pipeline, outside, cancellationToken);
+    }
+
+    /// <summary>A resource folder the project file does not list yet (copied in from elsewhere), looked for in the type folders the project already has.</summary>
+    private async Task<bool> HasNewFoldersAsync(CancellationToken cancellationToken)
+    {
+        var project = await G3MProjectService.OpenAsync(ProjectFile, null, cancellationToken);
+        var known = project.Resources.Select(r => r.Path).ToHashSet(StringComparer.Ordinal);
+        var types = known.Select(p => p[..p.IndexOf('/', StringComparison.Ordinal)]).Distinct();
+        return await Task.Run(() => types.Any(t => Directory.Exists(Path.Combine(Folder, t)) && Directory.EnumerateFileSystemEntries(Path.Combine(Folder, t)).Any(e => !known.Any(k => k == t + "/" + Path.GetFileName(e) || k.StartsWith(t + "/" + Path.GetFileName(e) + "/", StringComparison.Ordinal)))), cancellationToken);
+    }
+
+    /// <summary>Resources the project file lists whose folder is gone, found by the last <see cref="BringInFolderAsync"/>. The data file keeps them: the library cannot tell a deletion from a folder never written.</summary>
+    public IReadOnlyList<string> MissingFromFolder { get; private set; } = [];
+
+    /// <summary>Resources whose folder no longer hashes to what the project file recorded at the last write.</summary>
+    private async Task<List<(string Type, string Name, string Path)>> FoldersChangedOutsideAsync(CancellationToken cancellationToken)
+    {
+        var project = await G3MProjectService.OpenAsync(ProjectFile, null, cancellationToken);
+        MissingFromFolder = [.. project.Resources.Where(r => !Exists(Path.Combine(Folder, r.Path))).Select(r => r.Name)];
+        return await Task.Run(() => project.Resources
+            .Where(r => Exists(Path.Combine(Folder, r.Path)) && FolderHash(Path.Combine(Folder, r.Path)) != r.Hash)
+            .Select(r => (r.Type, r.Name, r.Path)).ToList(), cancellationToken);
+    }
+
+    // As the library hashes its text files: no BOM, LF line endings, one final newline, so a line-ending-only edit is not a change.
+    private static byte[] Normalized(string file)
+    {
+        var bytes = File.ReadAllBytes(file);
+        if (!new[] { ".json", ".gml", ".asm" }.Contains(Path.GetExtension(file), StringComparer.OrdinalIgnoreCase)) return bytes;
+        var text = System.Text.Encoding.UTF8.GetString(bytes).TrimStart('﻿').Replace("\r\n", "\n", StringComparison.Ordinal).TrimEnd('\n') + "\n";
+        return System.Text.Encoding.UTF8.GetBytes(text);
+    }
+
+    private static bool Exists(string unit) => Directory.Exists(unit) || File.Exists(unit);
+
+    // The library's hash of a resource folder or single file unit: file names and contents in name order (its text files are already normalized when it writes them).
+    private static string FolderHash(string folder)
+    {
+        using var hash = System.Security.Cryptography.IncrementalHash.CreateHash(System.Security.Cryptography.HashAlgorithmName.SHA256);
+        var root = Directory.Exists(folder) ? folder : Path.GetDirectoryName(folder) ?? folder;
+        string[] files = Directory.Exists(folder) ? [.. Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories)] : [folder];
+        foreach (var file in files.OrderBy(f => Path.GetRelativePath(root, f).Replace(Path.DirectorySeparatorChar, '/'), StringComparer.Ordinal))
+        {
+            var name = System.Text.Encoding.UTF8.GetBytes(Path.GetRelativePath(root, file).Replace(Path.DirectorySeparatorChar, '/'));
+            var content = Normalized(file);
+            hash.AppendData(BitConverter.GetBytes(name.Length));
+            hash.AppendData(name);
+            hash.AppendData(BitConverter.GetBytes(content.LongLength));
+            hash.AppendData(content);
+        }
+
+        return Convert.ToHexStringLower(hash.GetHashAndReset());
+    }
+
+    private async Task<SaveResult> ReplaceDataFileAsync(List<string> theirs, List<string> deleted, Dictionary<string, (string Type, string Name)> info, SavePipeline pipeline, CancellationToken cancellationToken, List<(string Type, string Name, string Path)>? refresh = null)
     {
         Directory.CreateDirectory(MergeDir);
         var built = Path.Combine(MergeDir, "built.win");
         await Exclusive(() =>
         {
             // Theirs-only resources are written from the open model, which is the data file; deletions go on the project file so Build removes them.
-            G3MProjectService.Update(_workspace.Data, Folder, null, new G3MProjectOptions { Name = Record.Name, Only = Group(theirs, info), Deleted = Group(deleted, info) });
+            // Without theirs and deletions it would only record the hashes of folders copied in from outside, and Build would then skip them as unchanged.
+            if (theirs.Count > 0 || deleted.Count > 0) G3MProjectService.Update(_workspace.Data, Folder, null, new G3MProjectOptions { Name = Record.Name, Only = Group(theirs, info), Deleted = Group(deleted, info) });
             G3MProjectService.Build(ProjectFile, _workspace.Path, built);
             ProcessMemory.Reclaim();
             return 0;
@@ -163,7 +242,9 @@ public sealed partial class ProjectLink
             await Task.Run(() =>
             {
                 // Clears the recorded deletions and records the new base file.
-                G3MProjectService.Update(merged, Folder, identity.Path, new G3MProjectOptions { Name = Record.Name, Only = Group([], info), Deleted = Group([], info) });
+                // The folders taken from outside are written again from the merged model, which records their new hashes.
+                foreach (var r in refresh ?? []) info[r.Path] = (r.Type, r.Name);
+                G3MProjectService.Update(merged, Folder, identity.Path, new G3MProjectOptions { Name = Record.Name, Only = Group((refresh ?? []).Select(r => r.Path), info), Deleted = Group([], info) });
                 RecordSync("merge");
             }, CancellationToken.None);
             Record = Record with { Synced = identity };

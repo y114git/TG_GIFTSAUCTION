@@ -33,7 +33,7 @@ public static class ExplorerFilterPopup
         panel.Children.Add(empty);
 
         panel.Children.Add(Heading("explorer.typesHeading"));
-        foreach (var type in ResourceTypes.All.Where(t => !t.IsData))
+        foreach (var type in ResourceTypes.All)
         {
             var box = new CheckBox { Content = Loc.Current["explorer.type." + type.Key], IsChecked = !filter.Hides(type.Key), Tag = type.Key };
             box.IsCheckedChanged += (_, _) => Set(f => f.Hides(type.Key) == (box.IsChecked == true) ? f.Toggle(type.Key) : f);

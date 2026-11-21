@@ -799,8 +799,9 @@
     },
     "working": "Trabajando en {name}...",
     "merged": "Los cambios externos se combinaron en {name}.",
+    "nothingOutside": "No ha cambiado nada en la carpeta del proyecto ni en el archivo de datos desde la última sincronización.",
+    "missingInFolder": "Estos recursos ya no tienen carpeta en el proyecto y siguen en el archivo de datos: {names}.",
     "mergeFailed": "No se pudieron combinar los cambios externos: {reason}",
-    "nothingOutside": "El archivo de datos no ha cambiado fuera desde la última sincronización, así que no hay nada que traer.",
     "mergeNotSaved": "No se escribió el archivo de datos combinado: {reason}",
     "external": {
       "title": "Archivo de datos modificado desde fuera",
@@ -1324,6 +1325,8 @@
     "explorerStructs": "Constructores de structs del código",
     "explorerInner": "Otras funciones dentro de entradas de código",
     "explorerFoldersOpen": "Abrir las carpetas y colecciones al aparecer",
+    "explorerOpenDataOnSearch": "Abrir Cadenas, Variables y las demás listas de datos al buscar",
+    "explorerHideData": "Ocultar las listas de datos (Cadenas, Variables, Funciones y demás)",
     "explorerSort": "Orden predeterminado del Explorador",
     "explorerIconSize": "Tamaño de los iconos del Explorador con zoom al 100 %"
   },

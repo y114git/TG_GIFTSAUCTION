@@ -799,8 +799,9 @@
     },
     "working": "Working on {name}...",
     "merged": "Merged the outside changes into {name}.",
+    "nothingOutside": "Nothing changed in the project folder or the data file since the last sync.",
+    "missingInFolder": "These resources have no folder in the project any more and stay in the data file: {names}.",
     "mergeFailed": "Could not merge the outside changes: {reason}",
-    "nothingOutside": "The data file has not changed outside since the last sync, so there is nothing to bring in.",
     "mergeNotSaved": "The merged data file was not written: {reason}",
     "external": {
       "title": "Data file changed outside",
@@ -1324,6 +1325,8 @@
     "explorerStructs": "Struct constructors in code",
     "explorerInner": "Other functions inside code entries",
     "explorerFoldersOpen": "Open folders and collections when they appear",
+    "explorerOpenDataOnSearch": "Open Strings, Variables and the other data lists when I search",
+    "explorerHideData": "Leave out the data lists (Strings, Variables, Functions and so on)",
     "explorerSort": "Default sort order of the Explorer",
     "explorerIconSize": "Size of the Explorer icons at 100% zoom"
   },

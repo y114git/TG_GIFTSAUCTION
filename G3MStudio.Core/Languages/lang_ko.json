@@ -799,8 +799,9 @@
     },
     "working": "{name} 작업 중...",
     "merged": "외부 변경 사항을 {name}에 병합했습니다.",
+    "nothingOutside": "마지막 동기화 이후 프로젝트 폴더와 데이터 파일 모두 변경되지 않았습니다.",
+    "missingInFolder": "다음 리소스는 프로젝트에 폴더가 없지만 데이터 파일에는 남아 있습니다: {names}.",
     "mergeFailed": "외부 변경 사항을 병합할 수 없습니다: {reason}",
-    "nothingOutside": "마지막 동기화 이후 데이터 파일이 외부에서 바뀌지 않아 가져올 내용이 없습니다.",
     "mergeNotSaved": "병합한 데이터 파일을 쓰지 못했습니다: {reason}",
     "external": {
       "title": "데이터 파일이 외부에서 변경됨",
@@ -1324,6 +1325,8 @@
     "explorerStructs": "코드 내 구조체 생성자",
     "explorerInner": "코드 항목 안의 기타 함수",
     "explorerFoldersOpen": "폴더와 컬렉션이 나타날 때 열기",
+    "explorerOpenDataOnSearch": "검색할 때 문자열, 변수 등 데이터 목록 펼치기",
+    "explorerHideData": "데이터 목록(문자열, 변수, 함수 등) 숨기기",
     "explorerSort": "탐색기 기본 정렬 순서",
     "explorerIconSize": "탐색기 아이콘 크기 (확대/축소 100%)"
   },
