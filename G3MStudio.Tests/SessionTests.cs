@@ -107,7 +107,7 @@ public sealed class SessionTests
             await first.OpenAsync(path);
             first.Close();
             File.Delete(path);
-            for (var i = 0; i < 200 && File.Exists(path); i++) await Task.Delay(25); // a delete waits for a handle the closing window still holds
+            for (var i = 0; i < 400 && Directory.GetFiles(dir.Path, "data.win").Length > 0; i++) await Task.Delay(25); // Windows lists a deleted file until the last handle on it closes
             var window = Start(dir);
             try
             {

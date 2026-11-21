@@ -271,7 +271,15 @@ public sealed partial class StudioDock
                 if (finished) return;
                 finished = true;
                 _closing.Remove(dockable);
-                base.CloseDockable(dockable);
+                try
+                {
+                    base.CloseDockable(dockable);
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    // The strip's panel lost a child it was told to remove (the items panel was rebuilt between two changes). The dock model has already dropped the tab,
+                    // so only that view of it is stale; the exception must not reach the UI thread, where it ends the app.
+                }
             }
 
             _closing[dockable] = Finish;

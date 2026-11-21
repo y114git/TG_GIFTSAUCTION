@@ -67,6 +67,7 @@ public static class LostFile
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!seen.Add(file) || PathComparer.Equals(file, oldPath)) continue;
+                if (!File.Exists(file)) continue; // Windows still lists a deleted file until the last handle on it closes
                 var named = string.Equals(Path.GetFileName(file), oldName, StringComparison.OrdinalIgnoreCase);
                 try
                 {
