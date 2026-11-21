@@ -46,10 +46,10 @@ public static class ExplorerFilterPopup
             panel.Children.Add(EntryVisibilityBox.Row("ExplorerAnonymousFunctions", "settings.explorerAnonymous", settings.ExplorerAnonymousFunctions, v => edit(x => x with { ExplorerAnonymousFunctions = v })));
             panel.Children.Add(EntryVisibilityBox.Row("ExplorerStructConstructors", "settings.explorerStructs", settings.ExplorerStructConstructors, v => edit(x => x with { ExplorerStructConstructors = v })));
             panel.Children.Add(EntryVisibilityBox.Row("ExplorerInnerFunctions", "settings.explorerInner", settings.ExplorerInnerFunctions, v => edit(x => x with { ExplorerInnerFunctions = v })));
-            var undecompilable = new CheckBox { Name = "ExplorerHideUndecompilable", Content = Loc.Current["settings.explorerHideUndecompilable"], IsChecked = settings.ExplorerHideUndecompilable };
+            var undecompilable = new CheckBox { Name = "ExplorerHideUndecompilable", Content = Wrapped("settings.explorerHideUndecompilable"), IsChecked = settings.ExplorerHideUndecompilable };
             undecompilable.IsCheckedChanged += (_, _) => edit(x => x with { ExplorerHideUndecompilable = undecompilable.IsChecked == true });
             panel.Children.Add(undecompilable);
-            var broken = new CheckBox { Name = "ExplorerHideBroken", Content = Loc.Current["settings.explorerHideBroken"], IsChecked = settings.ExplorerHideBroken };
+            var broken = new CheckBox { Name = "ExplorerHideBroken", Content = Wrapped("settings.explorerHideBroken"), IsChecked = settings.ExplorerHideBroken };
             broken.IsCheckedChanged += (_, _) => edit(x => x with { ExplorerHideBroken = broken.IsChecked == true });
             panel.Children.Add(broken);
         }
@@ -72,6 +72,9 @@ public static class ExplorerFilterPopup
     }
 
     private static TextBlock Heading(string key, bool center = false) => new() { Text = Loc.Current[key], Classes = { "muted" }, Margin = new Thickness(0, Space("Space.2"), 0, 0), TextAlignment = center ? Avalonia.Media.TextAlignment.Center : Avalonia.Media.TextAlignment.Left };
+
+    // A long label wraps inside the popup instead of running under the scroll bar.
+    private static TextBlock Wrapped(string key) => new() { Text = Loc.Current[key], TextWrapping = Avalonia.Media.TextWrapping.Wrap };
 
     private static double Space(string key) => Application.Current is { } app && app.TryGetResource(key, app.ActualThemeVariant, out var value) && value is double d ? d : 8;
 }

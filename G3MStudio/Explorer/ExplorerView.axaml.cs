@@ -68,7 +68,7 @@ public partial class ExplorerView : UserControl
         var top = TopLevel.GetTopLevel(this);
         var scale = Math.Max(0.5, G3MStudio.Theme.PopupScale.Of(top));
         var size = top?.ClientSize ?? new Size(900, 700);
-        new Flyout { Content = new ScrollViewer { Content = content, MaxHeight = Math.Max(200, size.Height * 0.8 / scale), MaxWidth = Math.Max(240, size.Width * 0.9 / scale), HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto } }.ShowAt(FilterOptions);
+        new Flyout { Content = new ScrollViewer { Content = content, MaxHeight = Math.Max(200, size.Height * 0.8 / scale), MaxWidth = Math.Min(400, Math.Max(240, size.Width * 0.9 / scale)), HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, AllowAutoHide = false } }.ShowAt(FilterOptions); // a fixed scroll bar takes its own strip; 400 keeps the content inside the flyout presenter (456 wide with its padding), so long labels wrap instead of being cut
     }
 
     /// <summary>Types text into the filter box, as the user would.</summary>

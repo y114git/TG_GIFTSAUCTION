@@ -107,6 +107,7 @@ public sealed class SessionTests
             await first.OpenAsync(path);
             first.Close();
             File.Delete(path);
+            for (var i = 0; i < 200 && File.Exists(path); i++) await Task.Delay(25); // a delete waits for a handle the closing window still holds
             var window = Start(dir);
             try
             {
